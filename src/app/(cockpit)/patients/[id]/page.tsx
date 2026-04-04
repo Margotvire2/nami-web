@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral } from "@/lib/api";
 import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clinical-lifeline";
+import { PatientOverview } from "@/components/nami/patient-overview";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -312,13 +313,23 @@ function TimelineTab({ careCaseId, careCase }: {
 function OverviewSection({ careCaseId, careCase, api }: {
   careCaseId: string; careCase: CareCaseDetail; api: ReturnType<typeof apiWithToken>;
 }) {
+  const criticite = careCase.riskLevel === "CRITICAL" ? "critique" as const : careCase.riskLevel === "HIGH" ? "surveillance" as const : "stable" as const;
   return (
-    <div className="p-6 max-w-3xl space-y-8">
-      <ClinicalSummaryCard careCase={careCase} careCaseId={careCaseId} api={api} />
-      <CompactTimelineView careCaseId={careCaseId} careCase={careCase} />
-      <ReferralsOverviewCard careCaseId={careCaseId} api={api} />
-      <PatientSignalsCard careCaseId={careCaseId} api={api} />
-      <AppointmentsCard careCaseId={careCaseId} api={api} />
+    <div className="p-6 max-w-4xl">
+      <PatientOverview
+        patient={{
+          firstName: careCase.patient.firstName,
+          lastName: careCase.patient.lastName,
+          criticite,
+          pathologie: careCase.caseType,
+          leadPraticien: careCase.leadProvider?.person.firstName + " " + (careCase.leadProvider?.person.lastName ?? ""),
+          leadSpecialite: "",
+          suiviDepuis: new Date(careCase.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
+          clinicalSummary: careCase.clinicalSummary,
+          riskLevel: careCase.riskLevel,
+        }}
+        careCaseId={careCaseId}
+      />
     </div>
   );
 }
