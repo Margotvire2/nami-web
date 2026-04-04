@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Hash, Lock, Plus, ChevronDown, ChevronRight,
   Search, Send, Smile, Paperclip, AtSign, Pin,
   MessageCircle, Bell, Users, X, Compass,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { Channel, DmContact, ChatMessage } from "./types";
+
+const EMOJI_PICKER = ["👍", "❤️", "🙏", "🔥", "💡", "👆", "✅", "👀", "😂", "🎉"];
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UNREAD BADGE
@@ -22,7 +25,7 @@ export function UnreadBadge({ count }: { count: number }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   MEMBER TAG — avatar + name + specialty + online status
+   MEMBER TAG
    ═══════════════════════════════════════════════════════════════════════════ */
 
 interface MemberTagProps {
@@ -51,7 +54,7 @@ export function MemberTag({ firstName, lastName, specialty, isOnline, onClick }:
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CHANNEL SIDEBAR — 240px left column
+   CHANNEL SIDEBAR
    ═══════════════════════════════════════════════════════════════════════════ */
 
 interface ChannelSidebarProps {
@@ -76,7 +79,6 @@ export function ChannelSidebar({
 
   return (
     <div className="w-[240px] shrink-0 bg-card flex flex-col h-full overflow-hidden">
-      {/* Header */}
       <div className="px-4 h-16 flex items-center gap-2.5 shrink-0">
         <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
           <span className="text-primary-foreground text-xs font-bold">N</span>
@@ -87,68 +89,27 @@ export function ChannelSidebar({
         </div>
       </div>
 
-      {/* Scrollable nav */}
       <div className="flex-1 overflow-y-auto px-2 pb-3">
-        {/* CANAUX PUBLICS */}
-        <SidebarSection
-          title="Canaux"
-          isOpen={channelsOpen}
-          onToggle={() => setChannelsOpen(!channelsOpen)}
-          onAdd={onCreateChannel}
-        >
+        <SidebarSection title="Canaux" isOpen={channelsOpen} onToggle={() => setChannelsOpen(!channelsOpen)} onAdd={onCreateChannel}>
           {channels.map((ch) => (
-            <SidebarItem
-              key={ch.id}
-              icon={<Hash size={16} />}
-              label={ch.name}
-              active={activeId === ch.id}
-              unread={ch.unreadCount}
-              onClick={() => onSelect(ch.id)}
-            />
+            <SidebarItem key={ch.id} icon={<Hash size={16} />} label={ch.name} active={activeId === ch.id} unread={ch.unreadCount} onClick={() => onSelect(ch.id)} />
           ))}
           <button onClick={onExplore} className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#64748B] hover:text-primary transition-colors w-full rounded-xl">
             <Compass size={14} /> Explorer les canaux
           </button>
         </SidebarSection>
 
-        {/* GROUPES PRIVÉS */}
-        <SidebarSection
-          title="Groupes privés"
-          isOpen={groupsOpen}
-          onToggle={() => setGroupsOpen(!groupsOpen)}
-          onAdd={onCreateGroup}
-        >
+        <SidebarSection title="Groupes privés" isOpen={groupsOpen} onToggle={() => setGroupsOpen(!groupsOpen)} onAdd={onCreateGroup}>
           {groups.map((gr) => (
-            <SidebarItem
-              key={gr.id}
-              icon={<Lock size={14} />}
-              label={gr.name}
-              active={activeId === gr.id}
-              unread={gr.unreadCount}
-              onClick={() => onSelect(gr.id)}
-            />
+            <SidebarItem key={gr.id} icon={<Lock size={14} />} label={gr.name} active={activeId === gr.id} unread={gr.unreadCount} onClick={() => onSelect(gr.id)} />
           ))}
         </SidebarSection>
 
-        {/* MESSAGES DIRECTS */}
-        <SidebarSection
-          title="Messages directs"
-          isOpen={dmsOpen}
-          onToggle={() => setDmsOpen(!dmsOpen)}
-          onAdd={onNewDm}
-        >
+        <SidebarSection title="Messages directs" isOpen={dmsOpen} onToggle={() => setDmsOpen(!dmsOpen)} onAdd={onNewDm}>
           {dms.map((dm) => (
-            <button
-              key={dm.id}
-              onClick={() => onSelect(dm.id)}
-              className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-xl transition-colors text-left ${
-                activeId === dm.id ? "bg-secondary text-primary" : "text-[#64748B] hover:bg-[#F0F2F8]"
-              }`}
-            >
+            <button key={dm.id} onClick={() => onSelect(dm.id)} className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-xl transition-colors text-left ${activeId === dm.id ? "bg-secondary text-primary" : "text-[#64748B] hover:bg-[#F0F2F8]"}`}>
               <div className="relative shrink-0">
-                <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">
-                  {dm.firstName[0]}{dm.lastName[0]}
-                </div>
+                <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">{dm.firstName[0]}{dm.lastName[0]}</div>
                 <div className={`absolute -bottom-px -right-px w-2 h-2 rounded-full border border-white ${dm.isOnline ? "bg-[#16A34A]" : "bg-[#94A3B8]"}`} />
               </div>
               <span className="text-sm truncate flex-1">{dm.firstName} {dm.lastName}</span>
@@ -158,7 +119,6 @@ export function ChannelSidebar({
         </SidebarSection>
       </div>
 
-      {/* Current user */}
       <div className="px-3 py-3 shrink-0">
         <div className="flex items-center gap-2.5 px-2">
           <div className="relative">
@@ -182,8 +142,7 @@ function SidebarSection({ title, isOpen, onToggle, onAdd, children }: {
     <div className="mt-4">
       <div className="flex items-center justify-between px-2 mb-1">
         <button onClick={onToggle} className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-[#94A3B8] hover:text-[#64748B] transition-colors">
-          {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-          {title}
+          {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />} {title}
         </button>
         <button onClick={onAdd} className="w-5 h-5 rounded flex items-center justify-center text-[#94A3B8] hover:text-primary hover:bg-secondary transition-colors">
           <Plus size={14} />
@@ -198,19 +157,10 @@ function SidebarItem({ icon, label, active, unread, onClick }: {
   icon: React.ReactNode; label: string; active: boolean; unread: number; onClick: () => void;
 }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 w-full px-3 py-1.5 rounded-xl transition-colors text-left ${
-        active
-          ? "bg-secondary text-primary font-medium"
-          : unread > 0
-            ? "text-[#1E293B] font-medium hover:bg-[#F0F2F8]"
-            : "text-[#64748B] hover:bg-[#F0F2F8]"
-      }`}
-    >
+    <button onClick={onClick} className={`flex items-center gap-2 w-full px-3 py-1.5 rounded-xl transition-colors text-left ${active ? "bg-secondary text-primary font-medium" : unread > 0 ? "text-[#1E293B] font-medium hover:bg-[#F0F2F8]" : "text-[#64748B] hover:bg-[#F0F2F8]"}`}>
       <span className="shrink-0">{icon}</span>
       <span className="text-sm truncate flex-1">{label}</span>
-      <UnreadBadge count={unread} />
+      <UnreadBadge count={active ? 0 : unread} />
     </button>
   );
 }
@@ -225,7 +175,6 @@ export function DateSeparator({ date }: { date: string }) {
   const isToday = d.toDateString() === now.toDateString();
   const isYesterday = d.toDateString() === new Date(Date.now() - 86400000).toDateString();
   const label = isToday ? "Aujourd'hui" : isYesterday ? "Hier" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
-
   return (
     <div className="flex items-center gap-4 py-4">
       <div className="flex-1 h-px bg-[#E2E8F0]" />
@@ -239,18 +188,17 @@ export function DateSeparator({ date }: { date: string }) {
    THREAD PREVIEW
    ═══════════════════════════════════════════════════════════════════════════ */
 
-export function ThreadPreview({ replyCount, participants }: {
+export function ThreadPreview({ replyCount, participants, onOpen }: {
   replyCount: number;
   participants: { firstName: string; lastName: string }[];
+  onOpen?: () => void;
 }) {
   if (replyCount <= 0) return null;
   return (
-    <button className="flex items-center gap-2 mt-1.5 bg-secondary rounded-xl px-3 py-2 hover:bg-[#E0E5FF] transition-colors group">
+    <button onClick={() => onOpen ? onOpen() : toast.info("Fils de discussion bientôt disponibles")} className="flex items-center gap-2 mt-1.5 bg-secondary rounded-xl px-3 py-2 hover:bg-[#E0E5FF] transition-colors group">
       <div className="flex -space-x-1.5">
         {participants.slice(0, 3).map((p, i) => (
-          <div key={i} className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-primary-foreground ring-2 ring-white">
-            {p.firstName[0]}{p.lastName[0]}
-          </div>
+          <div key={i} className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-primary-foreground ring-2 ring-white">{p.firstName[0]}{p.lastName[0]}</div>
         ))}
       </div>
       <span className="text-xs font-semibold text-primary">{replyCount} réponse{replyCount > 1 ? "s" : ""}</span>
@@ -260,46 +208,59 @@ export function ThreadPreview({ replyCount, participants }: {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   MESSAGE BUBBLE — Slack style (not chat bubble)
+   MESSAGE BUBBLE — fully interactive
    ═══════════════════════════════════════════════════════════════════════════ */
 
 interface MessageBubbleProps {
   message: ChatMessage;
   showAvatar?: boolean;
+  onReact: (msgId: string, emoji: string) => void;
+  onPin: (msgId: string) => void;
+  onReply: (msgId: string) => void;
 }
 
-export function MessageBubble({ message: m, showAvatar = true }: MessageBubbleProps) {
+export function MessageBubble({ message: m, showAvatar = true, onReact, onPin, onReply }: MessageBubbleProps) {
   const [hovered, setHovered] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const time = new Date(m.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div
       className={`relative px-6 py-1.5 transition-colors ${hovered ? "bg-[#F8F9FF]" : ""}`}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setEmojiOpen(false); }}
     >
       {/* Hover actions */}
       {hovered && (
         <div className="absolute -top-3 right-6 flex items-center bg-card rounded-lg overflow-hidden z-10" style={{ border: "1px solid #E2E8F0" }}>
-          <button className="p-1.5 text-[#94A3B8] hover:text-primary hover:bg-secondary transition-colors" title="Réagir"><Smile size={14} /></button>
-          <button className="p-1.5 text-[#94A3B8] hover:text-primary hover:bg-secondary transition-colors" title="Répondre"><MessageCircle size={14} /></button>
-          <button className="p-1.5 text-[#94A3B8] hover:text-primary hover:bg-secondary transition-colors" title="Épingler"><Pin size={14} /></button>
+          <button onClick={() => setEmojiOpen(!emojiOpen)} className="p-1.5 text-[#94A3B8] hover:text-primary hover:bg-secondary transition-colors" title="Réagir"><Smile size={14} /></button>
+          <button onClick={() => onReply(m.id)} className="p-1.5 text-[#94A3B8] hover:text-primary hover:bg-secondary transition-colors" title="Répondre"><MessageCircle size={14} /></button>
+          <button onClick={() => onPin(m.id)} className={`p-1.5 hover:bg-secondary transition-colors ${m.isPinned ? "text-[#CA8A04]" : "text-[#94A3B8] hover:text-primary"}`} title={m.isPinned ? "Désépingler" : "Épingler"}><Pin size={14} /></button>
+        </div>
+      )}
+
+      {/* Emoji picker */}
+      {emojiOpen && (
+        <div className="absolute -top-11 right-6 flex items-center gap-0.5 bg-card rounded-xl px-2 py-1.5 z-20" style={{ border: "1px solid #E2E8F0" }}>
+          {EMOJI_PICKER.map((emoji) => (
+            <button key={emoji} onClick={() => { onReact(m.id, emoji); setEmojiOpen(false); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors text-sm">
+              {emoji}
+            </button>
+          ))}
         </div>
       )}
 
       <div className="flex gap-3">
-        {/* Avatar */}
         {showAvatar ? (
           <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary shrink-0 mt-0.5">
             {m.sender.firstName[0]}{m.sender.lastName[0]}
           </div>
         ) : (
           <div className="w-9 shrink-0 flex justify-center">
-            <span className={`text-[10px] text-[#94A3B8] mt-1 ${hovered ? "opacity-100" : "opacity-0"} transition-opacity`}>{time}</span>
+            <span className={`text-[10px] text-[#94A3B8] mt-1 ${hovered ? "visible" : "invisible"}`}>{time}</span>
           </div>
         )}
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           {showAvatar && (
             <div className="flex items-baseline gap-2 mb-0.5">
@@ -313,27 +274,25 @@ export function MessageBubble({ message: m, showAvatar = true }: MessageBubblePr
 
           <p className="text-sm text-[#1E293B] leading-relaxed whitespace-pre-wrap">{m.body}</p>
 
-          {/* Reactions */}
+          {/* Reactions — clickable to toggle */}
           {m.reactions && m.reactions.length > 0 && (
-            <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {m.reactions.map((r, i) => (
-                <button key={i} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs hover:bg-[#E0E5FF] transition-colors">
+                <button key={i} onClick={() => onReact(m.id, r.emoji)} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs hover:bg-[#E0E5FF] transition-colors">
                   <span>{r.emoji}</span>
                   <span className="text-[#64748B] font-medium">{r.count}</span>
                 </button>
               ))}
+              <button onClick={() => setEmojiOpen(true)} className="w-6 h-6 rounded-full flex items-center justify-center text-[#94A3B8] hover:bg-secondary transition-colors">
+                <Plus size={12} />
+              </button>
             </div>
           )}
 
-          {/* Thread preview */}
           {m.replyCount > 0 && (
-            <ThreadPreview
-              replyCount={m.replyCount}
-              participants={[m.sender, { firstName: "Marie", lastName: "Petit" }]}
-            />
+            <ThreadPreview replyCount={m.replyCount} participants={[m.sender, { firstName: "Marie", lastName: "Petit" }]} />
           )}
 
-          {/* Pinned indicator */}
           {m.isPinned && (
             <div className="flex items-center gap-1 mt-1 text-[10px] text-[#CA8A04] font-medium">
               <Pin size={10} /> Épinglé
@@ -356,19 +315,33 @@ interface MessageComposerProps {
 
 export function MessageComposer({ channelName, onSend }: MessageComposerProps) {
   const [text, setText] = useState("");
+  const [emojiOpen, setEmojiOpen] = useState(false);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (text.trim()) {
-        onSend(text.trim());
-        setText("");
-      }
+      if (text.trim()) { onSend(text.trim()); setText(""); }
     }
   }
 
+  function insertEmoji(emoji: string) {
+    setText((prev) => prev + emoji);
+    setEmojiOpen(false);
+  }
+
   return (
-    <div className="px-6 py-4 shrink-0">
+    <div className="px-6 py-4 shrink-0 relative">
+      {/* Emoji picker for composer */}
+      {emojiOpen && (
+        <div className="absolute bottom-20 left-6 flex items-center gap-0.5 bg-card rounded-xl px-2 py-1.5 z-20" style={{ border: "1px solid #E2E8F0" }}>
+          {EMOJI_PICKER.map((emoji) => (
+            <button key={emoji} onClick={() => insertEmoji(emoji)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors text-base">
+              {emoji}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="bg-[#F0F2F8] rounded-2xl p-3 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
         <textarea
           value={text}
@@ -381,22 +354,20 @@ export function MessageComposer({ channelName, onSend }: MessageComposerProps) {
         />
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-white transition-colors">
+            <button onClick={() => setEmojiOpen(!emojiOpen)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${emojiOpen ? "text-primary bg-white" : "text-[#94A3B8] hover:text-[#64748B] hover:bg-white"}`}>
               <Smile size={18} />
             </button>
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-white transition-colors">
+            <button onClick={() => toast.info("Pièces jointes bientôt disponibles")} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-white transition-colors">
               <Paperclip size={18} />
             </button>
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-white transition-colors">
+            <button onClick={() => { setText((prev) => prev + "@"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-white transition-colors">
               <AtSign size={18} />
             </button>
           </div>
           <button
             onClick={() => { if (text.trim()) { onSend(text.trim()); setText(""); } }}
             disabled={!text.trim()}
-            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
-              text.trim() ? "bg-primary text-primary-foreground" : "bg-transparent text-[#94A3B8]"
-            }`}
+            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${text.trim() ? "bg-primary text-primary-foreground" : "bg-transparent text-[#94A3B8]"}`}
           >
             <Send size={16} />
           </button>
@@ -408,7 +379,7 @@ export function MessageComposer({ channelName, onSend }: MessageComposerProps) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CHANNEL CARD — for explore page
+   CHANNEL CARD
    ═══════════════════════════════════════════════════════════════════════════ */
 
 interface ChannelCardProps {
@@ -419,13 +390,11 @@ interface ChannelCardProps {
 export function ChannelCard({ channel: ch, onJoin }: ChannelCardProps) {
   return (
     <div className="bg-card rounded-2xl p-5 flex flex-col gap-3">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-[#1E293B] flex items-center gap-1.5">
-            <Hash size={16} className="text-primary" /> {ch.name}
-          </h3>
-          {ch.description && <p className="text-sm text-[#64748B] mt-1 leading-snug">{ch.description}</p>}
-        </div>
+      <div>
+        <h3 className="text-base font-semibold text-[#1E293B] flex items-center gap-1.5">
+          <Hash size={16} className="text-primary" /> {ch.name}
+        </h3>
+        {ch.description && <p className="text-sm text-[#64748B] mt-1 leading-snug">{ch.description}</p>}
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {ch.tags?.map((tag) => (
