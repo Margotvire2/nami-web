@@ -33,3 +33,12 @@ export interface Block {
   endTime: string;
   reason: string;
 }
+
+export interface TimeSlot {
+  id: string;
+  locationId: string;
+  dayOfWeek: number; // 0=lun, 1=mar, ..., 4=ven
+  startHour: number;
+  endHour: number;
+  acceptsReferral: boolean;
+}

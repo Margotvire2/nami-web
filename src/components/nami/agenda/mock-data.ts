@@ -1,4 +1,4 @@
-import type { Location, ConsultationType, Appointment, Block } from "./types";
+import type { Location, ConsultationType, Appointment, Block, TimeSlot } from "./types";
 
 export const LOCATIONS: Location[] = [
   { id: "loc-1", name: "Cabinet Necker", type: "CABINET", color: "#4F6AF5", isActive: true },
@@ -71,11 +71,29 @@ export const BLOCKS: Block[] = [
   },
 ];
 
-// Créneaux d'ouverture (simplifié : lun-ven 8h-13h + 14h-18h)
+// Créneaux d'ouverture (lun-ven 8h-13h + 14h-18h)
 export const OPEN_HOURS = {
   start: 8,
   end: 18,
   lunchStart: 13,
   lunchEnd: 14,
-  days: [0, 1, 2, 3, 4], // lun-ven (offset depuis lundi)
+  days: [0, 1, 2, 3, 4], // lun-ven
 };
+
+// Créneaux récurrents avec indication adressage
+export const TIME_SLOTS: TimeSlot[] = [
+  // Lundi
+  { id: "ts-1", locationId: "loc-1", dayOfWeek: 0, startHour: 9, endHour: 13, acceptsReferral: true },
+  { id: "ts-2", locationId: "loc-1", dayOfWeek: 0, startHour: 14, endHour: 17, acceptsReferral: false },
+  // Mardi
+  { id: "ts-3", locationId: "loc-1", dayOfWeek: 1, startHour: 9, endHour: 13, acceptsReferral: true },
+  { id: "ts-4", locationId: "loc-3", dayOfWeek: 1, startHour: 14, endHour: 18, acceptsReferral: true },
+  // Mercredi — matin libre (formation), après-midi CHU
+  { id: "ts-5", locationId: "loc-3", dayOfWeek: 2, startHour: 14, endHour: 18, acceptsReferral: false },
+  // Jeudi
+  { id: "ts-6", locationId: "loc-1", dayOfWeek: 3, startHour: 9, endHour: 13, acceptsReferral: true },
+  { id: "ts-7", locationId: "loc-1", dayOfWeek: 3, startHour: 14, endHour: 17, acceptsReferral: false },
+  // Vendredi
+  { id: "ts-8", locationId: "loc-2", dayOfWeek: 4, startHour: 9, endHour: 12, acceptsReferral: true },
+  { id: "ts-9", locationId: "loc-1", dayOfWeek: 4, startHour: 14, endHour: 17, acceptsReferral: false },
+];
