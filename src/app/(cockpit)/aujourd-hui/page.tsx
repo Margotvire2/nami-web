@@ -168,43 +168,37 @@ export default function AujourdhuiPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ── Header — Level 1 surface (white on gray floor) ── */}
-      <header className="bg-card px-8 py-6 shrink-0">
-        <div className="flex items-center gap-6">
+      {/* ── Header ── */}
+      <header className="bg-white border-b border-[#E8ECF0] px-6 py-4 shrink-0">
+        <div className="flex items-center gap-4">
           <div className="flex-1">
-            <h1 className="text-page-title">Aujourd'hui</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-              {" · "}
+            <h1 className="text-[22px] font-bold text-[#1E293B] tracking-tight" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>
               {greeting}, {user?.firstName}
+            </h1>
+            <p className="text-sm text-[#64748B] mt-0.5">
+              {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>
           <div className="relative hidden md:block">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher un patient, un document…"
-              className="pl-10 h-10 text-sm w-80 bg-background border-0 rounded-xl focus:ring-2 focus:ring-primary/30"
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+            <input
+              placeholder="Rechercher un patient…"
+              className="pl-9 h-9 text-sm w-64 bg-[#F0F2F8] rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#4F6AF5]/20 placeholder:text-[#94A3B8]"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors" title="Notifications">
-              <Bell size={18} />
-            </button>
-            <Button size="sm" variant="secondary" className="h-10 rounded-xl border-0" onClick={() => setNoteOpen(true)}>
-              <CheckSquare size={16} /> Créer une tâche
-            </Button>
-            <Button size="sm" className="h-10 rounded-xl" onClick={() => setNoteOpen(true)}>
-              <Plus size={16} /> Ajouter une note
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-9 rounded-lg border-[#E2E8F0] text-[#64748B] hover:text-[#1E293B]" onClick={() => setNoteOpen(true)}>
+              <Plus size={14} /> Ajouter une note
             </Button>
           </div>
         </div>
       </header>
 
       <div className="nami-page-body">
-        <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
 
-          {/* ── Bandeau résumé rapide ── */}
-          <div className="grid grid-cols-4 gap-5">
+          {/* ── KPI cards ── */}
+          <div className="grid grid-cols-4 gap-4">
             <SummaryCard
               icon={<CalendarDays size={14} />}
               label="Prochains RDV"
@@ -241,7 +235,7 @@ export default function AujourdhuiPage() {
           </div>
 
           {/* ── Layout principal 2 colonnes ── */}
-          <div className="flex gap-8 items-start">
+          <div className="flex gap-6 items-start">
 
             {/* Colonne gauche 70% */}
             <div className="flex-1 min-w-0 space-y-5">
@@ -631,8 +625,8 @@ function MainBlock({ title, icon, titleClass, action, subHeader, children, id }:
 }) {
   return (
     <div id={id} className="nami-card overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className={`text-label flex items-center gap-2 ${titleClass ?? ""}`}>
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#E8ECF0]">
+        <div className={`text-xs font-semibold uppercase tracking-wide text-[#94A3B8] flex items-center gap-2 ${titleClass ?? ""}`}>
           {icon} {title}
         </div>
         {action}
@@ -652,15 +646,15 @@ function SideBlock({ title, icon, titleClass, href, children }: {
 }) {
   return (
     <div className="nami-card overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3.5">
-        <div className={`text-label flex items-center gap-2 ${titleClass ?? ""}`}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E8ECF0]">
+        <div className={`text-xs font-semibold uppercase tracking-wide text-[#94A3B8] flex items-center gap-2 ${titleClass ?? ""}`}>
           {icon} {title}
         </div>
-        <Link href={href} className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors font-medium">
+        <Link href={href} className="text-xs text-[#64748B] hover:text-[#4F6AF5] flex items-center gap-1 transition-colors font-medium">
           Voir tout <ChevronRight size={12} />
         </Link>
       </div>
-      <div className="px-5 py-3">{children}</div>
+      <div className="px-4 py-3">{children}</div>
     </div>
   );
 }
@@ -676,17 +670,19 @@ function SummaryCard({ icon, label, value, sub, href, cta, alert }: {
 }) {
   return (
     <Link href={href}>
-      <div className={`nami-card p-6 space-y-3 ${alert ? "" : ""}`}>
-        <div className={`text-label ${alert ? "text-severity-critical-foreground" : ""}`}>
-          <span className="flex items-center gap-2">{icon} {label}</span>
+      <div className={`nami-card-interactive p-5 ${alert ? "!border-[#FCA5A5]" : ""}`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${alert ? "bg-[#FEE2E2] text-[#DC2626]" : "bg-[#EEF1FF] text-[#4F6AF5]"}`}>
+            {icon}
+          </div>
         </div>
         {value === null ? (
-          <Skeleton className="h-10 w-14 rounded-lg" />
+          <Skeleton className="h-8 w-12 rounded-lg mb-1" />
         ) : (
-          <p className={`text-kpi ${alert ? "!text-severity-critical" : ""}`}>{value}</p>
+          <p className={`text-[28px] font-bold tracking-tight leading-none mb-1 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`} style={{ fontFamily: "var(--font-bricolage), system-ui" }}>{value}</p>
         )}
-        <p className="text-sm text-muted-foreground leading-snug">{sub}</p>
-        <p className={`text-sm font-semibold ${alert ? "text-severity-critical" : "text-primary"}`}>{cta} →</p>
+        <p className={`text-[13px] font-semibold mb-0.5 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`}>{label}</p>
+        <p className="text-xs text-[#94A3B8]">{sub}</p>
       </div>
     </Link>
   );

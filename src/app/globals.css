@@ -202,12 +202,25 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer utilities {
-  /* Cards — NO shadow, NO border. White on gray = contrast. */
+  /* Cards — subtle shadow for depth, thin border for definition */
   .nami-card {
-    @apply bg-card rounded-2xl;
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E8ECF0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
   .nami-card-interactive {
-    @apply bg-card rounded-2xl cursor-pointer transition-colors duration-150 hover:bg-[#F8F9FF];
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E8ECF0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .nami-card-interactive:hover {
+    box-shadow: 0 4px 12px rgba(79, 106, 245, 0.08);
+    border-color: #D0D5DD;
+    transform: translateY(-1px);
   }
 
   /* Typography — Bricolage Grotesque for headings */
