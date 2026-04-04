@@ -136,7 +136,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   if (!careCase) return <div className="p-8 text-sm text-muted-foreground">Dossier introuvable.</div>;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-background">
+    <div className="h-full flex flex-col overflow-hidden">
       <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
 

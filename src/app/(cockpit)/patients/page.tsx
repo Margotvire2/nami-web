@@ -80,7 +80,7 @@ export default function PatientsPage() {
   const types = [...new Set(allCases.map((c) => c.caseType))];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-muted/10">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="nami-page-header">
         <div className="flex items-center justify-between gap-4">

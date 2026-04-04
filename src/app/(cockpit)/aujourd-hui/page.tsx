@@ -171,31 +171,31 @@ export default function AujourdhuiPage() {
     <div className="h-full flex flex-col overflow-hidden">
       {/* ── Header ── */}
       <header className="nami-page-header">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="flex-1">
             <h1 className="text-page-title text-foreground">Aujourd'hui</h1>
-            <p className="text-caption text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
               {" · "}
               {greeting}, {user?.firstName}
             </p>
           </div>
           <div className="relative hidden md:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Rechercher un patient, un document…"
-              className="pl-9 h-9 text-sm w-72 bg-secondary border-transparent focus:border-input focus:bg-card"
+              className="pl-10 h-10 text-sm w-80 bg-background border-border/50 rounded-xl focus:border-primary focus:bg-card"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" className="h-9 w-9 p-0 text-muted-foreground" title="Notifications">
-              <Bell size={16} />
+          <div className="flex items-center gap-3">
+            <Button size="sm" variant="ghost" className="h-10 w-10 p-0 rounded-xl text-muted-foreground" title="Notifications">
+              <Bell size={18} />
             </Button>
-            <Button size="sm" variant="outline" className="h-9" onClick={() => setNoteOpen(true)}>
-              <CheckSquare size={14} /> Créer une tâche
+            <Button size="sm" variant="outline" className="h-10 rounded-xl" onClick={() => setNoteOpen(true)}>
+              <CheckSquare size={16} /> Créer une tâche
             </Button>
-            <Button size="sm" className="h-9" onClick={() => setNoteOpen(true)}>
-              <Plus size={14} /> Ajouter une note
+            <Button size="sm" className="h-10 rounded-xl" onClick={() => setNoteOpen(true)}>
+              <Plus size={16} /> Ajouter une note
             </Button>
           </div>
         </div>
@@ -672,17 +672,17 @@ function SummaryCard({ icon, label, value, sub, href, cta, alert }: {
 }) {
   return (
     <Link href={href}>
-      <div className={`nami-card-interactive px-5 py-4 space-y-2 ${alert ? "border-severity-critical-border" : ""}`}>
-        <div className={`flex items-center gap-2 text-caption font-medium ${alert ? "text-severity-critical" : "text-muted-foreground"}`}>
+      <div className={`nami-card-interactive px-5 py-5 space-y-3 ${alert ? "border-severity-critical-border" : ""}`}>
+        <div className={`flex items-center gap-2 text-xs uppercase tracking-wide font-medium ${alert ? "text-severity-critical" : "text-muted-foreground"}`}>
           {icon} <span className="truncate">{label}</span>
         </div>
         {value === null ? (
-          <Skeleton className="h-8 w-10" />
+          <Skeleton className="h-9 w-12 rounded-lg" />
         ) : (
-          <p className={`text-[28px] font-bold leading-none tracking-tight ${alert ? "text-severity-critical" : "text-foreground"}`}>{value}</p>
+          <p className={`text-kpi ${alert ? "text-severity-critical" : "text-foreground"}`}>{value}</p>
         )}
-        <p className="text-caption text-muted-foreground leading-snug">{sub}</p>
-        <p className={`text-caption font-medium ${alert ? "text-severity-critical" : "text-primary"}`}>{cta} →</p>
+        <p className="text-xs text-muted-foreground leading-snug">{sub}</p>
+        <p className={`text-xs font-semibold ${alert ? "text-severity-critical" : "text-primary"}`}>{cta} →</p>
       </div>
     </Link>
   );

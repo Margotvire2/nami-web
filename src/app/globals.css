@@ -5,12 +5,16 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NAMI DESIGN SYSTEM — Tokens
+   NAMI DESIGN SYSTEM v3
    "soft precision / clinical clarity / intelligent warmth"
+
+   Palette : bleu-indigo primaire, fond gris-lavande, cards blanches.
+   Fonts  : Bricolage Grotesque (titres/KPI) + Geist Sans (UI) + Geist Mono
+   Refs   : Clinexa, MediConnect, Hero Medical
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
-  /* ── Core color mapping ──────────────────────────────────────────────── */
+  /* ── Core colors ─────────────────────────────────────────────────────── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -47,209 +51,192 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* ── Nami brand ──────────────────────────────────────────────────────── */
+  /* ── Nami semantic ───────────────────────────────────────────────────── */
   --color-nami: var(--nami);
   --color-nami-foreground: var(--nami-foreground);
   --color-nami-light: var(--nami-light);
 
-  /* ── Semantic severity ───────────────────────────────────────────────── */
   --color-severity-critical: var(--severity-critical);
   --color-severity-critical-foreground: var(--severity-critical-foreground);
   --color-severity-critical-bg: var(--severity-critical-bg);
   --color-severity-critical-border: var(--severity-critical-border);
-
   --color-severity-high: var(--severity-high);
   --color-severity-high-foreground: var(--severity-high-foreground);
   --color-severity-high-bg: var(--severity-high-bg);
   --color-severity-high-border: var(--severity-high-border);
-
   --color-severity-warning: var(--severity-warning);
   --color-severity-warning-foreground: var(--severity-warning-foreground);
   --color-severity-warning-bg: var(--severity-warning-bg);
   --color-severity-warning-border: var(--severity-warning-border);
-
   --color-severity-info: var(--severity-info);
   --color-severity-info-foreground: var(--severity-info-foreground);
   --color-severity-info-bg: var(--severity-info-bg);
   --color-severity-info-border: var(--severity-info-border);
-
   --color-severity-success: var(--severity-success);
   --color-severity-success-foreground: var(--severity-success-foreground);
   --color-severity-success-bg: var(--severity-success-bg);
   --color-severity-success-border: var(--severity-success-border);
 
   /* ── Fonts ───────────────────────────────────────────────────────────── */
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-bricolage);
 
   /* ── Radius ──────────────────────────────────────────────────────────── */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-4xl: 28px;
 
-  /* ── Shadows — elevation system ──────────────────────────────────────
-     3 levels: subtle (cards), medium (elevated), strong (modals)       */
-  --shadow-xs: 0 1px 3px oklch(0.25 0.03 270 / 0.08);
-  --shadow-sm: 0 2px 6px oklch(0.25 0.03 270 / 0.10), 0 1px 2px oklch(0.25 0.03 270 / 0.06);
-  --shadow-md: 0 4px 16px oklch(0.25 0.03 270 / 0.12), 0 2px 4px oklch(0.25 0.03 270 / 0.06);
-  --shadow-lg: 0 12px 32px oklch(0.25 0.03 270 / 0.15), 0 4px 8px oklch(0.25 0.03 270 / 0.08);
-  --shadow-card: 0 2px 8px oklch(0.25 0.03 270 / 0.08), 0 1px 3px oklch(0.25 0.03 270 / 0.05);
-  --shadow-card-hover: 0 8px 24px oklch(0.25 0.03 270 / 0.14), 0 4px 8px oklch(0.25 0.03 270 / 0.06);
+  /* ── Shadows — indigo tinted ─────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(79, 106, 245, 0.04);
+  --shadow-sm: 0 2px 8px rgba(79, 106, 245, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(79, 106, 245, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 32px rgba(79, 106, 245, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(79, 106, 245, 0.05);
+  --shadow-card-hover: 0 8px 24px rgba(79, 106, 245, 0.12), 0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT THEME
+   LIGHT THEME — hex palette
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Surfaces ────────────────────────────────────────────────────────
-     Le fond DOIT être visiblement différent des cards.
-     C'est ce contraste qui crée la profondeur.                         */
-  --background: oklch(0.945 0.010 270);
-  --foreground: oklch(0.16 0.02 270);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.02 270);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.02 270);
+  --background: #F0F2F8;
+  --foreground: #1E293B;
+  --card: #FFFFFF;
+  --card-foreground: #1E293B;
+  --popover: #FFFFFF;
+  --popover-foreground: #1E293B;
 
-  /* ── Nami primary — warm indigo ──────────────────────────────────────
-     Deep enough for text contrast on white.
-     Warm enough to not feel corporate/cold.                             */
-  --primary: oklch(0.40 0.12 265);
-  --primary-foreground: oklch(0.98 0 0);
+  --primary: #4F6AF5;
+  --primary-foreground: #FFFFFF;
 
-  /* ── Secondary / muted / accent ──────────────────────────────────── */
-  --secondary: oklch(0.955 0.008 270);
-  --secondary-foreground: oklch(0.28 0.06 265);
-  --muted: oklch(0.955 0.005 270);
-  --muted-foreground: oklch(0.46 0.015 265);
-  --accent: oklch(0.945 0.010 270);
-  --accent-foreground: oklch(0.28 0.06 265);
+  --secondary: #EEF1FF;
+  --secondary-foreground: #3B4FBF;
+  --muted: #E8EAF0;
+  --muted-foreground: #64748B;
+  --accent: #EEF1FF;
+  --accent-foreground: #3B4FBF;
+  --destructive: #EF4444;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #4F6AF5;
 
-  /* ── Functional ──────────────────────────────────────────────────── */
-  --destructive: oklch(0.577 0.245 27);
-  --border: oklch(0.905 0.008 270);
-  --input: oklch(0.905 0.008 270);
-  --ring: oklch(0.50 0.10 265);
-  --radius: 0.5rem;
-
-  /* ── Charts ──────────────────────────────────────────────────────── */
-  --chart-1: oklch(0.50 0.12 265);
-  --chart-2: oklch(0.55 0.10 195);
-  --chart-3: oklch(0.50 0.10 150);
-  --chart-4: oklch(0.55 0.12 50);
-  --chart-5: oklch(0.50 0.10 30);
+  --chart-1: #4F6AF5;
+  --chart-2: #22C55E;
+  --chart-3: #F59E0B;
+  --chart-4: #8B5CF6;
+  --chart-5: #EF4444;
+  --radius: 12px;
 
   /* ── Sidebar ─────────────────────────────────────────────────────── */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.16 0.02 270);
-  --sidebar-primary: oklch(0.40 0.12 265);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.94 0.010 270);
-  --sidebar-accent-foreground: oklch(0.28 0.06 265);
-  --sidebar-border: oklch(0.905 0.008 270);
-  --sidebar-ring: oklch(0.50 0.10 265);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #64748B;
+  --sidebar-primary: #4F6AF5;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EEF1FF;
+  --sidebar-accent-foreground: #3B4FBF;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #4F6AF5;
 
-  /* ── Brand ───────────────────────────────────────────────────────── */
-  --nami: oklch(0.45 0.14 265);
-  --nami-foreground: oklch(0.98 0 0);
-  --nami-light: oklch(0.93 0.020 270);
+  /* ── Nami brand ──────────────────────────────────────────────────── */
+  --nami: #4F6AF5;
+  --nami-foreground: #FFFFFF;
+  --nami-light: #EEF1FF;
 
   /* ── Severity ────────────────────────────────────────────────────── */
-  --severity-critical: oklch(0.577 0.245 27);
-  --severity-critical-foreground: oklch(0.42 0.18 25);
-  --severity-critical-bg: oklch(0.97 0.012 25);
-  --severity-critical-border: oklch(0.87 0.05 25);
+  --severity-critical: #EF4444;
+  --severity-critical-foreground: #B91C1C;
+  --severity-critical-bg: #FEF2F2;
+  --severity-critical-border: #FECACA;
 
-  --severity-high: oklch(0.62 0.16 50);
-  --severity-high-foreground: oklch(0.45 0.13 50);
-  --severity-high-bg: oklch(0.97 0.012 55);
-  --severity-high-border: oklch(0.87 0.05 55);
+  --severity-high: #F59E0B;
+  --severity-high-foreground: #B45309;
+  --severity-high-bg: #FFFBEB;
+  --severity-high-border: #FDE68A;
 
-  --severity-warning: oklch(0.72 0.14 85);
-  --severity-warning-foreground: oklch(0.48 0.11 80);
-  --severity-warning-bg: oklch(0.97 0.012 85);
-  --severity-warning-border: oklch(0.87 0.05 85);
+  --severity-warning: #EAB308;
+  --severity-warning-foreground: #A16207;
+  --severity-warning-bg: #FEFCE8;
+  --severity-warning-border: #FEF08A;
 
-  --severity-info: oklch(0.58 0.12 250);
-  --severity-info-foreground: oklch(0.42 0.10 250);
-  --severity-info-bg: oklch(0.97 0.010 250);
-  --severity-info-border: oklch(0.87 0.04 250);
+  --severity-info: #3B82F6;
+  --severity-info-foreground: #1D4ED8;
+  --severity-info-bg: #EFF6FF;
+  --severity-info-border: #BFDBFE;
 
-  --severity-success: oklch(0.58 0.13 155);
-  --severity-success-foreground: oklch(0.40 0.11 155);
-  --severity-success-bg: oklch(0.97 0.010 155);
-  --severity-success-border: oklch(0.87 0.04 155);
+  --severity-success: #22C55E;
+  --severity-success-foreground: #15803D;
+  --severity-success-bg: #F0FDF4;
+  --severity-success-border: #BBF7D0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DARK THEME (placeholder — not priority)
+   DARK (placeholder)
    ═══════════════════════════════════════════════════════════════════════════ */
-
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.72 0.10 265);
-  --primary-foreground: oklch(0.15 0.03 265);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.72 0.10 265);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --nami: oklch(0.72 0.10 265);
-  --nami-foreground: oklch(0.15 0.03 265);
-  --nami-light: oklch(0.25 0.04 265);
-  --severity-critical: oklch(0.70 0.20 25);
-  --severity-critical-foreground: oklch(0.80 0.15 25);
-  --severity-critical-bg: oklch(0.22 0.04 25);
-  --severity-critical-border: oklch(0.35 0.08 25);
-  --severity-high: oklch(0.72 0.15 50);
-  --severity-high-foreground: oklch(0.80 0.12 50);
-  --severity-high-bg: oklch(0.22 0.03 50);
-  --severity-high-border: oklch(0.35 0.06 50);
-  --severity-warning: oklch(0.78 0.12 85);
-  --severity-warning-foreground: oklch(0.85 0.10 85);
-  --severity-warning-bg: oklch(0.22 0.03 85);
-  --severity-warning-border: oklch(0.35 0.05 85);
-  --severity-info: oklch(0.65 0.10 250);
-  --severity-info-foreground: oklch(0.75 0.08 250);
-  --severity-info-bg: oklch(0.22 0.02 250);
-  --severity-info-border: oklch(0.35 0.04 250);
-  --severity-success: oklch(0.65 0.12 155);
-  --severity-success-foreground: oklch(0.75 0.10 155);
-  --severity-success-bg: oklch(0.22 0.02 155);
-  --severity-success-border: oklch(0.35 0.04 155);
+  --background: #0F172A;
+  --foreground: #F1F5F9;
+  --card: #1E293B;
+  --card-foreground: #F1F5F9;
+  --popover: #1E293B;
+  --popover-foreground: #F1F5F9;
+  --primary: #818CF8;
+  --primary-foreground: #0F172A;
+  --secondary: #334155;
+  --secondary-foreground: #F1F5F9;
+  --muted: #334155;
+  --muted-foreground: #94A3B8;
+  --accent: #334155;
+  --accent-foreground: #F1F5F9;
+  --destructive: #F87171;
+  --border: #334155;
+  --input: #334155;
+  --ring: #818CF8;
+  --chart-1: #818CF8;
+  --chart-2: #4ADE80;
+  --chart-3: #FBBF24;
+  --chart-4: #A78BFA;
+  --chart-5: #F87171;
+  --sidebar: #1E293B;
+  --sidebar-foreground: #94A3B8;
+  --sidebar-primary: #818CF8;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #818CF8;
+  --nami: #818CF8;
+  --nami-foreground: #0F172A;
+  --nami-light: #1E293B;
+  --severity-critical: #F87171;
+  --severity-critical-foreground: #FCA5A5;
+  --severity-critical-bg: #450A0A;
+  --severity-critical-border: #7F1D1D;
+  --severity-high: #FBBF24;
+  --severity-high-foreground: #FDE68A;
+  --severity-high-bg: #451A03;
+  --severity-high-border: #78350F;
+  --severity-warning: #FACC15;
+  --severity-warning-foreground: #FEF08A;
+  --severity-warning-bg: #422006;
+  --severity-warning-border: #713F12;
+  --severity-info: #60A5FA;
+  --severity-info-foreground: #93C5FD;
+  --severity-info-bg: #172554;
+  --severity-info-border: #1E3A5F;
+  --severity-success: #4ADE80;
+  --severity-success-foreground: #86EFAC;
+  --severity-success-bg: #052E16;
+  --severity-success-border: #14532D;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   BASE LAYER
+   BASE
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
@@ -266,53 +253,62 @@
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NAMI UTILITY CLASSES
-   Semantic layer on top of Tailwind for recurring patterns.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer utilities {
-  /* ── Elevation system ──────────────────────────────────────────────── */
+  /* ── Cards ───────────────────────────────────────────────────────────── */
   .nami-card {
-    @apply bg-card rounded-xl border shadow-[var(--shadow-card)] transition-shadow duration-200;
+    @apply bg-card rounded-xl border border-border/50 shadow-[var(--shadow-card)] transition-shadow duration-200;
   }
   .nami-card-hover {
-    @apply bg-card rounded-xl border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-all duration-200;
+    @apply bg-card rounded-xl border border-border/50 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-all duration-200;
   }
   .nami-card-interactive {
-    @apply bg-card rounded-xl border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-px transition-all duration-200 cursor-pointer;
+    @apply bg-card rounded-xl border border-border/50 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer;
   }
 
-  /* ── Typography — semantic scale ───────────────────────────────────
-     Use these instead of text-[10px] / text-[11px]                    */
-  .text-caption {
-    font-size: 0.6875rem; /* 11px */
-    line-height: 1rem;    /* 16px */
-  }
-  .text-micro {
-    font-size: 0.625rem;  /* 10px */
-    line-height: 0.875rem; /* 14px */
-  }
-  .text-label {
-    font-size: 0.6875rem; /* 11px */
-    line-height: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.025em;
-    text-transform: uppercase;
-  }
+  /* ── Typography ──────────────────────────────────────────────────────── */
   .text-page-title {
-    font-size: 1.125rem;  /* 18px */
-    line-height: 1.5rem;  /* 24px */
+    font-family: var(--font-bricolage), var(--font-geist-sans), system-ui;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .text-section-title {
+    font-family: var(--font-bricolage), var(--font-geist-sans), system-ui;
+    font-size: 1rem;
+    line-height: 1.5rem;
     font-weight: 600;
     letter-spacing: -0.01em;
   }
-  .text-section-title {
-    font-size: 0.8125rem; /* 13px */
-    line-height: 1.25rem; /* 20px */
+  .text-kpi {
+    font-family: var(--font-bricolage), var(--font-geist-sans), system-ui;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .text-caption {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+  }
+  .text-micro {
+    font-size: 0.625rem;
+    line-height: 0.875rem;
+  }
+  .text-label {
+    font-size: 0.6875rem;
+    line-height: 1rem;
     font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
   }
 
-  /* ── Page shell pattern ────────────────────────────────────────────── */
+  /* ── Page patterns ───────────────────────────────────────────────────── */
   .nami-page-header {
-    @apply bg-card px-6 py-5 shrink-0 shadow-[var(--shadow-sm)];
+    @apply bg-card px-8 py-6 shrink-0 shadow-[var(--shadow-sm)];
   }
   .nami-page-body {
     @apply flex-1 overflow-y-auto;

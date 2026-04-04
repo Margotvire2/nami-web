@@ -47,22 +47,16 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] shrink-0 bg-card flex flex-col h-full shadow-[var(--shadow-sm)] z-10">
-      {/* ── Logo ── */}
-      <div className="px-5 h-16 flex items-center">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[var(--shadow-sm)]">
-            <span className="text-primary-foreground text-[13px] font-bold tracking-tight">N</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-[15px] tracking-tight leading-none text-foreground">Nami</span>
-            <span className="text-micro text-muted-foreground leading-tight mt-0.5">Cockpit clinique</span>
-          </div>
+    <aside className="w-16 shrink-0 bg-card flex flex-col items-center h-full py-4 shadow-[var(--shadow-sm)] z-10">
+      {/* Logo */}
+      <div className="mb-6">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[var(--shadow-md)]">
+          <span className="text-primary-foreground text-sm font-bold tracking-tight">N</span>
         </div>
       </div>
 
-      {/* ── Navigation ── */}
-      <nav className="flex-1 px-3 pt-4 pb-2 space-y-0.5 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 flex flex-col items-center gap-1">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -70,39 +64,34 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              title={item.label}
               className={cn(
-                "flex items-center gap-3 px-3 h-9 rounded-lg text-[13px] transition-all duration-150",
+                "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150",
                 active
-                  ? "bg-primary text-primary-foreground font-medium shadow-[var(--shadow-xs)]"
+                  ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)]"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >
-              <Icon size={16} strokeWidth={active ? 2 : 1.75} className="shrink-0" />
-              <span className="truncate">{item.label}</span>
+              <Icon size={20} strokeWidth={active ? 2 : 1.5} />
             </Link>
           );
         })}
       </nav>
 
-      {/* ── User ── */}
-      <div className="px-3 py-3 border-t">
-        <div className="flex items-center gap-2.5 px-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium truncate leading-tight">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-micro text-muted-foreground truncate">{user?.email}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1.5 -mr-1 rounded-md hover:bg-accent"
-            title="Se déconnecter"
-          >
-            <LogOut size={14} />
-          </button>
+      {/* User */}
+      <div className="flex flex-col items-center gap-2 mt-4">
+        <button
+          onClick={handleLogout}
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150"
+          title="Se déconnecter"
+        >
+          <LogOut size={18} strokeWidth={1.5} />
+        </button>
+        <div
+          className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xs font-bold text-primary cursor-default"
+          title={`${user?.firstName} ${user?.lastName}`}
+        >
+          {user?.firstName?.[0]}{user?.lastName?.[0]}
         </div>
       </div>
     </aside>
