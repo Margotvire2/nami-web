@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useAuthStore } from "@/lib/store";
+import type { ChatMessage } from "@/components/nami/messaging/types";
 import {
   ChannelSidebar, MessageBubble, MessageComposer, DateSeparator,
   ChannelCard, MemberTag, UnreadBadge,
@@ -17,10 +19,35 @@ import {
 type View = "chat" | "explore" | "create";
 
 export default function MessagesProPage() {
+  const { user } = useAuthStore();
   const [activeId, setActiveId] = useState<string | null>("ch-1");
   const [view, setView] = useState<View>("chat");
   const [panelOpen, setPanelOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  function handleSend(text: string) {
+    const newMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      body: text,
+      createdAt: new Date().toISOString(),
+      sender: {
+        id: user?.id ?? "me",
+        firstName: user?.firstName ?? "Vous",
+        lastName: user?.lastName ?? "",
+        specialty: (user as any)?.providerProfile?.specialties?.[0] ?? "Soignant",
+        establishment: "Nami",
+      },
+      replyCount: 0,
+      isPinned: false,
+    };
+    setMessages((prev) => [...prev, newMsg]);
+  }
 
   const activeChannel = [...MOCK_CHANNELS, ...MOCK_GROUPS].find((c) => c.id === activeId);
   const activeDm = MOCK_DMS.find((d) => d.id === activeId);
@@ -101,20 +128,20 @@ export default function MessagesProPage() {
             {/* Messages area */}
             <div className="flex-1 overflow-y-auto">
               <DateSeparator date={new Date().toISOString()} />
-              {MOCK_MESSAGES.map((msg, i) => (
+              {messages.map((msg, i) => (
                 <MessageBubble
                   key={msg.id}
                   message={msg}
-                  showAvatar={i === 0 || MOCK_MESSAGES[i - 1].sender.id !== msg.sender.id}
+                  showAvatar={i === 0 || messages[i - 1].sender.id !== msg.sender.id}
                 />
               ))}
-              <div className="h-4" />
+              <div ref={messagesEndRef} className="h-4" />
             </div>
 
             {/* Composer */}
             <MessageComposer
               channelName={activeName}
-              onSend={(text) => console.log("Send:", text)}
+              onSend={handleSend}
             />
           </>
         )}
