@@ -7,7 +7,6 @@ import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -35,57 +34,54 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-sm space-y-8 px-4">
+      <div className="w-full max-w-[380px] px-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto shadow-sm">
-            <span className="text-primary-foreground text-sm font-bold">N</span>
+        <div className="text-center mb-10">
+          <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center mx-auto shadow-[var(--shadow-sm)]">
+            <span className="text-primary-foreground text-sm font-bold tracking-tight">N</span>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">Nami</h1>
-            <p className="text-sm text-muted-foreground">Cockpit de coordination clinique</p>
-          </div>
+          <h1 className="text-page-title text-foreground mt-4">Nami</h1>
+          <p className="text-caption text-muted-foreground mt-1">Cockpit de coordination clinique</p>
         </div>
 
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4">
-            <p className="text-sm text-muted-foreground">
-              Connectez-vous à votre espace soignant
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vous@exemple.com"
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Connexion…" : "Se connecter"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Form */}
+        <div className="nami-card p-6 space-y-5">
+          <p className="text-sm text-muted-foreground">
+            Connectez-vous à votre espace soignant
+          </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-caption font-medium">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="vous@exemple.com"
+                className="h-10"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-caption font-medium">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-10"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full h-10" disabled={loading}>
+              {loading ? "Connexion…" : "Se connecter"}
+            </Button>
+          </form>
+        </div>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-caption text-muted-foreground mt-6">
           Pas encore de compte ?{" "}
           <Link href="/signup" className="text-primary font-medium hover:underline underline-offset-2">
             Créer un compte

@@ -136,20 +136,20 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   if (!careCase) return <div className="p-8 text-sm text-muted-foreground">Dossier introuvable.</div>;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-[#f9f9f8]">
+    <div className="h-full flex flex-col overflow-hidden bg-background">
       <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
 
       <div className="flex-1 flex overflow-hidden">
-        <nav className="w-40 shrink-0 border-r bg-white overflow-y-auto py-3">
+        <nav className="w-44 shrink-0 border-r bg-card overflow-y-auto py-3 px-2">
           {NAV.map((item) => (
             <button
               key={item.key}
               onClick={() => setSection(item.key)}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs transition-colors text-left ${
+              className={`w-full flex items-center gap-2.5 px-3 h-9 rounded-lg text-[13px] transition-all duration-150 text-left ${
                 section === item.key
-                  ? "bg-primary/8 text-primary font-medium border-r-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
               }`}
             >
               <span className="shrink-0">{item.icon}</span>
@@ -158,11 +158,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           ))}
         </nav>
 
-        <main className="flex-1 overflow-y-auto border-r">
+        <main className="flex-1 overflow-y-auto">
           <MainContent section={section} careCaseId={id} careCase={careCase} api={api} />
         </main>
 
-        <aside className="w-72 shrink-0 overflow-y-auto bg-white py-5 px-4">
+        <aside className="w-72 shrink-0 overflow-y-auto bg-card border-l py-5 px-4">
           <PilotagePanel careCaseId={id} careCase={careCase} api={api} />
         </aside>
       </div>
@@ -184,9 +184,9 @@ function PatientHeader({ careCase: c, onAddNote, careCaseId, api }: {
   });
 
   return (
-    <header className="border-b bg-white px-6 py-4 shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-      <Link href="/patients" className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground mb-3 w-fit transition-colors">
-        <ChevronLeft size={11} /> Patients
+    <header className="nami-page-header shadow-[var(--shadow-xs)]">
+      <Link href="/patients" className="flex items-center gap-1 text-caption text-muted-foreground hover:text-foreground mb-3 w-fit transition-colors">
+        <ChevronLeft size={12} /> Patients
       </Link>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3 min-w-0">
@@ -195,7 +195,7 @@ function PatientHeader({ careCase: c, onAddNote, careCaseId, api }: {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base font-semibold">{c.patient.firstName} {c.patient.lastName}</h1>
+              <h1 className="text-page-title">{c.patient.firstName} {c.patient.lastName}</h1>
               <span className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${RISK_BADGE[c.riskLevel]}`}>
                 {RISK_LABEL[c.riskLevel]}
               </span>

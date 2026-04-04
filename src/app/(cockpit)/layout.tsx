@@ -16,9 +16,9 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
   if (!accessToken) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-muted/20">
+      <main className="flex-1 flex flex-col overflow-hidden">
         {children}
       </main>
     </div>

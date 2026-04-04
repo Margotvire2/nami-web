@@ -82,11 +82,11 @@ export default function PatientsPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden bg-muted/10">
       {/* Header */}
-      <div className="border-b bg-card px-6 py-4 shrink-0">
+      <div className="nami-page-header">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-base font-semibold">Patients</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <h1 className="text-page-title">Patients</h1>
+            <p className="text-caption text-muted-foreground mt-1">
               {isLoading ? "…" : `${filtered.length} dossier${filtered.length !== 1 ? "s" : ""}`}
             </p>
           </div>

@@ -168,41 +168,41 @@ export default function AujourdhuiPage() {
   const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-background">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* ── Header ── */}
-      <header className="border-b bg-card px-6 py-4 shrink-0">
+      <header className="nami-page-header">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <div className="flex-1">
-            <h1 className="text-sm font-semibold text-foreground">Aujourd'hui</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <h1 className="text-page-title text-foreground">Aujourd'hui</h1>
+            <p className="text-caption text-muted-foreground mt-1">
               {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
               {" · "}
               {greeting}, {user?.firstName}
             </p>
           </div>
           <div className="relative hidden md:block">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Rechercher un patient, un document…"
-              className="pl-9 h-8 text-xs w-72 bg-muted/40 border-transparent focus:border-input focus:bg-background"
+              className="pl-9 h-9 text-sm w-72 bg-secondary border-transparent focus:border-input focus:bg-card"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground" title="Notifications">
-              <Bell size={15} />
+            <Button size="sm" variant="ghost" className="h-9 w-9 p-0 text-muted-foreground" title="Notifications">
+              <Bell size={16} />
             </Button>
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setNoteOpen(true)}>
-              <CheckSquare size={12} /> Créer une tâche
+            <Button size="sm" variant="outline" className="h-9" onClick={() => setNoteOpen(true)}>
+              <CheckSquare size={14} /> Créer une tâche
             </Button>
-            <Button size="sm" className="text-xs gap-1.5 h-8" onClick={() => setNoteOpen(true)}>
-              <Plus size={12} /> Ajouter une note
+            <Button size="sm" className="h-9" onClick={() => setNoteOpen(true)}>
+              <Plus size={14} /> Ajouter une note
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-6 py-5 space-y-5">
+      <div className="nami-page-body">
+        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
 
           {/* ── Bandeau résumé rapide ── */}
           <div className="grid grid-cols-4 gap-3">
@@ -626,9 +626,9 @@ function MainBlock({ title, icon, titleClass, action, subHeader, children, id }:
   id?: string;
 }) {
   return (
-    <div id={id} className="rounded-lg border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
-        <div className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${titleClass ?? "text-muted-foreground"}`}>
+    <div id={id} className="nami-card overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b">
+        <div className={`text-label flex items-center gap-2 ${titleClass ?? "text-muted-foreground"}`}>
           {icon} {title}
         </div>
         {action}
@@ -647,16 +647,16 @@ function SideBlock({ title, icon, titleClass, href, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-3.5 py-2.5 border-b">
-        <div className={`flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide ${titleClass ?? "text-muted-foreground"}`}>
+    <div className="nami-card overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b">
+        <div className={`text-label flex items-center gap-2 ${titleClass ?? "text-muted-foreground"}`}>
           {icon} {title}
         </div>
-        <Link href={href} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-          Voir tout <ChevronRight size={10} />
+        <Link href={href} className="text-caption text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+          Voir tout <ChevronRight size={12} />
         </Link>
       </div>
-      <div className="px-3.5 py-2.5">{children}</div>
+      <div className="px-4 py-3">{children}</div>
     </div>
   );
 }
@@ -672,17 +672,17 @@ function SummaryCard({ icon, label, value, sub, href, cta, alert }: {
 }) {
   return (
     <Link href={href}>
-      <div className={`rounded-lg border bg-card px-4 py-3.5 hover:bg-muted/30 transition-colors space-y-1.5 ${alert ? "border-destructive/30" : ""}`}>
-        <div className={`flex items-center gap-1.5 text-[11px] ${alert ? "text-destructive" : "text-muted-foreground"}`}>
+      <div className={`nami-card-interactive px-5 py-4 space-y-2 ${alert ? "border-severity-critical-border" : ""}`}>
+        <div className={`flex items-center gap-2 text-caption font-medium ${alert ? "text-severity-critical" : "text-muted-foreground"}`}>
           {icon} <span className="truncate">{label}</span>
         </div>
         {value === null ? (
-          <Skeleton className="h-7 w-8" />
+          <Skeleton className="h-8 w-10" />
         ) : (
-          <p className={`text-2xl font-bold leading-none ${alert ? "text-destructive" : ""}`}>{value}</p>
+          <p className={`text-[28px] font-bold leading-none tracking-tight ${alert ? "text-severity-critical" : "text-foreground"}`}>{value}</p>
         )}
-        <p className="text-[11px] text-muted-foreground/70 leading-tight">{sub}</p>
-        <p className={`text-[11px] font-medium ${alert ? "text-destructive" : "text-primary"}`}>{cta} →</p>
+        <p className="text-caption text-muted-foreground leading-snug">{sub}</p>
+        <p className={`text-caption font-medium ${alert ? "text-severity-critical" : "text-primary"}`}>{cta} →</p>
       </div>
     </Link>
   );
@@ -696,13 +696,13 @@ function EmptyState({ icon, title, sub, cta, compact }: {
   compact?: boolean;
 }) {
   return (
-    <div className={`flex flex-col items-center text-center ${compact ? "py-3 gap-1" : "py-8 gap-2"}`}>
-      <div className="text-muted-foreground/30">{icon}</div>
-      <p className={`font-medium text-muted-foreground ${compact ? "text-[11px]" : "text-sm"}`}>{title}</p>
-      <p className={`text-muted-foreground/60 max-w-xs ${compact ? "text-[10px]" : "text-xs"}`}>{sub}</p>
+    <div className={`flex flex-col items-center text-center ${compact ? "py-4 gap-1.5" : "py-10 gap-2"}`}>
+      <div className="text-muted-foreground/25">{icon}</div>
+      <p className={`font-medium text-muted-foreground ${compact ? "text-caption" : "text-sm"}`}>{title}</p>
+      <p className={`text-muted-foreground/60 max-w-xs ${compact ? "text-micro" : "text-caption"}`}>{sub}</p>
       {cta && (
-        <Link href={cta.href} className="mt-1">
-          <Button size="sm" variant="outline" className="text-xs h-7">{cta.label}</Button>
+        <Link href={cta.href} className="mt-2">
+          <Button size="sm" variant="outline">{cta.label}</Button>
         </Link>
       )}
     </div>
