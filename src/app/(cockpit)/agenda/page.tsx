@@ -50,6 +50,11 @@ export default function AgendaPage() {
   const [selectedApt, setSelectedApt] = useState<Appointment | null>(null);
   const [createSlot, setCreateSlot] = useState<{ day: number; hour: number } | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"lieux" | "consultations" | "horaires">("lieux");
+  const [locations, setLocations] = useState<Location[]>(LOCATIONS);
+  const [consultTypes, setConsultTypes] = useState<ConsultationType[]>(CONSULTATION_TYPES);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(TIME_SLOTS);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const monday = useMemo(() => { const m = getMonday(new Date()); m.setDate(m.getDate() + weekOffset * 7); return m; }, [weekOffset]);
@@ -120,6 +125,9 @@ export default function AgendaPage() {
         <div className="px-4 pb-4 space-y-2 mt-auto">
           <button onClick={() => setCreateSlot({ day: Math.min((now.getDay() + 6) % 7, 4), hour: Math.max(OPEN_HOURS.start, Math.min(now.getHours() + 1, OPEN_HOURS.end - 1)) })} className="w-full h-9 rounded-lg bg-[#4F46E5] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
             <Plus size={14} /> Ajouter un RDV
+          </button>
+          <button onClick={() => setSettingsOpen(true)} className="w-full h-9 rounded-lg bg-[#F1F5F9] text-[#64748B] text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#E8ECF4] transition-colors">
+            <Settings size={14} /> Paramétrer mon agenda
           </button>
         </div>
       </div>
@@ -256,6 +264,13 @@ export default function AgendaPage() {
       <AnimatePresence>
         {createSlot && (
           <CreateModal day={weekDates[createSlot.day]} hour={createSlot.hour} onClose={() => setCreateSlot(null)} onCreate={handleCreateApt} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Settings drawer ── */}
+      <AnimatePresence>
+        {settingsOpen && (
+          <SettingsDrawer tab={settingsTab} onTabChange={setSettingsTab} locations={locations} setLocations={setLocations} consultTypes={consultTypes} setConsultTypes={setConsultTypes} timeSlots={timeSlots} setTimeSlots={setTimeSlots} onClose={() => setSettingsOpen(false)} />
         )}
       </AnimatePresence>
     </div>
@@ -479,6 +494,155 @@ function CreateModal({ day, hour, onClose, onCreate }: { day: Date; hour: number
           </button>
         </div>
       </motion.div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SETTINGS DRAWER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const DAYS_FULL_SETTINGS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
+
+function SettingsDrawer({ tab, onTabChange, locations, setLocations, consultTypes, setConsultTypes, timeSlots, setTimeSlots, onClose }: {
+  tab: string; onTabChange: (t: "lieux" | "consultations" | "horaires") => void;
+  locations: Location[]; setLocations: (fn: (l: Location[]) => Location[]) => void;
+  consultTypes: ConsultationType[]; setConsultTypes: (fn: (c: ConsultationType[]) => ConsultationType[]) => void;
+  timeSlots: TimeSlot[]; setTimeSlots: (fn: (s: TimeSlot[]) => TimeSlot[]) => void;
+  onClose: () => void;
+}) {
+  const [addingLoc, setAddingLoc] = useState(false);
+  const [newLocName, setNewLocName] = useState("");
+  const [newLocType, setNewLocType] = useState<Location["type"]>("CABINET");
+  const [editingCt, setEditingCt] = useState<string | null>(null);
+  const [editDur, setEditDur] = useState(0);
+  const [editPrice, setEditPrice] = useState(0);
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex" onClick={onClose}>
+      <div className="w-[460px] bg-white h-full flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="px-6 py-4 flex items-center justify-between shrink-0 border-b border-[#E8ECF4]">
+          <h3 className="text-[16px] font-bold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>Paramètres de l'agenda</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#F1F5F9]"><X size={16} /></button>
+        </div>
+
+        <div className="px-6 pt-4 shrink-0">
+          <div className="flex gap-1 bg-[#F1F5F9] rounded-lg p-0.5">
+            {([["lieux", "Mes cabinets"], ["consultations", "Types de consultation"], ["horaires", "Horaires & adressage"]] as const).map(([k, label]) => (
+              <button key={k} onClick={() => onTabChange(k)} className={cn("flex-1 py-1.5 rounded-md text-[12px] font-medium transition-all", tab === k ? "bg-white text-[#0F172A] shadow-sm" : "text-[#64748B] hover:text-[#0F172A]")}>{label}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {/* ── Tab Lieux ── */}
+          {tab === "lieux" && (
+            <div className="space-y-4">
+              <p className="text-[13px] text-[#64748B]">Vos lieux de consultation. Chaque cabinet a une couleur dans l'agenda.</p>
+              {locations.map((loc) => (
+                <div key={loc.id} className="flex items-center gap-3 bg-[#F8F7F4] rounded-xl px-4 py-3">
+                  <div className="w-4 h-4 rounded-sm shrink-0" style={{ backgroundColor: loc.color }} />
+                  <div className="flex-1">
+                    <p className="text-[13px] font-medium text-[#0F172A]">{loc.name}</p>
+                    <p className="text-[11px] text-[#94A3B8]">{loc.type === "CABINET" ? "Cabinet" : loc.type === "TELECONSULT" ? "Téléconsultation" : loc.type === "HOPITAL" ? "Hôpital" : "Domicile"}</p>
+                  </div>
+                  <button onClick={() => { setLocations((prev) => prev.map((l) => l.id === loc.id ? { ...l, isActive: !l.isActive } : l)); toast.success(loc.isActive ? "Lieu désactivé" : "Lieu activé"); }} className={cn("text-[11px] font-medium px-2.5 py-1 rounded-full", loc.isActive ? "bg-[#E8F5E9] text-[#2E7D32]" : "bg-[#FBE9E7] text-[#C62828]")}>
+                    {loc.isActive ? "Actif" : "Inactif"}
+                  </button>
+                </div>
+              ))}
+              {addingLoc ? (
+                <div className="bg-[#F8F7F4] rounded-xl p-4 space-y-3">
+                  <input value={newLocName} onChange={(e) => setNewLocName(e.target.value)} placeholder="Nom du lieu" autoFocus className="w-full h-9 rounded-lg bg-white px-3 text-sm border border-[#EEECE8] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["CABINET", "HOPITAL", "TELECONSULT", "DOMICILE"] as const).map((t) => (
+                      <button key={t} onClick={() => setNewLocType(t)} className={cn("py-2 rounded-lg text-[12px] font-medium border", newLocType === t ? "bg-[#EEF2FF] border-[#4F46E5] text-[#4F46E5]" : "bg-white border-[#EEECE8] text-[#64748B]")}>
+                        {t === "CABINET" ? "🏢 Cabinet" : t === "HOPITAL" ? "🏥 Hôpital" : t === "TELECONSULT" ? "💻 Téléconsult" : "🏠 Domicile"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setAddingLoc(false)} className="flex-1 h-9 rounded-lg text-sm text-[#64748B] hover:bg-white">Annuler</button>
+                    <button onClick={() => {
+                      if (!newLocName.trim()) return;
+                      const colors = ["#6B7FA3", "#7A9E7E", "#C4956A", "#8B7FA3", "#7A9E9E", "#A37F6B"];
+                      setLocations((prev) => [...prev, { id: `loc-${Date.now()}`, name: newLocName.trim(), type: newLocType, color: colors[prev.length % colors.length], isActive: true }]);
+                      setNewLocName(""); setAddingLoc(false); toast.success("Lieu ajouté");
+                    }} disabled={!newLocName.trim()} className={cn("flex-1 h-9 rounded-lg text-sm font-semibold", newLocName.trim() ? "bg-[#4F46E5] text-white" : "bg-[#E8ECF4] text-[#94A3B8]")}>Ajouter</button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setAddingLoc(true)} className="w-full h-10 rounded-xl bg-[#EEF2FF] text-[#4F46E5] text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#E0E7FF]">
+                  <Plus size={14} /> Ajouter un cabinet
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab Consultations ── */}
+          {tab === "consultations" && (
+            <div className="space-y-4">
+              <p className="text-[13px] text-[#64748B]">Types de consultations avec durée et tarif par défaut.</p>
+              {consultTypes.map((ct) => (
+                <div key={ct.id}>
+                  <button onClick={() => { if (editingCt === ct.id) { setEditingCt(null); } else { setEditingCt(ct.id); setEditDur(ct.duration); setEditPrice(ct.price); } }} className="w-full flex items-center gap-3 bg-[#F8F7F4] rounded-xl px-4 py-3 text-left hover:bg-[#F0EDE8] transition-colors">
+                    <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: ct.color }} />
+                    <div className="flex-1"><p className="text-[13px] font-medium text-[#0F172A]">{ct.name}</p><p className="text-[11px] text-[#94A3B8]">{ct.duration} min · {ct.price}€</p></div>
+                    <Settings size={12} className="text-[#94A3B8]" />
+                  </button>
+                  {editingCt === ct.id && (
+                    <div className="bg-white rounded-xl p-4 mt-1 space-y-3 border border-[#E8ECF4]">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className="text-[11px] text-[#94A3B8]">Durée (min)</label><input type="number" value={editDur} onChange={(e) => setEditDur(+e.target.value)} className="w-full h-9 rounded-lg bg-[#F8F7F4] px-3 text-sm mt-1 border border-[#EEECE8] focus:outline-none" /></div>
+                        <div><label className="text-[11px] text-[#94A3B8]">Prix (€)</label><input type="number" value={editPrice} onChange={(e) => setEditPrice(+e.target.value)} className="w-full h-9 rounded-lg bg-[#F8F7F4] px-3 text-sm mt-1 border border-[#EEECE8] focus:outline-none" /></div>
+                      </div>
+                      <button onClick={() => { setConsultTypes((prev) => prev.map((c) => c.id === ct.id ? { ...c, duration: editDur, price: editPrice } : c)); setEditingCt(null); toast.success("Type modifié"); }} className="w-full h-9 rounded-lg bg-[#4F46E5] text-white text-sm font-semibold">Enregistrer</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Tab Horaires & adressage ── */}
+          {tab === "horaires" && (
+            <div className="space-y-4">
+              <p className="text-[13px] text-[#64748B]">Vos créneaux par jour. L'icône <ArrowLeftRight size={11} className="inline text-[#4F46E5]" /> indique les créneaux ouverts à l'adressage.</p>
+              {DAYS_FULL_SETTINGS.map((dayName, dayIdx) => {
+                const daySlots = timeSlots.filter((s) => s.dayOfWeek === dayIdx);
+                return (
+                  <div key={dayIdx}>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-2" style={{ fontFamily: "var(--font-inter)" }}>{dayName}</p>
+                    {daySlots.length === 0 ? (
+                      <p className="text-[12px] text-[#CBD5E1] italic">Pas de créneau configuré</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {daySlots.map((slot) => {
+                          const loc = locations.find((l) => l.id === slot.locationId);
+                          return (
+                            <div key={slot.id} className="flex items-center gap-3 bg-[#F8F7F4] rounded-xl px-4 py-2.5">
+                              <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: loc?.color ?? "#94A3B8" }} />
+                              <span className="text-[13px] text-[#0F172A] flex-1">
+                                {slot.startHour}h — {slot.endHour}h
+                                <span className="text-[11px] text-[#94A3B8] ml-2">{loc?.name}</span>
+                              </span>
+                              <button onClick={() => { setTimeSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, acceptsReferral: !s.acceptsReferral } : s)); toast.success(slot.acceptsReferral ? "Adressage désactivé" : "Adressage activé"); }}
+                                className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 transition-colors", slot.acceptsReferral ? "bg-[#EEF2FF] text-[#4F46E5]" : "bg-[#F1F5F9] text-[#94A3B8]")}>
+                                <ArrowLeftRight size={10} /> {slot.acceptsReferral ? "Adressage ON" : "Adressage OFF"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex-1 bg-[#0F172A]/10" />
     </motion.div>
   );
 }
