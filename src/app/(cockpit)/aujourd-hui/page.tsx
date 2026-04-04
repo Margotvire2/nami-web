@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCase } from "@/lib/api";
+import { apiWithToken, CareCase, Message, Document as NamiDocument } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,6 +101,44 @@ export default function AujourdhuiPage() {
   const pendingReferrals = (outgoingReferrals ?? []).filter((r: any) =>
     ["SENT", "RECEIVED", "UNDER_REVIEW"].includes(r.status)
   );
+
+  // Messages récents — fetch par care case puis merge
+  const caseIds = useMemo(() => (cases ?? []).map((c) => c.id), [cases]);
+
+  const { data: allMessages } = useQuery({
+    queryKey: ["dashboard-messages", caseIds],
+    queryFn: async () => {
+      const results = await Promise.all(
+        caseIds.map(async (id) => {
+          const msgs = await api.messages.list(id);
+          const caseData = activeCases.find((c) => c.id === id);
+          return msgs.map((m: Message) => ({ ...m, _patientName: caseData ? `${caseData.patient.firstName} ${caseData.patient.lastName}` : "" }));
+        })
+      );
+      return results.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    },
+    enabled: caseIds.length > 0,
+  });
+
+  const recentMessages = (allMessages ?? []).slice(0, 4);
+
+  // Documents récents
+  const { data: allDocuments } = useQuery({
+    queryKey: ["dashboard-documents", caseIds],
+    queryFn: async () => {
+      const results = await Promise.all(
+        caseIds.map(async (id) => {
+          const docs = await api.documents.list(id);
+          const caseData = activeCases.find((c) => c.id === id);
+          return docs.map((d: NamiDocument) => ({ ...d, _patientName: caseData ? `${caseData.patient.firstName} ${caseData.patient.lastName}` : "" }));
+        })
+      );
+      return results.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    },
+    enabled: caseIds.length > 0,
+  });
+
+  const recentDocs = (allDocuments ?? []).slice(0, 4);
 
   // Patients nécessitant attention — on dérive depuis les données disponibles
   const patientsAttention: PatientWithReason[] = activeCases
@@ -303,22 +341,54 @@ export default function AujourdhuiPage() {
 
               {/* D — Messages récents */}
               <SideBlock title="Messages récents" icon={<MessageSquare size={12} />} href="/messages">
-                <EmptyState
-                  icon={<MessageSquare size={16} />}
-                  title="Aucun nouveau message"
-                  sub="Les échanges cliniques récents apparaîtront ici."
-                  compact
-                />
+                {recentMessages.length === 0 ? (
+                  <EmptyState
+                    icon={<MessageSquare size={16} />}
+                    title="Aucun nouveau message"
+                    sub="Les échanges cliniques récents apparaîtront ici."
+                    compact
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    {recentMessages.map((m) => (
+                      <div key={m.id} className="hover:bg-muted/40 -mx-1 px-1 py-1.5 rounded transition-colors">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-[8px] font-bold text-primary shrink-0">
+                            {m.sender.firstName[0]}{m.sender.lastName[0]}
+                          </div>
+                          <span className="text-[11px] font-medium truncate">{m.sender.firstName} {m.sender.lastName}</span>
+                          <span className="text-[10px] text-muted-foreground/60 ml-auto shrink-0">{daysAgo(m.createdAt)}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{m.body}</p>
+                        {m._patientName && <p className="text-[9px] text-muted-foreground/50 mt-0.5">{m._patientName}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </SideBlock>
 
               {/* E — Documents récents */}
               <SideBlock title="Documents récents" icon={<FileText size={12} />} href="/documents">
-                <EmptyState
-                  icon={<FileText size={16} />}
-                  title="Aucun document récent"
-                  sub="Les bilans et comptes rendus récents apparaîtront ici."
-                  compact
-                />
+                {recentDocs.length === 0 ? (
+                  <EmptyState
+                    icon={<FileText size={16} />}
+                    title="Aucun document récent"
+                    sub="Les bilans et comptes rendus récents apparaîtront ici."
+                    compact
+                  />
+                ) : (
+                  <div className="space-y-1.5">
+                    {recentDocs.map((d) => (
+                      <div key={d.id} className="flex items-start gap-2 hover:bg-muted/40 -mx-1 px-1 py-1.5 rounded transition-colors">
+                        <FileText size={12} className="text-muted-foreground shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-medium truncate">{d.title}</p>
+                          <p className="text-[10px] text-muted-foreground/60">{d._patientName} · {daysAgo(d.createdAt)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </SideBlock>
 
               {/* F — Alertes actives */}
