@@ -5,11 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NAMI DESIGN SYSTEM — Hard Surface Design
-
-   Rule: surfaces are separated by color contrast, NEVER by shadows or borders.
-   Rule: zero box-shadow, zero visible border, zero opacity on colors.
-   Rule: max 4 surface levels. Every element has a solid, full color.
+   NAMI DESIGN SYSTEM — Medical 2026
+   Fonts: Plus Jakarta Sans (primary) + Inter (data/labels)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
@@ -44,9 +41,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-nami: var(--nami);
-  --color-nami-foreground: var(--nami-foreground);
-  --color-nami-light: var(--nami-light);
+
   --color-severity-critical: var(--severity-critical);
   --color-severity-critical-foreground: var(--severity-critical-foreground);
   --color-severity-critical-bg: var(--severity-critical-bg);
@@ -69,90 +64,87 @@
   --color-severity-success-border: var(--severity-success-border);
 
   --font-sans: var(--font-jakarta);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-bricolage);
+  --font-data: var(--font-inter);
 
-  /* Hard radius — consistent, never mixed */
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-3xl: 24px;
-  --radius-4xl: 28px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT — 4 surface levels only
-   Level 0: #F0F2F8 (page floor)
-   Level 1: #FFFFFF (card/panel)
-   Level 2: #EEF1FF (tinted zone)
-   Level 3: #4F6AF5 (active element)
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 :root {
-  --background: #F0F2F8;
-  --foreground: #1E293B;
+  /* ── Surfaces ── */
+  --background: #F0F2FA;
+  --foreground: #0F172A;
   --card: #FFFFFF;
-  --card-foreground: #1E293B;
+  --card-foreground: #0F172A;
   --popover: #FFFFFF;
-  --popover-foreground: #1E293B;
+  --popover-foreground: #0F172A;
 
-  --primary: #4F6AF5;
+  /* ── Primary — indigo doux ── */
+  --primary: #4F46E5;
   --primary-foreground: #FFFFFF;
-  --secondary: #EEF1FF;
-  --secondary-foreground: #3B55E0;
-  --muted: #E8EBF0;
-  --muted-foreground: #64748B;
-  --accent: #EEF1FF;
-  --accent-foreground: #3B55E0;
+
+  /* ── Secondaries ── */
+  --secondary: #EEF2FF;
+  --secondary-foreground: #4F46E5;
+  --muted: #F1F5F9;
+  --muted-foreground: #94A3B8;
+  --accent: #EEF2FF;
+  --accent-foreground: #4F46E5;
   --destructive: #DC2626;
 
-  /* Borders: only for internal separators (rows), never card outlines */
-  --border: #E2E8F0;
-  --input: #F0F2F8;
-  --ring: #4F6AF5;
-  --radius: 16px;
+  /* ── Borders & inputs ── */
+  --border: #E8ECF4;
+  --input: #E8ECF4;
+  --ring: #4F46E5;
+  --radius: 12px;
 
-  --chart-1: #4F6AF5;
-  --chart-2: #16A34A;
-  --chart-3: #CA8A04;
-  --chart-4: #8B5CF6;
+  /* ── Charts ── */
+  --chart-1: #4F46E5;
+  --chart-2: #059669;
+  --chart-3: #D97706;
+  --chart-4: #7C3AED;
   --chart-5: #DC2626;
 
+  /* ── Sidebar ── */
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #94A3B8;
-  --sidebar-primary: #4F6AF5;
+  --sidebar-foreground: #64748B;
+  --sidebar-primary: #4F46E5;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EEF1FF;
-  --sidebar-accent-foreground: #3B55E0;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #4F6AF5;
+  --sidebar-accent: #EEF2FF;
+  --sidebar-accent-foreground: #4F46E5;
+  --sidebar-border: #E8ECF4;
+  --sidebar-ring: #4F46E5;
 
-  --nami: #4F6AF5;
-  --nami-foreground: #FFFFFF;
-  --nami-light: #EEF1FF;
-
+  /* ── Severity — désaturé, jamais criard ── */
   --severity-critical: #DC2626;
   --severity-critical-foreground: #DC2626;
-  --severity-critical-bg: #FEE2E2;
-  --severity-critical-border: #FEE2E2;
-  --severity-high: #CA8A04;
-  --severity-high-foreground: #CA8A04;
-  --severity-high-bg: #FEF9C3;
-  --severity-high-border: #FEF9C3;
-  --severity-warning: #CA8A04;
-  --severity-warning-foreground: #CA8A04;
-  --severity-warning-bg: #FEF9C3;
-  --severity-warning-border: #FEF9C3;
-  --severity-info: #4F6AF5;
-  --severity-info-foreground: #4F6AF5;
-  --severity-info-bg: #EEF1FF;
-  --severity-info-border: #EEF1FF;
-  --severity-success: #16A34A;
-  --severity-success-foreground: #16A34A;
-  --severity-success-bg: #DCFCE7;
-  --severity-success-border: #DCFCE7;
+  --severity-critical-bg: #FEF2F2;
+  --severity-critical-border: #FECACA;
+
+  --severity-high: #D97706;
+  --severity-high-foreground: #D97706;
+  --severity-high-bg: #FFFBEB;
+  --severity-high-border: #FDE68A;
+
+  --severity-warning: #D97706;
+  --severity-warning-foreground: #D97706;
+  --severity-warning-bg: #FFFBEB;
+  --severity-warning-border: #FDE68A;
+
+  --severity-info: #2563EB;
+  --severity-info-foreground: #2563EB;
+  --severity-info-bg: #EFF6FF;
+  --severity-info-border: #BFDBFE;
+
+  --severity-success: #059669;
+  --severity-success-foreground: #059669;
+  --severity-success-bg: #F0FDF4;
+  --severity-success-border: #BBF7D0;
 }
 
 .dark {
@@ -177,13 +169,16 @@
   --chart-1: #818CF8; --chart-2: #4ADE80; --chart-3: #FBBF24; --chart-4: #A78BFA; --chart-5: #F87171;
   --sidebar: #1E293B; --sidebar-foreground: #94A3B8; --sidebar-primary: #818CF8; --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #334155; --sidebar-accent-foreground: #F1F5F9; --sidebar-border: #334155; --sidebar-ring: #818CF8;
-  --nami: #818CF8; --nami-foreground: #0F172A; --nami-light: #1E293B;
-  --severity-critical: #F87171; --severity-critical-foreground: #F87171; --severity-critical-bg: #450A0A; --severity-critical-border: #450A0A;
-  --severity-high: #FBBF24; --severity-high-foreground: #FBBF24; --severity-high-bg: #451A03; --severity-high-border: #451A03;
-  --severity-warning: #FACC15; --severity-warning-foreground: #FACC15; --severity-warning-bg: #422006; --severity-warning-border: #422006;
-  --severity-info: #818CF8; --severity-info-foreground: #818CF8; --severity-info-bg: #1E1B4B; --severity-info-border: #1E1B4B;
-  --severity-success: #4ADE80; --severity-success-foreground: #4ADE80; --severity-success-bg: #052E16; --severity-success-border: #052E16;
+  --severity-critical: #F87171; --severity-critical-foreground: #F87171; --severity-critical-bg: #450A0A; --severity-critical-border: #7F1D1D;
+  --severity-high: #FBBF24; --severity-high-foreground: #FBBF24; --severity-high-bg: #451A03; --severity-high-border: #78350F;
+  --severity-warning: #FACC15; --severity-warning-foreground: #FACC15; --severity-warning-bg: #422006; --severity-warning-border: #713F12;
+  --severity-info: #60A5FA; --severity-info-foreground: #60A5FA; --severity-info-bg: #172554; --severity-info-border: #1E3A5F;
+  --severity-success: #4ADE80; --severity-success-foreground: #4ADE80; --severity-success-bg: #052E16; --severity-success-border: #14532D;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
   * {
@@ -191,9 +186,23 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-jakarta), sans-serif;
   }
   html {
     @apply font-sans;
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+  /* Focus visible */
+  :focus-visible {
+    outline: 2px solid #4F46E5;
+    outline-offset: 2px;
+    border-radius: inherit;
   }
 }
 
@@ -202,72 +211,65 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer utilities {
-  /* Cards — subtle shadow for depth, thin border for definition */
   .nami-card {
     background: #FFFFFF;
-    border-radius: 16px;
-    border: 1px solid #E8ECF0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    border: 1px solid #E8ECF4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
   }
   .nami-card-interactive {
     background: #FFFFFF;
-    border-radius: 16px;
-    border: 1px solid #E8ECF0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    border: 1px solid #E8ECF4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
   }
   .nami-card-interactive:hover {
-    box-shadow: 0 4px 12px rgba(79, 106, 245, 0.08);
-    border-color: #D0D5DD;
+    box-shadow: 0 4px 16px rgba(79,70,229,0.10);
     transform: translateY(-1px);
+    border-color: #D0D5DD;
   }
 
-  /* Typography — Bricolage Grotesque for headings */
+  /* Typography */
   .text-page-title {
-    font-family: var(--font-bricolage), var(--font-jakarta), system-ui;
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-family: var(--font-jakarta), sans-serif;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    color: #0F172A;
   }
-  .text-section-title {
-    font-family: var(--font-bricolage), var(--font-jakarta), system-ui;
-    font-size: 1rem;
-    line-height: 1.5rem;
+  .text-section-label {
+    font-family: var(--font-inter), sans-serif;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .text-kpi {
-    font-family: var(--font-bricolage), var(--font-jakarta), system-ui;
-    font-size: 2.25rem;
-    line-height: 2.5rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--foreground);
-  }
-  .text-caption {
-    font-size: 0.6875rem;
-    line-height: 1rem;
-  }
-  .text-micro {
-    font-size: 0.625rem;
-    line-height: 0.875rem;
-  }
-  .text-label {
-    font-size: 0.75rem;
-    line-height: 1rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted-foreground);
+    letter-spacing: 0.07em;
+    color: #94A3B8;
   }
-
-  /* Page patterns */
-  .nami-page-header {
-    @apply bg-card px-8 py-6 shrink-0;
+  .text-card-label {
+    font-family: var(--font-jakarta), sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
   }
-  .nami-page-body {
-    @apply flex-1 overflow-y-auto;
+  .text-stat-number {
+    font-family: var(--font-inter), sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0F172A;
+  }
+  .text-body {
+    font-family: var(--font-jakarta), sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: #374151;
+  }
+  .text-small {
+    font-family: var(--font-inter), sans-serif;
+    font-size: 12px;
+    color: #94A3B8;
   }
 }
