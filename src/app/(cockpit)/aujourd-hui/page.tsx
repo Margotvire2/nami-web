@@ -1,749 +1,318 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCase, Message, Document as NamiDocument } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { toast } from "sonner";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
-  CalendarDays, AlertTriangle, ArrowLeftRight, ChevronRight,
-  Bell, FileText, MessageSquare, Search, Plus, CheckSquare,
-  Activity,
+  Clock, MapPin, Monitor, Check, AlertCircle,
+  ArrowLeftRight, FileText, Users, ChevronRight,
+  Video,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
 
-type AttentionReason = {
-  label: string;
-  tag: "no-step" | "inactive" | "alert" | "no-lead" | "risk";
-};
-
-type PatientWithReason = CareCase & { reason: AttentionReason; daysSinceActivity: number | null };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getAttentionReason(c: CareCase): AttentionReason | null {
-  const daysSince = c.lastActivityAt
-    ? Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / 86400000)
-    : null;
-
-  if (!c.leadProvider) return { label: "Aucun lead provider défini", tag: "no-lead" };
-  if (["CRITICAL", "HIGH"].includes(c.riskLevel)) return { label: `Risque ${c.riskLevel === "CRITICAL" ? "critique" : "élevé"} — action requise`, tag: "risk" };
-  if (daysSince !== null && daysSince >= 10) return { label: `Patient inactif depuis ${daysSince} jours`, tag: "inactive" };
-  return null;
+interface Appointment {
+  id: string;
+  time: string;
+  patient: string;
+  initials: string;
+  type: "suivi" | "premiere" | "urgence" | "teleconsult" | "bilan";
+  duration: string;
+  mode: "Présentiel" | "Téléconsultation";
+  attention?: string;
+  status: "past" | "current" | "upcoming";
 }
 
-function daysAgo(dateStr: string) {
-  const d = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  if (d === 0) return "aujourd'hui";
-  if (d === 1) return "hier";
-  return `il y a ${d}j`;
+interface TodoItem {
+  id: string;
+  icon: typeof Clock;
+  iconColor: string;
+  title: string;
+  sub: string;
+  href: string;
 }
 
-const RISK_DOT: Record<string, string> = {
-  CRITICAL: "bg-severity-critical", HIGH: "bg-severity-high",
-  MEDIUM: "bg-severity-warning", LOW: "bg-severity-success", UNKNOWN: "bg-muted-foreground/30",
-};
+interface FeedItem {
+  id: string;
+  initials: string;
+  name: string;
+  time: string;
+  message: string;
+  tag: string;
+}
 
-const TAG_STYLE: Record<string, string> = {
-  "no-step": "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",
-  "inactive": "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",
-  "alert": "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border",
-  "no-lead": "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",
-  "risk": "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border",
-};
+// ═══════════════════════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const ATTENTION_FILTERS = [
-  { key: "all", label: "Tous" },
-  { key: "risk", label: "Risque élevé" },
-  { key: "inactive", label: "Inactifs" },
-  { key: "no-lead", label: "Sans lead" },
+const APPOINTMENTS: Appointment[] = [
+  { id: "a1", time: "09:00", patient: "Margot Vire", initials: "MV", type: "suivi", duration: "45min", mode: "Présentiel", status: "past" },
+  { id: "a2", time: "10:30", patient: "Lucas Bernier", initials: "LB", type: "suivi", duration: "30min", mode: "Présentiel", status: "past" },
+  { id: "a3", time: "14:00", patient: "Théo Dufresne", initials: "TD", type: "suivi", duration: "45min", mode: "Présentiel", attention: "Pas de contact depuis 3 semaines", status: "upcoming" },
+  { id: "a4", time: "15:30", patient: "Sofia Marchand", initials: "SM", type: "premiere", duration: "1h", mode: "Présentiel", status: "upcoming" },
+  { id: "a5", time: "17:00", patient: "Gabrielle Martin", initials: "GM", type: "teleconsult", duration: "30min", mode: "Téléconsultation", status: "upcoming" },
 ];
 
-// ─── Page principale ──────────────────────────────────────────────────────────
+const TODO_ITEMS: TodoItem[] = [
+  { id: "t1", icon: ArrowLeftRight, iconColor: "text-[#4F46E5] bg-[#EEF2FF]", title: "3 adressages sans réponse", sub: "Le plus ancien date de 4 jours", href: "/adressages" },
+  { id: "t2", icon: Clock, iconColor: "text-[#D97706] bg-[#FFFBEB]", title: "Emma Rousseau", sub: "Aucun contact depuis 3 semaines", href: "/patients" },
+  { id: "t3", icon: FileText, iconColor: "text-[#64748B] bg-[#F1F5F9]", title: "Résultats labo · Théo Dufresne", sub: "Reçus hier, non consultés", href: "/documents" },
+  { id: "t4", icon: Users, iconColor: "text-[#7C3AED] bg-[#F5F3FF]", title: "Réunion équipe Pédiatrie HAP", sub: "Demain · 8h00", href: "/equipe" },
+];
 
-export default function AujourdhuiPage() {
-  const { user, accessToken } = useAuthStore();
-  const api = apiWithToken(accessToken!);
-  const [noteOpen, setNoteOpen] = useState(false);
-  const [attentionFilter, setAttentionFilter] = useState("all");
+const FEED_ITEMS: FeedItem[] = [
+  { id: "f1", initials: "MV", name: "Margot Vire", time: "il y a 2h", message: "Bonne nouvelle pour Lucas — il m'a dit qu'il cuisinait à nouveau régulièrement", tag: "Lucas Bernier" },
+  { id: "f2", initials: "KB", name: "Dr Benali", time: "il y a 3h", message: "Pouvez-vous prendre Emma Rousseau en urgence cette semaine ?", tag: "Emma Rousseau" },
+  { id: "f3", initials: "AS", name: "Vous", time: "hier 18h30", message: "Situation inquiétante pour Théo — il m'a dit qu'il avait encore réduit ses repas", tag: "Théo Dufresne" },
+];
 
-  const { data: cases, isLoading } = useQuery({
-    queryKey: ["care-cases", "ACTIVE"],
-    queryFn: () => api.careCases.list({ status: "ACTIVE" }),
-  });
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════════
 
-  const activeCases = cases ?? [];
+const TYPE_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  suivi:       { bg: "bg-indigo-50", text: "text-indigo-600", label: "Suivi régulier" },
+  premiere:    { bg: "bg-violet-50", text: "text-violet-600", label: "Première consultation" },
+  urgence:     { bg: "bg-amber-50",  text: "text-amber-700",  label: "Urgence" },
+  teleconsult: { bg: "bg-sky-50",    text: "text-sky-600",    label: "Téléconsultation" },
+  bilan:       { bg: "bg-emerald-50",text: "text-emerald-700",label: "Bilan" },
+};
 
-  // Données réelles pour les summary cards
-  const { data: todayAppointments } = useQuery({
-    queryKey: ["appointments", "today"],
-    queryFn: () => api.appointments.list(),
-  });
+const AVATAR_COLORS = ["bg-indigo-100 text-indigo-700", "bg-violet-100 text-violet-700", "bg-rose-100 text-rose-700", "bg-teal-100 text-teal-700", "bg-amber-100 text-amber-700", "bg-sky-100 text-sky-700"];
+function avatarColor(name: string): string {
+  let hash = 0;
+  for (const c of name) hash = ((hash << 5) - hash + c.charCodeAt(0)) | 0;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
 
-  const { data: outgoingReferrals } = useQuery({
-    queryKey: ["referrals", "outgoing-pending"],
-    queryFn: () => api.referrals.outgoing(),
-  });
+// Simulated "now" = 13:45 for demo purposes
+const SIMULATED_HOUR = 13;
+const SIMULATED_MINUTE = 45;
 
-  const allAppts = todayAppointments ?? [];
-  const upcomingAppts = allAppts
-    .filter((a: any) => new Date(a.startAt) > new Date() && a.status !== "CANCELLED")
-    .sort((a: any, b: any) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
 
-  const pendingReferrals = (outgoingReferrals ?? []).filter((r: any) =>
-    ["SENT", "RECEIVED", "UNDER_REVIEW"].includes(r.status)
-  );
+const nowMinutes = SIMULATED_HOUR * 60 + SIMULATED_MINUTE;
 
-  // Messages récents — fetch par care case puis merge
-  const caseIds = useMemo(() => (cases ?? []).map((c) => c.id), [cases]);
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
 
-  const { data: allMessages } = useQuery({
-    queryKey: ["dashboard-messages", caseIds],
-    queryFn: async () => {
-      const results = await Promise.all(
-        caseIds.map(async (id) => {
-          const msgs = await api.messages.list(id);
-          const caseData = activeCases.find((c) => c.id === id);
-          return msgs.map((m: Message) => ({ ...m, _patientName: caseData ? `${caseData.patient.firstName} ${caseData.patient.lastName}` : "" }));
-        })
-      );
-      return results.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    },
-    enabled: caseIds.length > 0,
-  });
+export default function DashboardPage() {
+  const todayCount = APPOINTMENTS.length;
+  const pendingReferrals = 3;
+  const nextApt = APPOINTMENTS.find((a) => a.status === "upcoming");
+  const minutesUntilNext = nextApt ? timeToMinutes(nextApt.time) - nowMinutes : 0;
+  const nextLabel = minutesUntilNext > 0 ? `Prochain RDV dans ${minutesUntilNext}min` : "";
 
-  const recentMessages = (allMessages ?? []).slice(0, 4);
-
-  // Documents récents
-  const { data: allDocuments } = useQuery({
-    queryKey: ["dashboard-documents", caseIds],
-    queryFn: async () => {
-      const results = await Promise.all(
-        caseIds.map(async (id) => {
-          const docs = await api.documents.list(id);
-          const caseData = activeCases.find((c) => c.id === id);
-          return docs.map((d: NamiDocument) => ({ ...d, _patientName: caseData ? `${caseData.patient.firstName} ${caseData.patient.lastName}` : "" }));
-        })
-      );
-      return results.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    },
-    enabled: caseIds.length > 0,
-  });
-
-  const recentDocs = (allDocuments ?? []).slice(0, 4);
-
-  // Patients nécessitant attention — on dérive depuis les données disponibles
-  const patientsAttention: PatientWithReason[] = activeCases
-    .map((c) => {
-      const reason = getAttentionReason(c);
-      if (!reason) return null;
-      const daysSince = c.lastActivityAt
-        ? Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / 86400000)
-        : null;
-      return { ...c, reason, daysSinceActivity: daysSince };
-    })
-    .filter(Boolean)
-    .sort((a, b) => {
-      const order: Record<string, number> = { risk: 0, "no-lead": 1, inactive: 2, "no-step": 3, alert: 4 };
-      return (order[a!.reason.tag] ?? 9) - (order[b!.reason.tag] ?? 9);
-    }) as PatientWithReason[];
-
-  const filteredAttention = attentionFilter === "all"
-    ? patientsAttention
-    : patientsAttention.filter((p) => p.reason.tag === attentionFilter);
-
-  const recentCases = [...activeCases]
-    .sort((a, b) => (b.lastActivityAt ?? b.startDate) > (a.lastActivityAt ?? a.startDate) ? 1 : -1)
-    .slice(0, 8);
-
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+  const contextLine = [
+    `${todayCount} consultations aujourd'hui`,
+    `${pendingReferrals} adressages en attente`,
+    nextLabel,
+  ].filter(Boolean).join(" · ");
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ── Header ── */}
-      <header className="bg-white border-b border-[#E8ECF0] px-6 py-4 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <h1 className="text-[22px] font-bold text-[#1E293B] tracking-tight" style={{ fontFamily: "var(--font-jakarta), system-ui" }}>
-              {greeting}, {user?.firstName}
-            </h1>
-            <p className="text-sm text-[#64748B] mt-0.5">
-              {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            </p>
-          </div>
-          <div className="relative hidden md:block">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-            <input
-              placeholder="Rechercher un patient…"
-              className="pl-9 h-9 text-sm w-64 bg-[#F0F2F8] rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 placeholder:text-[#94A3B8]"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="h-9 rounded-lg border-[#E2E8F0] text-[#64748B] hover:text-[#1E293B]" onClick={() => setNoteOpen(true)}>
-              <Plus size={14} /> Ajouter une note
-            </Button>
-          </div>
-        </div>
+      {/* Header */}
+      <header className="bg-white border-b border-[#E8ECF4] px-6 py-5 shrink-0">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <h1 className="text-[32px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>
+            Bonjour, Amélie
+          </h1>
+          <p className="text-[14px] text-[#64748B] mt-1" style={{ fontFamily: "var(--font-inter)" }}>
+            {contextLine.split(" · ").map((part, i, arr) => (
+              <span key={i}>
+                {part}
+                {i < arr.length - 1 && <span className="text-[#CBD5E1]"> · </span>}
+              </span>
+            ))}
+          </p>
+        </motion.div>
       </header>
 
-      <div className="nami-page-body">
-        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-
-          {/* ── KPI cards ── */}
-          <div className="grid grid-cols-4 gap-4">
-            <SummaryCard
-              icon={<CalendarDays size={14} />}
-              label="Prochains RDV"
-              value={isLoading ? null : upcomingAppts.length}
-              sub={upcomingAppts.length > 0 ? `Prochain : ${new Date(upcomingAppts[0].startAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}` : "Aucun RDV à venir"}
-              href="/agenda"
-              cta="Voir l'agenda"
-            />
-            <SummaryCard
-              icon={<AlertTriangle size={14} />}
-              label="Patients à surveiller"
-              value={isLoading ? null : patientsAttention.length}
-              sub={patientsAttention.length > 0 ? `${patientsAttention.filter(p => p.reason.tag === "risk").length} signaux critiques` : "Aucun signal actif"}
-              href="#patients-attention"
-              cta="Voir les patients"
-              alert={patientsAttention.some((p) => p.reason.tag === "risk")}
-            />
-            <SummaryCard
-              icon={<CheckSquare size={14} />}
-              label="Tâches en retard"
-              value={isLoading ? null : 0}
-              sub="Aucune tâche en retard"
-              href="/patients"
-              cta="Voir les tâches"
-            />
-            <SummaryCard
-              icon={<ArrowLeftRight size={14} />}
-              label="Adressages en attente"
-              value={isLoading ? null : pendingReferrals.length}
-              sub={pendingReferrals.length > 0 ? `${pendingReferrals.length} adressage${pendingReferrals.length > 1 ? "s" : ""} en cours` : "Aucun adressage en attente"}
-              href="/adressages"
-              cta="Voir les adressages"
-            />
-          </div>
-
-          {/* ── Layout principal 2 colonnes ── */}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto bg-[#F0F2FA]">
+        <div className="max-w-6xl mx-auto px-6 py-6">
           <div className="flex gap-6 items-start">
 
-            {/* Colonne gauche 70% */}
-            <div className="flex-1 min-w-0 space-y-5">
+            {/* ── Colonne gauche — Ma journée ── */}
+            <div className="flex-[65] min-w-0">
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3 }}>
+                <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E8ECF4" }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-5" style={{ fontFamily: "var(--font-inter)" }}>MA JOURNÉE</p>
 
-              {/* Bloc A — Prochains RDV */}
-              <MainBlock
-                title="Prochains rendez-vous"
-                icon={<CalendarDays size={13} />}
-                action={
-                  <Link href="/agenda" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 font-medium transition-colors">
-                    Voir l'agenda <ChevronRight size={12} />
-                  </Link>
-                }
-              >
-                {upcomingAppts.length === 0 ? (
-                  <EmptyState icon={<CalendarDays size={20} />} title="Aucun RDV à venir" sub="Vos prochains rendez-vous apparaîtront ici." cta={{ label: "Voir l'agenda", href: "/agenda" }} />
-                ) : (
-                  <div className="divide-y divide-[#E2E8F0]">
-                    {upcomingAppts.slice(0, 4).map((a: any) => (
-                      <div key={a.id} className="px-6 py-3 flex items-center gap-4 hover:bg-[#F8F9FF] transition-colors">
-                        <div className="text-center min-w-[48px]">
-                          <p className="text-sm font-bold text-[#1E293B] tabular-nums">{new Date(a.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</p>
-                          <p className="text-[10px] text-[#94A3B8]">{new Date(a.startAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })}</p>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#1E293B]">{a.patient.firstName} {a.patient.lastName}</p>
-                          <p className="text-xs text-[#64748B]">{a.consultationType?.name ?? "Consultation"} · {a.provider.person.firstName} {a.provider.person.lastName}</p>
-                        </div>
-                        <span className="text-xs text-[#94A3B8]">{a.locationType === "VIDEO" ? "Visio" : a.locationType === "PHONE" ? "Tél." : "Présentiel"}</span>
-                      </div>
-                    ))}
-                    {upcomingAppts.length > 4 && (
-                      <div className="px-6 py-2">
-                        <Link href="/agenda" className="text-xs font-medium text-[#4F46E5] hover:underline">+{upcomingAppts.length - 4} autres RDV →</Link>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </MainBlock>
+                  <div className="relative">
+                    {/* Vertical axis */}
+                    <div className="absolute left-[52px] top-0 bottom-0 w-px bg-[#E8ECF4]" />
 
-              {/* Bloc B — Patients nécessitant mon attention */}
-              <MainBlock
-                title="Patients nécessitant mon attention"
-                icon={<AlertTriangle size={13} className={patientsAttention.length > 0 ? "text-destructive" : ""} />}
-                titleClass={patientsAttention.length > 0 ? "text-destructive" : undefined}
-                action={
-                  <Link href="/patients" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-                    Voir tous les patients <ChevronRight size={11} />
-                  </Link>
-                }
-                id="patients-attention"
-                subHeader={
-                  patientsAttention.length > 0 ? (
-                    <div className="flex items-center gap-1.5 px-4 py-2.5 border-b bg-muted/20">
-                      {ATTENTION_FILTERS.map((f) => {
-                        const count = f.key === "all"
-                          ? patientsAttention.length
-                          : patientsAttention.filter((p) => p.reason.tag === f.key).length;
-                        if (count === 0 && f.key !== "all") return null;
+                    <div className="space-y-1">
+                      {APPOINTMENTS.map((apt, i) => {
+                        const aptMin = timeToMinutes(apt.time);
+                        const isPast = aptMin + 45 < nowMinutes;
+                        const isCurrent = aptMin <= nowMinutes && aptMin + 45 > nowMinutes;
+                        const isNext = !isPast && !isCurrent && i === APPOINTMENTS.findIndex((a) => timeToMinutes(a.time) > nowMinutes);
+                        const ts = TYPE_STYLE[apt.type];
+
+                        // Check for gap before this appointment
+                        const prevEnd = i > 0 ? timeToMinutes(APPOINTMENTS[i - 1].time) + 45 : aptMin;
+                        const gapMinutes = aptMin - prevEnd;
+                        const showGap = gapMinutes >= 45 && i > 0;
+
                         return (
-                          <button
-                            key={f.key}
-                            onClick={() => setAttentionFilter(f.key)}
-                            className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
-                              attentionFilter === f.key
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "border-border text-muted-foreground hover:bg-muted"
-                            }`}
-                          >
-                            {f.label}
-                            {count > 0 && <span className="ml-1 opacity-70">{count}</span>}
-                          </button>
+                          <div key={apt.id}>
+                            {/* Gap indicator */}
+                            {showGap && (
+                              <div className="flex items-center py-3">
+                                <div className="w-[52px] shrink-0" />
+                                <div className="w-3 flex justify-center relative"><div className="w-2 h-2 rounded-full bg-[#E8ECF4]" /></div>
+                                <p className="text-[12px] italic text-[#94A3B8] ml-4" style={{ fontFamily: "var(--font-inter)" }}>
+                                  Disponible · {Math.floor(gapMinutes / 60) > 0 ? `${Math.floor(gapMinutes / 60)}h` : ""}{gapMinutes % 60 > 0 ? `${gapMinutes % 60}min` : ""}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Appointment row */}
+                            <motion.div
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.15 + i * 0.06, duration: 0.25 }}
+                              className="flex items-stretch group"
+                            >
+                              {/* Time */}
+                              <div className="w-[52px] shrink-0 text-right pr-3 pt-3.5">
+                                <span className={cn("text-[13px] font-medium tabular-nums", isPast ? "text-[#CBD5E1]" : "text-[#64748B]")} style={{ fontFamily: "var(--font-inter)" }}>
+                                  {apt.time}
+                                </span>
+                              </div>
+
+                              {/* Node on axis */}
+                              <div className="w-3 flex justify-center pt-4 relative z-10">
+                                {isPast ? (
+                                  <div className="w-5 h-5 rounded-full bg-[#059669] flex items-center justify-center"><Check size={10} className="text-white" /></div>
+                                ) : isCurrent ? (
+                                  <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-5 h-5 rounded-full bg-[#4F46E5] ring-4 ring-[#EEF2FF]" />
+                                ) : (
+                                  <div className="w-3 h-3 rounded-full bg-[#E8ECF4] mt-1" />
+                                )}
+                              </div>
+
+                              {/* Card */}
+                              <div className={cn(
+                                "flex-1 ml-4 rounded-xl p-4 transition-all duration-150 group-hover:shadow-md",
+                                isPast ? "opacity-50" : "",
+                                isCurrent ? "shadow-md border-l-4 border-l-[#4F46E5] bg-white" : "bg-white border border-[#E8ECF4] group-hover:-translate-y-px",
+                              )}>
+                                <div className="flex items-start gap-3">
+                                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-[12px] font-bold shrink-0", avatarColor(apt.patient))}>
+                                    {apt.initials}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-[15px] font-semibold text-[#0F172A] truncate" style={{ fontFamily: "var(--font-jakarta)" }}>{apt.patient}</p>
+                                      {apt.attention && <div className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" title={apt.attention} />}
+                                      {isCurrent && (
+                                        <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[11px] font-semibold text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-full">
+                                          En cours
+                                        </motion.span>
+                                      )}
+                                      {isNext && minutesUntilNext > 0 && minutesUntilNext <= 30 && (
+                                        <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2.5 }} className="text-[11px] font-semibold text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full">
+                                          Dans {minutesUntilNext}min
+                                        </motion.span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                      <span className={cn("text-[11px] font-medium px-2 py-0.5 rounded-full", ts.bg, ts.text)}>{ts.label}</span>
+                                      <span className="text-[12px] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{apt.duration}</span>
+                                      <span className="text-[12px] text-[#94A3B8] flex items-center gap-1" style={{ fontFamily: "var(--font-inter)" }}>
+                                        {apt.mode === "Téléconsultation" ? <Video size={10} /> : <MapPin size={10} />}
+                                        {apt.mode}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          </div>
                         );
                       })}
-                    </div>
-                  ) : null
-                }
-              >
-                {isLoading ? (
-                  <LoadingSkeleton />
-                ) : filteredAttention.length === 0 ? (
-                  <EmptyState
-                    icon={<Activity size={20} />}
-                    title="Aucun patient à surveiller"
-                    sub="Aucun signal critique détecté pour le moment."
-                  />
-                ) : (
-                  <div className="divide-y divide-border/50">
-                    {filteredAttention.map((p) => (
-                      <PatientAttentionRow key={p.id} patient={p} />
-                    ))}
-                  </div>
-                )}
-              </MainBlock>
 
-              {/* Bloc C — Tâches & prochaines étapes */}
-              <MainBlock
-                title="Tâches & prochaines étapes"
-                icon={<CheckSquare size={13} />}
-                action={
-                  <div className="flex items-center gap-2">
-                    <Link href="/patients" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-                      Voir les dossiers <ChevronRight size={11} />
-                    </Link>
-                  </div>
-                }
-              >
-                <EmptyState
-                  icon={<CheckSquare size={20} />}
-                  title="Aucune tâche en retard"
-                  sub="Les tâches liées à vos dossiers actifs apparaîtront ici."
-                  cta={{ label: "Voir les patients actifs", href: "/patients" }}
-                />
-              </MainBlock>
-            </div>
-
-            {/* Colonne droite 30% */}
-            <div className="w-72 shrink-0 space-y-4">
-
-              {/* D — Messages récents */}
-              <SideBlock title="Messages récents" icon={<MessageSquare size={12} />} href="/messages">
-                {recentMessages.length === 0 ? (
-                  <EmptyState
-                    icon={<MessageSquare size={16} />}
-                    title="Aucun nouveau message"
-                    sub="Les échanges cliniques récents apparaîtront ici."
-                    compact
-                  />
-                ) : (
-                  <div className="space-y-2">
-                    {recentMessages.map((m) => (
-                      <div key={m.id} className="hover:bg-muted/40 -mx-1 px-1 py-1.5 rounded transition-colors">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-[8px] font-bold text-primary shrink-0">
-                            {m.sender.firstName[0]}{m.sender.lastName[0]}
-                          </div>
-                          <span className="text-[11px] font-medium truncate">{m.sender.firstName} {m.sender.lastName}</span>
-                          <span className="text-[10px] text-muted-foreground/60 ml-auto shrink-0">{daysAgo(m.createdAt)}</span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{m.body}</p>
-                        {m._patientName && <p className="text-[9px] text-muted-foreground/50 mt-0.5">{m._patientName}</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </SideBlock>
-
-              {/* E — Documents récents */}
-              <SideBlock title="Documents récents" icon={<FileText size={12} />} href="/documents">
-                {recentDocs.length === 0 ? (
-                  <EmptyState
-                    icon={<FileText size={16} />}
-                    title="Aucun document récent"
-                    sub="Les bilans et comptes rendus récents apparaîtront ici."
-                    compact
-                  />
-                ) : (
-                  <div className="space-y-1.5">
-                    {recentDocs.map((d) => (
-                      <div key={d.id} className="flex items-start gap-2 hover:bg-muted/40 -mx-1 px-1 py-1.5 rounded transition-colors">
-                        <FileText size={12} className="text-muted-foreground shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-medium truncate">{d.title}</p>
-                          <p className="text-[10px] text-muted-foreground/60">{d._patientName} · {daysAgo(d.createdAt)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </SideBlock>
-
-              {/* F — Alertes actives */}
-              <SideBlock
-                title="Alertes actives"
-                icon={<Bell size={12} />}
-                href="/alertes"
-                titleClass={patientsAttention.some((p) => p.reason.tag === "risk") ? "text-destructive" : undefined}
-              >
-                {patientsAttention.filter((p) => p.reason.tag === "risk").length === 0 ? (
-                  <EmptyState
-                    icon={<Bell size={16} />}
-                    title="Aucune alerte critique"
-                    sub="Aucun signal critique détecté pour le moment."
-                    compact
-                  />
-                ) : (
-                  <div className="space-y-2">
-                    {patientsAttention
-                      .filter((p) => p.reason.tag === "risk")
-                      .slice(0, 4)
-                      .map((p) => (
-                        <Link key={p.id} href={`/patients/${p.id}`}>
-                          <div className="flex items-start gap-2 hover:bg-muted/40 -mx-1 px-1 py-1.5 rounded transition-colors group">
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${RISK_DOT[p.riskLevel]}`} />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium truncate">
-                                {p.patient.firstName} {p.patient.lastName}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground truncate">{p.reason.label}</p>
-                            </div>
-                            <ChevronRight size={11} className="text-muted-foreground/0 group-hover:text-muted-foreground/40 shrink-0 mt-0.5" />
-                          </div>
-                        </Link>
-                      ))}
-                  </div>
-                )}
-              </SideBlock>
-
-              {/* Accès rapide — dossiers récents */}
-              <SideBlock title="Dossiers récents" icon={<Activity size={12} />} href="/patients">
-                {isLoading ? (
-                  <div className="space-y-1.5">
-                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-8 rounded" />)}
-                  </div>
-                ) : recentCases.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground/60 py-1">Aucun dossier actif.</p>
-                ) : (
-                  <div className="space-y-0.5">
-                    {recentCases.slice(0, 5).map((c) => (
-                      <Link key={c.id} href={`/patients/${c.id}`}>
-                        <div className="flex items-center gap-2 hover:bg-muted/40 -mx-1 px-1 py-1.5 rounded transition-colors group">
-                          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${RISK_DOT[c.riskLevel]}`} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs truncate">{c.patient.firstName} {c.patient.lastName}</p>
-                          </div>
-                          {c.lastActivityAt && (
-                            <span className="text-[10px] text-muted-foreground/60 shrink-0">{daysAgo(c.lastActivityAt)}</span>
-                          )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </SideBlock>
-
-              {/* Activité équipe */}
-              <SideBlock title="Activité équipe" icon={<Activity size={12} />} href="/equipe">
-                <div className="space-y-3">
-                  {[
-                    { initials: "MV", name: "Margot Vire", action: "a ajouté une note", patient: "Gabrielle M.", time: "il y a 2h" },
-                    { initials: "ER", name: "Émilie Renard", action: "a accepté un adressage", patient: "Théo D.", time: "il y a 5h" },
-                    { initials: "PD", name: "Paul Durand", action: "a rejoint l'équipe", patient: "", time: "hier" },
-                  ].map((a, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
-                        {a.initials}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-[#374151] leading-snug">
-                          <span className="font-semibold">{a.name}</span> {a.action}{a.patient && <> pour <span className="font-medium">{a.patient}</span></>}
-                        </p>
-                        <p className="text-[10px] text-[#94A3B8] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{a.time}</p>
+                      {/* End of day */}
+                      <div className="flex items-center py-4">
+                        <div className="w-[52px] shrink-0" />
+                        <div className="w-3 flex justify-center"><div className="w-2 h-2 rounded-full bg-[#E8ECF4]" /></div>
+                        <p className="text-[12px] text-[#CBD5E1] ml-4" style={{ fontFamily: "var(--font-inter)" }}>Fin de journée</p>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </SideBlock>
+              </motion.div>
+            </div>
+
+            {/* ── Colonne droite ── */}
+            <div className="flex-[35] min-w-0 space-y-5">
+              {/* À faire maintenant */}
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
+                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-4" style={{ fontFamily: "var(--font-inter)" }}>À FAIRE</p>
+                  <div className="space-y-2">
+                    {TODO_ITEMS.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <motion.div key={item.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 + i * 0.05, duration: 0.2 }}>
+                          <Link href={item.href}>
+                            <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-all duration-150 group cursor-pointer">
+                              <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", item.iconColor)}>
+                                <Icon size={16} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[14px] font-medium text-[#374151]" style={{ fontFamily: "var(--font-jakarta)" }}>{item.title}</p>
+                                <p className="text-[12px] text-[#94A3B8] mt-0.5">{item.sub}</p>
+                              </div>
+                              <ChevronRight size={14} className="text-[#CBD5E1] shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Depuis hier */}
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.3 }}>
+                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-4" style={{ fontFamily: "var(--font-inter)" }}>DEPUIS HIER</p>
+                  <div className="space-y-4">
+                    {FEED_ITEMS.map((item, i) => (
+                      <motion.div key={item.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + i * 0.05, duration: 0.2 }}>
+                        <div className="flex gap-3">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold text-white shrink-0 mt-0.5" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
+                            {item.initials}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-semibold text-[#0F172A]">{item.name}</span>
+                              <span className="text-[11px] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{item.time}</span>
+                            </div>
+                            <p className="text-[13px] text-[#475569] leading-relaxed mt-0.5 line-clamp-2">{item.message}</p>
+                            <span className="inline-block mt-1 text-[10px] font-medium text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded-full">{item.tag}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Note sheet global */}
-      <NoteSheet open={noteOpen} onClose={() => setNoteOpen(false)} api={api} cases={activeCases} />
-    </div>
-  );
-}
-
-// ─── Patient attention row ────────────────────────────────────────────────────
-
-function PatientAttentionRow({ patient: p }: { patient: PatientWithReason }) {
-  return (
-    <div className="px-4 py-3.5 hover:bg-muted/30 transition-colors group">
-      <div className="flex items-start gap-3">
-        {/* Avatar + dot */}
-        <div className="relative shrink-0">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-bold text-primary">
-            {p.patient.firstName[0]}{p.patient.lastName[0]}
-          </div>
-          <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background ${RISK_DOT[p.riskLevel]}`} />
-        </div>
-
-        {/* Contenu */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-medium">
-                  {p.patient.firstName} {p.patient.lastName}
-                </p>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${TAG_STYLE[p.reason.tag]}`}>
-                  {p.reason.label}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {p.caseType}
-                {p.leadProvider && <> · Lead : {p.leadProvider.person.firstName} {p.leadProvider.person.lastName}</>}
-                {p.lastActivityAt && <> · Dernier contact : {daysAgo(p.lastActivityAt)}</>}
-              </p>
-            </div>
-          </div>
-
-          {/* Actions rapides */}
-          <div className="flex items-center gap-1.5 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Link href={`/patients/${p.id}`}>
-              <Button size="sm" variant="outline" className="text-[11px] h-6 px-2.5">
-                Ouvrir dossier
-              </Button>
-            </Link>
-            <Link href={`/patients/${p.id}`}>
-              <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-muted-foreground">
-                Voir la timeline
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Consultations empty state intelligent ────────────────────────────────────
-
-// ConsultationsEmpty removed — replaced by "Prochains RDV" with real data
-
-// ─── Note sheet global ────────────────────────────────────────────────────────
-
-function NoteSheet({ open, onClose, api, cases }: {
-  open: boolean;
-  onClose: () => void;
-  api: ReturnType<typeof apiWithToken>;
-  cases: CareCase[];
-}) {
-  const qc = useQueryClient();
-  const [body, setBody] = useState("");
-  const [selectedCase, setSelectedCase] = useState("");
-
-  const create = useMutation({
-    mutationFn: () => api.notes.create(selectedCase, { noteType: "GENERAL", body }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["timeline", selectedCase] });
-      qc.invalidateQueries({ queryKey: ["notes", selectedCase] });
-      setBody("");
-      setSelectedCase("");
-      onClose();
-      toast.success("Note ajoutée au dossier");
-    },
-    onError: () => toast.error("Erreur lors de l'ajout"),
-  });
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-[440px] sm:w-[500px] flex flex-col">
-        <SheetHeader className="pb-4 border-b">
-          <SheetTitle className="text-sm font-semibold">Nouvelle note clinique</SheetTitle>
-        </SheetHeader>
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Dossier patient</label>
-            <select
-              value={selectedCase}
-              onChange={(e) => setSelectedCase(e.target.value)}
-              className="w-full text-sm border rounded-md px-3 py-2 bg-background"
-            >
-              <option value="">Sélectionner un patient…</option>
-              {cases.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.patient.firstName} {c.patient.lastName} — {c.caseTitle}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Note</label>
-            <Textarea
-              placeholder="Rédiger une note clinique…"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={8}
-              className="resize-none text-sm"
-              autoFocus
-            />
-          </div>
-        </div>
-        <div className="pt-4 border-t flex gap-2">
-          <Button
-            className="flex-1 text-sm"
-            disabled={!body.trim() || !selectedCase || create.isPending}
-            onClick={() => create.mutate()}
-          >
-            {create.isPending ? "Enregistrement…" : "Enregistrer la note"}
-          </Button>
-          <Button variant="outline" onClick={onClose} className="text-sm">Annuler</Button>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-// ─── Blocs layout ─────────────────────────────────────────────────────────────
-
-function MainBlock({ title, icon, titleClass, action, subHeader, children, id }: {
-  title: string;
-  icon: React.ReactNode;
-  titleClass?: string;
-  action?: React.ReactNode;
-  subHeader?: React.ReactNode;
-  children: React.ReactNode;
-  id?: string;
-}) {
-  return (
-    <div id={id} className="nami-card overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#E8ECF0]">
-        <div className={`text-xs font-semibold uppercase tracking-wide text-[#94A3B8] flex items-center gap-2 ${titleClass ?? ""}`}>
-          {icon} {title}
-        </div>
-        {action}
-      </div>
-      {subHeader}
-      <div>{children}</div>
-    </div>
-  );
-}
-
-function SideBlock({ title, icon, titleClass, href, children }: {
-  title: string;
-  icon: React.ReactNode;
-  titleClass?: string;
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="nami-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E8ECF0]">
-        <div className={`text-xs font-semibold uppercase tracking-wide text-[#94A3B8] flex items-center gap-2 ${titleClass ?? ""}`}>
-          {icon} {title}
-        </div>
-        <Link href={href} className="text-xs text-[#64748B] hover:text-[#4F46E5] flex items-center gap-1 transition-colors font-medium">
-          Voir tout <ChevronRight size={12} />
-        </Link>
-      </div>
-      <div className="px-4 py-3">{children}</div>
-    </div>
-  );
-}
-
-function SummaryCard({ icon, label, value, sub, href, cta, alert }: {
-  icon: React.ReactNode;
-  label: string;
-  value: number | string | null;
-  sub: string;
-  href: string;
-  cta: string;
-  alert?: boolean;
-}) {
-  return (
-    <Link href={href}>
-      <div className={`nami-card-interactive p-5 ${alert ? "!border-[#FCA5A5]" : ""}`}>
-        <div className="flex items-center justify-between mb-3">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${alert ? "bg-[#FEE2E2] text-[#DC2626]" : "bg-[#EEF1FF] text-[#4F46E5]"}`}>
-            {icon}
-          </div>
-        </div>
-        {value === null ? (
-          <Skeleton className="h-8 w-12 rounded-lg mb-1" />
-        ) : (
-          <p className={`text-[28px] font-bold tracking-tight leading-none mb-1 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`} style={{ fontFamily: "var(--font-jakarta), system-ui" }}>{value}</p>
-        )}
-        <p className={`text-[13px] font-semibold mb-0.5 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`}>{label}</p>
-        <p className="text-xs text-[#94A3B8]">{sub}</p>
-      </div>
-    </Link>
-  );
-}
-
-function EmptyState({ icon, title, sub, cta, compact }: {
-  icon: React.ReactNode;
-  title: string;
-  sub: string;
-  cta?: { label: string; href: string };
-  compact?: boolean;
-}) {
-  return (
-    <div className={`flex flex-col items-center text-center ${compact ? "py-4 gap-1.5" : "py-10 gap-2"}`}>
-      <div className="text-muted-foreground/25">{icon}</div>
-      <p className={`font-medium text-muted-foreground ${compact ? "text-caption" : "text-sm"}`}>{title}</p>
-      <p className={`text-muted-foreground/60 max-w-xs ${compact ? "text-micro" : "text-caption"}`}>{sub}</p>
-      {cta && (
-        <Link href={cta.href} className="mt-2">
-          <Button size="sm" variant="outline">{cta.label}</Button>
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="divide-y divide-border/50">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="px-4 py-3.5 flex items-start gap-3">
-          <Skeleton className="w-8 h-8 rounded-full shrink-0" />
-          <div className="flex-1 space-y-1.5">
-            <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-3 w-64" />
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
