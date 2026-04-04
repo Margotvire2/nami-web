@@ -29,78 +29,37 @@ function addMinutes(iso: string, min: number): string {
 }
 
 export const APPOINTMENTS: Appointment[] = [
-  {
-    id: "apt-1",
-    patient: { firstName: "Marie", lastName: "Dupont" },
-    consultationType: CONSULTATION_TYPES[1],
-    location: LOCATIONS[0],
-    startTime: weekDay(0, 9, 0),
-    endTime: weekDay(0, 9, 30),
-    status: "CONFIRMED",
-  },
-  {
-    id: "apt-2",
-    patient: { firstName: "Jean", lastName: "Martin" },
-    consultationType: CONSULTATION_TYPES[0],
-    location: LOCATIONS[0],
-    startTime: weekDay(0, 10, 0),
-    endTime: weekDay(0, 11, 0),
-    status: "CONFIRMED",
-  },
-  {
-    id: "apt-3",
-    patient: { firstName: "Sophie", lastName: "Bernard" },
-    consultationType: CONSULTATION_TYPES[3],
-    location: LOCATIONS[1],
-    startTime: weekDay(0, 14, 30),
-    endTime: weekDay(0, 14, 50),
-    status: "PENDING",
-  },
-  {
-    id: "apt-4",
-    patient: { firstName: "Thomas", lastName: "Petit" },
-    consultationType: CONSULTATION_TYPES[2],
-    location: LOCATIONS[0],
-    startTime: weekDay(1, 9, 30),
-    endTime: weekDay(1, 11, 0),
-    status: "CONFIRMED",
-  },
-  {
-    id: "apt-5",
-    patient: { firstName: "Claire", lastName: "Rousseau" },
-    consultationType: CONSULTATION_TYPES[1],
-    location: LOCATIONS[2],
-    startTime: weekDay(1, 11, 0),
-    endTime: weekDay(1, 11, 30),
-    status: "CONFIRMED",
-  },
-  {
-    id: "apt-6",
-    patient: { firstName: "Marc", lastName: "Leblanc" },
-    consultationType: CONSULTATION_TYPES[0],
-    location: LOCATIONS[0],
-    startTime: weekDay(3, 14, 0),
-    endTime: weekDay(3, 15, 0),
-    status: "CONFIRMED",
-  },
-  {
-    id: "apt-7",
-    patient: { firstName: "Emma", lastName: "Garcia" },
-    consultationType: CONSULTATION_TYPES[3],
-    location: LOCATIONS[1],
-    startTime: weekDay(4, 9, 0),
-    endTime: weekDay(4, 9, 20),
-    status: "CONFIRMED",
-  },
-  {
-    id: "apt-8",
-    patient: { firstName: "Lucas", lastName: "Moreau" },
-    consultationType: CONSULTATION_TYPES[1],
-    location: LOCATIONS[0],
-    startTime: weekDay(4, 11, 0),
-    endTime: weekDay(4, 11, 30),
-    status: "PENDING",
-  },
+  // ── LUNDI (5 RDV) ──
+  { id: "apt-01", patient: { firstName: "Marie", lastName: "Dupont" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[0], startTime: weekDay(0, 9, 0), endTime: weekDay(0, 9, 30), status: "DONE" },
+  { id: "apt-02", patient: { firstName: "Jean", lastName: "Martin" }, consultationType: CONSULTATION_TYPES[0], location: LOCATIONS[0], startTime: weekDay(0, 10, 0), endTime: weekDay(0, 11, 0), status: "DONE" },
+  { id: "apt-03", patient: { firstName: "Sophie", lastName: "Bernard" }, consultationType: CONSULTATION_TYPES[3], location: LOCATIONS[1], startTime: weekDay(0, 11, 30), endTime: weekDay(0, 11, 50), status: "DONE" },
+  { id: "apt-04", patient: { firstName: "Chloé", lastName: "Fontaine" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[0], startTime: weekDay(0, 14, 0), endTime: weekDay(0, 14, 30), status: "CONFIRMED" },
+  { id: "apt-05", patient: { firstName: "Antoine", lastName: "Leroy" }, consultationType: CONSULTATION_TYPES[4], location: LOCATIONS[0], startTime: weekDay(0, 15, 0), endTime: weekDay(0, 15, 15), status: "CONFIRMED" },
+
+  // ── MARDI (5 RDV) ──
+  { id: "apt-06", patient: { firstName: "Thomas", lastName: "Petit" }, consultationType: CONSULTATION_TYPES[2], location: LOCATIONS[0], startTime: weekDay(1, 9, 0), endTime: weekDay(1, 10, 30), status: "CONFIRMED" },
+  { id: "apt-07", patient: { firstName: "Claire", lastName: "Rousseau" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[2], startTime: weekDay(1, 11, 0), endTime: weekDay(1, 11, 30), status: "CONFIRMED" },
+  { id: "apt-08", patient: { firstName: "Nadia", lastName: "Benali" }, consultationType: CONSULTATION_TYPES[3], location: LOCATIONS[1], startTime: weekDay(1, 14, 0), endTime: weekDay(1, 14, 20), status: "PENDING" },
+  { id: "apt-09", patient: { firstName: "Hugo", lastName: "Deschamps" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[0], startTime: weekDay(1, 15, 0), endTime: weekDay(1, 15, 30), status: "CONFIRMED" },
+  { id: "apt-10", patient: { firstName: "Léa", lastName: "Marchand" }, consultationType: CONSULTATION_TYPES[0], location: LOCATIONS[0], startTime: weekDay(1, 16, 0), endTime: weekDay(1, 17, 0), status: "PENDING" },
+
+  // ── MERCREDI (2 RDV après-midi — matin bloqué formation) ──
+  { id: "apt-11", patient: { firstName: "Inès", lastName: "Faure" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[2], startTime: weekDay(2, 14, 0), endTime: weekDay(2, 14, 30), status: "CONFIRMED" },
+  { id: "apt-12", patient: { firstName: "Raphaël", lastName: "Girard" }, consultationType: CONSULTATION_TYPES[3], location: LOCATIONS[1], startTime: weekDay(2, 15, 0), endTime: weekDay(2, 15, 20), status: "CONFIRMED" },
+
+  // ── JEUDI (5 RDV) ──
+  { id: "apt-13", patient: { firstName: "Marc", lastName: "Leblanc" }, consultationType: CONSULTATION_TYPES[0], location: LOCATIONS[0], startTime: weekDay(3, 9, 0), endTime: weekDay(3, 10, 0), status: "CONFIRMED" },
+  { id: "apt-14", patient: { firstName: "Camille", lastName: "Noël" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[0], startTime: weekDay(3, 10, 30), endTime: weekDay(3, 11, 0), status: "CONFIRMED" },
+  { id: "apt-15", patient: { firstName: "Yasmina", lastName: "Chérif" }, consultationType: CONSULTATION_TYPES[2], location: LOCATIONS[2], startTime: weekDay(3, 11, 0), endTime: weekDay(3, 12, 30), status: "PENDING" },
+  { id: "apt-16", patient: { firstName: "Paul", lastName: "Durand" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[0], startTime: weekDay(3, 14, 30), endTime: weekDay(3, 15, 0), status: "CONFIRMED" },
+  { id: "apt-17", patient: { firstName: "Élodie", lastName: "Perrin" }, consultationType: CONSULTATION_TYPES[3], location: LOCATIONS[1], startTime: weekDay(3, 16, 0), endTime: weekDay(3, 16, 20), status: "CONFIRMED" },
+
+  // ── VENDREDI (5 RDV) ──
+  { id: "apt-18", patient: { firstName: "Emma", lastName: "Garcia" }, consultationType: CONSULTATION_TYPES[3], location: LOCATIONS[1], startTime: weekDay(4, 9, 0), endTime: weekDay(4, 9, 20), status: "CONFIRMED" },
+  { id: "apt-19", patient: { firstName: "Lucas", lastName: "Moreau" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[0], startTime: weekDay(4, 10, 0), endTime: weekDay(4, 10, 30), status: "CONFIRMED" },
+  { id: "apt-20", patient: { firstName: "Mathilde", lastName: "Rey" }, consultationType: CONSULTATION_TYPES[0], location: LOCATIONS[0], startTime: weekDay(4, 11, 0), endTime: weekDay(4, 12, 0), status: "CONFIRMED" },
+  { id: "apt-21", patient: { firstName: "Samir", lastName: "Hadj" }, consultationType: CONSULTATION_TYPES[1], location: LOCATIONS[2], startTime: weekDay(4, 14, 0), endTime: weekDay(4, 14, 30), status: "PENDING" },
+  { id: "apt-22", patient: { firstName: "Julie", lastName: "Lambert" }, consultationType: CONSULTATION_TYPES[4], location: LOCATIONS[0], startTime: weekDay(4, 15, 30), endTime: weekDay(4, 15, 45), status: "CONFIRMED" },
 ];
 
 export const BLOCKS: Block[] = [
