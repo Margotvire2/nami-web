@@ -470,6 +470,29 @@ export default function AujourdhuiPage() {
                   </div>
                 )}
               </SideBlock>
+
+              {/* Activité équipe */}
+              <SideBlock title="Activité équipe" icon={<Activity size={12} />} href="/equipe">
+                <div className="space-y-3">
+                  {[
+                    { initials: "MV", name: "Margot Vire", action: "a ajouté une note", patient: "Gabrielle M.", time: "il y a 2h" },
+                    { initials: "ER", name: "Émilie Renard", action: "a accepté un adressage", patient: "Théo D.", time: "il y a 5h" },
+                    { initials: "PD", name: "Paul Durand", action: "a rejoint l'équipe", patient: "", time: "hier" },
+                  ].map((a, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
+                        {a.initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-[#374151] leading-snug">
+                          <span className="font-semibold">{a.name}</span> {a.action}{a.patient && <> pour <span className="font-medium">{a.patient}</span></>}
+                        </p>
+                        <p className="text-[10px] text-[#94A3B8] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{a.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SideBlock>
             </div>
           </div>
         </div>
