@@ -13,6 +13,8 @@ export interface ConsultationType {
   price: number;
   color: string;
   textColor: string;
+  bgColor: string;
+  borderColor: string;
   isActive: boolean;
 }
 

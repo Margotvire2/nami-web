@@ -139,9 +139,9 @@ export default function AgendaPage() {
           {weekDates.map((d, i) => {
             const isToday = isSameDay(d, now);
             return (
-              <div key={i} className={`text-center py-2 ${isToday ? "bg-[#EEF1FF]" : ""}`}>
-                <p className={`text-xs font-medium ${isToday ? "text-[#4F6AF5]" : "text-[#94A3B8]"}`}>{DAYS_FR[i]}</p>
-                <p className={`text-xl font-bold ${isToday ? "text-[#4F6AF5]" : "text-[#1E293B]"}`} style={{ fontFamily: "var(--font-bricolage), system-ui" }}>{d.getDate()}</p>
+              <div key={i} className={`text-center py-2 ${isToday ? "bg-[#FAFBFF]" : ""}`}>
+                <p className={`text-[11px] font-semibold uppercase tracking-wide ${isToday ? "text-[#4F46E5]" : "text-[#94A3B8]"}`} style={{ fontFamily: "var(--font-inter)" }}>{DAYS_FR[i]}</p>
+                <p className={`text-lg font-bold ${isToday ? "text-[#4F46E5]" : "text-[#0F172A]"}`} style={{ fontFamily: "var(--font-jakarta)" }}>{d.getDate()}</p>
               </div>
             );
           })}
@@ -162,7 +162,7 @@ export default function AgendaPage() {
                   // Check if this slot accepts referrals
                   const slot = timeSlots.find((s) => s.dayOfWeek === dayIdx && hour >= s.startHour && hour < s.endHour);
                   return (
-                    <div key={`${hour}-${dayIdx}`} style={{ height: CELL_H, borderBottom: "1px solid #E2E8F0", borderRight: "1px solid #E2E8F0" }} className={`transition-colors relative ${isBlocked ? "bg-[#FEE2E2]" : isOpen ? "bg-white hover:bg-[#F8F9FF]" : "bg-[#F0F2F8]"} cursor-pointer`} onClick={() => isOpen && !isBlocked && setCreateSlot({ day: dayIdx, hour })}>
+                    <div key={`${hour}-${dayIdx}`} style={{ height: CELL_H, borderBottom: "1px solid #F1F5F9", borderRight: "1px solid #F1F5F9" }} className={`transition-colors relative ${isBlocked ? "bg-[#FEE2E2]" : isOpen ? "bg-white hover:bg-[#F8F9FF]" : "bg-[#F0F2F8]"} cursor-pointer`} onClick={() => isOpen && !isBlocked && setCreateSlot({ day: dayIdx, hour })}>
                       {isBlocked && block && <div className="px-1.5 py-1"><p className="text-[10px] font-semibold text-[#DC2626]">Bloqué</p><p className="text-[9px] text-[#DC2626]">{block.reason}</p></div>}
                       {!isBlocked && isOpen && slot?.acceptsReferral && (
                         <div className="absolute top-0.5 right-1"><ArrowLeftRight size={9} className="text-[#4F6AF5]" /></div>
@@ -190,15 +190,17 @@ export default function AgendaPage() {
               const top = (startH - OPEN_HOURS.start) * CELL_H;
               const height = Math.max(durH * CELL_H - 2, 24);
               return (
-                <div key={apt.id} onClick={(e) => { e.stopPropagation(); setSelectedApt(apt); }} className="absolute rounded-xl px-2.5 py-1.5 cursor-pointer hover:brightness-95 transition-all overflow-hidden z-10" style={{
-                  backgroundColor: apt.consultationType.color, color: apt.consultationType.textColor,
+                <div key={apt.id} onClick={(e) => { e.stopPropagation(); setSelectedApt(apt); }} className="absolute rounded-lg px-2.5 py-1.5 cursor-pointer overflow-hidden z-10 transition-all duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]" style={{
+                  backgroundColor: apt.consultationType.bgColor,
+                  color: apt.consultationType.textColor,
+                  borderLeft: `3px solid ${apt.consultationType.borderColor}`,
                   top: `${top}px`, height: `${height}px`,
                   left: `calc(52px + ${dayIdx} * ((100% - 52px) / 5) + 3px)`,
                   width: `calc((100% - 52px) / 5 - 6px)`,
                 }}>
-                  <p className="text-xs font-semibold truncate">{apt.patient.firstName} {apt.patient.lastName}</p>
-                  {height > 35 && <p className="text-[10px] truncate opacity-80">{apt.consultationType.name}</p>}
-                  {height > 50 && <p className="text-[10px] truncate opacity-70">{formatTime(apt.startTime)} — {formatTime(apt.endTime)}</p>}
+                  <p className="text-[13px] font-medium truncate">{apt.patient.firstName} {apt.patient.lastName}</p>
+                  {height > 35 && <p className="text-[11px] truncate" style={{ fontFamily: "var(--font-inter)" }}>{apt.consultationType.name}</p>}
+                  {height > 50 && <p className="text-[11px] truncate" style={{ fontFamily: "var(--font-inter)", opacity: 0.7 }}>{formatTime(apt.startTime)} — {formatTime(apt.endTime)}</p>}
                 </div>
               );
             })}

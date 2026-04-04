@@ -7,11 +7,11 @@ export const LOCATIONS: Location[] = [
 ];
 
 export const CONSULTATION_TYPES: ConsultationType[] = [
-  { id: "ct-1", name: "Première consultation", duration: 60, price: 80, color: "#EF4444", textColor: "#FFFFFF", isActive: true },
-  { id: "ct-2", name: "Consultation de suivi", duration: 30, price: 55, color: "#F59E0B", textColor: "#1E293B", isActive: true },
-  { id: "ct-3", name: "Bilan annuel complet", duration: 90, price: 120, color: "#3B82F6", textColor: "#FFFFFF", isActive: true },
-  { id: "ct-4", name: "Téléconsultation suivi", duration: 20, price: 45, color: "#8B5CF6", textColor: "#FFFFFF", isActive: true },
-  { id: "ct-5", name: "Urgence", duration: 15, price: 60, color: "#DC2626", textColor: "#FFFFFF", isActive: true },
+  { id: "ct-1", name: "Première consultation", duration: 60, price: 80, color: "#10B981", textColor: "#065F46", bgColor: "#F0FDF4", borderColor: "#10B981", isActive: true },
+  { id: "ct-2", name: "Consultation de suivi", duration: 30, price: 55, color: "#6366F1", textColor: "#3730A3", bgColor: "#EEF2FF", borderColor: "#6366F1", isActive: true },
+  { id: "ct-3", name: "Bilan annuel complet", duration: 90, price: 120, color: "#F59E0B", textColor: "#92400E", bgColor: "#FFF7ED", borderColor: "#F59E0B", isActive: true },
+  { id: "ct-4", name: "Téléconsultation suivi", duration: 20, price: 45, color: "#0EA5E9", textColor: "#0C4A6E", bgColor: "#F0F9FF", borderColor: "#0EA5E9", isActive: true },
+  { id: "ct-5", name: "Urgence", duration: 15, price: 60, color: "#EF4444", textColor: "#991B1B", bgColor: "#FEF2F2", borderColor: "#EF4444", isActive: true },
 ];
 
 // Helpers pour construire les dates de la semaine courante
