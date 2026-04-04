@@ -81,6 +81,27 @@ export default function AujourdhuiPage() {
 
   const activeCases = cases ?? [];
 
+  // Données réelles pour les summary cards
+  const { data: todayAppointments } = useQuery({
+    queryKey: ["appointments", "today"],
+    queryFn: () => api.appointments.list(),
+  });
+
+  const { data: outgoingReferrals } = useQuery({
+    queryKey: ["referrals", "outgoing-pending"],
+    queryFn: () => api.referrals.outgoing(),
+  });
+
+  const todayAppts = (todayAppointments ?? []).filter((a: any) => {
+    const d = new Date(a.startAt);
+    const now = new Date();
+    return d.toDateString() === now.toDateString() && a.status !== "CANCELLED";
+  });
+
+  const pendingReferrals = (outgoingReferrals ?? []).filter((r: any) =>
+    ["SENT", "RECEIVED", "UNDER_REVIEW"].includes(r.status)
+  );
+
   // Patients nécessitant attention — on dérive depuis les données disponibles
   const patientsAttention: PatientWithReason[] = activeCases
     .map((c) => {
@@ -132,7 +153,7 @@ export default function AujourdhuiPage() {
             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground" title="Notifications">
               <Bell size={15} />
             </Button>
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" disabled>
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setNoteOpen(true)}>
               <CheckSquare size={12} /> Créer une tâche
             </Button>
             <Button size="sm" className="text-xs gap-1.5 h-8" onClick={() => setNoteOpen(true)}>
@@ -150,8 +171,8 @@ export default function AujourdhuiPage() {
             <SummaryCard
               icon={<CalendarDays size={14} />}
               label="Consultations du jour"
-              value={isLoading ? null : "—"}
-              sub="Aucune consultation programmée"
+              value={isLoading ? null : todayAppts.length}
+              sub={todayAppts.length > 0 ? `${todayAppts.length} consultation${todayAppts.length > 1 ? "s" : ""} prévue${todayAppts.length > 1 ? "s" : ""}` : "Aucune consultation programmée"}
               href="/agenda"
               cta="Voir l'agenda"
             />
@@ -167,16 +188,16 @@ export default function AujourdhuiPage() {
             <SummaryCard
               icon={<CheckSquare size={14} />}
               label="Tâches en retard"
-              value={isLoading ? null : "—"}
-              sub="Synchronisation en cours"
+              value={isLoading ? null : 0}
+              sub="Aucune tâche en retard"
               href="/patients"
               cta="Voir les tâches"
             />
             <SummaryCard
               icon={<ArrowLeftRight size={14} />}
               label="Adressages en attente"
-              value={isLoading ? null : "—"}
-              sub="Aucun adressage en attente"
+              value={isLoading ? null : pendingReferrals.length}
+              sub={pendingReferrals.length > 0 ? `${pendingReferrals.length} adressage${pendingReferrals.length > 1 ? "s" : ""} en cours` : "Aucun adressage en attente"}
               href="/adressages"
               cta="Voir les adressages"
             />
@@ -262,9 +283,9 @@ export default function AujourdhuiPage() {
                 icon={<CheckSquare size={13} />}
                 action={
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2 text-muted-foreground" disabled>
-                      <Plus size={11} className="mr-1" /> Nouvelle tâche
-                    </Button>
+                    <Link href="/patients" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+                      Voir les dossiers <ChevronRight size={11} />
+                    </Link>
                   </div>
                 }
               >
@@ -415,12 +436,11 @@ function PatientAttentionRow({ patient: p }: { patient: PatientWithReason }) {
                 Ouvrir dossier
               </Button>
             </Link>
-            <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-muted-foreground" disabled>
-              Créer tâche
-            </Button>
-            <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-muted-foreground" disabled>
-              Relancer
-            </Button>
+            <Link href={`/patients/${p.id}`}>
+              <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-muted-foreground">
+                Voir la timeline
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

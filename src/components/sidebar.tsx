@@ -14,8 +14,6 @@ import {
   FileText,
   CalendarDays,
   Bell,
-  Building2,
-  Settings,
   LogOut,
   ChevronRight,
 } from "lucide-react";
@@ -30,9 +28,10 @@ const NAV = [
   { href: "/alertes",     label: "Alertes",      icon: Bell },
 ];
 
-const NAV_BOTTOM = [
-  { href: "/organisation", label: "Organisation", icon: Building2 },
-  { href: "/parametres",   label: "Paramètres",   icon: Settings },
+const NAV_BOTTOM: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
+  // Masqués pour V1 — pages non implémentées
+  // { href: "/organisation", label: "Organisation", icon: Building2 },
+  // { href: "/parametres",   label: "Paramètres",   icon: Settings },
 ];
 
 export function Sidebar() {

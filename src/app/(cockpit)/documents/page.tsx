@@ -10,6 +10,7 @@ import { FileText, Upload, Clock, User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { toast } from "sonner";
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -96,7 +97,7 @@ export default function DocumentsPage() {
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-xs w-56" />
             </div>
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" disabled>
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => toast.info("Import de documents bientôt disponible")}>
               <Upload size={12} /> Importer
             </Button>
           </div>

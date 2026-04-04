@@ -212,10 +212,10 @@ function PatientHeader({ careCase: c, onAddNote, careCaseId, api }: {
         </div>
         <div className="flex items-center gap-1.5 flex-wrap shrink-0">
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onAddNote}><FileText size={12} /> Note</Button>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" disabled><CheckSquare size={12} /> Tâche</Button>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" disabled><ArrowLeftRight size={12} /> Adresser</Button>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" disabled><MessageSquare size={12} /> Message</Button>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" disabled><CalendarPlus size={12} /> RDV</Button>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={() => toast.info("Création de tâche bientôt disponible")}><CheckSquare size={12} /> Tâche</Button>
+          <Link href="/adressages"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><ArrowLeftRight size={12} /> Adresser</Button></Link>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={() => toast.info("Envoi de message bientôt disponible")}><MessageSquare size={12} /> Message</Button>
+          <Link href="/agenda"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><CalendarPlus size={12} /> RDV</Button></Link>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"
             onClick={() => aiSummarize.mutate()} disabled={aiSummarize.isPending}>
             <Sparkles size={12} /> {aiSummarize.isPending ? "Génération…" : "Résumé IA"}
@@ -1565,8 +1565,8 @@ function CoordinationBlock() {
     <PanelSection title="Coordination" icon={<MessageSquare size={12} />}>
       <p className="text-[11px] text-muted-foreground mb-2">Aucun message récent sur ce dossier.</p>
       <div className="flex gap-1.5">
-        <Button size="sm" variant="outline" className="text-[11px] h-6 px-2 flex-1" disabled>Message</Button>
-        <Button size="sm" variant="outline" className="text-[11px] h-6 px-2 flex-1" disabled>Adresser</Button>
+        <Link href="/messages" className="flex-1"><Button size="sm" variant="outline" className="text-[11px] h-6 px-2 w-full">Message</Button></Link>
+        <Link href="/adressages" className="flex-1"><Button size="sm" variant="outline" className="text-[11px] h-6 px-2 w-full">Adresser</Button></Link>
       </div>
     </PanelSection>
   );

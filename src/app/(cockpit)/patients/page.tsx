@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Search, ChevronRight, Users, AlertTriangle, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const RISK_STYLE: Record<string, string> = {
   CRITICAL: "text-destructive font-semibold",
@@ -99,7 +100,7 @@ export default function PatientsPage() {
                 className="pl-8 h-8 text-xs w-56"
               />
             </div>
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" disabled>
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => toast.info("Création de dossier bientôt disponible")}>
               <Plus size={12} /> Nouveau dossier
             </Button>
           </div>
@@ -143,8 +144,8 @@ export default function PatientsPage() {
               className="text-xs border rounded px-2 py-1 bg-background text-muted-foreground h-7"
             >
               <option value="">Risque</option>
-              {["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"].map((r) => (
-                <option key={r} value={r}>{r}</option>
+              {([["CRITICAL", "Critique"], ["HIGH", "Élevé"], ["MEDIUM", "Modéré"], ["LOW", "Faible"], ["UNKNOWN", "Inconnu"]] as const).map(([r, label]) => (
+                <option key={r} value={r}>{label}</option>
               ))}
             </select>
             {types.length > 0 && (
@@ -229,7 +230,7 @@ function PatientRow({ careCase: c }: { careCase: CareCase }) {
         <Link href={`/patients/${c.id}`}>
           <div className="flex items-center gap-1.5">
             <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${RISK_DOT[c.riskLevel]}`} />
-            <span className={`text-xs ${RISK_STYLE[c.riskLevel]}`}>{c.riskLevel}</span>
+            <span className={`text-xs ${RISK_STYLE[c.riskLevel]}`}>{({ CRITICAL: "Critique", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Inconnu" })[c.riskLevel] ?? c.riskLevel}</span>
           </div>
         </Link>
       </td>
