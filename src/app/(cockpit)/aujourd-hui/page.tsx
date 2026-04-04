@@ -169,11 +169,11 @@ export default function AujourdhuiPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ── Header ── */}
-      <header className="nami-page-header">
+      {/* ── Header — Level 1 surface (white on gray floor) ── */}
+      <header className="bg-card px-8 py-6 shrink-0">
         <div className="flex items-center gap-6">
           <div className="flex-1">
-            <h1 className="text-page-title text-foreground">Aujourd'hui</h1>
+            <h1 className="text-page-title">Aujourd'hui</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
               {" · "}
@@ -181,17 +181,17 @@ export default function AujourdhuiPage() {
             </p>
           </div>
           <div className="relative hidden md:block">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Rechercher un patient, un document…"
-              className="pl-10 h-10 text-sm w-80 bg-background border-border/50 rounded-xl focus:border-primary focus:bg-card"
+              className="pl-10 h-10 text-sm w-80 bg-background border-0 rounded-xl focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="ghost" className="h-10 w-10 p-0 rounded-xl text-muted-foreground" title="Notifications">
+            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors" title="Notifications">
               <Bell size={18} />
-            </Button>
-            <Button size="sm" variant="outline" className="h-10 rounded-xl" onClick={() => setNoteOpen(true)}>
+            </button>
+            <Button size="sm" variant="secondary" className="h-10 rounded-xl border-0" onClick={() => setNoteOpen(true)}>
               <CheckSquare size={16} /> Créer une tâche
             </Button>
             <Button size="sm" className="h-10 rounded-xl" onClick={() => setNoteOpen(true)}>
@@ -627,8 +627,8 @@ function MainBlock({ title, icon, titleClass, action, subHeader, children, id }:
 }) {
   return (
     <div id={id} className="nami-card overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b">
-        <div className={`text-label flex items-center gap-2 ${titleClass ?? "text-muted-foreground"}`}>
+      <div className="flex items-center justify-between px-6 py-4">
+        <div className={`text-label flex items-center gap-2 ${titleClass ?? ""}`}>
           {icon} {title}
         </div>
         {action}
@@ -648,15 +648,15 @@ function SideBlock({ title, icon, titleClass, href, children }: {
 }) {
   return (
     <div className="nami-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b">
-        <div className={`text-label flex items-center gap-2 ${titleClass ?? "text-muted-foreground"}`}>
+      <div className="flex items-center justify-between px-5 py-3.5">
+        <div className={`text-label flex items-center gap-2 ${titleClass ?? ""}`}>
           {icon} {title}
         </div>
-        <Link href={href} className="text-caption text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+        <Link href={href} className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors font-medium">
           Voir tout <ChevronRight size={12} />
         </Link>
       </div>
-      <div className="px-4 py-3">{children}</div>
+      <div className="px-5 py-3">{children}</div>
     </div>
   );
 }
@@ -672,17 +672,17 @@ function SummaryCard({ icon, label, value, sub, href, cta, alert }: {
 }) {
   return (
     <Link href={href}>
-      <div className={`nami-card-interactive px-5 py-5 space-y-3 ${alert ? "border-severity-critical-border" : ""}`}>
-        <div className={`flex items-center gap-2 text-xs uppercase tracking-wide font-medium ${alert ? "text-severity-critical" : "text-muted-foreground"}`}>
-          {icon} <span className="truncate">{label}</span>
+      <div className={`nami-card p-6 space-y-3 ${alert ? "" : ""}`}>
+        <div className={`text-label ${alert ? "text-severity-critical-foreground" : ""}`}>
+          <span className="flex items-center gap-2">{icon} {label}</span>
         </div>
         {value === null ? (
-          <Skeleton className="h-9 w-12 rounded-lg" />
+          <Skeleton className="h-10 w-14 rounded-lg" />
         ) : (
-          <p className={`text-kpi ${alert ? "text-severity-critical" : "text-foreground"}`}>{value}</p>
+          <p className={`text-kpi ${alert ? "!text-severity-critical" : ""}`}>{value}</p>
         )}
-        <p className="text-xs text-muted-foreground leading-snug">{sub}</p>
-        <p className={`text-xs font-semibold ${alert ? "text-severity-critical" : "text-primary"}`}>{cta} →</p>
+        <p className="text-sm text-muted-foreground leading-snug">{sub}</p>
+        <p className={`text-sm font-semibold ${alert ? "text-severity-critical" : "text-primary"}`}>{cta} →</p>
       </div>
     </Link>
   );

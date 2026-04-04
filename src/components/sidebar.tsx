@@ -47,16 +47,16 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-16 shrink-0 bg-card flex flex-col items-center h-full py-4 shadow-[var(--shadow-sm)] z-10">
-      {/* Logo */}
-      <div className="mb-6">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[var(--shadow-md)]">
-          <span className="text-primary-foreground text-sm font-bold tracking-tight">N</span>
+    <aside className="w-16 shrink-0 bg-card flex flex-col items-center h-full py-4 z-10">
+      {/* Logo — Level 3 surface */}
+      <div className="mb-8">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground text-[15px] font-bold tracking-tight">N</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col items-center gap-1">
+      <nav className="flex-1 flex flex-col items-center gap-1.5">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -66,29 +66,29 @@ export function Sidebar() {
               href={item.href}
               title={item.label}
               className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150",
+                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-150",
                 active
-                  ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)]"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-[#94A3B8] hover:text-foreground hover:bg-secondary"
               )}
             >
-              <Icon size={20} strokeWidth={active ? 2 : 1.5} />
+              <Icon size={20} strokeWidth={active ? 2.25 : 1.75} />
             </Link>
           );
         })}
       </nav>
 
-      {/* User */}
+      {/* Bottom */}
       <div className="flex flex-col items-center gap-2 mt-4">
         <button
           onClick={handleLogout}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150"
           title="Se déconnecter"
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-[#94A3B8] hover:text-foreground hover:bg-secondary transition-colors duration-150"
         >
-          <LogOut size={18} strokeWidth={1.5} />
+          <LogOut size={18} strokeWidth={1.75} />
         </button>
         <div
-          className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xs font-bold text-primary cursor-default"
+          className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-xs font-bold text-primary cursor-default"
           title={`${user?.firstName} ${user?.lastName}`}
         >
           {user?.firstName?.[0]}{user?.lastName?.[0]}

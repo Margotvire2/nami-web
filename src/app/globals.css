@@ -5,16 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NAMI DESIGN SYSTEM v3
-   "soft precision / clinical clarity / intelligent warmth"
+   NAMI DESIGN SYSTEM — Hard Surface Design
 
-   Palette : bleu-indigo primaire, fond gris-lavande, cards blanches.
-   Fonts  : Bricolage Grotesque (titres/KPI) + Geist Sans (UI) + Geist Mono
-   Refs   : Clinexa, MediConnect, Hero Medical
+   Rule: surfaces are separated by color contrast, NEVER by shadows or borders.
+   Rule: zero box-shadow, zero visible border, zero opacity on colors.
+   Rule: max 4 surface levels. Every element has a solid, full color.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
-  /* ── Core colors ─────────────────────────────────────────────────────── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -33,8 +31,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
-  /* ── Sidebar ─────────────────────────────────────────────────────────── */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -43,19 +39,14 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
-  /* ── Charts ──────────────────────────────────────────────────────────── */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-
-  /* ── Nami semantic ───────────────────────────────────────────────────── */
   --color-nami: var(--nami);
   --color-nami-foreground: var(--nami-foreground);
   --color-nami-light: var(--nami-light);
-
   --color-severity-critical: var(--severity-critical);
   --color-severity-critical-foreground: var(--severity-critical-foreground);
   --color-severity-critical-bg: var(--severity-critical-bg);
@@ -77,12 +68,11 @@
   --color-severity-success-bg: var(--severity-success-bg);
   --color-severity-success-border: var(--severity-success-border);
 
-  /* ── Fonts ───────────────────────────────────────────────────────────── */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-bricolage);
 
-  /* ── Radius ──────────────────────────────────────────────────────────── */
+  /* Hard radius — consistent, never mixed */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -90,18 +80,14 @@
   --radius-2xl: 20px;
   --radius-3xl: 24px;
   --radius-4xl: 28px;
-
-  /* ── Shadows — indigo tinted ─────────────────────────────────────────── */
-  --shadow-xs: 0 1px 2px rgba(79, 106, 245, 0.04);
-  --shadow-sm: 0 2px 8px rgba(79, 106, 245, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(79, 106, 245, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 32px rgba(79, 106, 245, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(79, 106, 245, 0.05);
-  --shadow-card-hover: 0 8px 24px rgba(79, 106, 245, 0.12), 0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT THEME — hex palette
+   LIGHT — 4 surface levels only
+   Level 0: #F0F2F8 (page floor)
+   Level 1: #FFFFFF (card/panel)
+   Level 2: #EEF1FF (tinted zone)
+   Level 3: #4F6AF5 (active element)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -114,70 +100,61 @@
 
   --primary: #4F6AF5;
   --primary-foreground: #FFFFFF;
-
   --secondary: #EEF1FF;
-  --secondary-foreground: #3B4FBF;
-  --muted: #E8EAF0;
+  --secondary-foreground: #3B55E0;
+  --muted: #E8EBF0;
   --muted-foreground: #64748B;
   --accent: #EEF1FF;
-  --accent-foreground: #3B4FBF;
-  --destructive: #EF4444;
+  --accent-foreground: #3B55E0;
+  --destructive: #DC2626;
+
+  /* Borders: only for internal separators (rows), never card outlines */
   --border: #E2E8F0;
-  --input: #E2E8F0;
+  --input: #F0F2F8;
   --ring: #4F6AF5;
+  --radius: 16px;
 
   --chart-1: #4F6AF5;
-  --chart-2: #22C55E;
-  --chart-3: #F59E0B;
+  --chart-2: #16A34A;
+  --chart-3: #CA8A04;
   --chart-4: #8B5CF6;
-  --chart-5: #EF4444;
-  --radius: 12px;
+  --chart-5: #DC2626;
 
-  /* ── Sidebar ─────────────────────────────────────────────────────── */
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #64748B;
+  --sidebar-foreground: #94A3B8;
   --sidebar-primary: #4F6AF5;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #EEF1FF;
-  --sidebar-accent-foreground: #3B4FBF;
+  --sidebar-accent-foreground: #3B55E0;
   --sidebar-border: #E2E8F0;
   --sidebar-ring: #4F6AF5;
 
-  /* ── Nami brand ──────────────────────────────────────────────────── */
   --nami: #4F6AF5;
   --nami-foreground: #FFFFFF;
   --nami-light: #EEF1FF;
 
-  /* ── Severity ────────────────────────────────────────────────────── */
-  --severity-critical: #EF4444;
-  --severity-critical-foreground: #B91C1C;
-  --severity-critical-bg: #FEF2F2;
-  --severity-critical-border: #FECACA;
-
-  --severity-high: #F59E0B;
-  --severity-high-foreground: #B45309;
-  --severity-high-bg: #FFFBEB;
-  --severity-high-border: #FDE68A;
-
-  --severity-warning: #EAB308;
-  --severity-warning-foreground: #A16207;
-  --severity-warning-bg: #FEFCE8;
-  --severity-warning-border: #FEF08A;
-
-  --severity-info: #3B82F6;
-  --severity-info-foreground: #1D4ED8;
-  --severity-info-bg: #EFF6FF;
-  --severity-info-border: #BFDBFE;
-
-  --severity-success: #22C55E;
-  --severity-success-foreground: #15803D;
-  --severity-success-bg: #F0FDF4;
-  --severity-success-border: #BBF7D0;
+  --severity-critical: #DC2626;
+  --severity-critical-foreground: #DC2626;
+  --severity-critical-bg: #FEE2E2;
+  --severity-critical-border: #FEE2E2;
+  --severity-high: #CA8A04;
+  --severity-high-foreground: #CA8A04;
+  --severity-high-bg: #FEF9C3;
+  --severity-high-border: #FEF9C3;
+  --severity-warning: #CA8A04;
+  --severity-warning-foreground: #CA8A04;
+  --severity-warning-bg: #FEF9C3;
+  --severity-warning-border: #FEF9C3;
+  --severity-info: #4F6AF5;
+  --severity-info-foreground: #4F6AF5;
+  --severity-info-bg: #EEF1FF;
+  --severity-info-border: #EEF1FF;
+  --severity-success: #16A34A;
+  --severity-success-foreground: #16A34A;
+  --severity-success-bg: #DCFCE7;
+  --severity-success-border: #DCFCE7;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   DARK (placeholder)
-   ═══════════════════════════════════════════════════════════════════════════ */
 .dark {
   --background: #0F172A;
   --foreground: #F1F5F9;
@@ -197,47 +174,16 @@
   --border: #334155;
   --input: #334155;
   --ring: #818CF8;
-  --chart-1: #818CF8;
-  --chart-2: #4ADE80;
-  --chart-3: #FBBF24;
-  --chart-4: #A78BFA;
-  --chart-5: #F87171;
-  --sidebar: #1E293B;
-  --sidebar-foreground: #94A3B8;
-  --sidebar-primary: #818CF8;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #F1F5F9;
-  --sidebar-border: #334155;
-  --sidebar-ring: #818CF8;
-  --nami: #818CF8;
-  --nami-foreground: #0F172A;
-  --nami-light: #1E293B;
-  --severity-critical: #F87171;
-  --severity-critical-foreground: #FCA5A5;
-  --severity-critical-bg: #450A0A;
-  --severity-critical-border: #7F1D1D;
-  --severity-high: #FBBF24;
-  --severity-high-foreground: #FDE68A;
-  --severity-high-bg: #451A03;
-  --severity-high-border: #78350F;
-  --severity-warning: #FACC15;
-  --severity-warning-foreground: #FEF08A;
-  --severity-warning-bg: #422006;
-  --severity-warning-border: #713F12;
-  --severity-info: #60A5FA;
-  --severity-info-foreground: #93C5FD;
-  --severity-info-bg: #172554;
-  --severity-info-border: #1E3A5F;
-  --severity-success: #4ADE80;
-  --severity-success-foreground: #86EFAC;
-  --severity-success-bg: #052E16;
-  --severity-success-border: #14532D;
+  --chart-1: #818CF8; --chart-2: #4ADE80; --chart-3: #FBBF24; --chart-4: #A78BFA; --chart-5: #F87171;
+  --sidebar: #1E293B; --sidebar-foreground: #94A3B8; --sidebar-primary: #818CF8; --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #334155; --sidebar-accent-foreground: #F1F5F9; --sidebar-border: #334155; --sidebar-ring: #818CF8;
+  --nami: #818CF8; --nami-foreground: #0F172A; --nami-light: #1E293B;
+  --severity-critical: #F87171; --severity-critical-foreground: #F87171; --severity-critical-bg: #450A0A; --severity-critical-border: #450A0A;
+  --severity-high: #FBBF24; --severity-high-foreground: #FBBF24; --severity-high-bg: #451A03; --severity-high-border: #451A03;
+  --severity-warning: #FACC15; --severity-warning-foreground: #FACC15; --severity-warning-bg: #422006; --severity-warning-border: #422006;
+  --severity-info: #818CF8; --severity-info-foreground: #818CF8; --severity-info-bg: #1E1B4B; --severity-info-border: #1E1B4B;
+  --severity-success: #4ADE80; --severity-success-foreground: #4ADE80; --severity-success-bg: #052E16; --severity-success-border: #052E16;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   BASE
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
   * {
@@ -252,42 +198,40 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NAMI UTILITY CLASSES
+   UTILITY CLASSES
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer utilities {
-  /* ── Cards ───────────────────────────────────────────────────────────── */
+  /* Cards — NO shadow, NO border. White on gray = contrast. */
   .nami-card {
-    @apply bg-card rounded-xl border border-border/50 shadow-[var(--shadow-card)] transition-shadow duration-200;
-  }
-  .nami-card-hover {
-    @apply bg-card rounded-xl border border-border/50 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-all duration-200;
+    @apply bg-card rounded-2xl;
   }
   .nami-card-interactive {
-    @apply bg-card rounded-xl border border-border/50 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer;
+    @apply bg-card rounded-2xl cursor-pointer transition-colors duration-150 hover:bg-[#F8F9FF];
   }
 
-  /* ── Typography ──────────────────────────────────────────────────────── */
+  /* Typography — Bricolage Grotesque for headings */
   .text-page-title {
-    font-family: var(--font-bricolage), var(--font-geist-sans), system-ui;
+    font-family: var(--font-bricolage), var(--font-jakarta), system-ui;
     font-size: 1.5rem;
     line-height: 2rem;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
   .text-section-title {
-    font-family: var(--font-bricolage), var(--font-geist-sans), system-ui;
+    font-family: var(--font-bricolage), var(--font-jakarta), system-ui;
     font-size: 1rem;
     line-height: 1.5rem;
     font-weight: 600;
     letter-spacing: -0.01em;
   }
   .text-kpi {
-    font-family: var(--font-bricolage), var(--font-geist-sans), system-ui;
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-family: var(--font-bricolage), var(--font-jakarta), system-ui;
+    font-size: 2.25rem;
+    line-height: 2.5rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+    color: var(--foreground);
   }
   .text-caption {
     font-size: 0.6875rem;
@@ -298,17 +242,17 @@
     line-height: 0.875rem;
   }
   .text-label {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     line-height: 1rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--muted-foreground);
   }
 
-  /* ── Page patterns ───────────────────────────────────────────────────── */
+  /* Page patterns */
   .nami-page-header {
-    @apply bg-card px-8 py-6 shrink-0 shadow-[var(--shadow-sm)];
+    @apply bg-card px-8 py-6 shrink-0;
   }
   .nami-page-body {
     @apply flex-1 overflow-y-auto;

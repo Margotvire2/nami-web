@@ -162,7 +162,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           <MainContent section={section} careCaseId={id} careCase={careCase} api={api} />
         </main>
 
-        <aside className="w-72 shrink-0 overflow-y-auto bg-card border-l py-5 px-4">
+        <aside className="w-72 shrink-0 overflow-y-auto bg-card py-5 px-4">
           <PilotagePanel careCaseId={id} careCase={careCase} api={api} />
         </aside>
       </div>
@@ -184,7 +184,7 @@ function PatientHeader({ careCase: c, onAddNote, careCaseId, api }: {
   });
 
   return (
-    <header className="nami-page-header shadow-[var(--shadow-xs)]">
+    <header className="bg-card px-8 py-6 shrink-0">
       <Link href="/patients" className="flex items-center gap-1 text-caption text-muted-foreground hover:text-foreground mb-3 w-fit transition-colors">
         <ChevronLeft size={12} /> Patients
       </Link>

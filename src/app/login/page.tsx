@@ -37,21 +37,21 @@ export default function LoginPage() {
       <div className="w-full max-w-[400px] px-6">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto shadow-[var(--shadow-md)]">
+          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto">
             <span className="text-primary-foreground text-xl font-bold">N</span>
           </div>
           <h1 className="text-page-title text-foreground mt-5">Nami</h1>
           <p className="text-sm text-muted-foreground mt-1">Cockpit de coordination clinique</p>
         </div>
 
-        {/* Form */}
-        <div className="nami-card p-8 space-y-6">
+        {/* Form — Level 1 surface */}
+        <div className="bg-card rounded-2xl p-8 space-y-6">
           <p className="text-sm text-muted-foreground text-center">
             Connectez-vous à votre espace soignant
           </p>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email</Label>
+              <Label htmlFor="email" className="text-label">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -59,19 +59,19 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
-                className="h-11 rounded-xl"
+                className="h-11 rounded-xl bg-background border-0 focus:ring-2 focus:ring-primary/30"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">Mot de passe</Label>
+              <Label htmlFor="password" className="text-label">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-11 rounded-xl"
+                className="h-11 rounded-xl bg-background border-0 focus:ring-2 focus:ring-primary/30"
                 required
               />
             </div>

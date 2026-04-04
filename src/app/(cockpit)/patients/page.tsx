@@ -82,7 +82,7 @@ export default function PatientsPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="nami-page-header">
+      <div className="bg-card px-8 py-6 shrink-0">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-page-title">Patients</h1>
