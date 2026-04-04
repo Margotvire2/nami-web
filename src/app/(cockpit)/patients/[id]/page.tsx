@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, Appointment, JournalEntry, Document, Message } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,10 +100,11 @@ function daysAgo(d: string) {
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
-type Section = "overview" | "timeline" | "notes" | "documents" | "equipe" | "taches" | "rdv" | "journal" | "messages";
+type Section = "overview" | "timeline" | "notes" | "documents" | "equipe" | "taches" | "rdv" | "journal" | "messages" | "pilotage";
 
 const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
   { key: "overview",  label: "Vue d'ensemble",  icon: <ActivityIcon size={13} /> },
+  { key: "pilotage",  label: "Pilotage IA",      icon: <Sparkles size={13} /> },
   { key: "timeline",  label: "Timeline",         icon: <Clock size={13} /> },
   { key: "notes",     label: "Notes",             icon: <FileText size={13} /> },
   { key: "documents", label: "Documents",         icon: <FileText size={13} /> },
@@ -266,6 +267,7 @@ function MainContent({ section, careCaseId, careCase, api }: {
 }) {
   switch (section) {
     case "overview":  return <OverviewSection careCaseId={careCaseId} careCase={careCase} api={api} />;
+    case "pilotage":  return <PilotageIASection careCaseId={careCaseId} careCase={careCase} api={api} />;
     case "timeline":  return <ClinicalLifeline careCaseId={careCaseId} careCase={careCase} />;
     case "notes":     return <NotesSection careCaseId={careCaseId} api={api} />;
     case "equipe":    return <EquipeSection careCaseId={careCaseId} api={api} />;
@@ -1513,21 +1515,37 @@ function CareTeamPanelRight({ careCaseId, api, careCase }: {
 
 function CareGapsPanelRight({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
   const { data, isLoading } = useQuery({ queryKey: ["care-gaps", careCaseId], queryFn: () => api.intelligence.careGaps(careCaseId) });
-  const criticalGaps = (data?.gaps ?? []).filter((g: Gap) => ["CRITICAL", "HIGH"].includes(g.severity));
-  if (!isLoading && criticalGaps.length === 0) return null;
+  const allGaps = data?.gaps ?? [];
+  const s = data?.summary;
+  if (!isLoading && allGaps.length === 0) return (
+    <PanelSection title="Vigilance & gaps" icon={<AlertTriangle size={12} />}>
+      <div className="flex items-center gap-1.5 text-green-600">
+        <CheckCircle2 size={12} />
+        <p className="text-[11px] font-medium">Aucune lacune détectée</p>
+      </div>
+    </PanelSection>
+  );
   return (
     <PanelSection title="Vigilance & gaps" icon={<AlertTriangle size={12} />}
-      count={data?.gaps.length} titleClass={criticalGaps.length > 0 ? "text-destructive" : undefined}>
+      count={allGaps.length} titleClass={s && (s.critical > 0 || s.high > 0) ? "text-destructive" : undefined}>
       {isLoading ? <Skeleton className="h-10 rounded" /> : (
         <div className="space-y-2">
-          {criticalGaps.slice(0, 3).map((g: Gap, i: number) => (
+          {/* Compteurs inline */}
+          {s && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {s.critical > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-destructive/10 text-destructive border-destructive/20">{s.critical} critique{s.critical > 1 ? "s" : ""}</span>}
+              {s.high > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-orange-50 text-orange-600 border-orange-200">{s.high} élevé{s.high > 1 ? "s" : ""}</span>}
+              {s.warning > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-yellow-50 text-yellow-600 border-yellow-200">{s.warning} attention</span>}
+              {s.info > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-blue-50 text-blue-600 border-blue-200">{s.info} info</span>}
+            </div>
+          )}
+          {allGaps.slice(0, 4).map((g: Gap, i: number) => (
             <div key={i} className={`rounded-lg border px-2.5 py-2 ${GAP_BADGE[g.severity]}`}>
-              <p className="text-[10px] font-bold uppercase mb-0.5">{g.severity}</p>
               <p className="text-[11px] font-medium leading-snug">{g.title}</p>
               <p className="text-[10px] mt-0.5 opacity-70 line-clamp-1">{g.recommendedAction}</p>
             </div>
           ))}
-          {(data?.gaps.length ?? 0) > 3 && <p className="text-[11px] text-muted-foreground">+{(data?.gaps.length ?? 0) - 3} autres gaps</p>}
+          {allGaps.length > 4 && <p className="text-[11px] text-muted-foreground">+{allGaps.length - 4} autres lacunes</p>}
         </div>
       )}
     </PanelSection>
@@ -1569,6 +1587,228 @@ function CoordinationBlock() {
         <Link href="/adressages" className="flex-1"><Button size="sm" variant="outline" className="text-[11px] h-6 px-2 w-full">Adresser</Button></Link>
       </div>
     </PanelSection>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PILOTAGE IA — Section complète (gap engine + résumé structuré)
+// ═════════════════════════════════════════════════════════════════════════════
+
+const GAP_TYPE_LABEL: Record<string, string> = {
+  NO_LEAD_PROVIDER: "Pas de lead provider",
+  INCOMPLETE_CARE_TEAM: "Équipe incomplète",
+  NO_UPCOMING_APPOINTMENT: "Aucun RDV planifié",
+  NO_RECENT_CLINICAL_NOTE: "Note clinique absente",
+  NO_NEXT_STEP_DEFINED: "Pas de prochaine étape",
+  OVERDUE_TASKS: "Tâches en retard",
+  STALE_REFERRAL: "Adressage en attente",
+  MISSING_BIOLOGICAL_REPORT: "Bilan biologique manquant",
+  HIGH_RISK_UNADDRESSED: "Risque élevé non traité",
+};
+
+const SEVERITY_LABEL: Record<string, string> = {
+  CRITICAL: "Critique",
+  HIGH: "Élevé",
+  WARNING: "Attention",
+  INFO: "Information",
+};
+
+const SEVERITY_ICON_COLOR: Record<string, string> = {
+  CRITICAL: "text-destructive",
+  HIGH: "text-orange-600",
+  WARNING: "text-yellow-600",
+  INFO: "text-blue-500",
+};
+
+function PilotageIASection({ careCaseId, careCase, api }: {
+  careCaseId: string; careCase: CareCaseDetail; api: ReturnType<typeof apiWithToken>;
+}) {
+  const qc = useQueryClient();
+
+  // Gap analysis
+  const { data: gapData, isLoading: gapsLoading, refetch: refetchGaps } = useQuery({
+    queryKey: ["care-gaps", careCaseId],
+    queryFn: () => api.intelligence.careGaps(careCaseId),
+  });
+
+  // AI Summary
+  const summarize = useMutation({
+    mutationFn: () => api.intelligence.summarize(careCaseId, true),
+    onSuccess: (result: SummaryResult) => {
+      qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+      setSummaryData(result);
+      toast.success("Résumé IA généré");
+    },
+    onError: () => toast.error("Erreur lors de la génération du résumé"),
+  });
+
+  const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
+
+  const gaps = gapData?.gaps ?? [];
+  const summary = gapData?.summary ?? { total: 0, critical: 0, high: 0, warning: 0, info: 0 };
+
+  return (
+    <div className="p-6 max-w-4xl space-y-6">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            <Sparkles size={14} /> Pilotage IA
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Analyse automatique des lacunes du parcours de soin et résumé clinique intelligent.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="text-xs h-7 gap-1.5"
+            onClick={() => refetchGaps()} disabled={gapsLoading}>
+            <Crosshair size={11} /> {gapsLoading ? "Analyse…" : "Relancer l'analyse"}
+          </Button>
+          <Button size="sm" className="text-xs h-7 gap-1.5"
+            onClick={() => summarize.mutate()} disabled={summarize.isPending}>
+            <Sparkles size={11} /> {summarize.isPending ? "Génération…" : "Générer résumé IA"}
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Bandeau compteurs ── */}
+      <div className="grid grid-cols-4 gap-3">
+        {([
+          { key: "critical", label: "Critiques", value: summary.critical, color: "text-destructive", bg: "bg-destructive/10 border-destructive/20" },
+          { key: "high", label: "Élevés", value: summary.high, color: "text-orange-600", bg: "bg-orange-50 border-orange-200" },
+          { key: "warning", label: "Attention", value: summary.warning, color: "text-yellow-600", bg: "bg-yellow-50 border-yellow-200" },
+          { key: "info", label: "Information", value: summary.info, color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
+        ] as const).map((s) => (
+          <div key={s.key} className={`rounded-lg border px-3.5 py-3 ${s.bg}`}>
+            <p className={`text-2xl font-bold ${s.color}`}>{gapsLoading ? "…" : s.value}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Liste des gaps ── */}
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+            <AlertTriangle size={12} /> Lacunes détectées
+            {gaps.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-muted text-[10px]">{gaps.length}</span>}
+          </p>
+        </div>
+
+        {gapsLoading ? (
+          <div className="p-4 space-y-3">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+          </div>
+        ) : gaps.length === 0 ? (
+          <div className="px-4 py-10 text-center">
+            <CheckCircle2 size={24} className="text-green-500 mx-auto mb-2" />
+            <p className="text-sm font-medium text-green-700">Aucune lacune détectée</p>
+            <p className="text-xs text-muted-foreground mt-1">Le parcours de soin est complet pour ce dossier.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border/50">
+            {gaps.map((g: Gap, i: number) => (
+              <div key={i} className="px-4 py-3.5 hover:bg-muted/20 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 shrink-0 ${SEVERITY_ICON_COLOR[g.severity]}`}>
+                    <AlertTriangle size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${GAP_BADGE[g.severity]}`}>
+                        {SEVERITY_LABEL[g.severity]}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{GAP_TYPE_LABEL[g.type] ?? g.type}</span>
+                    </div>
+                    <p className="text-sm font-medium mt-1">{g.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{g.description}</p>
+                    <div className="mt-2 flex items-start gap-1.5 bg-primary/5 rounded-md px-2.5 py-2 border border-primary/10">
+                      <Crosshair size={11} className="text-primary shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-primary leading-relaxed">{g.recommendedAction}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Résumé IA structuré ── */}
+      {(summaryData || careCase.clinicalSummary) && (
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Sparkles size={12} /> Résumé IA
+              {summaryData && <span className="font-normal normal-case ml-1">· généré {new Date(summaryData.generatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>}
+            </p>
+          </div>
+
+          {summaryData ? (
+            <div className="divide-y divide-border/30">
+              <SummaryBlock title="Vue d'ensemble" content={summaryData.summary.overview} />
+              <SummaryBlock title="Évolution récente" content={summaryData.summary.recentEvolution} />
+              <SummaryBlock title="Évaluation de l'équipe" content={summaryData.summary.careTeamAssessment} />
+              {summaryData.summary.keyFindings.length > 0 && (
+                <div className="px-4 py-3.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Points clés</p>
+                  <ul className="space-y-1.5">
+                    {summaryData.summary.keyFindings.map((f, i) => (
+                      <li key={i} className="text-sm leading-relaxed flex items-start gap-2">
+                        <span className="text-primary shrink-0 mt-1">•</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {summaryData.summary.recommendations.length > 0 && (
+                <div className="px-4 py-3.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Recommandations</p>
+                  <ul className="space-y-1.5">
+                    {summaryData.summary.recommendations.map((r, i) => (
+                      <li key={i} className="text-sm leading-relaxed flex items-start gap-2">
+                        <CheckCircle2 size={12} className="text-green-500 shrink-0 mt-1" />
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <SummaryBlock title="Évaluation des risques" content={summaryData.summary.riskAssessment} />
+            </div>
+          ) : careCase.clinicalSummary ? (
+            <div className="px-4 py-4">
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{careCase.clinicalSummary}</p>
+              <p className="text-[10px] text-muted-foreground/50 mt-3">Cliquez sur « Générer résumé IA » pour obtenir une analyse structurée complète.</p>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* CTA si pas encore de résumé */}
+      {!summaryData && !careCase.clinicalSummary && (
+        <div className="rounded-lg border border-dashed bg-muted/10 px-6 py-10 text-center">
+          <Sparkles size={24} className="text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">Aucun résumé IA disponible</p>
+          <p className="text-xs text-muted-foreground/60 mt-1 max-w-sm mx-auto leading-relaxed">
+            Générez un résumé clinique intelligent pour obtenir une synthèse structurée du parcours, les points clés et les recommandations.
+          </p>
+          <Button size="sm" className="mt-4 text-xs gap-1.5" onClick={() => summarize.mutate()} disabled={summarize.isPending}>
+            <Sparkles size={12} /> {summarize.isPending ? "Génération…" : "Générer le résumé IA"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryBlock({ title, content }: { title: string; content: string }) {
+  return (
+    <div className="px-4 py-3.5">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">{title}</p>
+      <p className="text-sm leading-relaxed whitespace-pre-line">{content}</p>
+    </div>
   );
 }
 
