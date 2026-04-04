@@ -22,6 +22,7 @@ const NAV = [
   { href: "/patients",    label: "Patients",     icon: Users },
   { href: "/adressages",  label: "Adressages",   icon: ArrowLeftRight },
   { href: "/messages",    label: "Messages",     icon: MessageSquare },
+  { href: "/messages-pro", label: "Communauté",  icon: Users },
   { href: "/documents",   label: "Documents",    icon: FileText },
   { href: "/agenda",      label: "Agenda",       icon: CalendarDays },
   { href: "/alertes",     label: "Alertes",      icon: Bell },
