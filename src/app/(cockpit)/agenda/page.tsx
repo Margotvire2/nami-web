@@ -17,7 +17,7 @@ const DAYS_FR = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
 const DAYS_FULL = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
 const MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const STATUS_LABEL: Record<string, string> = { CONFIRMED: "Confirmé", PENDING: "En attente", CANCELLED: "Annulé", NO_SHOW: "Absent", DONE: "Terminé" };
-const STATUS_STYLE: Record<string, string> = { CONFIRMED: "bg-[#DCFCE7] text-[#16A34A]", PENDING: "bg-[#FEF9C3] text-[#CA8A04]", CANCELLED: "bg-[#FEE2E2] text-[#DC2626]", NO_SHOW: "bg-[#FEE2E2] text-[#DC2626]", DONE: "bg-[#EEF1FF] text-[#4F6AF5]" };
+const STATUS_STYLE: Record<string, string> = { CONFIRMED: "bg-[#DCFCE7] text-[#16A34A]", PENDING: "bg-[#FEF9C3] text-[#CA8A04]", CANCELLED: "bg-[#FEE2E2] text-[#DC2626]", NO_SHOW: "bg-[#FEE2E2] text-[#DC2626]", DONE: "bg-[#EEF1FF] text-[#4F46E5]" };
 const CELL_H = 72; // px per hour slot — more readable
 
 function getMonday(d: Date): Date { const date = new Date(d); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); date.setHours(0,0,0,0); return date; }
@@ -103,10 +103,10 @@ export default function AgendaPage() {
         </div>
 
         <div className="px-4 pb-4 space-y-2 mt-auto">
-          <button onClick={() => setCreateSlot({ day: Math.min((now.getDay() + 6) % 7, 4), hour: Math.max(OPEN_HOURS.start, Math.min(now.getHours() + 1, OPEN_HOURS.end - 1)) })} className="w-full h-9 rounded-xl bg-[#4F6AF5] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#3B55E0] transition-colors">
+          <button onClick={() => setCreateSlot({ day: Math.min((now.getDay() + 6) % 7, 4), hour: Math.max(OPEN_HOURS.start, Math.min(now.getHours() + 1, OPEN_HOURS.end - 1)) })} className="w-full h-9 rounded-xl bg-[#4F46E5] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#3B55E0] transition-colors">
             <Plus size={14} /> Nouveau RDV
           </button>
-          <button onClick={() => toast.info("Blocage de créneau bientôt disponible")} className="w-full h-9 rounded-xl bg-[#EEF1FF] text-[#4F6AF5] text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#E0E5FF] transition-colors">
+          <button onClick={() => toast.info("Blocage de créneau bientôt disponible")} className="w-full h-9 rounded-xl bg-[#EEF1FF] text-[#4F46E5] text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#E0E5FF] transition-colors">
             <Ban size={14} /> Bloquer un créneau
           </button>
           <button onClick={() => setSettingsOpen(true)} className="w-full h-9 rounded-xl bg-[#F0F2F8] text-[#64748B] text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#E8EBF0] transition-colors">
@@ -121,15 +121,15 @@ export default function AgendaPage() {
         <div className="bg-white px-6 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <button onClick={() => setWeekOffset((p) => p - 1)} className="w-8 h-8 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8]"><ChevronLeft size={16} /></button>
-            <button onClick={() => setWeekOffset(0)} className="text-sm font-medium text-[#4F6AF5] px-3 py-1 rounded-lg hover:bg-[#EEF1FF] transition-colors">Aujourd'hui</button>
+            <button onClick={() => setWeekOffset(0)} className="text-sm font-medium text-[#4F46E5] px-3 py-1 rounded-lg hover:bg-[#EEF1FF] transition-colors">Aujourd'hui</button>
             <button onClick={() => setWeekOffset((p) => p + 1)} className="w-8 h-8 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8]"><ChevronRight size={16} /></button>
           </div>
-          <h2 className="text-lg font-bold text-[#1E293B]" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>
+          <h2 className="text-lg font-bold text-[#1E293B]" style={{ fontFamily: "var(--font-jakarta), system-ui" }}>
             {monday.getDate()} — {weekDates[4].getDate()} {MONTHS_FR[weekDates[4].getMonth()]} {weekDates[4].getFullYear()}
           </h2>
           <div className="flex items-center gap-1 bg-[#F0F2F8] rounded-full p-1">
             <button className="px-3 py-1 rounded-full text-xs font-medium text-[#94A3B8]">Jour</button>
-            <button className="px-3 py-1 rounded-full bg-[#4F6AF5] text-white text-xs font-semibold">Semaine</button>
+            <button className="px-3 py-1 rounded-full bg-[#4F46E5] text-white text-xs font-semibold">Semaine</button>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ export default function AgendaPage() {
                     <div key={`${hour}-${dayIdx}`} style={{ height: CELL_H, borderBottom: "1px solid #F1F5F9", borderRight: "1px solid #F1F5F9" }} className={`transition-colors relative ${isBlocked ? "bg-[#FEE2E2]" : isOpen ? "bg-white hover:bg-[#F8F9FF]" : "bg-[#F0F2F8]"} cursor-pointer`} onClick={() => isOpen && !isBlocked && setCreateSlot({ day: dayIdx, hour })}>
                       {isBlocked && block && <div className="px-1.5 py-1"><p className="text-[10px] font-semibold text-[#DC2626]">Bloqué</p><p className="text-[9px] text-[#DC2626]">{block.reason}</p></div>}
                       {!isBlocked && isOpen && slot?.acceptsReferral && (
-                        <div className="absolute top-0.5 right-1"><ArrowLeftRight size={9} className="text-[#4F6AF5]" /></div>
+                        <div className="absolute top-0.5 right-1"><ArrowLeftRight size={9} className="text-[#4F46E5]" /></div>
                       )}
                     </div>
                   );
@@ -244,7 +244,7 @@ function MiniCalendar({ currentMonday, onSelectWeek }: { currentMonday: Date; on
           const date = new Date(y,m,day);
           const isT = isSameDay(date, today);
           const isW = date >= currentMonday && date < new Date(currentMonday.getTime() + 5 * 86400000);
-          return <button key={i} onClick={() => onSelectWeek(date)} className={`w-6 h-6 rounded-md text-xs font-medium transition-colors ${isT ? "bg-[#4F6AF5] text-white" : isW ? "bg-[#EEF1FF] text-[#4F6AF5]" : "text-[#1E293B] hover:bg-[#F0F2F8]"}`}>{day}</button>;
+          return <button key={i} onClick={() => onSelectWeek(date)} className={`w-6 h-6 rounded-md text-xs font-medium transition-colors ${isT ? "bg-[#4F46E5] text-white" : isW ? "bg-[#EEF1FF] text-[#4F46E5]" : "text-[#1E293B] hover:bg-[#F0F2F8]"}`}>{day}</button>;
         })}
       </div>
     </div>
@@ -261,12 +261,12 @@ function CreateModal({ day, hour, consultTypes, locations, onClose, onCreate }: 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1E293B]/20" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-[460px] mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="px-6 py-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-[#1E293B]" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>Nouveau RDV</h3>
+          <h3 className="text-base font-semibold text-[#1E293B]" style={{ fontFamily: "var(--font-jakarta), system-ui" }}>Nouveau RDV</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8]"><X size={16} /></button>
         </div>
-        <div className="px-6 pb-2"><div className="bg-[#EEF1FF] rounded-xl px-4 py-2 text-sm text-[#4F6AF5] font-medium flex items-center gap-2"><CalendarDays size={14} />{DAYS_FULL[(day.getDay()+6)%7]} {day.getDate()} {MONTHS_FR[day.getMonth()]} · {hour}:00</div></div>
+        <div className="px-6 pb-2"><div className="bg-[#EEF1FF] rounded-xl px-4 py-2 text-sm text-[#4F46E5] font-medium flex items-center gap-2"><CalendarDays size={14} />{DAYS_FULL[(day.getDay()+6)%7]} {day.getDate()} {MONTHS_FR[day.getMonth()]} · {hour}:00</div></div>
         <div className="px-6 py-4 space-y-4">
-          <div><label className="text-xs font-medium uppercase tracking-wide text-[#94A3B8]">Patient</label><input value={patient} onChange={(e)=>setPatient(e.target.value)} placeholder="Nom du patient" autoFocus className="w-full h-10 rounded-xl bg-[#F0F2F8] px-4 text-sm mt-1.5 focus:outline-none focus:ring-2 focus:ring-[#4F6AF5]/20" /></div>
+          <div><label className="text-xs font-medium uppercase tracking-wide text-[#94A3B8]">Patient</label><input value={patient} onChange={(e)=>setPatient(e.target.value)} placeholder="Nom du patient" autoFocus className="w-full h-10 rounded-xl bg-[#F0F2F8] px-4 text-sm mt-1.5 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" /></div>
           <div><label className="text-xs font-medium uppercase tracking-wide text-[#94A3B8]">Type</label><div className="space-y-1 mt-1.5">{consultTypes.filter(t=>t.isActive).map(c=>(
             <button key={c.id} onClick={()=>setTypeId(c.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-colors ${typeId===c.id?"bg-[#EEF1FF]":"hover:bg-[#F0F2F8]"}`}>
               <div className="w-3 h-3 rounded-full" style={{backgroundColor:c.color}} /><span className={`text-sm flex-1 ${typeId===c.id?"font-semibold text-[#1E293B]":"text-[#64748B]"}`}>{c.name}</span><span className="text-xs text-[#94A3B8]">{c.duration}min · {c.price}€</span>
@@ -275,7 +275,7 @@ function CreateModal({ day, hour, consultTypes, locations, onClose, onCreate }: 
         </div>
         <div className="px-6 py-4 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-[#64748B] hover:bg-[#F0F2F8]">Annuler</button>
-          <button onClick={()=>{if(patient.trim())onCreate(patient.trim(),typeId,locationId)}} disabled={!patient.trim()} className={`px-6 py-2.5 rounded-xl text-sm font-semibold ${patient.trim()?"bg-[#4F6AF5] text-white hover:bg-[#3B55E0]":"bg-[#E8EBF0] text-[#94A3B8] cursor-not-allowed"}`}>Confirmer</button>
+          <button onClick={()=>{if(patient.trim())onCreate(patient.trim(),typeId,locationId)}} disabled={!patient.trim()} className={`px-6 py-2.5 rounded-xl text-sm font-semibold ${patient.trim()?"bg-[#4F46E5] text-white hover:bg-[#3B55E0]":"bg-[#E8EBF0] text-[#94A3B8] cursor-not-allowed"}`}>Confirmer</button>
         </div>
       </div>
     </div>
@@ -307,10 +307,10 @@ function DetailPanel({ apt, onClose, onStatus }: { apt: Appointment; onClose: ()
         </div>
         <div className="flex items-center gap-2">
           {apt.status==="CONFIRMED"&&<button onClick={()=>onStatus("DONE")} className="flex-1 h-9 rounded-xl bg-[#DCFCE7] text-[#16A34A] text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-[#BBF7D0]"><Check size={14} />Présent</button>}
-          {apt.status==="PENDING"&&<button onClick={()=>onStatus("CONFIRMED")} className="flex-1 h-9 rounded-xl bg-[#4F6AF5] text-white text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-[#3B55E0]"><Check size={14} />Confirmer</button>}
+          {apt.status==="PENDING"&&<button onClick={()=>onStatus("CONFIRMED")} className="flex-1 h-9 rounded-xl bg-[#4F46E5] text-white text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-[#3B55E0]"><Check size={14} />Confirmer</button>}
           {["CONFIRMED","PENDING"].includes(apt.status)&&<button onClick={()=>onStatus("CANCELLED")} className="h-9 px-3 rounded-xl bg-[#FEE2E2] text-[#DC2626] text-sm font-semibold flex items-center gap-1.5 hover:bg-[#FECACA]"><XCircle size={14} />Annuler</button>}
         </div>
-        <div><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8] mb-1.5">Note de séance</p><textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Notes…" rows={3} className="w-full bg-[#F0F2F8] rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#4F6AF5]/20" /></div>
+        <div><p className="text-xs font-semibold uppercase tracking-wide text-[#94A3B8] mb-1.5">Note de séance</p><textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Notes…" rows={3} className="w-full bg-[#F0F2F8] rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" /></div>
       </div>
     </div>
   );
@@ -331,14 +331,14 @@ function SettingsDrawer({ tab, onTabChange, locations, setLocations, consultType
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
       <div className="w-[440px] bg-white h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="px-6 py-4 flex items-center justify-between shrink-0">
-          <h3 className="text-base font-semibold text-[#1E293B]" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>Paramètres de l'agenda</h3>
+          <h3 className="text-base font-semibold text-[#1E293B]" style={{ fontFamily: "var(--font-jakarta), system-ui" }}>Paramètres de l'agenda</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8]"><X size={16} /></button>
         </div>
 
         {/* Tabs */}
         <div className="px-6 flex gap-1 bg-[#F0F2F8] mx-6 rounded-full p-1 shrink-0">
           {([["lieux", "Lieux"], ["consultations", "Consultations"], ["horaires", "Horaires & adressage"]] as const).map(([k, label]) => (
-            <button key={k} onClick={() => onTabChange(k)} className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors ${tab === k ? "bg-[#4F6AF5] text-white" : "text-[#64748B] hover:text-[#1E293B]"}`}>{label}</button>
+            <button key={k} onClick={() => onTabChange(k)} className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors ${tab === k ? "bg-[#4F46E5] text-white" : "text-[#64748B] hover:text-[#1E293B]"}`}>{label}</button>
           ))}
         </div>
 
@@ -379,7 +379,7 @@ function LocationsTab({ locations, setLocations }: { locations: Location[]; setL
           <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nom du lieu" autoFocus className="w-full h-9 rounded-lg bg-white px-3 text-sm focus:outline-none" />
           <div className="grid grid-cols-2 gap-2">
             {(["CABINET", "HOPITAL", "TELECONSULT", "DOMICILE"] as const).map((t) => (
-              <button key={t} onClick={() => setNewType(t)} className={`py-2 rounded-lg text-xs font-medium ${newType === t ? "bg-[#4F6AF5] text-white" : "bg-white text-[#64748B]"}`}>
+              <button key={t} onClick={() => setNewType(t)} className={`py-2 rounded-lg text-xs font-medium ${newType === t ? "bg-[#4F46E5] text-white" : "bg-white text-[#64748B]"}`}>
                 {t === "CABINET" ? "🏢 Cabinet" : t === "HOPITAL" ? "🏥 Hôpital" : t === "TELECONSULT" ? "💻 Téléconsult" : "🏠 Domicile"}
               </button>
             ))}
@@ -388,15 +388,15 @@ function LocationsTab({ locations, setLocations }: { locations: Location[]; setL
             <button onClick={() => setAdding(false)} className="flex-1 h-9 rounded-lg text-sm text-[#64748B] hover:bg-white">Annuler</button>
             <button onClick={() => {
               if (!newName.trim()) return;
-              const colors = ["#4F6AF5", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
+              const colors = ["#4F46E5", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
               setLocations((prev) => [...prev, { id: `loc-${Date.now()}`, name: newName.trim(), type: newType, color: colors[prev.length % colors.length], isActive: true }]);
               setNewName(""); setAdding(false);
               toast.success("Lieu ajouté");
-            }} disabled={!newName.trim()} className={`flex-1 h-9 rounded-lg text-sm font-semibold ${newName.trim() ? "bg-[#4F6AF5] text-white" : "bg-[#E8EBF0] text-[#94A3B8]"}`}>Ajouter</button>
+            }} disabled={!newName.trim()} className={`flex-1 h-9 rounded-lg text-sm font-semibold ${newName.trim() ? "bg-[#4F46E5] text-white" : "bg-[#E8EBF0] text-[#94A3B8]"}`}>Ajouter</button>
           </div>
         </div>
       ) : (
-        <button onClick={() => setAdding(true)} className="w-full h-10 rounded-xl bg-[#EEF1FF] text-[#4F6AF5] text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#E0E5FF]">
+        <button onClick={() => setAdding(true)} className="w-full h-10 rounded-xl bg-[#EEF1FF] text-[#4F46E5] text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#E0E5FF]">
           <Plus size={14} /> Ajouter un lieu
         </button>
       )}
@@ -428,7 +428,7 @@ function ConsultationsTab({ consultTypes, setConsultTypes }: { consultTypes: Con
                   <div><label className="text-xs text-[#94A3B8]">Durée (min)</label><input type="number" value={editDuration} onChange={(e) => setEditDuration(+e.target.value)} className="w-full h-9 rounded-lg bg-[#F0F2F8] px-3 text-sm mt-1 focus:outline-none" /></div>
                   <div><label className="text-xs text-[#94A3B8]">Prix (€)</label><input type="number" value={editPrice} onChange={(e) => setEditPrice(+e.target.value)} className="w-full h-9 rounded-lg bg-[#F0F2F8] px-3 text-sm mt-1 focus:outline-none" /></div>
                 </div>
-                <button onClick={() => { setConsultTypes((prev) => prev.map((c) => c.id === ct.id ? { ...c, duration: editDuration, price: editPrice } : c)); setEditingId(null); toast.success("Type modifié"); }} className="w-full h-9 rounded-lg bg-[#4F6AF5] text-white text-sm font-semibold">Enregistrer</button>
+                <button onClick={() => { setConsultTypes((prev) => prev.map((c) => c.id === ct.id ? { ...c, duration: editDuration, price: editPrice } : c)); setEditingId(null); toast.success("Type modifié"); }} className="w-full h-9 rounded-lg bg-[#4F46E5] text-white text-sm font-semibold">Enregistrer</button>
               </div>
             )}
           </div>
@@ -441,7 +441,7 @@ function ConsultationsTab({ consultTypes, setConsultTypes }: { consultTypes: Con
 function HorairesTab({ timeSlots, setTimeSlots, locations }: { timeSlots: TimeSlot[]; setTimeSlots: (fn: (s: TimeSlot[]) => TimeSlot[]) => void; locations: Location[] }) {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#64748B]">Vos créneaux d'ouverture par jour. L'icône <ArrowLeftRight size={12} className="inline text-[#4F6AF5]" /> indique que vous acceptez l'adressage sur ce créneau.</p>
+      <p className="text-sm text-[#64748B]">Vos créneaux d'ouverture par jour. L'icône <ArrowLeftRight size={12} className="inline text-[#4F46E5]" /> indique que vous acceptez l'adressage sur ce créneau.</p>
       {DAYS_FULL.map((dayName, dayIdx) => {
         const daySlots = timeSlots.filter((s) => s.dayOfWeek === dayIdx);
         return (
@@ -465,7 +465,7 @@ function HorairesTab({ timeSlots, setTimeSlots, locations }: { timeSlots: TimeSl
                           setTimeSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, acceptsReferral: !s.acceptsReferral } : s));
                           toast.success(slot.acceptsReferral ? "Adressage désactivé sur ce créneau" : "Adressage activé sur ce créneau");
                         }}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 transition-colors ${slot.acceptsReferral ? "bg-[#EEF1FF] text-[#4F6AF5]" : "bg-[#F0F2F8] text-[#94A3B8]"}`}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 transition-colors ${slot.acceptsReferral ? "bg-[#EEF1FF] text-[#4F46E5]" : "bg-[#F0F2F8] text-[#94A3B8]"}`}
                       >
                         <ArrowLeftRight size={10} /> {slot.acceptsReferral ? "Adressage ON" : "Adressage OFF"}
                       </button>

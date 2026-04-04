@@ -38,16 +38,16 @@ export default function LandingPage() {
       {/* ── Nav ── */}
       <nav className="bg-white px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#4F6AF5] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-[#4F46E5] flex items-center justify-center">
             <span className="text-white text-sm font-bold">N</span>
           </div>
-          <span className="text-lg font-bold text-[#1E293B]" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>
+          <span className="text-lg font-bold text-[#1E293B]" style={{ fontFamily: "var(--font-jakarta), system-ui" }}>
             Nami
           </span>
         </div>
         <Link
           href="/login"
-          className="bg-[#4F6AF5] text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-[#3B55E0] transition-colors flex items-center gap-2"
+          className="bg-[#4F46E5] text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-[#3B55E0] transition-colors flex items-center gap-2"
         >
           Accéder au cockpit <ArrowRight size={16} />
         </Link>
@@ -62,11 +62,11 @@ export default function LandingPage() {
 
         <h1
           className="text-5xl font-extrabold text-[#1E293B] leading-tight tracking-tight"
-          style={{ fontFamily: "var(--font-bricolage), system-ui" }}
+          style={{ fontFamily: "var(--font-jakarta), system-ui" }}
         >
           La coordination clinique
           <br />
-          <span className="text-[#4F6AF5]">entre deux consultations</span>
+          <span className="text-[#4F46E5]">entre deux consultations</span>
         </h1>
 
         <p className="text-lg text-[#64748B] mt-6 max-w-2xl mx-auto leading-relaxed">
@@ -77,13 +77,13 @@ export default function LandingPage() {
         <div className="flex items-center justify-center gap-4 mt-10">
           <Link
             href="/login"
-            className="bg-[#4F6AF5] text-white text-sm font-semibold px-8 py-3.5 rounded-xl hover:bg-[#3B55E0] transition-colors flex items-center gap-2"
+            className="bg-[#4F46E5] text-white text-sm font-semibold px-8 py-3.5 rounded-xl hover:bg-[#3B55E0] transition-colors flex items-center gap-2"
           >
             Accéder au cockpit <ArrowRight size={16} />
           </Link>
           <Link
             href="/login"
-            className="bg-white text-[#4F6AF5] text-sm font-semibold px-8 py-3.5 rounded-xl hover:bg-[#EEF1FF] transition-colors"
+            className="bg-white text-[#4F46E5] text-sm font-semibold px-8 py-3.5 rounded-xl hover:bg-[#EEF1FF] transition-colors"
           >
             Voir la démo
           </Link>
@@ -102,16 +102,16 @@ export default function LandingPage() {
             return (
               <div key={p.title} className="bg-white rounded-2xl p-8">
                 <div className="w-12 h-12 rounded-xl bg-[#EEF1FF] flex items-center justify-center mb-5">
-                  <Icon size={24} className="text-[#4F6AF5]" />
+                  <Icon size={24} className="text-[#4F46E5]" />
                 </div>
                 <h3
                   className="text-lg font-bold text-[#1E293B] mb-2"
-                  style={{ fontFamily: "var(--font-bricolage), system-ui" }}
+                  style={{ fontFamily: "var(--font-jakarta), system-ui" }}
                 >
                   {p.title}
                 </h3>
                 <p className="text-sm text-[#64748B] leading-relaxed mb-4">{p.description}</p>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4F6AF5]">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5]">
                   <CheckCircle2 size={14} /> {p.metric}
                 </div>
               </div>
@@ -131,7 +131,7 @@ export default function LandingPage() {
               <div key={s.label} className="text-center">
                 <p
                   className="text-4xl font-bold text-[#1E293B] tracking-tight"
-                  style={{ fontFamily: "var(--font-bricolage), system-ui" }}
+                  style={{ fontFamily: "var(--font-jakarta), system-ui" }}
                 >
                   {s.value}
                 </p>
@@ -146,7 +146,7 @@ export default function LandingPage() {
       <section className="px-8 pb-24 max-w-3xl mx-auto text-center">
         <h2
           className="text-2xl font-bold text-[#1E293B] mb-4"
-          style={{ fontFamily: "var(--font-bricolage), system-ui" }}
+          style={{ fontFamily: "var(--font-jakarta), system-ui" }}
         >
           Le wedge : nutrition et TCA
         </h2>
@@ -156,7 +156,7 @@ export default function LandingPage() {
         </p>
         <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
           {["TCA", "Obésité", "Nutrition clinique", "Pédiatrie", "Pluriprofessionnel"].map((tag) => (
-            <span key={tag} className="bg-[#EEF1FF] text-[#4F6AF5] text-xs font-semibold px-4 py-1.5 rounded-full">
+            <span key={tag} className="bg-[#EEF1FF] text-[#4F46E5] text-xs font-semibold px-4 py-1.5 rounded-full">
               {tag}
             </span>
           ))}
@@ -166,7 +166,7 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className="bg-white px-8 py-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-lg bg-[#4F6AF5] flex items-center justify-center">
+          <div className="w-6 h-6 rounded-lg bg-[#4F46E5] flex items-center justify-center">
             <span className="text-white text-[10px] font-bold">N</span>
           </div>
           <span className="text-sm font-bold text-[#1E293B]">Nami</span>

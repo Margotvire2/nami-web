@@ -1,7 +1,7 @@
 import type { Location, ConsultationType, Appointment, Block, TimeSlot } from "./types";
 
 export const LOCATIONS: Location[] = [
-  { id: "loc-1", name: "Cabinet Necker", type: "CABINET", color: "#4F6AF5", isActive: true },
+  { id: "loc-1", name: "Cabinet Necker", type: "CABINET", color: "#4F46E5", isActive: true },
   { id: "loc-2", name: "Téléconsultation", type: "TELECONSULT", color: "#8B5CF6", isActive: true },
   { id: "loc-3", name: "CHU Necker — Endocrino", type: "HOPITAL", color: "#10B981", isActive: true },
 ];

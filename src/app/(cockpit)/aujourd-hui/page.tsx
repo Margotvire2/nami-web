@@ -172,7 +172,7 @@ export default function AujourdhuiPage() {
       <header className="bg-white border-b border-[#E8ECF0] px-6 py-4 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <h1 className="text-[22px] font-bold text-[#1E293B] tracking-tight" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>
+            <h1 className="text-[22px] font-bold text-[#1E293B] tracking-tight" style={{ fontFamily: "var(--font-jakarta), system-ui" }}>
               {greeting}, {user?.firstName}
             </h1>
             <p className="text-sm text-[#64748B] mt-0.5">
@@ -183,7 +183,7 @@ export default function AujourdhuiPage() {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
             <input
               placeholder="Rechercher un patient…"
-              className="pl-9 h-9 text-sm w-64 bg-[#F0F2F8] rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#4F6AF5]/20 placeholder:text-[#94A3B8]"
+              className="pl-9 h-9 text-sm w-64 bg-[#F0F2F8] rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 placeholder:text-[#94A3B8]"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -269,7 +269,7 @@ export default function AujourdhuiPage() {
                     ))}
                     {upcomingAppts.length > 4 && (
                       <div className="px-6 py-2">
-                        <Link href="/agenda" className="text-xs font-medium text-[#4F6AF5] hover:underline">+{upcomingAppts.length - 4} autres RDV →</Link>
+                        <Link href="/agenda" className="text-xs font-medium text-[#4F46E5] hover:underline">+{upcomingAppts.length - 4} autres RDV →</Link>
                       </div>
                     )}
                   </div>
@@ -650,7 +650,7 @@ function SideBlock({ title, icon, titleClass, href, children }: {
         <div className={`text-xs font-semibold uppercase tracking-wide text-[#94A3B8] flex items-center gap-2 ${titleClass ?? ""}`}>
           {icon} {title}
         </div>
-        <Link href={href} className="text-xs text-[#64748B] hover:text-[#4F6AF5] flex items-center gap-1 transition-colors font-medium">
+        <Link href={href} className="text-xs text-[#64748B] hover:text-[#4F46E5] flex items-center gap-1 transition-colors font-medium">
           Voir tout <ChevronRight size={12} />
         </Link>
       </div>
@@ -672,14 +672,14 @@ function SummaryCard({ icon, label, value, sub, href, cta, alert }: {
     <Link href={href}>
       <div className={`nami-card-interactive p-5 ${alert ? "!border-[#FCA5A5]" : ""}`}>
         <div className="flex items-center justify-between mb-3">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${alert ? "bg-[#FEE2E2] text-[#DC2626]" : "bg-[#EEF1FF] text-[#4F6AF5]"}`}>
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${alert ? "bg-[#FEE2E2] text-[#DC2626]" : "bg-[#EEF1FF] text-[#4F46E5]"}`}>
             {icon}
           </div>
         </div>
         {value === null ? (
           <Skeleton className="h-8 w-12 rounded-lg mb-1" />
         ) : (
-          <p className={`text-[28px] font-bold tracking-tight leading-none mb-1 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`} style={{ fontFamily: "var(--font-bricolage), system-ui" }}>{value}</p>
+          <p className={`text-[28px] font-bold tracking-tight leading-none mb-1 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`} style={{ fontFamily: "var(--font-jakarta), system-ui" }}>{value}</p>
         )}
         <p className={`text-[13px] font-semibold mb-0.5 ${alert ? "text-[#DC2626]" : "text-[#1E293B]"}`}>{label}</p>
         <p className="text-xs text-[#94A3B8]">{sub}</p>
