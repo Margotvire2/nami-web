@@ -92,11 +92,10 @@ export default function AujourdhuiPage() {
     queryFn: () => api.referrals.outgoing(),
   });
 
-  const todayAppts = (todayAppointments ?? []).filter((a: any) => {
-    const d = new Date(a.startAt);
-    const now = new Date();
-    return d.toDateString() === now.toDateString() && a.status !== "CANCELLED";
-  });
+  const allAppts = todayAppointments ?? [];
+  const upcomingAppts = allAppts
+    .filter((a: any) => new Date(a.startAt) > new Date() && a.status !== "CANCELLED")
+    .sort((a: any, b: any) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
   const pendingReferrals = (outgoingReferrals ?? []).filter((r: any) =>
     ["SENT", "RECEIVED", "UNDER_REVIEW"].includes(r.status)
@@ -208,9 +207,9 @@ export default function AujourdhuiPage() {
           <div className="grid grid-cols-4 gap-5">
             <SummaryCard
               icon={<CalendarDays size={14} />}
-              label="Consultations du jour"
-              value={isLoading ? null : todayAppts.length}
-              sub={todayAppts.length > 0 ? `${todayAppts.length} consultation${todayAppts.length > 1 ? "s" : ""} prévue${todayAppts.length > 1 ? "s" : ""}` : "Aucune consultation programmée"}
+              label="Prochains RDV"
+              value={isLoading ? null : upcomingAppts.length}
+              sub={upcomingAppts.length > 0 ? `Prochain : ${new Date(upcomingAppts[0].startAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}` : "Aucun RDV à venir"}
               href="/agenda"
               cta="Voir l'agenda"
             />
@@ -247,17 +246,40 @@ export default function AujourdhuiPage() {
             {/* Colonne gauche 70% */}
             <div className="flex-1 min-w-0 space-y-5">
 
-              {/* Bloc A — Consultations du jour */}
+              {/* Bloc A — Prochains RDV */}
               <MainBlock
-                title="Consultations du jour"
+                title="Prochains rendez-vous"
                 icon={<CalendarDays size={13} />}
                 action={
-                  <Link href="/agenda" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
-                    Voir l'agenda <ChevronRight size={11} />
+                  <Link href="/agenda" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 font-medium transition-colors">
+                    Voir l'agenda <ChevronRight size={12} />
                   </Link>
                 }
               >
-                <ConsultationsEmpty />
+                {upcomingAppts.length === 0 ? (
+                  <EmptyState icon={<CalendarDays size={20} />} title="Aucun RDV à venir" sub="Vos prochains rendez-vous apparaîtront ici." cta={{ label: "Voir l'agenda", href: "/agenda" }} />
+                ) : (
+                  <div className="divide-y divide-[#E2E8F0]">
+                    {upcomingAppts.slice(0, 4).map((a: any) => (
+                      <div key={a.id} className="px-6 py-3 flex items-center gap-4 hover:bg-[#F8F9FF] transition-colors">
+                        <div className="text-center min-w-[48px]">
+                          <p className="text-sm font-bold text-[#1E293B] tabular-nums">{new Date(a.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</p>
+                          <p className="text-[10px] text-[#94A3B8]">{new Date(a.startAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })}</p>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#1E293B]">{a.patient.firstName} {a.patient.lastName}</p>
+                          <p className="text-xs text-[#64748B]">{a.consultationType?.name ?? "Consultation"} · {a.provider.person.firstName} {a.provider.person.lastName}</p>
+                        </div>
+                        <span className="text-xs text-[#94A3B8]">{a.locationType === "VIDEO" ? "Visio" : a.locationType === "PHONE" ? "Tél." : "Présentiel"}</span>
+                      </div>
+                    ))}
+                    {upcomingAppts.length > 4 && (
+                      <div className="px-6 py-2">
+                        <Link href="/agenda" className="text-xs font-medium text-[#4F6AF5] hover:underline">+{upcomingAppts.length - 4} autres RDV →</Link>
+                      </div>
+                    )}
+                  </div>
+                )}
               </MainBlock>
 
               {/* Bloc B — Patients nécessitant mon attention */}
@@ -520,25 +542,7 @@ function PatientAttentionRow({ patient: p }: { patient: PatientWithReason }) {
 
 // ─── Consultations empty state intelligent ────────────────────────────────────
 
-function ConsultationsEmpty() {
-  return (
-    <div className="px-4 py-8 text-center space-y-2">
-      <CalendarDays size={24} className="text-muted-foreground/30 mx-auto" />
-      <p className="text-sm text-muted-foreground font-medium">Aucune consultation prévue aujourd'hui</p>
-      <p className="text-xs text-muted-foreground/70 max-w-xs mx-auto">
-        Vous pouvez avancer sur les tâches, revoir vos patients à surveiller ou organiser vos prochains suivis.
-      </p>
-      <div className="flex items-center justify-center gap-2 mt-3">
-        <Link href="/agenda">
-          <Button size="sm" variant="outline" className="text-xs h-7">Voir l'agenda</Button>
-        </Link>
-        <Link href="/patients">
-          <Button size="sm" variant="ghost" className="text-xs h-7 text-muted-foreground">Voir mes patients</Button>
-        </Link>
-      </div>
-    </div>
-  );
-}
+// ConsultationsEmpty removed — replaced by "Prochains RDV" with real data
 
 // ─── Note sheet global ────────────────────────────────────────────────────────
 
