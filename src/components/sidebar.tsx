@@ -47,9 +47,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] shrink-0 border-r bg-card flex flex-col h-full">
+    <aside className="w-[220px] shrink-0 bg-card flex flex-col h-full shadow-[var(--shadow-sm)] z-10">
       {/* ── Logo ── */}
-      <div className="px-5 h-16 flex items-center border-b">
+      <div className="px-5 h-16 flex items-center">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[var(--shadow-sm)]">
             <span className="text-primary-foreground text-[13px] font-bold tracking-tight">N</span>

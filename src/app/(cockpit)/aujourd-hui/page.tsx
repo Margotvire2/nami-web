@@ -202,10 +202,10 @@ export default function AujourdhuiPage() {
       </header>
 
       <div className="nami-page-body">
-        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
 
           {/* ── Bandeau résumé rapide ── */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-5">
             <SummaryCard
               icon={<CalendarDays size={14} />}
               label="Consultations du jour"
@@ -242,7 +242,7 @@ export default function AujourdhuiPage() {
           </div>
 
           {/* ── Layout principal 2 colonnes ── */}
-          <div className="flex gap-5 items-start">
+          <div className="flex gap-8 items-start">
 
             {/* Colonne gauche 70% */}
             <div className="flex-1 min-w-0 space-y-5">
