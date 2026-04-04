@@ -258,7 +258,7 @@ function ReferralDetailPanel({ referralId, direction, onClose }: {
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-[11px] font-bold uppercase px-2 py-1 rounded border ${statusMeta.badgeClass}`}>{statusMeta.label}</span>
           <span className={`text-[11px] font-bold uppercase px-2 py-1 rounded border ${priorityMeta.badgeClass}`}>{priorityMeta.label}</span>
-          <span className="text-[11px] text-muted-foreground">{referral.mode}</span>
+          <span className="text-[11px] text-muted-foreground">{referral.mode === "DIRECT" ? "Direct" : "Pool"}</span>
         </div>
 
         {/* Envoyeur → Destinataire */}
@@ -288,6 +288,27 @@ function ReferralDetailPanel({ referralId, direction, onClose }: {
           )}
         </div>
 
+        {/* Bannières contextuelles */}
+        {referral.desiredAppointmentDate && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 flex items-center gap-2">
+            <Clock size={13} className="text-blue-600 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold text-blue-700">RDV souhaité avant le {new Date(referral.desiredAppointmentDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
+              {(() => { const d = Math.ceil((new Date(referral.desiredAppointmentDate).getTime() - Date.now()) / 86400000); return d > 0 ? <p className="text-[10px] text-blue-600">dans {d} jour{d > 1 ? "s" : ""}</p> : <p className="text-[10px] text-destructive font-medium">Date dépassée</p>; })()}
+            </div>
+          </div>
+        )}
+
+        {referral.urgencyNote && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-2.5 flex items-start gap-2">
+            <ArrowLeftRight size={13} className="text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold uppercase text-destructive">Urgence signalée</p>
+              <p className="text-[11px] text-destructive/90 leading-relaxed">{referral.urgencyNote}</p>
+            </div>
+          </div>
+        )}
+
         {/* Dossier patient */}
         <div className="space-y-1.5">
           <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Dossier patient</p>
@@ -301,13 +322,6 @@ function ReferralDetailPanel({ referralId, direction, onClose }: {
           <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Motif clinique</p>
           <p className="text-sm leading-relaxed">{referral.clinicalReason}</p>
         </div>
-
-        {referral.urgencyNote && (
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-destructive">Note d'urgence</p>
-            <p className="text-sm text-destructive">{referral.urgencyNote}</p>
-          </div>
-        )}
 
         {referral.responseNote && (
           <div className="space-y-1.5">
@@ -364,9 +378,11 @@ function CreateReferralModal({ onClose }: { onClose: () => void }) {
 
   const [careCaseId, setCareCaseId] = useState("");
   const [targetProviderId, setTargetProviderId] = useState("");
+  const [mode, setMode] = useState<"DIRECT" | "POOL">("DIRECT");
   const [priority, setPriority] = useState<"ROUTINE" | "URGENT" | "EMERGENCY">("ROUTINE");
   const [clinicalReason, setClinicalReason] = useState("");
   const [preferredSpecialty, setPreferredSpecialty] = useState("");
+  const [urgencyNote, setUrgencyNote] = useState("");
 
   const { data: cases } = useQuery({ queryKey: ["care-cases", "all"], queryFn: () => api.careCases.list() });
   const { data: providers } = useQuery({
@@ -379,17 +395,24 @@ function CreateReferralModal({ onClose }: { onClose: () => void }) {
     mutationFn: () => api.referrals.create({
       careCaseId,
       targetProviderId: targetProviderId || undefined,
-      mode: "DIRECT",
+      mode,
       priority,
       clinicalReason,
       preferredSpecialty: preferredSpecialty || undefined,
+      urgencyNote: urgencyNote.trim() || undefined,
       autoAddToTeam: true,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["referrals"] }); toast.success("Adressage créé"); onClose(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["referrals"] });
+      const patient = (cases ?? []).find((c) => c.id === careCaseId);
+      const provName = targetProviderId ? (providers ?? []).find((p) => p.id === targetProviderId) : null;
+      toast.success(`Adressage envoyé${provName ? ` à ${provName.person.firstName} ${provName.person.lastName}` : ""}${patient ? ` pour ${patient.patient.firstName} ${patient.patient.lastName}` : ""}`);
+      onClose();
+    },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Erreur"),
   });
 
-  const canSubmit = careCaseId && targetProviderId && clinicalReason.trim().length > 10;
+  const canSubmit = careCaseId && (mode === "POOL" ? preferredSpecialty : targetProviderId) && clinicalReason.trim().length > 10;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onClose}>
@@ -408,17 +431,37 @@ function CreateReferralModal({ onClose }: { onClose: () => void }) {
             </select>
           </div>
 
+          {/* Mode : DIRECT ou POOL */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Professionnel destinataire</label>
-            <select value={targetProviderId} onChange={(e) => {
-              setTargetProviderId(e.target.value);
-              const prov = (providers ?? []).find((p) => p.id === e.target.value);
-              if (prov?.specialties?.[0]) setPreferredSpecialty(prov.specialties[0]);
-            }} className="w-full text-sm border rounded-lg px-3 py-2 bg-background">
-              <option value="">Sélectionner un professionnel</option>
-              {(providers ?? []).map((p) => <option key={p.id} value={p.id}>{p.person.firstName} {p.person.lastName} — {p.specialties.join(", ")}</option>)}
-            </select>
+            <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Mode d'adressage</label>
+            <div className="flex gap-2">
+              <button onClick={() => { setMode("DIRECT"); }} className={`flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors ${mode === "DIRECT" ? "bg-primary/10 text-primary border-primary/30 ring-1 ring-primary/20" : "bg-white text-muted-foreground hover:bg-muted/30"}`}>
+                Direct — vers un professionnel
+              </button>
+              <button onClick={() => { setMode("POOL"); setTargetProviderId(""); }} className={`flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors ${mode === "POOL" ? "bg-primary/10 text-primary border-primary/30 ring-1 ring-primary/20" : "bg-white text-muted-foreground hover:bg-muted/30"}`}>
+                Pool — par spécialité
+              </button>
+            </div>
           </div>
+
+          {mode === "DIRECT" ? (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Professionnel destinataire</label>
+              <select value={targetProviderId} onChange={(e) => {
+                setTargetProviderId(e.target.value);
+                const prov = (providers ?? []).find((p) => p.id === e.target.value);
+                if (prov?.specialties?.[0]) setPreferredSpecialty(prov.specialties[0]);
+              }} className="w-full text-sm border rounded-lg px-3 py-2 bg-background">
+                <option value="">Sélectionner un professionnel</option>
+                {(providers ?? []).map((p) => <option key={p.id} value={p.id}>{p.person.firstName} {p.person.lastName} — {p.specialties.join(", ")}</option>)}
+              </select>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Spécialité recherchée</label>
+              <Input placeholder="Ex : Psychologue, Endocrinologue…" value={preferredSpecialty} onChange={(e) => setPreferredSpecialty(e.target.value)} className="text-sm" />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Priorité</label>
@@ -437,6 +480,13 @@ function CreateReferralModal({ onClose }: { onClose: () => void }) {
             <label className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Motif clinique</label>
             <Textarea placeholder="Décrivez le motif clinique de l'adressage…" value={clinicalReason} onChange={(e) => setClinicalReason(e.target.value)} rows={4} className="text-sm resize-none" />
           </div>
+
+          {priority !== "ROUTINE" && (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wide text-destructive">Note d'urgence (optionnel)</label>
+              <Input placeholder="Précisez le contexte d'urgence…" value={urgencyNote} onChange={(e) => setUrgencyNote(e.target.value)} className="text-sm border-destructive/30" />
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 px-5 py-3.5 border-t">

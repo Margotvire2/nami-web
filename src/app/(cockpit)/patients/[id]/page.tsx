@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral } from "@/lib/api";
+import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -752,6 +753,7 @@ function OverviewSection({ careCaseId, careCase, api }: {
     <div className="p-6 max-w-3xl space-y-8">
       <ClinicalSummaryCard careCase={careCase} careCaseId={careCaseId} api={api} />
       <CompactTimelineView careCaseId={careCaseId} careCase={careCase} />
+      <ReferralsOverviewCard careCaseId={careCaseId} api={api} />
       <PatientSignalsCard careCaseId={careCaseId} api={api} />
       <AppointmentsCard careCaseId={careCaseId} api={api} />
     </div>
@@ -1800,6 +1802,67 @@ function PilotageIASection({ careCaseId, careCase, api }: {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── Widget adressages dans l'overview ───────────────────────────────────────
+
+function ReferralsOverviewCard({ careCaseId, api }: {
+  careCaseId: string; api: ReturnType<typeof apiWithToken>;
+}) {
+  const { data: outgoing, isLoading } = useQuery({
+    queryKey: ["referrals", "outgoing", careCaseId],
+    queryFn: () => api.referrals.outgoing({ careCaseId }),
+  });
+
+  const referrals = outgoing ?? [];
+  if (!isLoading && referrals.length === 0) return null;
+
+  const active = referrals.filter((r: Referral) => getStatusMeta(r.status).isActive);
+  const completed = referrals.filter((r: Referral) => r.status === "FIRST_VISIT_COMPLETED");
+
+  return (
+    <BlockTitle title="Adressages" icon={<ArrowLeftRight size={13} />}
+      sub={`${active.length} en cours · ${completed.length} terminé${completed.length > 1 ? "s" : ""}`}
+      action={
+        <Link href="/adressages" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+          Tous les adressages <ChevronRight size={11} />
+        </Link>
+      }
+    >
+      {isLoading ? (
+        <div className="space-y-2">{[...Array(2)].map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}</div>
+      ) : (
+        <div className="space-y-2">
+          {referrals.slice(0, 4).map((r: Referral) => {
+            const sm = getStatusMeta(r.status);
+            const pm = getPriorityMeta(r.priority);
+            const target = r.targetProvider
+              ? `${r.targetProvider.person.firstName} ${r.targetProvider.person.lastName}`
+              : r.preferredSpecialty ?? "Pool";
+            return (
+              <div key={r.id} className={`rounded-lg border px-3.5 py-2.5 ${sm.isBlocked ? "border-l-[3px] border-l-red-400" : ""}`}>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${sm.badgeClass}`}>{sm.label}</span>
+                  {r.priority !== "ROUTINE" && <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${pm.badgeClass}`}>{pm.label}</span>}
+                </div>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <span className="text-muted-foreground">→</span>
+                  <span className="font-medium">{target}</span>
+                  {r.preferredSpecialty && <span className="text-xs text-muted-foreground">({r.preferredSpecialty})</span>}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{r.clinicalReason}</p>
+              </div>
+            );
+          })}
+          {referrals.length > 4 && (
+            <Link href="/adressages" className="text-[11px] text-primary hover:underline">
+              +{referrals.length - 4} autres adressages
+            </Link>
+          )}
+        </div>
+      )}
+    </BlockTitle>
   );
 }
 
