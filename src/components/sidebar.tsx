@@ -10,7 +10,7 @@ import {
   LayoutDashboard,
   Users,
   ArrowLeftRight,
-  MessageSquare,
+  Radio,
   FileText,
   CalendarDays,
   BellDot,
@@ -19,29 +19,27 @@ import {
 } from "lucide-react";
 
 /*
-  Icônes uniques — aucune duplication :
-  LayoutDashboard = grille (dashboard)
-  Users           = silhouettes (patients)
-  CalendarDays    = calendrier + chiffres (agenda)
-  ArrowLeftRight  = double flèche (adressages)
-  MessageSquare   = bulle carrée (messages patient)
-  UsersRound      = groupe arrondi (communauté)
-  FileText        = document (documents)
-  BellDot         = cloche + point (alertes)
+  Sidebar Nami 2.0 — 3 blocs mentaux :
+  1. Mon activité (dashboard + agenda)
+  2. Mes patients (patients + alertes + documents)
+  3. Mon réseau (adressages + collaboration + équipe)
 */
 
-const NAV_MAIN = [
+const NAV_ACTIVITY = [
   { href: "/aujourd-hui", label: "Aujourd'hui", icon: LayoutDashboard },
-  { href: "/patients",    label: "Patients",     icon: Users },
   { href: "/agenda",      label: "Agenda",       icon: CalendarDays },
-  { href: "/adressages",  label: "Adressages",   icon: ArrowLeftRight },
 ];
 
-const NAV_TOOLS = [
-  { href: "/messages",     label: "Messages",    icon: MessageSquare },
-  { href: "/messages-pro", label: "Communauté",  icon: UsersRound },
-  { href: "/documents",    label: "Documents",   icon: FileText },
-  { href: "/alertes",      label: "Alertes",     icon: BellDot },
+const NAV_PATIENTS = [
+  { href: "/patients",    label: "Patients",     icon: Users },
+  { href: "/alertes",     label: "Alertes",      icon: BellDot },
+  { href: "/documents",   label: "Documents",    icon: FileText },
+];
+
+const NAV_NETWORK = [
+  { href: "/adressages",    label: "Adressages",    icon: ArrowLeftRight },
+  { href: "/collaboration", label: "Réseau",        icon: Radio },
+  { href: "/equipe",        label: "Équipe",        icon: UsersRound },
 ];
 
 export function Sidebar() {
@@ -73,17 +71,13 @@ export function Sidebar() {
         <span className="text-[15px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
       </div>
 
-      {/* Main nav */}
+      {/* Navigation — 3 blocs */}
       <nav className="flex-1 px-3 pt-3 overflow-y-auto">
-        <div className="space-y-0.5">
-          {NAV_MAIN.map((item) => <NavItem key={item.href} item={item} active={isActive(item.href)} />)}
-        </div>
-
+        <NavGroup items={NAV_ACTIVITY} isActive={isActive} />
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
-
-        <div className="space-y-0.5">
-          {NAV_TOOLS.map((item) => <NavItem key={item.href} item={item} active={isActive(item.href)} />)}
-        </div>
+        <NavGroup items={NAV_PATIENTS} isActive={isActive} />
+        <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
+        <NavGroup items={NAV_NETWORK} isActive={isActive} />
       </nav>
 
       {/* User */}
@@ -107,22 +101,30 @@ export function Sidebar() {
   );
 }
 
-function NavItem({ item, active }: { item: { href: string; label: string; icon: typeof LayoutDashboard }; active: boolean }) {
-  const Icon = item.icon;
+function NavGroup({ items, isActive }: { items: typeof NAV_ACTIVITY; isActive: (href: string) => boolean }) {
   return (
-    <Link
-      href={item.href}
-      title={item.label}
-      className={cn(
-        "flex items-center gap-2.5 px-3 h-9 rounded-[10px] text-[13px] transition-all duration-150",
-        active
-          ? "bg-[#EEF2FF] text-[#4F46E5] font-semibold border-l-[3px] border-[#4F46E5] pl-[9px]"
-          : "text-[#64748B] hover:bg-[#EEF2FF] hover:text-[#4F46E5]"
-      )}
-      style={{ fontFamily: "var(--font-jakarta)" }}
-    >
-      <Icon size={16} strokeWidth={1.75} className="shrink-0" />
-      <span className="truncate">{item.label}</span>
-    </Link>
+    <div className="space-y-0.5">
+      {items.map((item) => {
+        const Icon = item.icon;
+        const active = isActive(item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            title={item.label}
+            className={cn(
+              "flex items-center gap-2.5 px-3 h-9 rounded-[10px] text-[13px] transition-all duration-150",
+              active
+                ? "bg-[#EEF2FF] text-[#4F46E5] font-semibold border-l-[3px] border-[#4F46E5] pl-[9px]"
+                : "text-[#64748B] hover:bg-[#EEF2FF] hover:text-[#4F46E5]"
+            )}
+            style={{ fontFamily: "var(--font-jakarta)" }}
+          >
+            <Icon size={16} strokeWidth={1.75} className="shrink-0" />
+            <span className="truncate">{item.label}</span>
+          </Link>
+        );
+      })}
+    </div>
   );
 }
