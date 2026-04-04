@@ -47,16 +47,16 @@ function daysAgo(dateStr: string) {
 }
 
 const RISK_DOT: Record<string, string> = {
-  CRITICAL: "bg-destructive", HIGH: "bg-orange-500",
-  MEDIUM: "bg-yellow-400", LOW: "bg-green-500", UNKNOWN: "bg-muted-foreground/30",
+  CRITICAL: "bg-severity-critical", HIGH: "bg-severity-high",
+  MEDIUM: "bg-severity-warning", LOW: "bg-severity-success", UNKNOWN: "bg-muted-foreground/30",
 };
 
 const TAG_STYLE: Record<string, string> = {
-  "no-step": "bg-yellow-50 text-yellow-700 border-yellow-200",
-  "inactive": "bg-blue-50 text-blue-700 border-blue-200",
-  "alert": "bg-red-50 text-red-700 border-red-200",
-  "no-lead": "bg-purple-50 text-purple-700 border-purple-200",
-  "risk": "bg-destructive/10 text-destructive border-destructive/20",
+  "no-step": "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",
+  "inactive": "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",
+  "alert": "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border",
+  "no-lead": "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",
+  "risk": "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border",
 };
 
 const ATTENTION_FILTERS = [

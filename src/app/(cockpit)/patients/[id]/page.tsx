@@ -53,35 +53,35 @@ const APPOINTMENT_STATUS_LABEL: Record<string, string> = {
 // ─── Constantes UI ───────────────────────────────────────────────────────────
 
 const RISK_BADGE: Record<string, string> = {
-  CRITICAL: "bg-destructive/10 text-destructive border-destructive/30",
-  HIGH:     "bg-orange-50 text-orange-700 border-orange-200",
-  MEDIUM:   "bg-yellow-50 text-yellow-700 border-yellow-200",
-  LOW:      "bg-green-50 text-green-700 border-green-200",
+  CRITICAL: "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border",
+  HIGH:     "bg-severity-high-bg text-severity-high-foreground border-severity-high-border",
+  MEDIUM:   "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",
+  LOW:      "bg-severity-success-bg text-severity-success-foreground border-severity-success-border",
   UNKNOWN:  "bg-muted text-muted-foreground border-border",
 };
 const RISK_LABEL: Record<string, string> = {
   CRITICAL: "Critique", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Inconnu",
 };
 const SEVERITY_COLOR: Record<string, string> = {
-  CRITICAL: "text-destructive", HIGH: "text-orange-600",
-  WARNING: "text-yellow-600", INFO: "text-blue-600",
+  CRITICAL: "text-severity-critical", HIGH: "text-severity-high",
+  WARNING: "text-severity-warning", INFO: "text-severity-info",
 };
 const GAP_BADGE: Record<string, string> = {
-  CRITICAL: "bg-destructive/10 text-destructive border-destructive/20",
-  HIGH:     "bg-orange-50 text-orange-700 border-orange-200",
-  WARNING:  "bg-yellow-50 text-yellow-700 border-yellow-200",
-  INFO:     "bg-blue-50 text-blue-700 border-blue-200",
+  CRITICAL: "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border",
+  HIGH:     "bg-severity-high-bg text-severity-high-foreground border-severity-high-border",
+  WARNING:  "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",
+  INFO:     "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",
 };
 const PRIORITY_STYLE: Record<string, string> = {
-  URGENT: "text-destructive font-semibold", HIGH: "text-orange-600",
-  MEDIUM: "text-yellow-600", LOW: "text-muted-foreground",
+  URGENT: "text-severity-critical font-semibold", HIGH: "text-severity-high",
+  MEDIUM: "text-severity-warning", LOW: "text-muted-foreground",
 };
 const VIGILANCE_LABEL: Record<string, string> = {
   CRITICAL: "Très élevé", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Non évalué",
 };
 const VIGILANCE_STYLE: Record<string, string> = {
-  CRITICAL: "text-destructive", HIGH: "text-orange-600",
-  MEDIUM: "text-yellow-600", LOW: "text-green-600", UNKNOWN: "text-muted-foreground",
+  CRITICAL: "text-severity-critical", HIGH: "text-severity-high",
+  MEDIUM: "text-severity-warning", LOW: "text-severity-success", UNKNOWN: "text-muted-foreground",
 };
 
 // ─── Helpers dates ───────────────────────────────────────────────────────────

@@ -13,10 +13,10 @@ import { Bell, AlertTriangle, CheckCircle2, Clock, FileText } from "lucide-react
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
 const SEVERITY_META: Record<string, { label: string; className: string; order: number }> = {
-  CRITICAL: { label: "Critique",     className: "bg-red-50 text-red-700 border-red-200",       order: 0 },
-  HIGH:     { label: "Élevé",        className: "bg-orange-50 text-orange-700 border-orange-200", order: 1 },
-  WARNING:  { label: "Attention",    className: "bg-yellow-50 text-yellow-700 border-yellow-200", order: 2 },
-  INFO:     { label: "Information",  className: "bg-blue-50 text-blue-700 border-blue-200",    order: 3 },
+  CRITICAL: { label: "Critique",     className: "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border", order: 0 },
+  HIGH:     { label: "Élevé",        className: "bg-severity-high-bg text-severity-high-foreground border-severity-high-border",             order: 1 },
+  WARNING:  { label: "Attention",    className: "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",    order: 2 },
+  INFO:     { label: "Information",  className: "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",             order: 3 },
 };
 
 const ALERT_TYPE_LABEL: Record<string, string> = {

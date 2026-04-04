@@ -12,18 +12,18 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const RISK_STYLE: Record<string, string> = {
-  CRITICAL: "text-destructive font-semibold",
-  HIGH: "text-orange-600 font-semibold",
-  MEDIUM: "text-yellow-600",
-  LOW: "text-green-600",
+  CRITICAL: "text-severity-critical font-semibold",
+  HIGH: "text-severity-high font-semibold",
+  MEDIUM: "text-severity-warning",
+  LOW: "text-severity-success",
   UNKNOWN: "text-muted-foreground",
 };
 
 const RISK_DOT: Record<string, string> = {
-  CRITICAL: "bg-destructive",
-  HIGH: "bg-orange-500",
-  MEDIUM: "bg-yellow-400",
-  LOW: "bg-green-500",
+  CRITICAL: "bg-severity-critical",
+  HIGH: "bg-severity-high",
+  MEDIUM: "bg-severity-warning",
+  LOW: "bg-severity-success",
   UNKNOWN: "bg-muted-foreground/40",
 };
 

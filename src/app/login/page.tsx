@@ -34,15 +34,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30">
-      <div className="w-full max-w-sm space-y-6 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-sm space-y-8 px-4">
         {/* Logo */}
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Nami</h1>
-          <p className="text-sm text-muted-foreground">Cockpit clinique</p>
+        <div className="text-center space-y-2">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto shadow-sm">
+            <span className="text-primary-foreground text-sm font-bold">N</span>
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Nami</h1>
+            <p className="text-sm text-muted-foreground">Cockpit de coordination clinique</p>
+          </div>
         </div>
 
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader className="pb-4">
             <p className="text-sm text-muted-foreground">
               Connectez-vous à votre espace soignant
@@ -82,7 +87,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-muted-foreground">
           Pas encore de compte ?{" "}
-          <Link href="/signup" className="text-foreground underline underline-offset-2">
+          <Link href="/signup" className="text-primary font-medium hover:underline underline-offset-2">
             Créer un compte
           </Link>
         </p>

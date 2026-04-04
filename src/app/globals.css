@@ -46,41 +46,117 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ── Nami semantic colors ─────────────────────────────────────────── */
+  --color-nami: var(--nami);
+  --color-nami-foreground: var(--nami-foreground);
+  --color-nami-light: var(--nami-light);
+
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-critical-foreground: var(--severity-critical-foreground);
+  --color-severity-critical-bg: var(--severity-critical-bg);
+  --color-severity-critical-border: var(--severity-critical-border);
+
+  --color-severity-high: var(--severity-high);
+  --color-severity-high-foreground: var(--severity-high-foreground);
+  --color-severity-high-bg: var(--severity-high-bg);
+  --color-severity-high-border: var(--severity-high-border);
+
+  --color-severity-warning: var(--severity-warning);
+  --color-severity-warning-foreground: var(--severity-warning-foreground);
+  --color-severity-warning-bg: var(--severity-warning-bg);
+  --color-severity-warning-border: var(--severity-warning-border);
+
+  --color-severity-info: var(--severity-info);
+  --color-severity-info-foreground: var(--severity-info-foreground);
+  --color-severity-info-bg: var(--severity-info-bg);
+  --color-severity-info-border: var(--severity-info-border);
+
+  --color-severity-success: var(--severity-success);
+  --color-severity-success-foreground: var(--severity-success-foreground);
+  --color-severity-success-bg: var(--severity-success-bg);
+  --color-severity-success-border: var(--severity-success-border);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* ── Surfaces ──────────────────────────────────────────────────────
+     Fond légèrement teinté lavande — chaleur + profondeur.
+     Cards blanches pures pour le contraste.                            */
+  --background: oklch(0.975 0.006 270);
+  --foreground: oklch(0.18 0.02 270);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.02 270);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.18 0.02 270);
+
+  /* ── Nami primary — warm indigo ──────────────────────────────────
+     "soft precision / clinical clarity / intelligent warmth"
+     Indigo muted : premium, intelligent, pas froid.
+     Inspiré de la ref Clinexa mais plus chaud et distinctif.          */
+  --primary: oklch(0.40 0.12 265);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+
+  --secondary: oklch(0.96 0.008 270);
+  --secondary-foreground: oklch(0.30 0.08 265);
+  --muted: oklch(0.96 0.006 270);
+  --muted-foreground: oklch(0.48 0.015 265);
+  --accent: oklch(0.95 0.010 270);
+  --accent-foreground: oklch(0.30 0.08 265);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: oklch(0.91 0.008 270);
+  --input: oklch(0.91 0.008 270);
+  --ring: oklch(0.52 0.10 265);
+  --chart-1: oklch(0.55 0.12 265);
+  --chart-2: oklch(0.60 0.10 195);
+  --chart-3: oklch(0.55 0.10 150);
+  --chart-4: oklch(0.60 0.12 50);
+  --chart-5: oklch(0.50 0.10 30);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+
+  /* ── Sidebar — lavande subtile, coherent avec le fond ────────────── */
+  --sidebar: oklch(0.98 0.005 270);
+  --sidebar-foreground: oklch(0.18 0.02 270);
+  --sidebar-primary: oklch(0.40 0.12 265);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.94 0.012 270);
+  --sidebar-accent-foreground: oklch(0.30 0.08 265);
+  --sidebar-border: oklch(0.91 0.008 270);
+  --sidebar-ring: oklch(0.52 0.10 265);
+
+  /* ── Nami brand accent ───────────────────────────────────────────── */
+  --nami: oklch(0.48 0.14 265);
+  --nami-foreground: oklch(0.985 0 0);
+  --nami-light: oklch(0.93 0.025 270);
+
+  /* ── Semantic severity tokens ────────────────────────────────────
+     Single source of truth for all clinical severity indicators.
+     Used for: risk levels, alert severity, gap severity, task priority.
+     Each has: text, foreground (darker text), bg (tinted), border.    */
+
+  --severity-critical: oklch(0.577 0.245 27);
+  --severity-critical-foreground: oklch(0.45 0.20 25);
+  --severity-critical-bg: oklch(0.97 0.01 25);
+  --severity-critical-border: oklch(0.88 0.05 25);
+
+  --severity-high: oklch(0.65 0.17 50);
+  --severity-high-foreground: oklch(0.48 0.14 50);
+  --severity-high-bg: oklch(0.97 0.01 55);
+  --severity-high-border: oklch(0.88 0.05 55);
+
+  --severity-warning: oklch(0.75 0.15 85);
+  --severity-warning-foreground: oklch(0.50 0.12 80);
+  --severity-warning-bg: oklch(0.97 0.01 85);
+  --severity-warning-border: oklch(0.88 0.05 85);
+
+  --severity-info: oklch(0.60 0.12 250);
+  --severity-info-foreground: oklch(0.45 0.10 250);
+  --severity-info-bg: oklch(0.97 0.01 250);
+  --severity-info-border: oklch(0.88 0.04 250);
+
+  --severity-success: oklch(0.60 0.14 155);
+  --severity-success-foreground: oklch(0.42 0.12 155);
+  --severity-success-bg: oklch(0.97 0.01 155);
+  --severity-success-border: oklch(0.88 0.04 155);
 }
 
 .dark {
@@ -90,8 +166,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.72 0.10 265);
+  --primary-foreground: oklch(0.15 0.03 265);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -109,12 +185,41 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.72 0.10 265);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --nami: oklch(0.72 0.10 265);
+  --nami-foreground: oklch(0.15 0.03 265);
+  --nami-light: oklch(0.25 0.04 265);
+
+  --severity-critical: oklch(0.70 0.20 25);
+  --severity-critical-foreground: oklch(0.80 0.15 25);
+  --severity-critical-bg: oklch(0.22 0.04 25);
+  --severity-critical-border: oklch(0.35 0.08 25);
+
+  --severity-high: oklch(0.72 0.15 50);
+  --severity-high-foreground: oklch(0.80 0.12 50);
+  --severity-high-bg: oklch(0.22 0.03 50);
+  --severity-high-border: oklch(0.35 0.06 50);
+
+  --severity-warning: oklch(0.78 0.12 85);
+  --severity-warning-foreground: oklch(0.85 0.10 85);
+  --severity-warning-bg: oklch(0.22 0.03 85);
+  --severity-warning-border: oklch(0.35 0.05 85);
+
+  --severity-info: oklch(0.65 0.10 250);
+  --severity-info-foreground: oklch(0.75 0.08 250);
+  --severity-info-bg: oklch(0.22 0.02 250);
+  --severity-info-border: oklch(0.35 0.04 250);
+
+  --severity-success: oklch(0.65 0.12 155);
+  --severity-success-foreground: oklch(0.75 0.10 155);
+  --severity-success-bg: oklch(0.22 0.02 155);
+  --severity-success-border: oklch(0.35 0.04 155);
 }
 
 @layer base {
