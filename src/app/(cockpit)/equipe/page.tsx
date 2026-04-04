@@ -42,7 +42,7 @@ export default function EquipePage() {
   }
 
   function copyInviteLink() {
-    navigator.clipboard.writeText("https://app.nami.care/invite/abc123");
+    navigator.clipboard.writeText(`${window.location.origin}/invite/abc123`);
     setLinkCopied(true);
     toast.success("Lien d'invitation copié");
     setTimeout(() => setLinkCopied(false), 2000);
@@ -166,7 +166,7 @@ export default function EquipePage() {
               <div className="bg-[#F0F2FA] rounded-[10px] p-3 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-semibold text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>OU PARTAGEZ UN LIEN</p>
-                  <p className="text-xs text-[#64748B] mt-0.5 font-mono">app.nami.care/invite/abc123</p>
+                  <p className="text-xs text-[#64748B] mt-0.5 font-mono">nami-web-orpin.vercel.app/invite/abc123</p>
                 </div>
                 <button onClick={copyInviteLink} className="h-8 px-3 rounded-lg bg-white text-xs font-semibold text-[#64748B] flex items-center gap-1.5 hover:bg-[#F8FAFC] transition-colors">
                   {linkCopied ? <><Check size={12} className="text-[#059669]" /> Copié</> : <><Copy size={12} /> Copier</>}
