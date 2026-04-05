@@ -87,15 +87,11 @@ const affiliations: PractitionerAffiliation[] = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const patients: Record<string, Patient> = {
-  "pat-1": {
-    id: id<PatientId>("pat-1"),
-    firstName: "Théo",
-    lastName: "Dufresne",
-    dateOfBirth: "1997-03-12",
-    email: "theo.d@email.com",
-    phone: "06 12 34 56 78",
-    createdAt: "2025-03-23T09:00:00Z",
-  },
+  "pat-1": { id: id<PatientId>("pat-1"), firstName: "Théo", lastName: "Dufresne", dateOfBirth: "1997-03-12", email: "theo.d@email.com", phone: "06 12 34 56 78", createdAt: "2025-03-23T09:00:00Z" },
+  "pat-2": { id: id<PatientId>("pat-2"), firstName: "Margot", lastName: "Vire", dateOfBirth: "1992-05-14", email: "margot.v@email.com", phone: "06 11 22 33 44", createdAt: "2025-01-15T09:00:00Z" },
+  "pat-3": { id: id<PatientId>("pat-3"), firstName: "Lucas", lastName: "Bernier", dateOfBirth: "2000-08-03", email: "lucas.b@email.com", phone: "06 55 66 77 88", createdAt: "2025-02-10T09:00:00Z" },
+  "pat-4": { id: id<PatientId>("pat-4"), firstName: "Sofia", lastName: "Marchand", dateOfBirth: "1983-11-22", email: "sofia.m@email.com", phone: "06 98 76 54 32", createdAt: "2025-03-01T09:00:00Z" },
+  "pat-5": { id: id<PatientId>("pat-5"), firstName: "Gabrielle", lastName: "Martin", dateOfBirth: "2006-02-07", email: "gabrielle.m@email.com", phone: "06 44 33 22 11", createdAt: "2025-01-20T09:00:00Z" },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -139,11 +135,38 @@ const careTeamMembers: CareTeamMember[] = [
 // 7. RENDEZ-VOUS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Helper pour construire des dates de la semaine courante
+function weekDay(dayOffset: number, hour: number, minute = 0): string {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  monday.setHours(hour, minute, 0, 0);
+  monday.setDate(monday.getDate() + dayOffset);
+  return monday.toISOString();
+}
+function addMin(iso: string, min: number): string {
+  return new Date(new Date(iso).getTime() + min * 60000).toISOString();
+}
+
 const appointments: Record<string, Appointment> = {
+  // ── RDV historiques (Théo Dufresne) ──
   "apt-1": { id: id<AppointmentId>("apt-1"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "premiere", mode: "in_person", status: "completed", startAt: "2025-03-23T09:00:00Z", endAt: "2025-03-23T09:45:00Z", reason: "1ère consultation — adressé par médecin du sport", createdAt: "2025-03-20T10:00:00Z" },
   "apt-2": { id: id<AppointmentId>("apt-2"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-2"), establishmentId: id("est-1"), type: "premiere", mode: "in_person", status: "completed", startAt: "2025-04-04T14:00:00Z", endAt: "2025-04-04T14:45:00Z", reason: "Séance psy initiale", createdAt: "2025-03-28T10:00:00Z" },
   "apt-3": { id: id<AppointmentId>("apt-3"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-3"), establishmentId: id("est-1"), type: "premiere", mode: "in_person", status: "completed", startAt: "2025-04-07T10:00:00Z", endAt: "2025-04-07T10:45:00Z", reason: "1er bilan nutritionnel", createdAt: "2025-04-04T14:00:00Z" },
-  "apt-4": { id: id<AppointmentId>("apt-4"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: "2025-04-12T14:00:00Z", endAt: "2025-04-12T14:45:00Z", reason: "Suivi médical — contrôle poids et constantes", createdAt: "2025-04-07T10:00:00Z" },
+  // ── RDV de la semaine courante (agenda du praticien pra-1) ──
+  "apt-w01": { id: id<AppointmentId>("apt-w01"), carePathwayId: id("cpw-1"), patientId: id("pat-2"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(0, 9, 0), endAt: weekDay(0, 9, 30), reason: "Bilan mensuel", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w02": { id: id<AppointmentId>("apt-w02"), carePathwayId: id("cpw-1"), patientId: id("pat-3"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(0, 10, 0), endAt: weekDay(0, 10, 30), reason: "Suivi boulimie", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w03": { id: id<AppointmentId>("apt-w03"), carePathwayId: id("cpw-1"), patientId: id("pat-5"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(0, 14, 0), endAt: weekDay(0, 14, 30), reason: "Suivi anorexie", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w04": { id: id<AppointmentId>("apt-w04"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(1, 9, 30), endAt: weekDay(1, 10, 0), reason: "Bilan TCA", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w05": { id: id<AppointmentId>("apt-w05"), carePathwayId: id("cpw-1"), patientId: id("pat-4"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "premiere", mode: "in_person", status: "confirmed", startAt: weekDay(1, 10, 30), endAt: weekDay(1, 11, 15), reason: "Première consultation obésité", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w06": { id: id<AppointmentId>("apt-w06"), carePathwayId: id("cpw-1"), patientId: id("pat-2"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(1, 15, 0), endAt: weekDay(1, 15, 30), reason: "Suivi nutrition", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w07": { id: id<AppointmentId>("apt-w07"), carePathwayId: id("cpw-1"), patientId: id("pat-3"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "teleconsultation", mode: "video", status: "confirmed", startAt: weekDay(2, 14, 0), endAt: weekDay(2, 14, 30), reason: "Téléconsultation de suivi", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w08": { id: id<AppointmentId>("apt-w08"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(3, 9, 0), endAt: weekDay(3, 9, 30), reason: "Contrôle poids", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w09": { id: id<AppointmentId>("apt-w09"), carePathwayId: id("cpw-1"), patientId: id("pat-5"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "bilan", mode: "in_person", status: "confirmed", startAt: weekDay(3, 10, 0), endAt: weekDay(3, 10, 45), reason: "Bilan annuel", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w10": { id: id<AppointmentId>("apt-w10"), carePathwayId: id("cpw-1"), patientId: id("pat-4"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(3, 14, 30), endAt: weekDay(3, 15, 0), reason: "Suivi obésité", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w11": { id: id<AppointmentId>("apt-w11"), carePathwayId: id("cpw-1"), patientId: id("pat-2"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "teleconsultation", mode: "video", status: "confirmed", startAt: weekDay(4, 9, 0), endAt: weekDay(4, 9, 30), reason: "Téléconsultation suivi", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w12": { id: id<AppointmentId>("apt-w12"), carePathwayId: id("cpw-1"), patientId: id("pat-3"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(4, 10, 0), endAt: weekDay(4, 10, 30), reason: "Suivi nutritionnel", createdAt: "2025-04-01T10:00:00Z" },
+  "apt-w13": { id: id<AppointmentId>("apt-w13"), carePathwayId: id("cpw-1"), patientId: id("pat-1"), practitionerId: id("pra-1"), establishmentId: id("est-1"), type: "suivi", mode: "in_person", status: "confirmed", startAt: weekDay(4, 14, 0), endAt: weekDay(4, 14, 30), reason: "Suivi TCA", createdAt: "2025-04-01T10:00:00Z" },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
