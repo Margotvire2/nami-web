@@ -6,7 +6,7 @@
  * Testables unitairement (entrée = state du store, sortie = données).
  */
 
-import type { Appointment, Alert, Task, CarePathway, Practitioner, CareTeamMember } from "../../domain/types";
+import type { Appointment, Alert, Task } from "../../domain/types";
 import type { PatientDashboardView } from "../../domain/types";
 import { useNamiStore } from "../index";
 
@@ -64,10 +64,13 @@ export function getActiveAlerts(state: StoreState, carePathwayId: string): Alert
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-/** Tâches en attente d'un parcours */
+/** Tâches en attente d'un parcours (contexte polymorphe) */
 export function getPendingTasks(state: StoreState, carePathwayId: string): Task[] {
   return Object.values(state.tasks)
-    .filter((t) => t.carePathwayId === carePathwayId && (t.status === "pending" || t.status === "in_progress"))
+    .filter((t) => {
+      const cpId = t.context.type === "standalone" ? null : t.context.carePathwayId;
+      return cpId === carePathwayId && (t.status === "pending" || t.status === "in_progress");
+    })
     .sort((a, b) => {
       const prio: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
       return (prio[a.priority] ?? 9) - (prio[b.priority] ?? 9);

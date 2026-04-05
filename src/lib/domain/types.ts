@@ -196,7 +196,8 @@ export interface Appointment {
 
 export interface Consultation {
   id: ConsultationId;
-  appointmentId: AppointmentId;
+  /** Lié à un RDV — optionnel car une consultation peut exister sans RDV (urgence, appel non planifié) */
+  appointmentId?: AppointmentId;
   carePathwayId: CarePathwayId;
   practitionerId: PractitionerId;
   /** Observations cliniques rédigées post-consultation */
@@ -269,12 +270,20 @@ export interface Alert {
   resolvedAt?: string;
 }
 
+/** Contexte polymorphe — à quoi la tâche est rattachée */
+export type TaskContext =
+  | { type: "carePathway"; carePathwayId: CarePathwayId }
+  | { type: "consultation"; consultationId: ConsultationId; carePathwayId: CarePathwayId }
+  | { type: "referral"; referralId: ReferralId; carePathwayId: CarePathwayId }
+  | { type: "standalone"; patientId: PatientId };
+
 export interface Task {
   id: TaskId;
-  carePathwayId: CarePathwayId;
   title: string;
   /** Description détaillée — optionnel */
   description?: string;
+  /** Contexte : à quoi cette tâche est rattachée */
+  context: TaskContext;
   priority: TaskPriority;
   status: TaskStatus;
   /** Assigné à — optionnel car une tâche peut ne pas être assignée */
@@ -283,11 +292,15 @@ export interface Task {
   dueDate?: string;
   createdAt: string;
   completedAt?: string;
+  /** Archivage — jamais de suppression en santé */
+  archivedAt?: string;
 }
 
 export interface MedicalDocument {
   id: DocumentId;
   carePathwayId: CarePathwayId;
+  /** Consultation liée — optionnel (ordonnance → consultation, bilan bio → parcours seul) */
+  consultationId?: ConsultationId;
   type: DocumentType;
   title: string;
   fileUrl: string;
@@ -304,9 +317,15 @@ export interface MedicalDocument {
 // 9. COMMUNICATION
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export type ThreadType = "carePathway" | "direct" | "patient";
+
 export interface Thread {
   id: ThreadId;
-  carePathwayId: CarePathwayId;
+  type: ThreadType;
+  /** Parcours lié — optionnel car les DMs n'ont pas de parcours */
+  carePathwayId?: CarePathwayId;
+  /** Participants (praticiens et/ou patients) */
+  participantIds: string[];
   createdAt: string;
 }
 

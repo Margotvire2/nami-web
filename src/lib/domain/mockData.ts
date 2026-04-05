@@ -184,9 +184,9 @@ const alerts: Record<string, Alert> = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const tasks: Record<string, Task> = {
-  "tsk-1": { id: id<TaskId>("tsk-1"), carePathwayId: id("cpw-1"), title: "Bilan biologique complet URGENT", description: "NFS, iono, hépatique, thyroïde, B12, D, ferritine", priority: "urgent", status: "pending", assigneePractitionerId: id("pra-1"), dueDate: "2025-04-08", createdAt: "2025-03-23T10:00:00Z" },
-  "tsk-2": { id: id<TaskId>("tsk-2"), carePathwayId: id("cpw-1"), title: "Contacter les parents", description: "Entretien de cadrage familial", priority: "high", status: "pending", assigneePractitionerId: id("pra-1"), dueDate: "2025-04-10", createdAt: "2025-04-01T10:00:00Z" },
-  "tsk-3": { id: id<TaskId>("tsk-3"), carePathwayId: id("cpw-1"), title: "Consultation endocrinologue", description: "Adresser pour bilan hormonal complet", priority: "high", status: "pending", dueDate: "2025-04-12", createdAt: "2025-04-01T10:00:00Z" },
+  "tsk-1": { id: id<TaskId>("tsk-1"), context: { type: "carePathway", carePathwayId: id("cpw-1") }, title: "Bilan biologique complet URGENT", description: "NFS, iono, hépatique, thyroïde, B12, D, ferritine", priority: "urgent", status: "pending", assigneePractitionerId: id("pra-1"), dueDate: "2025-04-08", createdAt: "2025-03-23T10:00:00Z" },
+  "tsk-2": { id: id<TaskId>("tsk-2"), context: { type: "consultation", consultationId: id("con-2"), carePathwayId: id("cpw-1") }, title: "Rappeler Théo suite à la séance", description: "Suite séance psy du 4 avril — vérifier état", priority: "high", status: "pending", assigneePractitionerId: id("pra-2"), dueDate: "2025-04-10", createdAt: "2025-04-04T15:00:00Z" },
+  "tsk-3": { id: id<TaskId>("tsk-3"), context: { type: "referral", referralId: id("ref-1"), carePathwayId: id("cpw-1") }, title: "Consultation endocrinologue", description: "Adresser pour bilan hormonal complet", priority: "high", status: "pending", dueDate: "2025-04-12", createdAt: "2025-04-01T10:00:00Z" },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
