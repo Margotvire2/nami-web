@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import {
   MapPin, Video, Phone, Mail, Check, FileText, Users,
   Building2, FlaskConical, Radio,
 } from "lucide-react";
+import { useNamiStore } from "@/lib/nami-store";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -67,31 +68,76 @@ interface MessageItem {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
+// CLINICAL DETAILS — données de consultation (mood, progression, vigilance)
+// Ces données n'existent pas encore dans le domain Appointment.
+// Elles sont indexées par patientId pour être rattachées aux RDV du store.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const CONSULTATIONS: ConsultationMock[] = [
-  {
-    id: "c1", time: "09:00", patient: "Margot Vire", initials: "MV", type: "suivi", typeLabel: "Suivi régulier", duration: "45min", mode: "Présentiel", status: "past",
-    detail: { age: 32, dob: "14/05/1992", phone: "06 11 22 33 44", email: "margot.vire@email.com", motif: "Bilan mensuel", mood: "Bonne", progression: "Gestion des repas du soir", vigilance: "Stress professionnel", nextRdv: "Mardi 22 avril · 09h00" },
-  },
-  {
-    id: "c2", time: "10:30", patient: "Lucas Bernier", initials: "LB", type: "suivi", typeLabel: "Suivi régulier", duration: "30min", mode: "Présentiel", status: "past",
-    detail: { age: 24, dob: "03/08/2000", phone: "06 55 66 77 88", email: "lucas.b@email.com", motif: "Suivi boulimie", mood: "Stable", progression: "Rituels matinaux", vigilance: "Isolement social", nextRdv: "Vendredi 25 avril · 10h30" },
-  },
-  {
-    id: "c3", time: "14:00", patient: "Théo Dufresne", initials: "TD", type: "suivi", typeLabel: "Suivi régulier", duration: "45min", mode: "Présentiel", status: "next",
-    detail: { age: 28, dob: "12/03/1997", phone: "06 12 34 56 78", email: "theo.d@email.com", motif: "Bilan mensuel TCA", mood: "Stable", progression: "Rituels du matin", vigilance: "Reprise du sport", nextRdv: "Mardi 21 avril · 14h00" },
-  },
-  {
-    id: "c4", time: "15:30", patient: "Sofia Marchand", initials: "SM", type: "premiere", typeLabel: "Première consultation", duration: "1h", mode: "Présentiel", status: "upcoming",
-    detail: { age: 41, dob: "22/11/1983", phone: "06 98 76 54 32", email: "sofia.m@email.com", motif: "Première consultation obésité", mood: "Anxieuse", progression: "Première venue, à évaluer", vigilance: "Antécédents cardiovasculaires", nextRdv: null },
-  },
-  {
-    id: "c5", time: "17:00", patient: "Gabrielle Martin", initials: "GM", type: "teleconsult", typeLabel: "Téléconsultation", duration: "45min", mode: "Téléconsultation", status: "upcoming",
-    detail: { age: 19, dob: "07/02/2006", phone: "06 44 33 22 11", email: "gabrielle.m@email.com", motif: "Suivi anorexie", mood: "Fragile", progression: "Légère reprise de poids", vigilance: "Déni persistant", nextRdv: "Lundi 28 avril · 17h00" },
-  },
-];
+const CLINICAL_DETAILS: Record<string, Omit<PatientDetail, "age" | "dob" | "phone" | "email">> = {
+  "pat-2": { motif: "Bilan mensuel", mood: "Bonne", progression: "Gestion des repas du soir", vigilance: "Stress professionnel", nextRdv: "Mardi 22 avril · 09h00" },
+  "pat-3": { motif: "Suivi boulimie", mood: "Stable", progression: "Rituels matinaux", vigilance: "Isolement social", nextRdv: "Vendredi 25 avril · 10h30" },
+  "pat-1": { motif: "Bilan mensuel TCA", mood: "Stable", progression: "Rituels du matin", vigilance: "Reprise du sport", nextRdv: "Mardi 21 avril · 14h00" },
+  "pat-4": { motif: "Première consultation obésité", mood: "Anxieuse", progression: "Première venue, à évaluer", vigilance: "Antécédents cardiovasculaires", nextRdv: null },
+  "pat-5": { motif: "Suivi anorexie", mood: "Fragile", progression: "Légère reprise de poids", vigilance: "Déni persistant", nextRdv: "Lundi 28 avril · 17h00" },
+};
+
+const TYPE_LABELS: Record<string, { type: ConsultationMock["type"]; label: string }> = {
+  premiere: { type: "premiere", label: "Première consultation" },
+  suivi: { type: "suivi", label: "Suivi régulier" },
+  bilan: { type: "suivi", label: "Bilan" },
+  teleconsultation: { type: "teleconsult", label: "Téléconsultation" },
+  urgence: { type: "suivi", label: "Urgence" },
+};
+
+/** Construit les ConsultationMock depuis le store central */
+function buildConsultationsFromStore(store: ReturnType<typeof useNamiStore.getState>): ConsultationMock[] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // RDV du jour pour le praticien pra-1 (Dr Suela)
+  const todayApts = Object.values(store.appointments)
+    .filter((a) => a.practitionerId === "pra-1" && new Date(a.startAt) >= today && new Date(a.startAt) < tomorrow && a.status !== "cancelled")
+    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+
+  const SIMULATED_HOUR = 13;
+  const simNow = SIMULATED_HOUR * 60 + 45;
+
+  return todayApts.map((apt) => {
+    const patient = store.patients[apt.patientId];
+    const startDate = new Date(apt.startAt);
+    const endDate = new Date(apt.endAt);
+    const aptMin = startDate.getHours() * 60 + startDate.getMinutes();
+    const durMin = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
+    const isPast = aptMin + durMin < simNow;
+    const isNext = !isPast && aptMin <= simNow + 30 && aptMin > simNow - durMin;
+
+    const tl = TYPE_LABELS[apt.type] ?? TYPE_LABELS.suivi;
+    const clinical = CLINICAL_DETAILS[apt.patientId] ?? { motif: apt.reason, mood: "—", progression: "—", vigilance: "—", nextRdv: null };
+
+    const dob = patient?.dateOfBirth ? new Date(patient.dateOfBirth) : null;
+    const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.25 * 86400000)) : 0;
+
+    return {
+      id: apt.id,
+      time: startDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+      patient: patient ? `${patient.firstName} ${patient.lastName}` : "Patient",
+      initials: patient ? `${patient.firstName[0]}${patient.lastName[0]}` : "??",
+      type: tl.type,
+      typeLabel: tl.label,
+      duration: durMin >= 60 ? `${Math.floor(durMin / 60)}h${durMin % 60 > 0 ? (durMin % 60).toString().padStart(2, "0") : ""}` : `${durMin}min`,
+      mode: apt.mode === "video" || apt.mode === "phone" ? "Téléconsultation" : "Présentiel",
+      status: isPast ? "past" as const : isNext ? "next" as const : "upcoming" as const,
+      detail: {
+        age,
+        dob: dob ? dob.toLocaleDateString("fr-FR") : "—",
+        phone: patient?.phone ?? "—",
+        email: patient?.email ?? "—",
+        ...clinical,
+      },
+    };
+  });
+}
 
 const TODO_ITEMS: TodoItem[] = [
   { id: "t1", icon: ArrowLeftRight, iconBg: "bg-amber-50 text-amber-600", title: "3 adressages sans réponse", sub: "Le plus ancien : il y a 4 jours", href: "/adressages" },
@@ -147,8 +193,12 @@ function formatGap(mins: number): string {
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = CONSULTATIONS.find((c) => c.id === selectedId) ?? null;
 
+  // ── Lire les RDV depuis le store central ──
+  const storeState = useNamiStore.getState();
+  const CONSULTATIONS = useMemo(() => buildConsultationsFromStore(storeState), [storeState]);
+
+  const selected = CONSULTATIONS.find((c) => c.id === selectedId) ?? null;
   const nextConsult = CONSULTATIONS.find((c) => c.status === "next");
 
   return (
