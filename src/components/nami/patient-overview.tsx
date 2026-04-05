@@ -1,43 +1,40 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
-  Stethoscope, FileText, ArrowUpRight, ArrowDownLeft, AlertTriangle,
-  Users, Calendar, Clock, Sparkles, ChevronRight, ChevronLeft,
-  MapPin, Video, ArrowLeftRight, X,
+  AlertTriangle, Sparkles, ChevronLeft, Calendar, MapPin,
+  FileText, MessageSquare, ArrowUpRight, CalendarDays, X,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-interface TimelineEvent {
-  id: string;
-  date: string;
-  dateLabel: string;
-  type: "consultation" | "compte_rendu" | "adressage_envoye" | "adressage_recu" | "alerte" | "equipe";
-  emoji: string;
+interface TimelineEventMock {
+  id: number;
+  date: Date;
   label: string;
-  praticien: string;
-  resume: string;
-  detailFull?: string;
-  isFuture: boolean;
+  title: string;
+  practitioner: string;
+  type: "consultation" | "team" | "planned" | "alert" | "compte_rendu";
+  past: boolean;
+  detail?: string;
 }
 
-interface Alert {
-  id: string;
+interface AlertMock {
+  id: number;
+  level: "high" | "medium";
   text: string;
-  date: string;
 }
 
-interface TeamMember {
-  id: string;
+interface TeamMemberMock {
   initials: string;
   name: string;
   specialty: string;
+  color: string;
+  active: boolean;
 }
 
 interface PatientOverviewProps {
@@ -52,6 +49,9 @@ interface PatientOverviewProps {
     suiviDepuis: string;
     clinicalSummary?: string | null;
     riskLevel: string;
+    phase?: string;
+    entryReason?: string;
+    referredBy?: string;
   };
   careCaseId: string;
 }
@@ -60,254 +60,231 @@ interface PatientOverviewProps {
 // MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const TIMELINE_EVENTS: TimelineEvent[] = [
-  { id: "e1", date: "2025-03-23", dateLabel: "23 mars", type: "consultation", emoji: "🩺", label: "Consultation", praticien: "Dr Suela", resume: "1ère consultation, adressé par médecin du sport", detailFull: "Première consultation. Tableau préoccupant : restriction alimentaire sévère centrée sur la 'pureté' des aliments. IMC 17.8. Hyperactivité physique (2h/jour). Déni de la gravité. Plan : bilan bio urgent, orientation psy et diét.", isFuture: false },
-  { id: "e2", date: "2025-03-28", dateLabel: "28 mars", type: "adressage_envoye", emoji: "↗️", label: "Adressage envoyé", praticien: "→ Émilie Renard (Psy)", resume: "Adressage pour prise en charge psychologique TCA", isFuture: false },
-  { id: "e3", date: "2025-04-01", dateLabel: "1er avril", type: "consultation", emoji: "🩺", label: "Consultation", praticien: "Émilie Renard (Psy)", resume: "Déni persistant, séance difficile. Alliance thérapeutique en construction.", detailFull: "Séance psy initiale. Théo minimise ses symptômes. 'Je fais juste attention à ma santé.' Travail d'approche motivationnelle commencé. Prochaine séance dans 10 jours.", isFuture: false },
-  { id: "e4", date: "2025-04-04", dateLabel: "4 avril", type: "compte_rendu", emoji: "📋", label: "Compte-rendu", praticien: "Dr Suela", resume: "Résultats bilan bio reçus. IMC stable à 17.8.", detailFull: "Bilan biologique : NFS normale, iono correct, ferritine basse (18), vitamine D insuffisante. IMC 17.8 stable. Prescription supplémentation fer + vitamine D. Surveillance renforcée.", isFuture: false },
-  { id: "e5", date: "2025-04-04", dateLabel: "4 avril", type: "equipe", emoji: "👥", label: "Ajout équipe", praticien: "Margot Vire (Diét.)", resume: "Diététicienne ajoutée à l'équipe de soin", isFuture: false },
-  { id: "e6", date: "2025-04-07", dateLabel: "7 avril", type: "consultation", emoji: "🩺", label: "Consultation", praticien: "Margot Vire (Diét.)", resume: "1er bilan nutritionnel. Apports < 800 kcal/j.", detailFull: "Premier bilan diététique. Restriction sévère : élimine glucides, produits laitiers, viande rouge. Apports estimés < 800 kcal/j. Objectif : réintroduction progressive, commencer par le petit-déjeuner.", isFuture: false },
-  { id: "e7", date: "2025-04-12", dateLabel: "12 avril", type: "consultation", emoji: "🩺", label: "RDV planifié", praticien: "Dr Suela", resume: "Suivi médical — contrôle poids et constantes", isFuture: true },
-  { id: "e8", date: "2025-04-15", dateLabel: "15 avril", type: "consultation", emoji: "🩺", label: "RDV planifié", praticien: "Émilie Renard (Psy)", resume: "Séance psy de suivi", isFuture: true },
+const TIMELINE_EVENTS: TimelineEventMock[] = [
+  { id: 1, date: new Date("2025-03-23"), label: "23 mars", title: "1ère consultation", practitioner: "Dr Suela", type: "consultation", past: true, detail: "Première consultation. Tableau préoccupant : restriction alimentaire sévère centrée sur la 'pureté' des aliments. IMC 17.8. Hyperactivité physique (2h/jour). Déni de la gravité." },
+  { id: 2, date: new Date("2025-04-01"), label: "1er avril", title: "Point équipe", practitioner: "Équipe", type: "team", past: true, detail: "Point d'équipe. Consensus : situation critique. Théo minimise ses symptômes. Les parents ne mesurent pas la gravité. Décision : consultation endoc en urgence." },
+  { id: 3, date: new Date("2025-04-04"), label: "4 avril", title: "Consultation", practitioner: "É. Renard", type: "consultation", past: true, detail: "Séance psy initiale. Déni persistant. 'Je fais juste attention à ma santé.' Travail d'approche motivationnelle commencé." },
+  { id: 4, date: new Date("2025-04-07"), label: "7 avril", title: "Consultation", practitioner: "M. Vire", type: "consultation", past: true, detail: "Premier bilan diététique. Restriction sévère : élimine glucides, produits laitiers, viande rouge. Apports estimés < 800 kcal/j." },
+  { id: 5, date: new Date("2025-04-12"), label: "12 avril", title: "RDV planifié", practitioner: "Dr Suela", type: "planned", past: false },
+  { id: 6, date: new Date("2025-04-15"), label: "15 avril", title: "RDV planifié", practitioner: "É. Renard", type: "planned", past: false },
 ];
 
-const ALERTS: Alert[] = [
-  { id: "a1", text: "Famille injoignable depuis 10 jours", date: "il y a 2j" },
-  { id: "a2", text: "Bilan biologique de contrôle non programmé", date: "il y a 5j" },
-  { id: "a3", text: "Poids non renseigné depuis 2 semaines", date: "il y a 3j" },
+const ALERTS: AlertMock[] = [
+  { id: 1, level: "high", text: "Famille injoignable depuis 10 jours" },
+  { id: 2, level: "medium", text: "Bilan biologique non récupéré" },
 ];
 
-const TEAM: TeamMember[] = [
-  { id: "t1", initials: "AS", name: "Dr Amélie Suela", specialty: "Médecin · Lead" },
-  { id: "t2", initials: "ER", name: "Émilie Renard", specialty: "Psychologue TCA" },
-  { id: "t3", initials: "MV", name: "Margot Vire", specialty: "Diététicienne" },
+const TEAM: TeamMemberMock[] = [
+  { initials: "AS", name: "Amélie Suela", specialty: "Médecin lead", color: "bg-violet-500", active: true },
+  { initials: "ER", name: "Émilie Renard", specialty: "Psychologue", color: "bg-blue-500", active: true },
+  { initials: "MV", name: "Margot Vire", specialty: "Diététicienne", color: "bg-emerald-500", active: false },
 ];
 
-const CRITICITE_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  critique: { bg: "bg-[#FEF2F2]", text: "text-[#DC2626]", label: "Critique" },
-  surveillance: { bg: "bg-[#FFFBEB]", text: "text-[#D97706]", label: "Surveillance" },
-  stable: { bg: "bg-[#F0FDF4]", text: "text-[#059669]", label: "Stable" },
+const NEXT_RDV = { date: "Samedi 12 avril", time: "14h00", practitioner: "Dr Suela", type: "Présentiel", reason: "Suivi médical — contrôle poids et constantes" };
+
+const CRITICALITY_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+  stable: { label: "Stable", bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
+  surveillance: { label: "Surveillance", bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500" },
+  critique: { label: "Critique", bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
 };
 
-const EVENT_COLORS: Record<string, string> = {
-  consultation: "#4F46E5",
-  compte_rendu: "#64748B",
-  adressage_envoye: "#D97706",
-  adressage_recu: "#059669",
-  alerte: "#DC2626",
-  equipe: "#7C3AED",
+const EVENT_TYPE_CONFIG: Record<string, { color: string; border: string }> = {
+  consultation: { color: "bg-violet-500", border: "border-violet-500" },
+  team: { color: "bg-blue-500", border: "border-blue-500" },
+  planned: { color: "bg-white", border: "border-slate-300" },
+  alert: { color: "bg-red-500", border: "border-red-500" },
+  compte_rendu: { color: "bg-slate-400", border: "border-slate-400" },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COMPONENT
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function computePositions(events: TimelineEventMock[]) {
+  const first = events[0].date.getTime();
+  const last = events[events.length - 1].date.getTime();
+  const range = last - first || 1;
+  return events.map((e) => ({ ...e, position: 5 + ((e.date.getTime() - first) / range) * 90 }));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function PatientOverview({ patient, careCaseId }: PatientOverviewProps) {
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const selectedEvent = TIMELINE_EVENTS.find((e) => e.id === selectedEventId) ?? null;
-  const crit = CRITICITE_STYLE[patient.criticite] ?? CRITICITE_STYLE.stable;
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const selectedEvent = TIMELINE_EVENTS.find((e) => e.id === selectedEventId);
+  const crit = CRITICALITY_CONFIG[patient.criticite] ?? CRITICALITY_CONFIG.stable;
 
-  // Scroll timeline to "today" area on mount
-  useEffect(() => {
-    if (timelineRef.current) {
-      const todayMarker = timelineRef.current.querySelector("[data-today]");
-      if (todayMarker) {
-        todayMarker.scrollIntoView({ inline: "center", behavior: "smooth" });
-      }
-    }
-  }, []);
-
-  // Calculate positions — proportional to real time
-  const allDates = TIMELINE_EVENTS.map((e) => new Date(e.date).getTime());
-  const minDate = Math.min(...allDates) - 3 * 86400000;
-  const maxDate = Math.max(...allDates) + 5 * 86400000;
-  const range = maxDate - minDate || 1;
-  const todayMs = Date.now();
-  const todayPct = ((todayMs - minDate) / range) * 100;
+  const aiSummary = patient.clinicalSummary ?? "Orthorexie sévère en évolution rapide. IMC 17.8, perte de 8 kg en 4 mois. Déni actif de la gravité. Famille peu mobilisée malgré les relances. Équipe incomplète — psychiatre manquant.";
 
   return (
-    <div className="space-y-0">
-      {/* ═══ TIMELINE ═══ */}
-      <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E8ECF4" }}>
-        <div className="px-6 py-4 border-b border-[#E8ECF4] flex items-center justify-between">
+    <div className="flex flex-col gap-5">
+
+      {/* ═══ HEADER ═══ */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0", patient.criticite === "critique" ? "bg-red-500" : patient.criticite === "surveillance" ? "bg-orange-500" : "bg-emerald-500")}>
+            {patient.firstName[0]}{patient.lastName[0]}
+          </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>PARCOURS DE SOIN</p>
-            <p className="text-[12px] text-[#94A3B8] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{TIMELINE_EVENTS.length} événements · Suivi {patient.suiviDepuis}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold text-slate-900" style={{ fontFamily: "var(--font-jakarta)" }}>
+                {patient.firstName} {patient.lastName}
+              </h1>
+              <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium", crit.bg, crit.text)}>
+                <span className={cn("w-1.5 h-1.5 rounded-full", crit.dot)} />
+                {crit.label}
+              </span>
+              <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{patient.pathologie}</span>
+              {patient.phase && <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{patient.phase}</span>}
+            </div>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {patient.age ? `${patient.age} ans · ` : ""}Lead : {patient.leadPraticien} · Suivi depuis le {patient.suiviDepuis}
+            </p>
           </div>
         </div>
-
-        {/* Timeline scroll container */}
-        <div ref={timelineRef} className="overflow-x-auto px-6 py-8">
-          <div className="relative" style={{ minWidth: Math.max(700, TIMELINE_EVENTS.length * 120) }}>
-            {/* Base line */}
-            <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-[#E8ECF4] -translate-y-1/2" />
-
-            {/* Today marker */}
-            <div className="absolute top-0 bottom-0 z-10" style={{ left: `${Math.min(todayPct, 95)}%` }} data-today>
-              <div className="absolute top-0 bottom-0 w-[2px] bg-[#3B82F6]" />
-              <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-[#3B82F6] bg-[#EFF6FF] px-2 py-0.5 rounded-full whitespace-nowrap" style={{ fontFamily: "var(--font-inter)" }}>Aujourd'hui</span>
-            </div>
-
-            {/* Events */}
-            <div className="relative flex items-center" style={{ height: 120 }}>
-              {TIMELINE_EVENTS.map((event) => {
-                const pct = ((new Date(event.date).getTime() - minDate) / range) * 100;
-                const color = EVENT_COLORS[event.type] ?? "#94A3B8";
-                const isSelected = selectedEventId === event.id;
-
-                return (
-                  <div
-                    key={event.id}
-                    className="absolute flex flex-col items-center group cursor-pointer"
-                    style={{ left: `${pct}%`, transform: "translateX(-50%)" }}
-                    onClick={() => setSelectedEventId(isSelected ? null : event.id)}
-                  >
-                    {/* Date above */}
-                    <span className={cn("text-[10px] mb-2 whitespace-nowrap", event.isFuture ? "text-[#CBD5E1]" : "text-[#94A3B8]")} style={{ fontFamily: "var(--font-inter)" }}>
-                      {event.dateLabel}
-                    </span>
-
-                    {/* Dot */}
-                    <motion.div
-                      whileHover={{ scale: 1.3 }}
-                      className={cn(
-                        "rounded-full transition-all z-10",
-                        isSelected ? "w-4 h-4 ring-2 ring-[#4F46E5] ring-offset-2" : "w-3 h-3",
-                        event.isFuture ? "border-2 bg-white" : ""
-                      )}
-                      style={{
-                        backgroundColor: event.isFuture ? "white" : color,
-                        borderColor: color,
-                      }}
-                    />
-
-                    {/* Info below */}
-                    <div className={cn("mt-2 text-center max-w-[110px]", event.isFuture ? "opacity-50" : "")}>
-                      <p className="text-[10px] font-medium text-[#0F172A] leading-tight truncate">{event.emoji} {event.label}</p>
-                      <p className="text-[9px] text-[#94A3B8] truncate" style={{ fontFamily: "var(--font-inter)" }}>{event.praticien}</p>
-                    </div>
-
-                    {/* Hover tooltip */}
-                    <div className="absolute bottom-full mb-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-30">
-                      <div className="bg-[#0F172A] text-white text-[11px] rounded-lg px-3 py-2 max-w-[220px] shadow-xl">
-                        <p className="font-semibold">{event.label} · {event.praticien}</p>
-                        <p className="text-[#94A3B8] mt-0.5 leading-snug">{event.resume}</p>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors"><FileText size={14} /> Note</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors"><ArrowUpRight size={14} /> Adresser</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors"><MessageSquare size={14} /> Message</button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-[#4F46E5] text-white hover:bg-[#4338CA] transition-colors"><CalendarDays size={14} /> RDV</button>
         </div>
       </div>
 
-      {/* ═══ ZONE DÉTAIL — 2 colonnes ═══ */}
-      <div className="flex gap-5 mt-5">
-        {/* ── Colonne gauche 60% ── */}
-        <div className="flex-[60] min-w-0 space-y-5">
-          <AnimatePresence mode="wait">
-            {selectedEvent ? (
-              <motion.div key={selectedEvent.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E8ECF4" }}>
-                <div className="flex items-center justify-between mb-4">
-                  <button onClick={() => setSelectedEventId(null)} className="text-[12px] font-medium text-[#4F46E5] hover:underline flex items-center gap-1">
-                    <ChevronLeft size={14} /> Résumé IA
-                  </button>
-                  <span className="text-[10px] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{selectedEvent.dateLabel}</span>
+      {/* ═══ TIMELINE ═══ */}
+      <TimelineComponent events={TIMELINE_EVENTS} selectedId={selectedEventId} onSelect={setSelectedEventId} />
+
+      {/* ═══ CORPS — 3 colonnes (5/3/4) ═══ */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Colonne gauche — Snapshot IA ou détail événement */}
+        <div className="col-span-5">
+          {selectedEvent ? (
+            <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-xs text-violet-500 font-medium uppercase tracking-wide" style={{ fontFamily: "var(--font-inter)" }}>{selectedEvent.label}</p>
+                  <h3 className="text-base font-semibold text-slate-800 mt-0.5" style={{ fontFamily: "var(--font-jakarta)" }}>{selectedEvent.title}</h3>
+                  <p className="text-sm text-slate-500">{selectedEvent.practitioner}</p>
                 </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">{selectedEvent.emoji}</span>
+                <button onClick={() => setSelectedEventId(null)} className="text-slate-400 hover:text-slate-600 transition-colors"><X size={16} /></button>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed">{selectedEvent.detail ?? "Note complète disponible dans l'onglet Documents."}</p>
+              <button onClick={() => setSelectedEventId(null)} className="text-xs text-violet-600 hover:underline mt-3 flex items-center gap-1"><ChevronLeft size={12} /> Retour au résumé</button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col gap-3" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+              <div className="flex items-center gap-2">
+                <Sparkles size={13} className="text-slate-400" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400" style={{ fontFamily: "var(--font-inter)" }}>Résumé IA</span>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed">{aiSummary}</p>
+              <div className="border-t border-slate-100 pt-3 mt-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2" style={{ fontFamily: "var(--font-inter)" }}>Prochain RDV</p>
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[15px] font-bold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>{selectedEvent.label}</p>
-                    <p className="text-[12px] text-[#64748B]">{selectedEvent.praticien}</p>
+                    <p className="text-sm font-medium text-slate-800">{NEXT_RDV.date} · {NEXT_RDV.time}</p>
+                    <p className="text-xs text-slate-500">{NEXT_RDV.practitioner} — {NEXT_RDV.type}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{NEXT_RDV.reason}</p>
                   </div>
+                  <Link href="/agenda" className="text-xs text-[#4F46E5] hover:underline whitespace-nowrap ml-4">Voir agenda →</Link>
                 </div>
-                <p className="text-[13px] text-[#374151] leading-relaxed">{selectedEvent.detailFull ?? selectedEvent.resume}</p>
-              </motion.div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Colonne centrale — Alertes */}
+        <div className="col-span-3">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col gap-3" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400" style={{ fontFamily: "var(--font-inter)" }}>Vigilance</p>
+            {ALERTS.length === 0 ? (
+              <p className="text-sm text-slate-400">Aucune alerte active</p>
             ) : (
-              <motion.div key="snapshot" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E8ECF4" }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>RÉSUMÉ IA DU PARCOURS</p>
-                  <span className="text-[9px] font-medium text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><Sparkles size={8} /> IA</span>
-                </div>
-                <div className="bg-[#F5F0E8] rounded-xl p-4">
-                  <p className="text-[13px] text-[#374151] leading-relaxed">
-                    {patient.clinicalSummary ??
-                      `${patient.firstName} est suivi depuis ${patient.suiviDepuis}. Trois professionnels impliqués. Le parcours nécessite une coordination étroite entre les membres de l'équipe de soin.`}
-                  </p>
-                </div>
-              </motion.div>
+              ALERTS.map((alert) => {
+                const isHigh = alert.level === "high";
+                return (
+                  <div key={alert.id} className={cn("flex items-start gap-2 px-3 py-2.5 rounded-xl border", isHigh ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200")}>
+                    <AlertTriangle size={12} className={cn("mt-0.5 shrink-0", isHigh ? "text-red-500" : "text-orange-500")} />
+                    <p className={cn("text-xs font-medium", isHigh ? "text-red-700" : "text-orange-700")}>{alert.text}</p>
+                  </div>
+                );
+              })
             )}
-          </AnimatePresence>
-
-          {/* Équipe */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>ÉQUIPE DE SUIVI</p>
-            <div className="flex items-center gap-3">
-              {TEAM.map((m) => (
-                <Link key={m.id} href="/collaboration" title={`${m.name} · ${m.specialty}`}>
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-bold text-white" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
-                      {m.initials}
-                    </div>
-                    <div>
-                      <p className="text-[12px] font-semibold text-[#0F172A] group-hover:text-[#4F46E5] transition-colors">{m.name.split(" ").slice(-1)[0]}</p>
-                      <p className="text-[10px] text-[#94A3B8]">{m.specialty}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* ── Colonne droite 40% ── */}
-        <div className="flex-[40] min-w-0 space-y-5">
-          {/* Alertes */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>ALERTES ACTIVES</p>
-            <div className="space-y-2">
-              {ALERTS.map((a) => (
-                <div key={a.id} className="flex items-start gap-2.5 bg-[#FFFBEB] rounded-xl px-3.5 py-2.5" style={{ border: "1px solid #FDE68A" }}>
-                  <AlertTriangle size={13} className="text-[#D97706] shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] text-[#92400E] leading-snug">{a.text}</p>
-                    <p className="text-[10px] text-[#D97706] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{a.date}</p>
+        {/* Colonne droite — Équipe */}
+        <div className="col-span-4">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col gap-3" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400" style={{ fontFamily: "var(--font-inter)" }}>Équipe de suivi</p>
+            <div className="flex flex-col gap-2">
+              {TEAM.map((m) => (
+                <div key={m.initials} className="flex items-center gap-3">
+                  <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0", m.color)}>{m.initials}</div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{m.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{m.specialty}</p>
                   </div>
+                  {!m.active && <span className="ml-auto text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full whitespace-nowrap">En attente</span>}
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Prochain RDV */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>PROCHAIN RDV</p>
-            <div className="bg-[#F8FAFC] rounded-xl p-4 space-y-2">
-              <p className="text-[13px] font-semibold text-[#0F172A] flex items-center gap-2">
-                <Calendar size={13} className="text-[#4F46E5]" /> Samedi 12 avril · 14h00
-              </p>
-              <p className="text-[12px] text-[#64748B] flex items-center gap-2"><MapPin size={12} className="text-[#94A3B8]" /> Présentiel · Dr Suela</p>
-              <p className="text-[12px] text-[#64748B] italic">Suivi médical — contrôle poids et constantes</p>
-            </div>
-            <Link href="/agenda" className="text-[12px] font-medium text-[#4F46E5] hover:underline mt-2 inline-block">Voir agenda →</Link>
-          </div>
-
-          {/* Motif d'entrée */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>MOTIF D'ENTRÉE</p>
-            <div className="space-y-2 text-[12px] text-[#374151]">
-              <p>Orthorexie sévère avec restriction alimentaire progressive</p>
-              <p className="text-[#64748B] flex items-center gap-1.5">
-                <ArrowDownLeft size={12} className="text-[#D97706]" /> Adressé par Dr Martin (Médecin du sport)
-              </p>
-              <p className="text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Depuis le 23 mars 2025</p>
-            </div>
+            <button className="text-xs text-[#4F46E5] hover:underline text-left mt-1">+ Inviter un professionnel</button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIMELINE COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function TimelineComponent({ events, selectedId, onSelect }: { events: TimelineEventMock[]; selectedId: number | null; onSelect: (id: number | null) => void }) {
+  const positioned = computePositions(events);
+  const first = events[0].date.getTime();
+  const last = events[events.length - 1].date.getTime();
+  const range = last - first || 1;
+  const todayPosition = Math.min(95, Math.max(5, 5 + ((Date.now() - first) / range) * 90));
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 px-8 py-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+      <div className="relative" style={{ height: 100 }}>
+        {/* Ligne de base */}
+        <div className="absolute top-[40px] left-0 right-0 h-px bg-slate-200" />
+
+        {/* Marqueur Aujourd'hui */}
+        <div className="absolute top-0 flex flex-col items-center" style={{ left: `${todayPosition}%`, transform: "translateX(-50%)" }}>
+          <div className="w-px h-[40px] bg-blue-400" />
+          <span className="text-[10px] font-medium text-blue-500 mt-1 whitespace-nowrap" style={{ fontFamily: "var(--font-inter)" }}>Aujourd'hui</span>
+        </div>
+
+        {/* Points */}
+        {positioned.map((event) => {
+          const typeConfig = EVENT_TYPE_CONFIG[event.type] ?? EVENT_TYPE_CONFIG.consultation;
+          const isSelected = selectedId === event.id;
+          const isAbove = event.id % 2 !== 0;
+
+          return (
+            <button key={event.id} onClick={() => onSelect(isSelected ? null : event.id)} className="absolute flex flex-col items-center group" style={{ left: `${event.position}%`, transform: "translateX(-50%)", top: "28px" }}>
+              {/* Point */}
+              <div className={cn(
+                "w-3 h-3 rounded-full border-2 transition-transform group-hover:scale-125",
+                isSelected ? "scale-125 ring-2 ring-violet-300 ring-offset-1" : "",
+                typeConfig.color, typeConfig.border
+              )} />
+
+              {/* Label — alternance haut/bas */}
+              <div className={cn("absolute whitespace-nowrap text-center pointer-events-none", isAbove ? "-top-[52px]" : "top-[20px]")} style={{ maxWidth: 100 }}>
+                <p className="text-[10px] text-slate-400 leading-tight" style={{ fontFamily: "var(--font-inter)" }}>{event.label}</p>
+                <p className="text-[11px] font-medium text-slate-700 leading-tight truncate">{event.title}</p>
+                <p className="text-[10px] text-slate-400 leading-tight truncate">{event.practitioner}</p>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
