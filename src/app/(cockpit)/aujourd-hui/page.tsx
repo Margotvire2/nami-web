@@ -429,7 +429,7 @@ export default function DashboardPage() {
 
               {/* CTA */}
               <div className="px-5 py-4 border-t border-[#E8ECF4] shrink-0">
-                <button onClick={() => { setSelectedId(null); router.push("/patients"); }} className="w-full h-10 rounded-xl bg-[#4F46E5] text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
+                <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.id}`); }} className="w-full h-10 rounded-xl bg-[#4F46E5] text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
                   Voir le dossier complet <ChevronRight size={16} />
                 </button>
               </div>

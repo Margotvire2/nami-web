@@ -374,7 +374,7 @@ export default function EquipePage() {
                   ) : (
                     <div className="divide-y divide-[#F1F5F9]">
                       {selectedTeam.patients.map((p) => (
-                        <Link key={p.id} href="/patients">
+                        <Link key={p.id} href={`/patients/${p.id}`}>
                           <div className="px-5 py-3 flex items-center gap-3 hover:bg-[#FAFBFF] transition-colors">
                             <div className="w-9 h-9 rounded-[10px] bg-[#EEF2FF] flex items-center justify-center text-[11px] font-bold text-[#4F46E5] shrink-0">
                               {p.firstName[0]}{p.lastName[0]}

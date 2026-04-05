@@ -336,7 +336,7 @@ function RdvDetailPanel({ apt, onClose, onStatusChange }: { apt: Appointment; on
           <div className="bg-[#F5F0E8] rounded-xl p-4">
             <p className="text-[13px] text-[#374151] leading-relaxed">{detail.resumeIA}</p>
           </div>
-          <Link href="/patients" className="text-[12px] font-medium text-[#4F46E5] hover:underline mt-2 inline-block">Voir fiche complète →</Link>
+          <Link href={`/patients/${apt.id}`} className="text-[12px] font-medium text-[#4F46E5] hover:underline mt-2 inline-block">Voir fiche complète →</Link>
         </div>
 
         {/* History */}
