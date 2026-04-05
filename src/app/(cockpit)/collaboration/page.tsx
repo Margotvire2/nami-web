@@ -1,395 +1,392 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
+import { apiWithToken, ProConversation, ProMessage } from "@/lib/api";
 import { toast } from "sonner";
-import type { ChatMessage, Channel, DmContact } from "@/components/nami/messaging/types";
+import { cn } from "@/lib/utils";
 import {
-  ChannelSidebar, MessageBubble, MessageComposer, DateSeparator,
-  ChannelCard, MemberTag,
-} from "@/components/nami/messaging";
-import {
-  MOCK_CHANNELS as INIT_CHANNELS, MOCK_GROUPS as INIT_GROUPS,
-  MOCK_DMS as INIT_DMS, MOCK_MESSAGES,
-  MOCK_CHANNEL_DETAIL, EXPLORE_CHANNELS,
-} from "@/components/nami/messaging/mock-data";
-import {
-  Hash, Lock, Users, Bell, Pin, Search, X,
-  ChevronLeft, Compass,
+  Hash, Lock, Users, MessageSquare, Plus, Search, X, Send,
+  ChevronRight, Smile, Paperclip, AtSign, Pin, Bell,
+  UserPlus, AlertTriangle,
 } from "lucide-react";
 
-type View = "chat" | "explore" | "create";
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
 
-export default function MessagesProPage() {
-  const { user } = useAuthStore();
-  const [activeId, setActiveId] = useState<string | null>("ch-1");
-  const [view, setView] = useState<View>("chat");
-  const [panelOpen, setPanelOpen] = useState(false);
+export default function CollaborationPage() {
+  const { accessToken, user } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+  const qc = useQueryClient();
+  const [activeConvId, setActiveConvId] = useState<string | null>(null);
+  const [createDmOpen, setCreateDmOpen] = useState(false);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pinnedPanelOpen, setPinnedPanelOpen] = useState(false);
-
-  // ── Mutable state for channels/groups/DMs (unread tracking) ──
-  const [channels, setChannels] = useState<Channel[]>(INIT_CHANNELS);
-  const [groups, setGroups] = useState<Channel[]>(INIT_GROUPS);
-  const [dms, setDms] = useState<DmContact[]>(INIT_DMS);
-
-  // ── Messages state (per channel — simplified: one shared list for demo) ──
-  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  // ── Fetch conversations ──
+  const { data: conversations, isLoading: loadingConvs } = useQuery({
+    queryKey: ["pro-conversations"],
+    queryFn: () => api.proMessages.getConversations(),
+  });
 
-  // ── Clear unread when selecting a channel ──
-  function handleSelect(id: string) {
-    setActiveId(id);
-    setView("chat");
-    setSearchOpen(false);
-    setSearchQuery("");
-    setPinnedPanelOpen(false);
-
-    // Clear unread for this channel/group/dm
-    setChannels((prev) => prev.map((c) => c.id === id ? { ...c, unreadCount: 0 } : c));
-    setGroups((prev) => prev.map((g) => g.id === id ? { ...g, unreadCount: 0 } : g));
-    setDms((prev) => prev.map((d) => d.id === id ? { ...d, unreadCount: 0 } : d));
-  }
+  // ── Fetch messages for active conversation ──
+  const { data: messages, isLoading: loadingMsgs } = useQuery({
+    queryKey: ["pro-messages", activeConvId],
+    queryFn: () => api.proMessages.getMessages(activeConvId!),
+    enabled: !!activeConvId,
+  });
 
   // ── Send message ──
-  function handleSend(text: string) {
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      body: text,
-      createdAt: new Date().toISOString(),
-      sender: {
-        id: user?.id ?? "me",
-        firstName: user?.firstName ?? "Vous",
-        lastName: user?.lastName ?? "",
-        specialty: (user as any)?.providerProfile?.specialties?.[0] ?? "Soignant",
-        establishment: "Nami",
-      },
-      replyCount: 0,
-      isPinned: false,
-    };
-    setMessages((prev) => [...prev, newMsg]);
-  }
+  const sendMsg = useMutation({
+    mutationFn: (content: string) => api.proMessages.sendMessage(activeConvId!, content),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pro-messages", activeConvId] });
+      qc.invalidateQueries({ queryKey: ["pro-conversations"] });
+    },
+  });
 
-  // ── React to a message (toggle emoji) ──
-  function handleReact(msgId: string, emoji: string) {
-    setMessages((prev) => prev.map((m) => {
-      if (m.id !== msgId) return m;
-      const reactions = [...(m.reactions ?? [])];
-      const existing = reactions.findIndex((r) => r.emoji === emoji);
-      if (existing >= 0) {
-        reactions[existing] = { ...reactions[existing], count: reactions[existing].count + 1 };
-      } else {
-        reactions.push({ emoji, count: 1 });
-      }
-      return { ...m, reactions };
-    }));
-  }
-
-  // ── Pin/unpin a message ──
-  function handlePin(msgId: string) {
-    setMessages((prev) => prev.map((m) => {
-      if (m.id !== msgId) return m;
-      const newPinned = !m.isPinned;
-      toast.success(newPinned ? "Message épinglé" : "Message désépinglé");
-      return { ...m, isPinned: newPinned };
-    }));
-  }
-
-  // ── Reply placeholder ──
-  function handleReply(msgId: string) {
-    const msg = messages.find((m) => m.id === msgId);
-    if (msg) {
-      toast.info(`Réponse à ${msg.sender.firstName} — fils de discussion bientôt disponibles`);
+  // ── Mark as read on conversation open ──
+  useEffect(() => {
+    if (activeConvId) {
+      api.proMessages.markAsRead(activeConvId).catch(() => {});
+      qc.invalidateQueries({ queryKey: ["pro-conversations"] });
     }
-  }
+  }, [activeConvId]);
+
+  // ── Auto-scroll ──
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages?.length]);
+
+  // ── Create DM ──
+  const createDm = useMutation({
+    mutationFn: (targetUserId: string) => api.proMessages.createDirect(targetUserId),
+    onSuccess: (conv) => {
+      qc.invalidateQueries({ queryKey: ["pro-conversations"] });
+      setActiveConvId(conv.id);
+      setCreateDmOpen(false);
+      toast.success("Conversation créée");
+    },
+    onError: () => toast.error("Erreur lors de la création"),
+  });
+
+  // ── Create group ──
+  const createGroup = useMutation({
+    mutationFn: ({ name, memberIds, description }: { name: string; memberIds: string[]; description?: string }) =>
+      api.proMessages.createGroup(name, memberIds, description),
+    onSuccess: (conv) => {
+      qc.invalidateQueries({ queryKey: ["pro-conversations"] });
+      setActiveConvId(conv.id);
+      setCreateGroupOpen(false);
+      toast.success(`Groupe "${conv.name}" créé`);
+    },
+    onError: () => toast.error("Erreur lors de la création"),
+  });
 
   // ── Derived data ──
-  const activeChannel = [...channels, ...groups].find((c) => c.id === activeId);
-  const activeDm = dms.find((d) => d.id === activeId);
-  const activeName = activeChannel?.name ?? (activeDm ? `${activeDm.firstName} ${activeDm.lastName}` : "");
-  const activeIcon = activeChannel?.type === "PRIVATE" ? <Lock size={16} /> : activeChannel ? <Hash size={16} /> : null;
+  const convList = conversations ?? [];
+  const directs = convList.filter((c) => c.type === "DIRECT");
+  const groups = convList.filter((c) => c.type === "GROUP");
+  const channels = convList.filter((c) => c.type === "CHANNEL");
+  const activeConv = convList.find((c) => c.id === activeConvId);
 
-  const pinnedMessages = messages.filter((m) => m.isPinned);
+  const filteredMessages = searchQuery
+    ? (messages ?? []).filter((m) => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    : (messages ?? []);
 
-  const displayedMessages = searchQuery
-    ? messages.filter((m) => m.body.toLowerCase().includes(searchQuery.toLowerCase()) || `${m.sender.firstName} ${m.sender.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()))
-    : messages;
+  function getConvName(conv: ProConversation): string {
+    if (conv.name) return conv.name;
+    const other = conv.members.find((m) => m.id !== user?.id);
+    return other ? `${other.firstName} ${other.lastName}` : "Conversation";
+  }
 
   return (
     <div className="h-full flex overflow-hidden">
-      {/* ── Colonne A — Sidebar ── */}
-      <ChannelSidebar
-        channels={channels}
-        groups={groups}
-        dms={dms}
-        activeId={activeId}
-        onSelect={handleSelect}
-        onExplore={() => setView("explore")}
-        onCreateChannel={() => setView("create")}
-        onCreateGroup={() => setView("create")}
-        onNewDm={() => toast.info("Messages directs bientôt disponibles")}
-      />
+      {/* ── Sidebar conversations ── */}
+      <div className="w-[260px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col overflow-hidden">
+        <div className="px-4 h-14 flex items-center gap-2 shrink-0 border-b border-[#E8ECF4]">
+          <MessageSquare size={16} className="text-[#4F46E5]" />
+          <span className="text-[14px] font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>Réseau</span>
+        </div>
 
-      {/* ── Colonne B — Zone principale ── */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-card">
-        {view === "chat" && activeId && (
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          {/* Groupes */}
+          {groups.length > 0 && (
+            <SidebarSection title="Groupes" onAdd={() => setCreateGroupOpen(true)}>
+              {groups.map((c) => (
+                <ConvItem key={c.id} label={getConvName(c)} icon={<Lock size={14} />} unread={c.unreadCount} active={activeConvId === c.id} onClick={() => setActiveConvId(c.id)} />
+              ))}
+            </SidebarSection>
+          )}
+
+          {/* Canaux */}
+          {channels.length > 0 && (
+            <SidebarSection title="Canaux">
+              {channels.map((c) => (
+                <ConvItem key={c.id} label={getConvName(c)} icon={<Hash size={14} />} unread={c.unreadCount} active={activeConvId === c.id} onClick={() => setActiveConvId(c.id)} />
+              ))}
+            </SidebarSection>
+          )}
+
+          {/* DMs */}
+          <SidebarSection title="Messages directs" onAdd={() => setCreateDmOpen(true)}>
+            {directs.map((c) => {
+              const other = c.members.find((m) => m.id !== user?.id);
+              return (
+                <ConvItem key={c.id} label={other ? `${other.firstName} ${other.lastName}` : "DM"} unread={c.unreadCount} active={activeConvId === c.id} onClick={() => setActiveConvId(c.id)} />
+              );
+            })}
+            {directs.length === 0 && !loadingConvs && (
+              <p className="text-[11px] text-[#94A3B8] px-3 py-2">Aucun message direct</p>
+            )}
+          </SidebarSection>
+
+          {/* Bouton créer si vide */}
+          {convList.length === 0 && !loadingConvs && (
+            <div className="px-3 py-8 text-center">
+              <MessageSquare size={24} className="text-[#CBD5E1] mx-auto mb-2" />
+              <p className="text-sm text-[#94A3B8] mb-3">Aucune conversation</p>
+              <button onClick={() => setCreateDmOpen(true)} className="w-full h-9 rounded-lg bg-[#4F46E5] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
+                <Plus size={14} /> Démarrer une conversation
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Zone conversation ── */}
+      <div className="flex-1 flex flex-col overflow-hidden bg-white">
+        {activeConv ? (
           <>
-            {/* Bannière légale — NON dismissable */}
+            {/* Bannière légale */}
             <div className="bg-[#FFFBEB] px-6 py-1.5 text-[11px] text-[#92400E] flex items-center gap-2 shrink-0" style={{ fontFamily: "var(--font-inter)" }}>
-              <span>⚠️</span>
+              <AlertTriangle size={11} />
               <span>Canal de coordination non urgent entre professionnels. En cas d'urgence : composer le 15.</span>
             </div>
 
-            {/* Topbar */}
-            <div className="h-16 px-6 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-primary">{activeIcon}</span>
-                <h2 className="text-base font-semibold text-[#1E293B] truncate">{activeName}</h2>
-                {activeChannel?.description && (
-                  <span className="text-xs text-[#94A3B8] truncate hidden lg:block ml-2">— {activeChannel.description}</span>
-                )}
+            {/* Header */}
+            <div className="h-14 px-6 flex items-center justify-between shrink-0 border-b border-[#E8ECF4]">
+              <div className="flex items-center gap-2">
+                {activeConv.type === "GROUP" ? <Lock size={14} className="text-[#94A3B8]" /> : activeConv.type === "CHANNEL" ? <Hash size={14} className="text-[#94A3B8]" /> : null}
+                <h2 className="text-[14px] font-semibold text-[#0F172A]">{getConvName(activeConv)}</h2>
+                <span className="text-[11px] text-[#94A3B8]">· {activeConv.members.length} membres</span>
               </div>
               <div className="flex items-center gap-1">
-                <button onClick={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(""); }} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${searchOpen ? "bg-secondary text-primary" : "text-[#94A3B8] hover:bg-[#F0F2F8] hover:text-[#64748B]"}`} title="Rechercher">
-                  <Search size={16} />
-                </button>
-                <button onClick={() => setPinnedPanelOpen(!pinnedPanelOpen)} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${pinnedPanelOpen ? "bg-secondary text-primary" : "text-[#94A3B8] hover:bg-[#F0F2F8] hover:text-[#64748B]"}`} title={`${pinnedMessages.length} épinglé${pinnedMessages.length > 1 ? "s" : ""}`}>
-                  <Pin size={16} />
-                </button>
-                <button onClick={() => toast.info("Paramètres de notifications bientôt disponibles")} className="w-9 h-9 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8] hover:text-[#64748B] transition-colors" title="Notifications">
-                  <Bell size={16} />
-                </button>
-                <button onClick={() => { setPanelOpen(!panelOpen); setPinnedPanelOpen(false); }} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${panelOpen ? "bg-secondary text-primary" : "text-[#94A3B8] hover:bg-[#F0F2F8] hover:text-[#64748B]"}`} title="Membres">
-                  <Users size={16} />
+                <button onClick={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(""); }} className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-colors", searchOpen ? "bg-[#EEF2FF] text-[#4F46E5]" : "text-[#94A3B8] hover:bg-[#F1F5F9]")}>
+                  <Search size={14} />
                 </button>
               </div>
             </div>
 
-            {/* Search bar */}
+            {/* Search */}
             {searchOpen && (
-              <div className="px-6 pb-3">
+              <div className="px-6 py-2 border-b border-[#E8ECF4]">
                 <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-                  <input
-                    autoFocus
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Rechercher dans ce fil…"
-                    className="w-full h-9 pl-9 pr-9 rounded-xl bg-[#F0F2F8] text-sm text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                  <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
-                    <X size={14} />
-                  </button>
-                </div>
-                {searchQuery && (
-                  <p className="text-xs text-[#94A3B8] mt-1.5">{displayedMessages.length} résultat{displayedMessages.length !== 1 ? "s" : ""} pour « {searchQuery} »</p>
-                )}
-              </div>
-            )}
-
-            {/* Pinned panel */}
-            {pinnedPanelOpen && (
-              <div className="px-6 pb-3">
-                <div className="bg-[#F0F2F8] rounded-xl p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-[#94A3B8] mb-2 flex items-center gap-1"><Pin size={10} /> {pinnedMessages.length} message{pinnedMessages.length > 1 ? "s" : ""} épinglé{pinnedMessages.length > 1 ? "s" : ""}</p>
-                  {pinnedMessages.length === 0 ? (
-                    <p className="text-sm text-[#64748B]">Aucun message épinglé dans ce canal.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {pinnedMessages.map((msg) => (
-                        <div key={msg.id} className="bg-card rounded-lg p-3">
-                          <p className="text-xs font-semibold text-[#1E293B]">{msg.sender.firstName} {msg.sender.lastName}</p>
-                          <p className="text-xs text-[#64748B] mt-1 line-clamp-2">{msg.body}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                  <input autoFocus value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Rechercher dans ce fil…" className="w-full h-8 pl-8 pr-8 rounded-lg bg-[#F0F2FA] text-sm focus:outline-none" />
+                  <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#94A3B8]"><X size={12} /></button>
                 </div>
               </div>
             )}
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto">
-              <DateSeparator date={new Date().toISOString()} />
-              {displayedMessages.map((msg, i) => (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  showAvatar={i === 0 || displayedMessages[i - 1].sender.id !== msg.sender.id}
-                  onReact={handleReact}
-                  onPin={handlePin}
-                  onReply={handleReply}
-                />
-              ))}
-              <div ref={messagesEndRef} className="h-4" />
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {loadingMsgs ? (
+                <div className="flex items-center justify-center h-32 text-[#94A3B8] text-sm">Chargement…</div>
+              ) : filteredMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-32 text-center">
+                  <MessageSquare size={20} className="text-[#CBD5E1] mb-2" />
+                  <p className="text-sm text-[#94A3B8]">{searchQuery ? "Aucun résultat" : "Aucun message"}</p>
+                  {!searchQuery && <p className="text-xs text-[#CBD5E1] mt-1">Écrivez le premier message de cette conversation</p>}
+                </div>
+              ) : (
+                filteredMessages.map((msg, i) => {
+                  const showAvatar = i === 0 || filteredMessages[i - 1].senderId !== msg.senderId;
+                  const time = new Date(msg.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+                  return (
+                    <div key={msg.id} className={cn("py-1.5 hover:bg-[#F8FAFC] -mx-2 px-2 rounded-lg transition-colors", showAvatar ? "mt-3" : "")}>
+                      <div className="flex gap-3">
+                        {showAvatar ? (
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
+                            {msg.sender.firstName[0]}{msg.sender.lastName[0]}
+                          </div>
+                        ) : (
+                          <div className="w-8 shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          {showAvatar && (
+                            <div className="flex items-baseline gap-2 mb-0.5">
+                              <span className="text-[13px] font-semibold text-[#0F172A]">{msg.sender.firstName} {msg.sender.lastName}</span>
+                              <span className="text-[10px] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{time}</span>
+                            </div>
+                          )}
+                          <p className="text-[13px] text-[#374151] leading-relaxed">{msg.content}</p>
+                          {msg.reactions.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              {Object.entries(msg.reactions.reduce((acc, r) => { acc[r.emoji] = (acc[r.emoji] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([emoji, count]) => (
+                                <button key={emoji} onClick={() => api.proMessages.toggleReaction(msg.id, emoji).then(() => qc.invalidateQueries({ queryKey: ["pro-messages", activeConvId] }))} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-xs hover:bg-[#EEF2FF] transition-colors">
+                                  <span>{emoji}</span>
+                                  <span className="text-[#64748B] font-medium">{count}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Composer */}
-            <MessageComposer channelName={activeName} onSend={handleSend} />
+            <div className="px-6 py-3 shrink-0 border-t border-[#E8ECF4]">
+              <MessageInput onSend={(text) => sendMsg.mutate(text)} placeholder={`Écrire dans ${getConvName(activeConv)}…`} />
+            </div>
           </>
-        )}
-
-        {view === "explore" && (
-          <ExploreView onBack={() => setView("chat")} onJoin={(id) => { handleSelect(id); }} />
-        )}
-
-        {view === "create" && (
-          <CreateChannelView
-            onBack={() => setView("chat")}
-            onCreate={(name, desc, vis) => {
-              const newChannel: Channel = {
-                id: `ch-${Date.now()}`,
-                name,
-                type: vis === "PRIVATE" ? "PRIVATE" : "PUBLIC",
-                description: desc,
-                memberCount: 1,
-                unreadCount: 0,
-              };
-              if (vis === "PRIVATE") {
-                setGroups((prev) => [newChannel, ...prev]);
-              } else {
-                setChannels((prev) => [newChannel, ...prev]);
-              }
-              toast.success(`Canal #${name} créé`);
-              handleSelect(newChannel.id);
-            }}
-          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <MessageSquare size={32} className="text-[#CBD5E1] mx-auto mb-3" />
+              <p className="text-sm text-[#94A3B8]">Sélectionnez une conversation</p>
+              <p className="text-xs text-[#CBD5E1] mt-1">ou créez-en une nouvelle</p>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* ── Colonne C — Panel contextuel ── */}
-      {panelOpen && activeChannel && (
-        <div className="w-[280px] shrink-0 bg-card overflow-y-auto">
-          <div className="h-16 px-5 flex items-center justify-between shrink-0">
-            <h3 className="text-sm font-semibold text-[#1E293B]">Détails</h3>
-            <button onClick={() => setPanelOpen(false)} className="w-8 h-8 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8] transition-colors"><X size={14} /></button>
-          </div>
-          <div className="px-5 pb-6 space-y-6">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-[#94A3B8] mb-2">Description</p>
-              <p className="text-sm text-[#64748B] leading-relaxed">{activeChannel.description ?? "Pas de description"}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-[#94A3B8] mb-2">Informations</p>
-              <div className="space-y-2 text-sm text-[#64748B]">
-                <p className="flex items-center gap-1"><Users size={12} /> {activeChannel.memberCount} membres</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-[#94A3B8] mb-2">Membres</p>
-              <div className="space-y-1">
-                {MOCK_CHANNEL_DETAIL.members.map((m) => (
-                  <MemberTag key={m.id} firstName={m.firstName} lastName={m.lastName} specialty={m.specialty} isOnline={m.isOnline} />
-                ))}
-              </div>
-            </div>
-            {pinnedMessages.length > 0 && (
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-[#94A3B8] mb-2"><Pin size={10} className="inline mr-1" />Messages épinglés</p>
-                {pinnedMessages.map((msg) => (
-                  <div key={msg.id} className="bg-[#F0F2F8] rounded-xl p-3 mb-2">
-                    <p className="text-xs font-semibold text-[#1E293B]">{msg.sender.firstName} {msg.sender.lastName}</p>
-                    <p className="text-xs text-[#64748B] mt-1 line-clamp-3">{msg.body}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* ── Modales ── */}
+      {createDmOpen && <CreateDmModal onClose={() => setCreateDmOpen(false)} onCreate={(targetId) => createDm.mutate(targetId)} />}
+      {createGroupOpen && <CreateGroupModal onClose={() => setCreateGroupOpen(false)} onCreate={(name, memberIds, desc) => createGroup.mutate({ name, memberIds, description: desc })} />}
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════ */
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUB-COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════════
 
-function ExploreView({ onBack, onJoin }: { onBack: () => void; onJoin: (id: string) => void }) {
-  const [search, setSearch] = useState("");
-  const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set(EXPLORE_CHANNELS.filter((c) => c.joined).map((c) => c.id)));
-
-  function handleJoin(id: string) {
-    setJoinedIds((prev) => new Set(prev).add(id));
-    toast.success("Canal rejoint");
-    onJoin(id);
-  }
-
-  const filtered = EXPLORE_CHANNELS.filter((ch) =>
-    !search || ch.name.toLowerCase().includes(search.toLowerCase()) || ch.tags?.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+function SidebarSection({ title, onAdd, children }: { title: string; onAdd?: () => void; children: React.ReactNode }) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-center justify-between px-2 mb-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{title}</p>
+        {onAdd && <button onClick={onAdd} className="w-5 h-5 rounded flex items-center justify-center text-[#94A3B8] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"><Plus size={12} /></button>}
+      </div>
+      <div className="space-y-0.5">{children}</div>
+    </div>
   );
+}
+
+function ConvItem({ label, icon, unread, active, onClick }: { label: string; icon?: React.ReactNode; unread: number; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] text-left transition-colors", active ? "bg-[#EEF2FF] text-[#4F46E5] font-medium" : unread > 0 ? "text-[#0F172A] font-medium hover:bg-[#F8FAFC]" : "text-[#64748B] hover:bg-[#F8FAFC]")}>
+      {icon && <span className="shrink-0">{icon}</span>}
+      <span className="truncate flex-1">{label}</span>
+      {unread > 0 && !active && <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#4F46E5] text-white text-[10px] font-semibold flex items-center justify-center">{unread}</span>}
+    </button>
+  );
+}
+
+function MessageInput({ onSend, placeholder }: { onSend: (text: string) => void; placeholder: string }) {
+  const [text, setText] = useState("");
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (text.trim()) { onSend(text.trim()); setText(""); }
+    }
+  }
+  return (
+    <div className="bg-[#F0F2FA] rounded-xl p-3 focus-within:ring-2 focus-within:ring-[#4F46E5]/20">
+      <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKeyDown} placeholder={placeholder} rows={1} className="w-full bg-transparent text-sm text-[#0F172A] placeholder:text-[#94A3B8] resize-none focus:outline-none min-h-[24px] max-h-[100px]" style={{ fieldSizing: "content" } as React.CSSProperties} />
+      <div className="flex items-center justify-between mt-1.5">
+        <div className="flex items-center gap-1">
+          <button onClick={() => toast.info("Pièces jointes bientôt disponibles")} className="w-7 h-7 rounded-md flex items-center justify-center text-[#94A3B8] hover:text-[#64748B] hover:bg-white transition-colors"><Paperclip size={15} /></button>
+        </div>
+        <button onClick={() => { if (text.trim()) { onSend(text.trim()); setText(""); } }} disabled={!text.trim()} className={cn("w-7 h-7 rounded-lg flex items-center justify-center transition-colors", text.trim() ? "bg-[#4F46E5] text-white" : "text-[#94A3B8]")}>
+          <Send size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function CreateDmModal({ onClose, onCreate }: { onClose: () => void; onCreate: (targetId: string) => void }) {
+  const { accessToken } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+  const [search, setSearch] = useState("");
+
+  // Fetch providers to search
+  const { data: providers } = useQuery({
+    queryKey: ["providers-search"],
+    queryFn: () => fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/providers`).then((r) => r.json()) as Promise<{ id: string; person: { id: string; firstName: string; lastName: string }; specialties: string[] }[]>,
+  });
+
+  const filtered = (providers ?? []).filter((p) => !search || `${p.person.firstName} ${p.person.lastName}`.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="h-16 px-6 flex items-center gap-4 shrink-0">
-        <button onClick={onBack} className="w-9 h-9 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8] transition-colors"><ChevronLeft size={18} /></button>
-        <h2 className="text-page-title flex items-center gap-2"><Compass size={20} className="text-primary" /> Explorer les canaux</h2>
-      </div>
-      <div className="px-6 pb-4">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher par nom, spécialité, pathologie…" className="w-full h-10 pl-10 rounded-xl bg-[#F0F2F8] text-sm text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-primary/20" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/20 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-[#E8ECF4] flex items-center justify-between">
+          <h3 className="text-[15px] font-bold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>Nouveau message direct</h3>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#F1F5F9]"><X size={14} /></button>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
-        <p className="text-label mb-4">Canaux disponibles · {filtered.length}</p>
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((ch) => (
-            <ChannelCard key={ch.id} channel={{ ...ch, joined: joinedIds.has(ch.id) }} onJoin={handleJoin} />
-          ))}
+        <div className="p-5 space-y-3">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un praticien…" autoFocus className="w-full h-10 rounded-lg bg-[#F0F2FA] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
+          <div className="max-h-[250px] overflow-y-auto space-y-1">
+            {filtered.map((p) => (
+              <button key={p.id} onClick={() => onCreate(p.person.id)} className="w-full flex items-center gap-3 p-3 rounded-xl text-left hover:bg-[#F8FAFC] transition-colors">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
+                  {p.person.firstName[0]}{p.person.lastName[0]}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#0F172A]">{p.person.firstName} {p.person.lastName}</p>
+                  <p className="text-xs text-[#64748B]">{p.specialties.join(", ")}</p>
+                </div>
+              </button>
+            ))}
+            {filtered.length === 0 && <p className="text-sm text-[#94A3B8] text-center py-4">Aucun praticien trouvé</p>}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════ */
-
-function CreateChannelView({ onBack, onCreate }: { onBack: () => void; onCreate: (name: string, description: string, visibility: string) => void }) {
+function CreateGroupModal({ onClose, onCreate }: { onClose: () => void; onCreate: (name: string, memberIds: string[], description?: string) => void }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
-  const [tags, setTags] = useState("");
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="h-16 px-6 flex items-center gap-4 shrink-0">
-        <button onClick={onBack} className="w-9 h-9 rounded-xl flex items-center justify-center text-[#94A3B8] hover:bg-[#F0F2F8] transition-colors"><ChevronLeft size={18} /></button>
-        <h2 className="text-page-title">Créer un canal</h2>
-      </div>
-      <div className="flex-1 overflow-y-auto px-6 pb-8">
-        <div className="max-w-lg space-y-6">
-          <div className="space-y-2">
-            <label className="text-label">Nom du canal</label>
-            <div className="flex items-center bg-[#F0F2F8] rounded-xl h-11">
-              <span className="pl-4 text-[#94A3B8] text-sm font-medium">#</span>
-              <input value={name} onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9àâéèêëïîôùûüÿçæœ-]/g, ""))} placeholder="nom-du-canal" className="flex-1 h-full bg-transparent pl-1 pr-4 text-sm text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none" />
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/20 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-[#E8ECF4] flex items-center justify-between">
+          <h3 className="text-[15px] font-bold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>Nouveau groupe</h3>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#F1F5F9]"><X size={14} /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div>
+            <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Nom du groupe</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Staff Nephro" autoFocus className="w-full h-10 mt-1.5 rounded-lg bg-[#F0F2FA] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
           </div>
-          <div className="space-y-2">
-            <label className="text-label">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="À quoi sert ce canal ?" rows={3} className="w-full bg-[#F0F2F8] rounded-xl p-4 text-sm text-[#1E293B] placeholder:text-[#94A3B8] resize-none focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <div>
+            <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Description</label>
+            <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description du groupe (optionnel)" className="w-full h-10 mt-1.5 rounded-lg bg-[#F0F2FA] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
           </div>
-          <div className="space-y-2">
-            <label className="text-label">Visibilité</label>
-            <div className="flex gap-3">
-              <button onClick={() => setVisibility("PUBLIC")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-colors ${visibility === "PUBLIC" ? "bg-primary text-primary-foreground" : "bg-[#F0F2F8] text-[#64748B] hover:bg-[#E8EBF0]"}`}>
-                <Hash size={14} className="inline mr-1.5" /> Public
-              </button>
-              <button onClick={() => setVisibility("PRIVATE")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-colors ${visibility === "PRIVATE" ? "bg-primary text-primary-foreground" : "bg-[#F0F2F8] text-[#64748B] hover:bg-[#E8EBF0]"}`}>
-                <Lock size={14} className="inline mr-1.5" /> Privé
-              </button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-label">Tags (séparés par des virgules)</label>
-            <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="endocrinologie, pédiatrie, TCA…" className="w-full h-11 bg-[#F0F2F8] rounded-xl px-4 text-sm text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-primary/20" />
-          </div>
-          <button onClick={() => { if (name.trim()) onCreate(name.trim(), description, visibility); }} disabled={!name.trim()} className={`w-full h-11 rounded-xl text-sm font-semibold transition-colors ${name.trim() ? "bg-primary text-primary-foreground hover:bg-[#3B55E0]" : "bg-[#E8EBF0] text-[#94A3B8] cursor-not-allowed"}`}>
-            Créer le canal
+        </div>
+        <div className="px-5 py-4 border-t border-[#E8ECF4] flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-[#64748B] hover:bg-[#F1F5F9]">Annuler</button>
+          <button onClick={() => { if (name.trim()) onCreate(name.trim(), [], description.trim() || undefined); }} disabled={!name.trim()} className={cn("px-5 py-2 rounded-lg text-sm font-semibold transition-colors", name.trim() ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]" : "bg-[#E8ECF4] text-[#94A3B8]")}>
+            Créer le groupe
           </button>
         </div>
       </div>

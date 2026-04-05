@@ -593,13 +593,13 @@ export const proMessagesApi = {
     }, token),
 
   createDirect: (token: string, targetUserId: string) =>
-    request<ProConversation>("/pro-messages/conversations/direct", {
+    request<ProConversation>("/pro-messages/conversations/new-direct", {
       method: "POST",
       body: JSON.stringify({ targetUserId }),
     }, token),
 
   createGroup: (token: string, name: string, memberIds: string[], description?: string, type?: string) =>
-    request<ProConversation>("/pro-messages/conversations/group", {
+    request<ProConversation>("/pro-messages/conversations/new-group", {
       method: "POST",
       body: JSON.stringify({ name, memberIds, description, type }),
     }, token),
