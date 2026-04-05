@@ -553,6 +553,74 @@ export interface SummaryResult {
   gapsSummary: { total: number; critical: number; high: number; warning: number; info: number };
 }
 
+// ─── Messagerie Pro ─────────────────────────────────────────────────────────
+
+export interface ProConversation {
+  id: string;
+  type: "DIRECT" | "GROUP" | "CHANNEL";
+  name: string | null;
+  description: string | null;
+  isPrivate: boolean;
+  members: { id: string; firstName: string; lastName: string; role: string }[];
+  lastMessage: { content: string; senderId: string; createdAt: string } | null;
+  unreadCount: number;
+  updatedAt: string;
+}
+
+export interface ProMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  contentType: "TEXT" | "FILE" | "SYSTEM";
+  isDeleted: boolean;
+  createdAt: string;
+  sender: { id: string; firstName: string; lastName: string };
+  reactions: { emoji: string; userId: string }[];
+}
+
+export const proMessagesApi = {
+  getConversations: (token: string) =>
+    request<ProConversation[]>("/pro-messages/conversations", {}, token),
+
+  getMessages: (token: string, conversationId: string) =>
+    request<ProMessage[]>(`/pro-messages/conversations/${conversationId}/messages`, {}, token),
+
+  sendMessage: (token: string, conversationId: string, content: string) =>
+    request<ProMessage>(`/pro-messages/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }, token),
+
+  createDirect: (token: string, targetUserId: string) =>
+    request<ProConversation>("/pro-messages/conversations/direct", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId }),
+    }, token),
+
+  createGroup: (token: string, name: string, memberIds: string[], description?: string, type?: string) =>
+    request<ProConversation>("/pro-messages/conversations/group", {
+      method: "POST",
+      body: JSON.stringify({ name, memberIds, description, type }),
+    }, token),
+
+  markAsRead: (token: string, conversationId: string) =>
+    request<{ success: boolean }>(`/pro-messages/conversations/${conversationId}/read`, {
+      method: "PATCH",
+    }, token),
+
+  deleteMessage: (token: string, messageId: string) =>
+    request<{ success: boolean }>(`/pro-messages/messages/${messageId}`, {
+      method: "DELETE",
+    }, token),
+
+  toggleReaction: (token: string, messageId: string, emoji: string) =>
+    request<{ action: string }>(`/pro-messages/messages/${messageId}/reactions`, {
+      method: "POST",
+      body: JSON.stringify({ emoji }),
+    }, token),
+};
+
 // Helper pour les requêtes avec token depuis le store
 export function apiWithToken(token: string) {
   return {
@@ -602,6 +670,16 @@ export function apiWithToken(token: string) {
     intelligence: {
       careGaps: (id: string) => intelligenceApi.careGaps(token, id),
       summarize: (id: string, persist?: boolean) => intelligenceApi.summarize(token, id, persist),
+    },
+    proMessages: {
+      getConversations: () => proMessagesApi.getConversations(token),
+      getMessages: (conversationId: string) => proMessagesApi.getMessages(token, conversationId),
+      sendMessage: (conversationId: string, content: string) => proMessagesApi.sendMessage(token, conversationId, content),
+      createDirect: (targetUserId: string) => proMessagesApi.createDirect(token, targetUserId),
+      createGroup: (name: string, memberIds: string[], description?: string, type?: string) => proMessagesApi.createGroup(token, name, memberIds, description, type),
+      markAsRead: (conversationId: string) => proMessagesApi.markAsRead(token, conversationId),
+      deleteMessage: (messageId: string) => proMessagesApi.deleteMessage(token, messageId),
+      toggleReaction: (messageId: string, emoji: string) => proMessagesApi.toggleReaction(token, messageId, emoji),
     },
   };
 }
