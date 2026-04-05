@@ -3,7 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "@/components/ui/sonner";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNamiStore } from "@/lib/nami-store";
+import { getInitialData } from "@/lib/nami-store/initialData";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -14,6 +16,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       })
   );
+
+  // Initialize the Nami store with mock data — once
+  const initialized = useRef(false);
+  const initializeStore = useNamiStore((s) => s.initializeStore);
+  useEffect(() => {
+    if (!initialized.current) {
+      initializeStore(getInitialData());
+      initialized.current = true;
+    }
+  }, [initializeStore]);
 
   return (
     <QueryClientProvider client={queryClient}>
