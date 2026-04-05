@@ -139,6 +139,12 @@ export default function MessagesProPage() {
       <div className="flex-1 flex flex-col overflow-hidden bg-card">
         {view === "chat" && activeId && (
           <>
+            {/* Bannière légale — NON dismissable */}
+            <div className="bg-[#FFFBEB] px-6 py-1.5 text-[11px] text-[#92400E] flex items-center gap-2 shrink-0" style={{ fontFamily: "var(--font-inter)" }}>
+              <span>⚠️</span>
+              <span>Canal de coordination non urgent entre professionnels. En cas d'urgence : composer le 15.</span>
+            </div>
+
             {/* Topbar */}
             <div className="h-16 px-6 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 min-w-0">
