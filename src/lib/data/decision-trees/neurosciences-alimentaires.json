@@ -1,0 +1,185 @@
+{
+  "id": "neurosciences-alimentaires",
+  "title": "Neurosciences de l'alimentation : circuits cérébraux, neurones et comportement alimentaire",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — Sensations alimentaires (Pr Bustany 2024)",
+    "DU TCA — Mécanismes faim/satiété (Chabert, EPHE 2024)",
+    "DU TCA — Approche nutritionnelle étiopathogénie 2025",
+    "DU TCA — Approche cognitive (Berthoz 2024)"
+  ],
+  "root": "axe-neuro",
+  "nodes": {
+    "axe-neuro": {
+      "type": "question",
+      "text": "Quel aspect des neurosciences alimentaires ?",
+      "options": [
+        { "label": "Centres cérébraux de la faim et de la satiété", "next": "centres-cerebraux" },
+        { "label": "Neurotransmetteurs et circuits de récompense", "next": "neurotransmetteurs" },
+        { "label": "Dysrégulation dans les TCA", "next": "dysregulation-neuro" },
+        { "label": "Nutriments et fonctions cérébrales", "next": "nutriments-cerveau" }
+      ]
+    },
+
+    "centres-cerebraux": {
+      "type": "action",
+      "text": "Centres cérébraux du contrôle alimentaire",
+      "sections": [
+        {
+          "title": "Hypothalamus latéral (LH) — \"Centre de la faim\"",
+          "items": [
+            "Responsable du contrôle glucostatique de la prise alimentaire et du rythme prandial",
+            "Centre parasympathique : stimule le repas",
+            "Favorise la sécrétion d'insuline et la lipogenèse",
+            "Si lésion LH → aphagie (refus de manger)",
+            "Neurones sensibles au glucose, à la ghréline, au NPY"
+          ]
+        },
+        {
+          "title": "Hypothalamus ventromédian (VMH) — \"Centre de la satiété\"",
+          "items": [
+            "Centre sympathique : inhibe la prise alimentaire",
+            "Reçoit les signaux de satiété (leptine, insuline, CCK)",
+            "Si lésion VMH → hyperphagie et obésité"
+          ]
+        },
+        {
+          "title": "Noyau arqué de l'hypothalamus",
+          "items": [
+            "Intègre les signaux périphériques (ghréline, leptine, insuline)",
+            "2 populations neuronales antagonistes :",
+            "— Neurones NPY/AgRP : stimulent l'appétit (orexigènes)",
+            "— Neurones POMC/CART : inhibent l'appétit (anorexigènes)",
+            "Cible des signaux hormonaux de faim et de satiété"
+          ]
+        },
+        {
+          "title": "Cortex préfrontal",
+          "items": [
+            "Contrôle cognitif de la prise alimentaire",
+            "Décision de manger ou non (inhibition volontaire)",
+            "Hyperactif dans l'AN (contrôle excessif)",
+            "Hypoactif dans la BN/BED (perte de contrôle)",
+            "Cible de la rTMS dans les essais thérapeutiques"
+          ]
+        }
+      ]
+    },
+
+    "neurotransmetteurs": {
+      "type": "action",
+      "text": "Neurotransmetteurs et circuit de récompense",
+      "sections": [
+        {
+          "title": "Dopamine — Plaisir et motivation",
+          "items": [
+            "Circuit mésolimbique (aire tegmentale ventrale → noyau accumbens)",
+            "Code la valeur hédonique des aliments (palatabilité)",
+            "Le plaisir alimentaire = signal de récompense naturel",
+            "AN : diminution de la réponse dopaminergique aux stimuli alimentaires",
+            "BN/BED : recherche excessive de récompense (« wanting » > « liking »)"
+          ]
+        },
+        {
+          "title": "Sérotonine (5-HT) — Satiété et humeur",
+          "items": [
+            "Rôle dans la satiété et l'arrêt du repas",
+            "Dysrégulation sérotoninergique dans AN et BN",
+            "Le tryptophane (précurseur) diminue avec la restriction alimentaire",
+            "Cible des ISRS (efficaces dans la BN, pas dans l'AN en phase aiguë)"
+          ]
+        },
+        {
+          "title": "Endorphines et opioïdes endogènes",
+          "items": [
+            "Système opioïde impliqué dans le plaisir alimentaire (« liking »)",
+            "La restriction alimentaire libère des endorphines → effet renforçant de la restriction",
+            "Gènes des récepteurs opioïdes identifiés dans les GWAS de l'AN",
+            "Contribue à l'« addiction à la restriction »"
+          ]
+        },
+        {
+          "title": "GABA et glutamate",
+          "items": [
+            "GABA : inhibiteur, rôle dans l'anxiété (cible des anxiolytiques)",
+            "Glutamate : excitateur, impliqué dans l'apprentissage alimentaire",
+            "Déséquilibre GABA/glutamate décrit dans l'AN"
+          ]
+        }
+      ]
+    },
+
+    "dysregulation-neuro": {
+      "type": "action",
+      "text": "Dysrégulation cérébrale dans les TCA",
+      "sections": [
+        {
+          "title": "Anorexie mentale",
+          "items": [
+            "Hyperactivité du cortex préfrontal dorsolatéral (contrôle excessif sur l'alimentation)",
+            "Diminution de la réponse du circuit de récompense (le plaisir alimentaire est atténué)",
+            "Atrophie de la substance grise (partiellement réversible)",
+            "Résistance à la ghréline : incapacité à répondre au signal de faim",
+            "Basse leptine → signal de famine permanent mais ignoré",
+            "Les biais cognitifs (rigidité, focus sur le détail) sont visibles en neuro-imagerie"
+          ]
+        },
+        {
+          "title": "Boulimie nerveuse",
+          "items": [
+            "Hypoactivité du cortex préfrontal (perte de contrôle inhibiteur)",
+            "Hyperactivité du circuit de récompense face aux stimuli alimentaires",
+            "Dysrégulation sérotoninergique et dopaminergique",
+            "Impulsivité : les circuits de contrôle ne freinent pas l'impulsion"
+          ]
+        },
+        {
+          "title": "Ce que cela implique pour le traitement",
+          "items": [
+            "AN : la renutrition restaure partiellement le fonctionnement cérébral",
+            "Les déficits cognitifs s'améliorent avec la prise de poids",
+            "La neuromodulation (rTMS du DLPFC) vise à rééquilibrer les circuits",
+            "La remédiation cognitive cible les fonctions altérées (flexibilité, cohérence centrale)",
+            "La TCC travaille sur les biais cognitifs identifiés en neuro-imagerie"
+          ]
+        }
+      ]
+    },
+
+    "nutriments-cerveau": {
+      "type": "action",
+      "text": "Impact des nutriments sur le cerveau",
+      "info": "Source : Pr Bustany, DU TCA 2024",
+      "sections": [
+        {
+          "title": "Effets de la dénutrition sur le cerveau",
+          "items": [
+            "Atrophie cérébrale (perte de substance grise et blanche)",
+            "Troubles cognitifs : concentration, mémoire, fonctions exécutives",
+            "Ralentissement de la vitesse de traitement de l'information",
+            "Les circuits neuronaux de l'alimentation sont « recâblés » par la restriction chronique"
+          ]
+        },
+        {
+          "title": "Nutriments essentiels pour le cerveau",
+          "items": [
+            "Glucose : carburant principal (hypoglycémie → troubles cognitifs, convulsions)",
+            "Acides gras oméga-3 (DHA) : structure des membranes neuronales",
+            "Tryptophane → sérotonine (acide aminé essentiel, apporté par l'alimentation)",
+            "Tyrosine → dopamine",
+            "Fer, zinc, B12, folates : cofacteurs des neurotransmetteurs",
+            "Vitamine B1 (thiamine) : carence → encéphalopathie de Gayet-Wernicke"
+          ]
+        },
+        {
+          "title": "Cycles nycthéméraux faim/satiété",
+          "items": [
+            "Alternance physiologique faim/satiété sur 24h",
+            "Perturbée par la restriction (abolition du rythme) et par les crises (désynchronisation)",
+            "La renutrition doit restaurer un rythme alimentaire régulier pour recaler les cycles"
+          ]
+        }
+      ]
+    }
+  }
+}

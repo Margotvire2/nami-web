@@ -1,0 +1,303 @@
+{
+  "id": "pec-hospitaliere-pratique",
+  "title": "PEC hospitalière en pratique : contrat de soins, repas thérapeutiques, pesées, phases, HDJ, soins-études",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — PEC infirmière 2024",
+    "DU TCA FFAB 2025-2026 — ETP et AMP (Bergametti, Hooreman)",
+    "DU TCA FFAB 2025-2026 — HDJ ados (Module 6)",
+    "DU TCA — Soins-études FSEF (Hirot 2025)",
+    "DU TCA — Diététique (Miot)"
+  ],
+  "root": "aspect-hospitalier",
+  "nodes": {
+    "aspect-hospitalier": {
+      "type": "question",
+      "text": "Quel aspect de la PEC hospitalière ?",
+      "options": [
+        { "label": "Le contrat de soins (phases, objectifs)", "next": "contrat-soins" },
+        { "label": "Les repas thérapeutiques", "next": "repas-therapeutiques" },
+        { "label": "Les pesées et la surveillance", "next": "pesees" },
+        { "label": "L'hôpital de jour (HDJ)", "next": "hdj" }
+      ]
+    },
+
+    "aspect-hospitalier-2": {
+      "type": "question",
+      "text": "Autres aspects",
+      "options": [
+        { "label": "Rôle de l'infirmier(ère) référent", "next": "ide-referent" },
+        { "label": "Soins-études (FSEF) — scolarité pendant l'hospitalisation", "next": "soins-etudes" },
+        { "label": "Sortie et transition vers l'ambulatoire", "next": "sortie" }
+      ]
+    },
+
+    "contrat-soins": {
+      "type": "action",
+      "text": "Le contrat de soins — Phases de l'hospitalisation",
+      "info": "Modèle CMME (GHU Paris). Le contrat est co-construit avec le patient.",
+      "sections": [
+        {
+          "title": "Phase d'observation (~1 semaine)",
+          "items": [
+            "Bilan complet : biologique, somatique, psychiatrique, diététique, psychomoteur",
+            "Évaluation des habitudes alimentaires et des comportements",
+            "Évaluation art-thérapeutique, éducative, scolaire",
+            "Définition des objectifs avec le patient (et parents si mineur)",
+            "Élaboration du contrat de soins personnalisé"
+          ]
+        },
+        {
+          "title": "Phase 1 — Renutrition (phase nutritionnelle)",
+          "items": [
+            "Objectif : traiter les problèmes somatiques et biologiques",
+            "Objectifs de poids définis dans le contrat",
+            "Diversification alimentaire progressive",
+            "Fiche alimentaire journalière (ressentis du patient)",
+            "Repas encadrés par les soignants",
+            "Travail sur les stratégies de contrôle du poids",
+            "Exposition progressive aux situations anxiogènes",
+            "Surveillance biologique rapprochée"
+          ]
+        },
+        {
+          "title": "Phase 2 — Phase psychologique",
+          "items": [
+            "Étape psychologique, corporelle, relationnelle",
+            "Suivi psychologique individuel",
+            "Poursuite TCC, affirmation de soi",
+            "Début art-thérapie",
+            "Abord corporel privilégié : relaxation, ateliers d'activité physique adaptée",
+            "Travail sur l'image corporelle"
+          ]
+        },
+        {
+          "title": "Phase de stabilisation",
+          "items": [
+            "Stabilisation du poids atteint",
+            "Permissions progressives (sorties, retours en famille)",
+            "Préparation de la sortie",
+            "Planification du suivi ambulatoire ou relais en HDJ"
+          ]
+        }
+      ]
+    },
+
+    "repas-therapeutiques": {
+      "type": "action",
+      "text": "Les repas thérapeutiques",
+      "info": "Source : ETP Robert Debré (Bergametti, Hooreman)",
+      "sections": [
+        {
+          "title": "Types de repas thérapeutiques",
+          "items": [
+            "Repas en salle — la grande table (accompagné par les soignants)",
+            "Ateliers cuisine thérapeutique",
+            "Repas thérapeutique au self (exposition progressive)",
+            "Repas thérapeutique familial (avec les parents)",
+            "Sorties au restaurant (phase avancée)"
+          ]
+        },
+        {
+          "title": "Principes",
+          "items": [
+            "Présence d'un soignant pendant le repas",
+            "Ne pas laisser choisir chaque jour son menu au début",
+            "Accompagnement bienveillant sans forcer",
+            "Observer les comportements à table (tri, découpage, rituel, vitesse)",
+            "Le repas est un moment de soin, pas de contrôle",
+            "Progression : repas supervisé → repas accompagné → repas autonome"
+          ]
+        },
+        {
+          "title": "Surveillance IDE pendant les repas",
+          "items": [
+            "Observer et noter : quantité ingérée, comportements, anxiété",
+            "Surveillance des allers-retours aux toilettes après les repas (purge)",
+            "Surveillance nocturne (hyperactivité, purge)",
+            "EBRS (Eating Behaviour Rating Scale) si utilisé dans le service"
+          ]
+        }
+      ]
+    },
+
+    "pesees": {
+      "type": "action",
+      "text": "Les pesées et la surveillance quotidienne",
+      "sections": [
+        {
+          "title": "Protocole de pesée",
+          "items": [
+            "Moment souvent redouté par le patient +++",
+            "Fréquence selon le protocole du service : quotidien, ou mardi/jeudi (exemple Robert Debré)",
+            "Conditions standardisées : même heure, même tenue, après miction, avant petit-déjeuner",
+            "Le résultat est communiqué au patient selon les modalités du contrat de soins (parfois le poids est « en aveugle »)",
+            "Discuter du vécu de la pesée en entretien"
+          ]
+        },
+        {
+          "title": "Surveillance quotidienne IDE",
+          "items": [
+            "Poids (selon protocole)",
+            "Constantes : FC, TA, T°",
+            "Scope cardiaque si IMC < 14 ou anomalie",
+            "Bilans sanguins et urinaires (entrée, suivi)",
+            "Administration des traitements (tolérance, efficacité)",
+            "Surveillance état cutané (escarres si dénutrition sévère)",
+            "Surveillance nocturne : allers-retours toilettes",
+            "Observation du comportement global"
+          ]
+        }
+      ]
+    },
+
+    "hdj": {
+      "type": "action",
+      "text": "Hôpital de jour (HDJ) — Organisation et indications",
+      "sections": [
+        {
+          "title": "Indications de l'HDJ",
+          "items": [
+            "Suivi ambulatoire insuffisant",
+            "Post-hospitalisation temps plein (relais)",
+            "AN et BN",
+            "Nécessité d'un cadre plus étayant que la consultation simple"
+          ]
+        },
+        {
+          "title": "Contre-indications",
+          "items": [
+            "Instabilité somatique (critères d'hospitalisation temps plein)",
+            "Instabilité psychiatrique",
+            "Refus d'engagement dans ce type de PEC"
+          ]
+        },
+        {
+          "title": "Programme HDJ type",
+          "items": [
+            "Évaluation initiale pour définition des objectifs (~3 semaines)",
+            "Bilan approfondi : médical, psychologique, psychiatrique, diététique, psychomoteur, art-thérapeutique, éducatif, scolaire",
+            "PEC pluridisciplinaire : entretiens individuels (psycho, diét, psychiatre)",
+            "Repas thérapeutiques",
+            "Ateliers thérapeutiques (groupe)",
+            "Projet de soins personnalisé impliquant les parents +/- fratrie"
+          ]
+        },
+        {
+          "title": "HDJ intensif diététique (modèle CMME)",
+          "items": [
+            "Durée : 3 mois",
+            "Consultation diététique hebdomadaire (30 min à 1h)",
+            "Objectif de diversification alimentaire",
+            "Repas thérapeutique",
+            "Atelier diététique bimensuel",
+            "Cuisine thérapeutique",
+            "Objectif pondéral défini"
+          ]
+        }
+      ]
+    },
+
+    "ide-referent": {
+      "type": "action",
+      "text": "Rôle de l'infirmier(ère) référent",
+      "info": "Système de référent IDE du parcours de soins — importance de l'équipe pluridisciplinaire.",
+      "sections": [
+        {
+          "title": "Missions du référent IDE",
+          "items": [
+            "Interlocuteur privilégié du patient",
+            "Coordination des soins au quotidien",
+            "Observation clinique continue (comportement, humeur, alimentation)",
+            "Accompagnement aux repas thérapeutiques",
+            "Surveillance des conduites purgatives",
+            "Entretiens infirmiers de soutien",
+            "Lien avec l'équipe pluridisciplinaire",
+            "Transmission des observations en réunion d'équipe"
+          ]
+        },
+        {
+          "title": "Soins techniques",
+          "items": [
+            "Bilans sanguins et urinaires",
+            "Prise de constantes, scopes",
+            "Nutrition entérale : NEDC, pose de sonde, bolus (sur PM + avis diét)",
+            "Traitement médicamenteux : administration, surveillance tolérance",
+            "Surveillance des comorbidités (anxiété, symptômes dépressifs)"
+          ]
+        }
+      ]
+    },
+
+    "soins-etudes": {
+      "type": "action",
+      "text": "Soins-études (FSEF) — Scolarité pendant l'hospitalisation",
+      "info": "Source : France Hirot, DU TCA 2025 — FSEF fondée en 1923/1933.",
+      "sections": [
+        {
+          "title": "Principe des soins-études",
+          "items": [
+            "Concilier soins hospitaliers et poursuite de la scolarité",
+            "Les jeunes admis ont souvent interrompu leur scolarité à cause du TCA",
+            "Souvent désocialisés mais avec le désir de poursuivre des études",
+            "La scolarité est un levier permettant de poursuivre des soins hospitaliers"
+          ]
+        },
+        {
+          "title": "Indications",
+          "items": [
+            "Hospitalisation longue (AN sévère, formes chroniques)",
+            "Adolescents et jeunes adultes en décrochage scolaire lié au TCA",
+            "Certains jeunes viennent à leur demande pour bénéficier de soins ET de cadre",
+            "Pour d'autres, la fin de l'hospitalisation est conditionnée par la reprise scolaire"
+          ]
+        },
+        {
+          "title": "Dispositifs FSEF",
+          "items": [
+            "Cliniques FSEF : Paris 16e (Édouard Rist), Neufmoutiers-en-Brie, Varennes-Jarcy",
+            "Classes intégrées à l'Éducation nationale au sein de l'établissement de soins",
+            "Enseignants détachés de l'EN",
+            "Parcours individualisé adapté à l'état de santé",
+            "Préparation du retour en scolarité ordinaire"
+          ]
+        }
+      ]
+    },
+
+    "sortie": {
+      "type": "action",
+      "text": "Sortie d'hospitalisation et transition",
+      "sections": [
+        {
+          "title": "Préparation de la sortie",
+          "items": [
+            "Permissions progressives (demi-journées, week-ends)",
+            "Repas en famille pendant les permissions (évaluation)",
+            "Retour en famille avec évaluation de la dynamique familiale",
+            "Planification du suivi ambulatoire AVANT la sortie"
+          ]
+        },
+        {
+          "title": "Relais possibles",
+          "items": [
+            "HDJ en relais (si besoin cadre plus étayant que l'ambulatoire)",
+            "Séquentiel : hospitalisations courtes programmées autour d'objectifs précis",
+            "Ambulatoire pur : consultations psychiatre, psychologue, diététicien, MG",
+            "Soins-études FSEF si besoin de reprendre la scolarité"
+          ]
+        },
+        {
+          "title": "Points critiques",
+          "items": [
+            "Les mois suivant la sortie = période à haut risque de rechute (30-50%)",
+            "Maintenir l'équipe référente identifiée",
+            "Suivi au long cours (au moins 1 an)",
+            "Plan de crise co-construit : que faire si rechute",
+            "Information du patient et de l'entourage sur les signes d'alerte de rechute"
+          ]
+        }
+      ]
+    }
+  }
+}

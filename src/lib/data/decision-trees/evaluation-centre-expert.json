@@ -1,0 +1,186 @@
+{
+  "id": "evaluation-centre-expert",
+  "title": "Évaluation initiale au centre expert TCA et composition corporelle",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — L'évaluation initiale au centre expert TCA",
+    "DU TCA — Composition corporelle (LDL1)",
+    "HAS 2010/2019",
+    "PNDS AMP 2022"
+  ],
+  "root": "type-eval",
+  "nodes": {
+    "type-eval": {
+      "type": "question",
+      "text": "Quel aspect de l'évaluation ?",
+      "options": [
+        { "label": "Évaluation pluridisciplinaire complète", "next": "eval-pluridisciplinaire" },
+        { "label": "Algorithme diagnostique (arbre de décision)", "next": "algorithme-diag" },
+        { "label": "Composition corporelle et techniques de mesure", "next": "composition-corporelle" },
+        { "label": "Que dire au patient lors de l'évaluation initiale ?", "next": "dire-patient" }
+      ]
+    },
+
+    "eval-pluridisciplinaire": {
+      "type": "action",
+      "text": "Évaluation pluridisciplinaire au centre expert",
+      "sections": [
+        {
+          "title": "Évaluation psychiatrique",
+          "items": [
+            "Diagnostic du TCA (type, sous-type, sévérité DSM-5)",
+            "Histoire du trouble : âge de début, durée, évolution, traitements antérieurs",
+            "Évaluation du risque suicidaire",
+            "Comorbidités psychiatriques : dépression, anxiété, TOC, addictions, TP, TSA, TDAH",
+            "Motivation au changement",
+            "Retentissement sur le fonctionnement global"
+          ]
+        },
+        {
+          "title": "Évaluation somatique",
+          "items": [
+            "Examen clinique complet, constantes, IMC",
+            "Courbes de croissance (enfant/ado)",
+            "Bilan biologique complet (cf. arbre bilans biologiques)",
+            "ECG",
+            "Ostéodensitométrie si indication",
+            "Évaluation de la composition corporelle"
+          ]
+        },
+        {
+          "title": "Évaluation diététique",
+          "items": [
+            "Enquête alimentaire : apports qualitatifs et quantitatifs",
+            "Comportement alimentaire : restriction, sélection, crises, purges",
+            "Calcul du PMBS (objectif pondéral)",
+            "Évaluation des carences",
+            "Habitudes alimentaires de la famille"
+          ]
+        },
+        {
+          "title": "Évaluation psychologique",
+          "items": [
+            "Bilan neuropsychologique si besoin (flexibilité, cohérence centrale)",
+            "Évaluation de l'image corporelle",
+            "Questionnaires : EDE-Q, EDI, BDI, STAI",
+            "Profil de personnalité si pertinent"
+          ]
+        },
+        {
+          "title": "Autres évaluations",
+          "items": [
+            "Psychomoteur : schéma corporel, image du corps, sensorialité",
+            "Art-thérapeutique (en hospitalisation)",
+            "Éducatif / scolaire (enfant/ado)",
+            "Social (assistante sociale si besoin)"
+          ]
+        }
+      ]
+    },
+
+    "algorithme-diag": {
+      "type": "action",
+      "text": "Algorithme diagnostique simplifié (Centre Expert TCA)",
+      "info": "Version schématique simplifiée — le diagnostic doit prendre en compte l'histoire de la maladie et l'évolution des symptômes.",
+      "sections": [
+        {
+          "title": "Étape 1 : IMC",
+          "items": [
+            "IMC < 18,5 → aller à Étape 2A",
+            "IMC ≥ 18,5 → aller à Étape 2B"
+          ]
+        },
+        {
+          "title": "Étape 2A (IMC < 18,5) : Accès hyperphagiques / conduites de purge ?",
+          "items": [
+            "NON → Préoccupations corporelles ?",
+            "  OUI → ANOREXIE MENTALE restrictive",
+            "  NON → ARFID (ou autre cause organique à éliminer)",
+            "OUI → ANOREXIE MENTALE avec accès hyperphagiques / purge"
+          ]
+        },
+        {
+          "title": "Étape 2B (IMC ≥ 18,5) : Accès hyperphagiques ?",
+          "items": [
+            "OUI → Comportements compensatoires ?",
+            "  OUI → BOULIMIE NERVEUSE",
+            "  NON → HYPERPHAGIE BOULIMIQUE (BED)",
+            "NON → Préoccupations corporelles / peur de la prise de poids ?",
+            "  OUI → TCA non spécifié",
+            "  NON → Restriction sans image corporelle perturbée → ARFID ou autre"
+          ]
+        }
+      ]
+    },
+
+    "composition-corporelle": {
+      "type": "action",
+      "text": "Composition corporelle — Techniques de mesure",
+      "info": "Source : DU TCA — Composition corporelle LDL1",
+      "sections": [
+        {
+          "title": "Pourquoi mesurer la composition corporelle ?",
+          "items": [
+            "L'IMC seul ne distingue pas masse grasse et masse maigre",
+            "Deux patients au même IMC peuvent avoir des compositions corporelles très différentes",
+            "La perte de masse maigre (muscle) a des conséquences spécifiques (sarcopénie, amyotrophie)",
+            "La restauration de la masse maigre est plus lente que celle de la masse grasse pendant la renutrition",
+            "Utile pour adapter les objectifs pondéraux et le suivi"
+          ]
+        },
+        {
+          "title": "Techniques de mesure",
+          "items": [
+            "Impédancemétrie bioélectrique (BIA) : mesure de la résistance du corps au courant électrique",
+            "— Non invasive, rapide, disponible en consultation",
+            "— Limite : sensible à l'hydratation (faussée si déshydratation ou œdèmes)",
+            "DXA (absorptiométrie biphotonique) : référence pour la composition corporelle",
+            "— Mesure masse grasse, masse maigre, contenu minéral osseux",
+            "— Irradiation faible mais non disponible partout",
+            "Plis cutanés : méthode simple mais opérateur-dépendante",
+            "⚠ Chez le patient dénutri : les mesures sont à interpréter avec précaution (hydratation, œdèmes de renutrition)"
+          ]
+        },
+        {
+          "title": "En pratique dans les TCA",
+          "items": [
+            "Suivi de la composition corporelle pendant la renutrition",
+            "Objectif : restaurer la masse maigre (pas seulement le poids total)",
+            "L'activité physique adaptée (APA) peut aider à la restauration musculaire",
+            "Attention aux œdèmes de renutrition (prise de poids rapide = eau, pas muscle)"
+          ]
+        }
+      ]
+    },
+
+    "dire-patient": {
+      "type": "action",
+      "text": "Que dire au patient lors de l'évaluation initiale",
+      "info": "HAS 2010/2019",
+      "sections": [
+        {
+          "title": "Évaluation initiale AN (HAS 2010)",
+          "items": [
+            "Nommer la maladie avec tact",
+            "Expliquer qu'il s'agit d'une maladie, pas d'un choix",
+            "Informer sur les risques et complications potentielles",
+            "Présenter les modalités de PEC (pluridisciplinaire, au long cours)",
+            "Expliquer les objectifs (renutrition, psychothérapie)",
+            "Donner des perspectives : la guérison est possible avec une PEC précoce"
+          ]
+        },
+        {
+          "title": "Évaluation initiale BN (HAS 2019)",
+          "items": [
+            "Examen complet : clinique, dentaire, gynécologique",
+            "Courbes poids/taille, IMC",
+            "ECG, ionogramme, bilan métabolique si obésité",
+            "Examen psychiatrique : risque suicidaire, comorbidités",
+            "Retentissement des troubles sur le fonctionnement global",
+            "Détection précoce des complications et prévention"
+          ]
+        }
+      ]
+    }
+  }
+}

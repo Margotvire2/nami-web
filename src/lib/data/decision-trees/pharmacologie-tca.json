@@ -1,0 +1,169 @@
+{
+  "id": "pharmacologie-tca",
+  "title": "Traitements pharmacologiques dans les TCA",
+  "version": "1.0",
+  "sources": [
+    "WFSBP Guidelines 2023 — Pharmacological treatment of eating disorders (Duriez)",
+    "HAS 2010/2019",
+    "PNDS AMP 2022",
+    "DU TCA FFAB 2025-2026",
+    "Pharmaco TCA 2023"
+  ],
+  "root": "type-tca-pharmaco",
+  "nodes": {
+    "type-tca-pharmaco": {
+      "type": "question",
+      "text": "Pour quel type de TCA évaluez-vous un traitement médicamenteux ?",
+      "options": [
+        { "label": "Anorexie mentale", "next": "pharmaco-an" },
+        { "label": "Boulimie nerveuse", "next": "pharmaco-bn" },
+        { "label": "Hyperphagie boulimique (BED)", "next": "pharmaco-bed" },
+        { "label": "ARFID", "next": "pharmaco-arfid" }
+      ]
+    },
+
+    "pharmaco-an": {
+      "type": "action",
+      "text": "Pharmacologie — Anorexie Mentale",
+      "info": "⚠ Aucun traitement médicamenteux n'a d'indication en 1re intention dans l'AN. La psychothérapie et la renutrition sont les piliers du traitement.",
+      "sections": [
+        {
+          "title": "Principes généraux",
+          "items": [
+            "PAS de neuroleptique en 1re intention pour l'AN",
+            "PAS d'ISRS en 1re intention pour l'AN",
+            "Les ISRS n'ont pas montré d'efficacité sur la prise de poids ni sur les symptômes clés de l'AN",
+            "⚠ Déconseillé d'introduire un antidépresseur chez un patient dénutri",
+            "Traiter les comorbidités APRÈS renutrition suffisante"
+          ]
+        },
+        {
+          "title": "Molécules étudiées — Résultats",
+          "items": [
+            "Amitriptyline : preuve CONTRE son utilisation (LoE A, WFSBP 2023)",
+            "Cyproheptadine : pas d'effet sur le poids final",
+            "Citalopram : résultats insuffisants",
+            "Fluoxétine : pas de preuve d'efficacité dans l'AN",
+            "Olanzapine : résultats modestes sur la prise de poids, effets secondaires métaboliques",
+            "Les neuroleptiques et ISRS ne doivent pas être utilisés en routine pour l'AN"
+          ]
+        },
+        {
+          "title": "Indications possibles (2e intention)",
+          "items": [
+            "Olanzapine : peut être discutée si anxiété sévère pré-prandiale résistante, ou agitation",
+            "ISRS : si dépression caractérisée persistante APRÈS renutrition",
+            "ISRS : si TOC comorbide invalidant APRÈS renutrition",
+            "Anxiolytiques ponctuels : si anxiété pré-prandiale sévère (courte durée)"
+          ]
+        },
+        {
+          "title": "Supplémentation",
+          "items": [
+            "Vitamine B1 (thiamine) : AVANT renutrition si dénutrition sévère",
+            "Phosphore, potassium, magnésium : selon biologie",
+            "Vitamine D et calcium : si carence / complications osseuses",
+            "Multivitamines si carences multiples"
+          ]
+        }
+      ]
+    },
+
+    "pharmaco-bn": {
+      "type": "action",
+      "text": "Pharmacologie — Boulimie Nerveuse",
+      "info": "La psychothérapie (TCC) reste le traitement de 1re intention. Les ISRS sont en 2e ligne.",
+      "sections": [
+        {
+          "title": "1re intention : Psychothérapie",
+          "items": [
+            "TCC individuelle adaptée aux TCA",
+            "Self-help guidé",
+            "TIP en alternative"
+          ]
+        },
+        {
+          "title": "2e intention : ISRS (HAS 2019)",
+          "items": [
+            "Fluoxétine : ISRS de référence dans la BN",
+            "Posologie souvent plus élevée que dans la dépression (60 mg/j)",
+            "Indication : si accès impossible à une psychothérapie structurée",
+            "TOUJOURS en association avec PEC psychologique et pluriprofessionnelle",
+            "⚠ Prendre médicaments à distance des conduites de purge (absorption)",
+            "Ciblage du versant compulsif de la boulimie"
+          ]
+        },
+        {
+          "title": "Comorbidité anxieuse ou dépressive",
+          "items": [
+            "ISRS si comorbidité anxieuse ou dépressive associée"
+          ]
+        },
+        {
+          "title": "NON recommandé",
+          "items": [
+            "Topiramate : NON recommandé (balance bénéfice/risque défavorable, risque de détournement)",
+            "Bupropion : CONTRE-INDIQUÉ dans la BN (risque de convulsions)"
+          ]
+        }
+      ]
+    },
+
+    "pharmaco-bed": {
+      "type": "action",
+      "text": "Pharmacologie — Hyperphagie Boulimique (BED)",
+      "info": "La TCC reste le traitement de 1re intention.",
+      "sections": [
+        {
+          "title": "1re intention : Psychothérapie",
+          "items": [
+            "TCC individuelle",
+            "Self-help guidé",
+            "TCD (thérapie comportementale dialectique)",
+            "TIP"
+          ]
+        },
+        {
+          "title": "Traitement médicamenteux (2e intention)",
+          "items": [
+            "ISRS : peuvent réduire la fréquence des crises",
+            "Lisdexamfétamine (Vyvanse) : approuvé dans certains pays pour le BED modéré à sévère (attention : potentiel addictif)",
+            "⚠ NE PAS prescrire de régime restrictif (aggrave le TCA)"
+          ]
+        },
+        {
+          "title": "NON recommandé",
+          "items": [
+            "Topiramate : effets secondaires cognitifs, risque de détournement",
+            "Orlistat : pas d'efficacité démontrée sur les crises"
+          ]
+        }
+      ]
+    },
+
+    "pharmaco-arfid": {
+      "type": "action",
+      "text": "Pharmacologie — ARFID",
+      "info": "Aucune thérapeutique médicamenteuse ne peut être recommandée avec un fort niveau de preuve (Couturier et al., 2020).",
+      "sections": [
+        {
+          "title": "État des connaissances",
+          "items": [
+            "Pas de traitement médicamenteux validé en 1re intention",
+            "Quelques case reports : olanzapine + fluoxétine, cyproheptadine",
+            "Cyproheptadine : parfois utilisée comme orexigène chez le petit enfant (hors AMM)",
+            "La PEC repose sur la TCC, l'exposition progressive et la rééducation de l'oralité"
+          ]
+        },
+        {
+          "title": "Si comorbidité associée",
+          "items": [
+            "Anxiété sévère : ISRS peut être discuté",
+            "TSA : adapter le traitement au profil global",
+            "TDAH : attention aux effets anorexigènes du méthylphénidate"
+          ]
+        }
+      ]
+    }
+  }
+}

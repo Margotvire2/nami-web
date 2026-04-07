@@ -1,0 +1,191 @@
+{
+  "id": "annonce-alliance-tca",
+  "title": "Comment annoncer le diagnostic et construire l'alliance thérapeutique ?",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Anorexie mentale : information du patient",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "DU TCA FFAB 2025-2026",
+    "Reco2clics HAS — Anorexie mentale"
+  ],
+  "root": "contexte-annonce",
+  "nodes": {
+    "contexte-annonce": {
+      "type": "question",
+      "text": "Dans quel contexte annoncez-vous le diagnostic ?",
+      "options": [
+        { "label": "Patient coopérant / demandeur d'aide", "next": "annonce-cooperative" },
+        { "label": "Patient dans le déni", "next": "annonce-deni" },
+        { "label": "Patient mineur — informer les parents", "next": "annonce-parents" },
+        { "label": "Patient réticent au traitement", "next": "motivation" }
+      ]
+    },
+
+    "annonce-cooperative": {
+      "type": "action",
+      "text": "Annonce diagnostique — Patient coopérant",
+      "info": "Recommandations HAS 2010 : nommer la maladie avec tact et sans stigmatisation.",
+      "sections": [
+        {
+          "title": "Ce qu'il est recommandé de dire",
+          "items": [
+            "Nommer la maladie (anorexie mentale, boulimie, etc.) avec tact et sans stigmatisation",
+            "Souligner que la maladie est un mode d'adaptation comportementale à un mal-être pré-existant",
+            "Affirmer d'emblée que cette maladie peut devenir chronique, avec des conséquences potentiellement graves",
+            "Expliquer que la maladie nécessite des soins médicaux et psychiques",
+            "Informer sur le risque de complications somatiques et psychiatriques",
+            "Informer sur le pronostic : la guérison est possible, d'autant plus que la prise en charge est précoce"
+          ]
+        },
+        {
+          "title": "Ce qu'il faut éviter",
+          "items": [
+            "Ne pas banaliser (\"c'est juste un régime qui a dérapé\")",
+            "Ne pas culpabiliser le patient ou sa famille",
+            "Ne pas dramatiser excessivement (risque de rupture)",
+            "Ne pas être normatif sur le poids (\"il faut peser X kg\")"
+          ]
+        }
+      ],
+      "next": "construction-alliance"
+    },
+
+    "annonce-deni": {
+      "type": "action",
+      "text": "Patient dans le déni des troubles",
+      "info": "Le déni est fréquent dans l'AN : non-reconnaissance, indifférence à la maigreur, minimisation. Il entraîne retard diagnostique et thérapeutique.",
+      "sections": [
+        {
+          "title": "Comprendre le déni",
+          "items": [
+            "Troubles de la perception corporelle",
+            "Trouble de l'image de soi",
+            "Le TCA peut être vécu comme ego-syntone (en accord avec les valeurs du patient)",
+            "La restriction peut donner un sentiment de contrôle et de maîtrise",
+            "Le déni n'est pas de la mauvaise volonté"
+          ]
+        },
+        {
+          "title": "Conduite à tenir",
+          "items": [
+            "Ne pas confronter brutalement le déni",
+            "S'appuyer sur les faits objectifs (courbes de poids, biologie, constantes)",
+            "Explorer les conséquences que le patient reconnaît (fatigue, froid, isolement)",
+            "Travailler la motivation au changement (entretien motivationnel)",
+            "Maintenir le lien : proposer un suivi régulier même si le patient refuse le traitement",
+            "S'appuyer sur l'entourage (avec accord du patient si majeur)"
+          ]
+        }
+      ],
+      "next": "motivation"
+    },
+
+    "annonce-parents": {
+      "type": "action",
+      "text": "Information et accompagnement des parents / entourage",
+      "info": "L'alliance thérapeutique tant avec le patient qu'avec sa famille est un des objectifs fondamentaux dès la première consultation.",
+      "sections": [
+        {
+          "title": "Informer les parents",
+          "items": [
+            "Expliquer la maladie : nature, évolution, pronostic",
+            "Expliquer que ce n'est pas de leur faute (ne pas stigmatiser la famille comme pathologique)",
+            "Il n'y a pas de famille \"type\" dans les TCA — hétérogénéité des fonctionnements familiaux",
+            "Expliquer le parcours de soins envisagé",
+            "Expliquer leur rôle dans la PEC (sans les transformer en soignants)"
+          ]
+        },
+        {
+          "title": "Accompagner les parents",
+          "items": [
+            "Proposer des groupes de parents si disponibles",
+            "Thérapie multifamiliale si accessible",
+            "Orienter vers les associations (FFAB, FNA-TCA)",
+            "Boîte à outils pour l'entourage (Carers Toolkit Maudsley)",
+            "Accompagnement assistante sociale si besoin"
+          ]
+        },
+        {
+          "title": "Points de vigilance",
+          "items": [
+            "Les descriptions de famille \"dysfonctionnelle\" sont faites APRÈS l'éclosion des symptômes → réorganisation des interactions, pas cause",
+            "La stigmatisation familiale = mauvaise alliance thérapeutique",
+            "Le modèle actuel est multidimensionnel, pas causaliste"
+          ]
+        }
+      ],
+      "next": "construction-alliance"
+    },
+
+    "motivation": {
+      "type": "action",
+      "text": "Travail motivationnel",
+      "info": "Si le patient n'est pas prêt à s'engager dans le traitement, un travail motivationnel constitue le premier temps de l'approche (HAS 2019).",
+      "sections": [
+        {
+          "title": "Entretien motivationnel",
+          "items": [
+            "Explorer l'ambivalence du patient face au changement",
+            "Identifier les facteurs de motivation au changement (ex: pouvoir aller aux anniversaires, répondre aux moqueries)",
+            "Respecter le rythme du patient",
+            "Éviter la confrontation directe",
+            "Mettre en valeur les ressources du patient"
+          ]
+        },
+        {
+          "title": "Si le patient refuse les soins",
+          "items": [
+            "Maintenir un suivi médical minimum (constantes, poids)",
+            "Réévaluer régulièrement la motivation",
+            "S'assurer que le patient connaît les signes de gravité nécessitant une consultation urgente",
+            "Hospitalisation sous contrainte UNIQUEMENT si risque vital engagé et soins consentis impossibles"
+          ]
+        }
+      ],
+      "next": "construction-alliance"
+    },
+
+    "construction-alliance": {
+      "type": "action",
+      "text": "Construire l'alliance thérapeutique",
+      "info": "L'alliance thérapeutique est le socle de toute PEC de la maladie. Elle est considérée comme nécessaire et indispensable.",
+      "sections": [
+        {
+          "title": "Avec le patient",
+          "items": [
+            "Écoute empathique et non jugeante",
+            "Reconnaître la souffrance derrière les symptômes",
+            "Co-construire les objectifs de soins (pas imposer)",
+            "Nommer un médecin coordinateur identifié",
+            "Repérage précoce permet : information, travail motivation et alliance +++",
+            "Cohérence du discours entre tous les intervenants"
+          ]
+        },
+        {
+          "title": "Avec la famille",
+          "items": [
+            "Entretiens familiaux réguliers",
+            "La famille est partenaire du soin, pas responsable de la maladie",
+            "Consultation familiale intégrée : psychiatre + parents + patient",
+            "Coordination des différents intervenants autour de la famille"
+          ]
+        }
+      ],
+      "next": "projet-soins"
+    },
+
+    "projet-soins": {
+      "type": "result",
+      "text": "Élaboration du projet de soins individualisé",
+      "severity": "moderate",
+      "actions": [
+        "Définir les objectifs avec le patient (et les parents si mineur)",
+        "Expliquer les modalités de PEC envisagées",
+        "Informer des différents niveaux de soins possibles (ambulatoire, HDJ, HTP)",
+        "Planifier les consultations de suivi",
+        "Donner les coordonnées de recours en urgence",
+        "Remettre des documents d'information (livret anorexie, fiches HAS)"
+      ]
+    }
+  }
+}

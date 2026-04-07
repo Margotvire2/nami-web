@@ -1,0 +1,270 @@
+{
+  "id": "tcd-detaillee",
+  "title": "Thérapie Comportementale Dialectique (TCD) dans les TCA — protocole détaillé",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — Contrat TCD (Laszcz 2024)",
+    "DU TCA FFAB 2025-2026",
+    "DIU TCA Module 7 — TCC + RC",
+    "DU TCA — Troubles de la personnalité et TCA"
+  ],
+  "root": "tcd-intro",
+  "nodes": {
+    "tcd-intro": {
+      "type": "question",
+      "text": "Que souhaitez-vous savoir sur la TCD ?",
+      "options": [
+        { "label": "Principes et indications", "next": "principes" },
+        { "label": "Les 4 modules de compétences", "next": "modules" },
+        { "label": "Contrat TCD et cadre thérapeutique", "next": "contrat" },
+        { "label": "TCD adaptée aux TCA", "next": "tcd-tca" }
+      ]
+    },
+
+    "principes": {
+      "type": "action",
+      "text": "Principes de la TCD",
+      "info": "Développée dans les années 1980 par Marsha Linehan pour le traitement du trouble de personnalité limite (TPL) avec comportements suicidaires.",
+      "sections": [
+        {
+          "title": "Fondements",
+          "items": [
+            "Basée sur le principe philosophique DIALECTIQUE : recherche d'équilibre, réconciliation d'opposés en un processus continu de synthèse",
+            "Dialectique centrale : ACCEPTATION ↔ CHANGEMENT",
+            "Le thérapeute valide le vécu du patient tout en poussant au changement",
+            "Intègre TCC + philosophie zen / mindfulness"
+          ]
+        },
+        {
+          "title": "Indications dans les TCA",
+          "items": [
+            "Trouble de personnalité borderline (TPL) + BN ou BED +++",
+            "Dysrégulation émotionnelle sévère",
+            "Automutilations, comportements suicidaires",
+            "Échec de la TCC standard",
+            "Conduites purgatives sévères et impulsives"
+          ]
+        },
+        {
+          "title": "Particularités TCD vs TCC standard",
+          "items": [
+            "Ciblage hiérarchisé : primaire (suicidaire, interférant avec la thérapie) et secondaire",
+            "Mindfulness comme ensemble de compétences (pas seulement technique de relaxation)",
+            "Centrage dialectique permanent",
+            "Régulation émotionnelle au cœur du traitement"
+          ]
+        }
+      ]
+    },
+
+    "modules": {
+      "type": "question",
+      "text": "Les 4 modules de compétences TCD",
+      "options": [
+        { "label": "Pleine conscience (Mindfulness)", "next": "module-mindfulness" },
+        { "label": "Tolérance à la détresse", "next": "module-tolerance" },
+        { "label": "Régulation émotionnelle", "next": "module-regulation" },
+        { "label": "Efficacité interpersonnelle", "next": "module-interpersonnel" }
+      ]
+    },
+
+    "module-mindfulness": {
+      "type": "action",
+      "text": "Module 1 — Pleine conscience (Mindfulness)",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Observer sans juger (pensées, émotions, sensations)",
+            "Décrire l'expérience avec des mots",
+            "Participer pleinement à l'instant présent",
+            "Adopter une posture de non-jugement",
+            "Se concentrer sur une chose à la fois"
+          ]
+        },
+        {
+          "title": "Application aux TCA",
+          "items": [
+            "Manger en pleine conscience (reconnexion aux sensations de faim/satiété)",
+            "Observer les pensées anorexiques/boulimiques sans y réagir automatiquement",
+            "Réduire la rumination sur le poids et le corps",
+            "Module transversal : la base de tous les autres modules"
+          ]
+        }
+      ]
+    },
+
+    "module-tolerance": {
+      "type": "action",
+      "text": "Module 2 — Tolérance à la détresse",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Survivre aux crises émotionnelles SANS aggraver la situation",
+            "Accepter la réalité telle qu'elle est dans le moment présent",
+            "Ne pas recourir aux comportements TCA (crises, purge, restriction) comme solution à la détresse"
+          ]
+        },
+        {
+          "title": "Compétences enseignées",
+          "items": [
+            "TIPP : Température (eau froide), Intense exercise, Paced breathing, Paired muscle relaxation",
+            "Distraire (ACCEPTS) : Activities, Contributing, Comparisons, Emotions opposées, Push away, Thoughts, Sensations",
+            "Auto-apaisement par les 5 sens",
+            "Améliorer le moment (IMPROVE) : Imagery, Meaning, Prayer, Relaxation, One thing at a time, Vacation, Encouragement",
+            "Acceptation radicale"
+          ]
+        },
+        {
+          "title": "Application aux TCA",
+          "items": [
+            "Tolérer l'anxiété pré-prandiale sans restreindre",
+            "Tolérer la sensation de satiété sans purger",
+            "Tolérer l'envie de crise sans y céder",
+            "Plan de crise écrit : « quand je ressens l'envie de [comportement TCA], je fais [compétence TCD] »"
+          ]
+        }
+      ]
+    },
+
+    "module-regulation": {
+      "type": "action",
+      "text": "Module 3 — Régulation émotionnelle",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Comprendre et nommer ses émotions",
+            "Réduire la vulnérabilité émotionnelle",
+            "Diminuer la fréquence des émotions indésirables",
+            "Diminuer la souffrance émotionnelle"
+          ]
+        },
+        {
+          "title": "Compétences enseignées",
+          "items": [
+            "Identifier et nommer les émotions (contre l'alexithymie)",
+            "ABC PLEASE : Accumulate positives, Build mastery, Cope ahead, treat PhysicaL illness, balanced Eating, avoid mood-Altering substances, balanced Sleep, get Exercise",
+            "Action opposée : agir à l'opposé de l'impulsion émotionnelle",
+            "Résolution de problèmes",
+            "Vérifier les faits (les émotions correspondent-elles aux faits ?)"
+          ]
+        },
+        {
+          "title": "Application aux TCA",
+          "items": [
+            "L'alimentation comme régulateur émotionnel de substitution → remplacer par des compétences de régulation",
+            "Travailler sur la honte, la culpabilité, le dégoût de soi post-crise",
+            "PLEASE : le E de Eating rappelle l'importance d'une alimentation équilibrée pour la régulation émotionnelle"
+          ]
+        }
+      ]
+    },
+
+    "module-interpersonnel": {
+      "type": "action",
+      "text": "Module 4 — Efficacité interpersonnelle",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Demander ce dont on a besoin",
+            "Dire non et poser des limites",
+            "Maintenir les relations et le respect de soi",
+            "Gérer les conflits interpersonnels"
+          ]
+        },
+        {
+          "title": "Compétences enseignées",
+          "items": [
+            "DEAR MAN : Describe, Express, Assert, Reinforce, (stay) Mindful, Appear confident, Negotiate",
+            "GIVE : Gentle, Interested, Validate, Easy manner (pour maintenir la relation)",
+            "FAST : Fair, (no) Apologies, Stick to values, Truthful (pour le respect de soi)"
+          ]
+        },
+        {
+          "title": "Application aux TCA",
+          "items": [
+            "Exprimer ses besoins en lien avec l'alimentation (au restaurant, en famille)",
+            "Poser des limites face aux commentaires sur le poids/corps",
+            "Réduire l'isolement social",
+            "Améliorer la communication avec l'entourage et l'équipe soignante"
+          ]
+        }
+      ]
+    },
+
+    "contrat": {
+      "type": "action",
+      "text": "Contrat TCD et cadre thérapeutique",
+      "info": "Source : Laszcz, DU TCA 2024",
+      "sections": [
+        {
+          "title": "Structure de la TCD",
+          "items": [
+            "Thérapie individuelle hebdomadaire (1h)",
+            "Groupe de compétences hebdomadaire (2h30) — les 4 modules en cycle",
+            "Coaching téléphonique entre les séances (en cas de crise)",
+            "Réunion d'équipe de consultation pour les thérapeutes",
+            "Durée : habituellement 1 an"
+          ]
+        },
+        {
+          "title": "Hiérarchie des cibles thérapeutiques",
+          "items": [
+            "1. Comportements menaçant la vie (suicidaires, automutilations)",
+            "2. Comportements interférant avec la thérapie (absences, non-compliance)",
+            "3. Comportements interférant avec la qualité de vie (TCA, addictions)",
+            "4. Augmentation des compétences comportementales"
+          ]
+        },
+        {
+          "title": "Engagements du patient",
+          "items": [
+            "Assister aux séances individuelles et de groupe",
+            "Remplir les fiches de suivi quotidien (diary cards)",
+            "Pratiquer les compétences entre les séances",
+            "Appeler le thérapeute AVANT un passage à l'acte (pas après)",
+            "Engagement pour la durée du programme"
+          ]
+        }
+      ]
+    },
+
+    "tcd-tca": {
+      "type": "action",
+      "text": "TCD adaptée aux TCA — Spécificités",
+      "sections": [
+        {
+          "title": "Adaptations pour les TCA",
+          "items": [
+            "Les comportements TCA (crises, purges, restriction) sont traités comme des comportements de dysrégulation émotionnelle",
+            "Analyse en chaîne : identifier le déclencheur → émotion → comportement TCA → conséquences",
+            "Diary cards adaptées : inclure les comportements alimentaires, les émotions, les compétences utilisées",
+            "Travail spécifique sur l'alimentation régulière comme compétence de base"
+          ]
+        },
+        {
+          "title": "Résultats",
+          "items": [
+            "Efficacité démontrée dans la BN + TP borderline",
+            "Réduction des crises de boulimie et des comportements compensatoires",
+            "Réduction des automutilations et des comportements suicidaires",
+            "Amélioration de la régulation émotionnelle",
+            "PEC plus longue mais adaptée aux formes complexes"
+          ]
+        },
+        {
+          "title": "Limites",
+          "items": [
+            "Nécessite des thérapeutes formés spécifiquement à la TCD",
+            "Programme intensif (engagement du patient et du thérapeute)",
+            "Risque de rupture de soins plus élevé chez les TP borderline",
+            "Peu d'études dans l'AN pure"
+          ]
+        }
+      ]
+    }
+  }
+}

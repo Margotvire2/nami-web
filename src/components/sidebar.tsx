@@ -16,6 +16,7 @@ import {
   BellDot,
   LogOut,
   UsersRound,
+  BookOpen,
 } from "lucide-react";
 
 /*
@@ -33,6 +34,7 @@ const NAV_ACTIVITY = [
 const NAV_PATIENTS = [
   { href: "/patients",    label: "Patients",     icon: Users },
   { href: "/alertes",     label: "Alertes",      icon: BellDot },
+  { href: "/protocoles",  label: "Protocoles",   icon: BookOpen },
   { href: "/documents",   label: "Documents",    icon: FileText },
 ];
 

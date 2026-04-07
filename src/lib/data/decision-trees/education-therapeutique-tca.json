@@ -1,0 +1,170 @@
+{
+  "id": "education-therapeutique-tca",
+  "title": "Éducation thérapeutique et accompagnement de l'entourage",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026",
+    "DU TCA — ETP et AMP (Bergametti, Hooreman)",
+    "DU TCA — L'éducation thérapeutique et le self-help dans les TCA (Massini)",
+    "DU TCA — Soins-études FSEF",
+    "Boîte à outils pour l'entourage (Carers Toolkit Maudsley)",
+    "HAS 2019"
+  ],
+  "root": "type-accompagnement",
+  "nodes": {
+    "type-accompagnement": {
+      "type": "question",
+      "text": "Quel type d'accompagnement ?",
+      "options": [
+        { "label": "Éducation thérapeutique du patient (ETP)", "next": "etp" },
+        { "label": "Self-help / auto-support", "next": "self-help" },
+        { "label": "Accompagnement de l'entourage / parents", "next": "entourage" },
+        { "label": "Aménagements scolaires / professionnels", "next": "amenagements" }
+      ]
+    },
+
+    "etp": {
+      "type": "action",
+      "text": "Éducation Thérapeutique du Patient (ETP)",
+      "info": "L'ETP vise à aider les patients à acquérir les compétences pour gérer au mieux leur vie avec une maladie chronique (OMS 1998). Seulement 2% des programmes d'ETP validés ciblent une maladie psychiatrique.",
+      "sections": [
+        {
+          "title": "4 étapes d'un programme d'ETP (ARS)",
+          "items": [
+            "1. Élaboration d'un diagnostic éducatif",
+            "2. Définition d'un programme personnalisé d'ETP",
+            "3. Participation aux séances d'ETP",
+            "4. Évaluation post-ETP des compétences acquises"
+          ]
+        },
+        {
+          "title": "Modalités",
+          "items": [
+            "En groupe : 45 min, 3 à 10 participants",
+            "En individuel",
+            "Formation requise : 40h pour tout professionnel dispensant l'ETP",
+            "Tout programme doit être validé par l'ARS"
+          ]
+        },
+        {
+          "title": "Contenu adapté aux TCA",
+          "items": [
+            "Compréhension de la maladie et de ses conséquences",
+            "Gestion des repas et de l'alimentation",
+            "Reconnaissance des signaux d'alerte de rechute",
+            "Gestion des émotions",
+            "Communication avec l'entourage",
+            "Repas thérapeutiques (en hospitalisation)"
+          ]
+        }
+      ]
+    },
+
+    "self-help": {
+      "type": "action",
+      "text": "Self-help / Auto-support guidé",
+      "info": "Recommandé par la HAS 2019. L'auto-support GUIDÉ par un professionnel est plus efficace que la version non accompagnée.",
+      "sections": [
+        {
+          "title": "Principes",
+          "items": [
+            "Peut être proposé AVANT l'initiation d'une PEC ou en début de PEC",
+            "Basé sur les principes de la TCC",
+            "Utilisation de manuels structurés (workbooks)",
+            "Accompagnement régulier par un professionnel de santé"
+          ]
+        },
+        {
+          "title": "Indications",
+          "items": [
+            "BN et BED en 1re intention (en attendant ou en complément d'une psychothérapie)",
+            "Formes légères à modérées",
+            "Patient motivé et capable de s'engager dans un travail autonome"
+          ]
+        },
+        {
+          "title": "Outils",
+          "items": [
+            "Carnet alimentaire",
+            "Colonnes de Beck (pensées automatiques)",
+            "Fiches de psychoéducation",
+            "Exercices de régulation émotionnelle",
+            "Applications / supports numériques si validés"
+          ]
+        }
+      ]
+    },
+
+    "entourage": {
+      "type": "action",
+      "text": "Accompagnement de l'entourage / parents",
+      "sections": [
+        {
+          "title": "Groupes de parents",
+          "items": [
+            "Groupes de parole pour les parents de patients AN",
+            "Psychoéducation familiale",
+            "Espace de partage d'expérience entre familles",
+            "Réduction de l'isolement et de la culpabilité parentale"
+          ]
+        },
+        {
+          "title": "Thérapie multifamiliale",
+          "items": [
+            "Plusieurs familles travaillant ensemble",
+            "Partage d'expériences et de stratégies",
+            "Soutien mutuel entre familles",
+            "Efficacité démontrée dans l'AN de l'adolescent"
+          ]
+        },
+        {
+          "title": "Outils pour l'entourage",
+          "items": [
+            "Boîte à outils pour l'entourage (Carers Toolkit Maudsley)",
+            "Fiches d'information sur la maladie",
+            "Associations : FFAB, FNA-TCA",
+            "Ligne d'écoute : Anorexie Boulimie Info Écoute (0 810 037 037)"
+          ]
+        },
+        {
+          "title": "Consultation familiale intégrée",
+          "items": [
+            "Psychiatre référent : suivi individuel + entretien parents",
+            "Coordination PEC somatique, diététique, psychothérapique",
+            "Ateliers thérapeutiques (expression corporelle, esthétique, groupe de paroles)",
+            "Intervention assistante sociale si besoin",
+            "Groupe de parents et thérapie multifamiliale"
+          ]
+        }
+      ]
+    },
+
+    "amenagements": {
+      "type": "action",
+      "text": "Aménagements scolaires et professionnels",
+      "info": "Source : DU TCA — Soins-études FSEF",
+      "sections": [
+        {
+          "title": "Aménagements scolaires (enfant/ado)",
+          "items": [
+            "Aménagements EPS (modération de l'activité physique)",
+            "PAI (Projet d'Accueil Individualisé) si nécessaire",
+            "Aménagements des temps de repas (accompagnement, lieu adapté)",
+            "Allègement de l'emploi du temps si hospitalisation ou HDJ",
+            "Dispositifs soins-études (FSEF) pour les hospitalisations longues",
+            "Coordination avec l'équipe éducative"
+          ]
+        },
+        {
+          "title": "Aménagements professionnels (adulte)",
+          "items": [
+            "Aménagement du temps de travail si nécessaire",
+            "Médecine du travail informée (avec accord du patient)",
+            "Arrêt de travail si nécessaire (hospitalisation, dégradation)",
+            "Assistante sociale pour les démarches"
+          ]
+        }
+      ]
+    }
+  }
+}

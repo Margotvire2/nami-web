@@ -1,0 +1,137 @@
+{
+  "id": "tca-mici-coeliaque",
+  "title": "TCA et pathologies digestives : MICI, maladie cœliaque, pathologies duelles",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — Comorbidités somatiques, pathologies duelles (Camille Dehaine, pédiatre, 2025)",
+    "ESPEN 2023 — Nutrition clinique dans les MICI",
+    "DU TCA FFAB 2025-2026"
+  ],
+  "root": "type-pathologie",
+  "nodes": {
+    "type-pathologie": {
+      "type": "question",
+      "text": "Quelle pathologie digestive ?",
+      "options": [
+        { "label": "MICI (Crohn, RCH)", "next": "mici" },
+        { "label": "Maladie cœliaque", "next": "coeliaque" },
+        { "label": "Diagnostic différentiel : TCA ou pathologie digestive ?", "next": "diagnostic-diff" }
+      ]
+    },
+
+    "mici": {
+      "type": "action",
+      "text": "MICI et TCA",
+      "info": "200 000 personnes en France. Maladie de Crohn : risque de dénutrition. Les symptômes peuvent mimer ou masquer un TCA.",
+      "sections": [
+        {
+          "title": "Pourquoi l'association MICI-TCA est fréquente",
+          "items": [
+            "Symptômes MICI : douleurs abdominales, diarrhée, perte d'appétit, amaigrissement, retard de croissance, asthénie",
+            "Ces symptômes peuvent mimer une anorexie mentale",
+            "L'alimentation influence les symptômes → développement de conduites d'évitement alimentaire",
+            "Régimes d'éviction prescrits ou auto-imposés",
+            "Impact psychologique de la maladie chronique → facteur déclencheur TCA"
+          ]
+        },
+        {
+          "title": "Risques spécifiques",
+          "items": [
+            "Dénutrition : double risque (MICI + TCA)",
+            "Carences multiples (fer, B12, folates, vitamine D, zinc)",
+            "Retard de croissance chez l'enfant/ado",
+            "Ostéoporose (corticoïdes + dénutrition + inflammation)",
+            "Diagnostic tardif du TCA (attribué aux symptômes digestifs)"
+          ]
+        },
+        {
+          "title": "PEC intégrée",
+          "items": [
+            "Ne pas traiter l'un sans l'autre",
+            "Coordination gastro-entérologie + psychiatrie/pédopsychiatrie",
+            "PEC nutritionnelle adaptée (ESPEN 2023)",
+            "Ne pas être trop restrictif dans les conseils alimentaires",
+            "Dépister le TCA chez tout patient MICI avec perte de poids inexpliquée",
+            "Dépister la MICI chez tout patient TCA avec symptômes digestifs atypiques"
+          ]
+        }
+      ]
+    },
+
+    "coeliaque": {
+      "type": "action",
+      "text": "Maladie cœliaque et TCA",
+      "sections": [
+        {
+          "title": "Liens maladie cœliaque — TCA",
+          "items": [
+            "Régime sans gluten strict → restriction alimentaire → risque de TCA",
+            "Contrôle alimentaire imposé par la maladie → terrain pour un TCA",
+            "Symptômes digestifs si écart → renforcement de l'évitement alimentaire",
+            "Association décrite avec l'AN et l'ARFID"
+          ]
+        },
+        {
+          "title": "Points de vigilance",
+          "items": [
+            "Distinguer restriction liée au régime sans gluten vs restriction anorexique",
+            "Un patient cœliaque qui perd du poids : compliance au régime ? ou TCA ?",
+            "Dépister le TCA si amaigrissement excessif malgré compliance",
+            "Dépister la maladie cœliaque devant un TCA avec symptômes digestifs (sérologie anti-transglutaminase)"
+          ]
+        }
+      ]
+    },
+
+    "diagnostic-diff": {
+      "type": "action",
+      "text": "Diagnostic différentiel : TCA ou pathologie digestive ?",
+      "info": "Cas clinique type : Louise, 17 ans, perte d'appétit + douleurs abdominales + -5 kg en 3 mois. TCA ? MICI ? Les deux ?",
+      "sections": [
+        {
+          "title": "Arguments en faveur d'un TCA",
+          "items": [
+            "Préoccupation image corporelle / peur de grossir",
+            "Restriction volontaire (pas seulement perte d'appétit)",
+            "Conduites compensatoires (vomissements, sport excessif)",
+            "Déni de la maigreur",
+            "Bilan biologique souvent normal au début (CRP normale)",
+            "Pas de syndrome inflammatoire"
+          ]
+        },
+        {
+          "title": "Arguments en faveur d'une pathologie organique",
+          "items": [
+            "Syndrome inflammatoire biologique (CRP élevée, VS élevée)",
+            "Anémie inflammatoire, carence en fer",
+            "Symptômes digestifs objectifs : diarrhée sanglante, syndrome de Koenig, aphtes",
+            "Douleurs abdominales non liées aux repas",
+            "Retard de croissance avec cassure staturale isolée",
+            "Fièvre, sueurs nocturnes"
+          ]
+        },
+        {
+          "title": "Bilan de débrouillage",
+          "items": [
+            "NFS, CRP, VS (syndrome inflammatoire ?)",
+            "Ferritine, B12, folates",
+            "Albumine",
+            "Sérologie maladie cœliaque (anti-transglutaminase IgA)",
+            "Calprotectine fécale (marqueur d'inflammation intestinale)",
+            "TSH (si doute avec hyperthyroïdie)",
+            "Si doute : échographie abdominale, endoscopie"
+          ]
+        },
+        {
+          "title": "⚠ Les deux peuvent coexister",
+          "items": [
+            "Un patient peut avoir une MICI ET un TCA",
+            "La maladie organique peut être le facteur déclencheur du TCA",
+            "Ne pas arrêter les explorations si TCA diagnostiqué mais symptômes atypiques",
+            "Ne pas attribuer tout au TCA si CRP élevée ou signes organiques"
+          ]
+        }
+      ]
+    }
+  }
+}

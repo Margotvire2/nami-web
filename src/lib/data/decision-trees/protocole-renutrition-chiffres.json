@@ -1,0 +1,233 @@
+{
+  "id": "protocole-renutrition-chiffres",
+  "title": "Protocoles de renutrition en chiffres : kcal/kg, objectifs, supplémentation",
+  "version": "1.0",
+  "sources": [
+    "Diététique DU TCA (Judith Miot, GHU Paris)",
+    "DU TCA FFAB 2025-2026 — Module 3 (Blanchet)",
+    "PNDS AMP 2022",
+    "HAS 2010"
+  ],
+  "root": "imc-patient",
+  "nodes": {
+    "imc-patient": {
+      "type": "question",
+      "text": "Quel est l'IMC du patient ?",
+      "info": "Les apports caloriques de renutrition sont adaptés à l'IMC et au risque de SRI.",
+      "options": [
+        { "label": "IMC < 12 (dénutrition extrême)", "next": "imc-inf-12" },
+        { "label": "IMC 12-14 (dénutrition sévère)", "next": "imc-12-14" },
+        { "label": "IMC 15-20 (dénutrition modérée à légère)", "next": "imc-15-20" },
+        { "label": "Enfant/ado (utiliser les courbes)", "next": "renutrition-enfant" }
+      ]
+    },
+
+    "imc-inf-12": {
+      "type": "action",
+      "text": "Protocole de renutrition — IMC < 12",
+      "info": "⚠ RISQUE MAXIMAL DE SRI. Renutrition par sonde (NE continue et exclusive si IMC < 11-12).",
+      "sections": [
+        {
+          "title": "Apports caloriques initiaux",
+          "items": [
+            "Si bilan hépatique PERTURBÉ : < 30 kcal/kg/j, 30 ml/kg/j de liquides",
+            "Si bilan hépatique NORMAL : 30-40 kcal/kg/j",
+            "Utiliser un soluté isocalorique en début de renutrition",
+            "NE continue et exclusive dans les très grandes dénutritions (IMC < 11-12)"
+          ]
+        },
+        {
+          "title": "Progression",
+          "items": [
+            "Augmentation très progressive sur 5-7 jours",
+            "Protocole type : +300-400 kcal/semaine",
+            "Objectif final : 3000 kcal/j (à atteindre progressivement)"
+          ]
+        },
+        {
+          "title": "Supplémentation SYSTÉMATIQUE dès J1",
+          "items": [
+            "Vitamine B1 (thiamine) : AVANT toute renutrition",
+            "Phosphore : per os ou IV",
+            "Potassium : selon biologie",
+            "Magnésium : selon biologie",
+            "Polyvitaminé"
+          ]
+        },
+        {
+          "title": "Surveillance SRI (5 premiers jours)",
+          "items": [
+            "Phosphorémie QUOTIDIENNE",
+            "Ionogramme quotidien (K+, Na+, Mg2+)",
+            "ECG quotidien",
+            "Poids quotidien (rechercher prise de poids trop rapide = rétention hydrosodée)",
+            "Scope cardiaque",
+            "Surveillance clinique : œdèmes, tachycardie, confusion, dyspnée"
+          ]
+        }
+      ]
+    },
+
+    "imc-12-14": {
+      "type": "action",
+      "text": "Protocole de renutrition — IMC 12-14",
+      "sections": [
+        {
+          "title": "Apports caloriques",
+          "items": [
+            "Ration de départ : 40-60 kcal/kg/j",
+            "Régime hyposodé normoprotidique",
+            "Augmentation progressive selon tolérance"
+          ]
+        },
+        {
+          "title": "Protocole « higher calorie refeeding » (Blanchet)",
+          "items": [
+            "Apport initial à 1400 kcal/j",
+            "Augmentation de 67-250 kcal/j",
+            "Durée hospitalisation diminuée",
+            "Risque complications somatiques limité",
+            "Évolution favorable sur le plan psychique",
+            "Impact positif sur facteurs de maintien du TCA"
+          ]
+        },
+        {
+          "title": "Supplémentation",
+          "items": [
+            "Vitamine B1 avant renutrition",
+            "Phosphore, potassium, magnésium selon biologie",
+            "Polyvitaminé"
+          ]
+        },
+        {
+          "title": "Surveillance",
+          "items": [
+            "Phosphorémie : quotidienne les 3-5 premiers jours",
+            "Ionogramme : J1, J3, J5 puis 2x/semaine",
+            "ECG : J1 puis si anomalie",
+            "Poids : quotidien ou x3/semaine selon service"
+          ]
+        }
+      ]
+    },
+
+    "imc-15-20": {
+      "type": "action",
+      "text": "Protocole de renutrition — IMC 15-20",
+      "sections": [
+        {
+          "title": "Apports caloriques",
+          "items": [
+            "Ration : 60-70 kcal/kg/j",
+            "Régime peu salé puis normosodé si pas d'inflation hydrosodée",
+            "Risque de SRI plus faible mais surveillance nécessaire"
+          ]
+        },
+        {
+          "title": "Objectif de prise de poids",
+          "items": [
+            "En hospitalisation : 0,5-1 kg/semaine",
+            "En ambulatoire : 0,5 kg/semaine (objectif raisonnable)",
+            "Prise de poids régulière > irrégulière"
+          ]
+        },
+        {
+          "title": "Modalités",
+          "items": [
+            "Alimentation orale avec accompagnement soignant/diététicien",
+            "Ne pas laisser choisir chaque jour son menu au début",
+            "Compléments nutritionnels oraux (CNO) si nécessaire",
+            "Entretiens diététiques hebdomadaires pour adapter la ration"
+          ]
+        }
+      ]
+    },
+
+    "renutrition-enfant": {
+      "type": "action",
+      "text": "Renutrition chez l'enfant (PNDS AMP 2022)",
+      "sections": [
+        {
+          "title": "Principe clé",
+          "items": [
+            "Les apports initiaux ne doivent PAS être inférieurs aux apports avant le début des soins",
+            "Sauf situation d'instabilité physiologique"
+          ]
+        },
+        {
+          "title": "Si haut risque de SRI",
+          "items": [
+            "Apports de départ : 5-10 kcal/kg/j",
+            "En particulier si signes de gravité (anomalies ECG, insuffisance hépatique, anomalies biologiques)",
+            "Augmentation progressive : +300-400 kcal/semaine",
+            "Surveillance biologique renforcée"
+          ]
+        },
+        {
+          "title": "Si risque modéré",
+          "items": [
+            "Apports de départ : 15-20 kcal/kg/j",
+            "Augmentation progressive rapide (avoid underfeeding syndrome)",
+            "⚠ Le risque de sous-nutrition iatrogène (underfeeding) existe aussi"
+          ]
+        },
+        {
+          "title": "Calcul du PMBS (Poids Minimum de Bonne Santé)",
+          "items": [
+            "PMBS = IMC cible × taille actuelle²",
+            "IMC cible = couloir d'IMC antérieur à la maladie (+/- 1 couloir)",
+            "Si ATCD surpoids : cibler le 75e percentile d'IMC",
+            "Si faible corpulence : cibler le 25e percentile",
+            "Exemple : IMC cible 17,5, taille 1,37m → PMBS = 17,5 × 1,37² = 33 kg"
+          ]
+        }
+      ],
+      "next": "phases-hospitalisation"
+    },
+
+    "phases-hospitalisation": {
+      "type": "action",
+      "text": "Phases de l'hospitalisation pour renutrition",
+      "sections": [
+        {
+          "title": "Phase d'observation (1 semaine)",
+          "items": [
+            "Bilan complet : biologique, somatique, psychiatrique, diététique",
+            "Évaluation des habitudes alimentaires",
+            "Définition des objectifs avec le patient"
+          ]
+        },
+        {
+          "title": "Phase 1 — Renutrition (phase nutritionnelle)",
+          "items": [
+            "Objectif : traitement des problèmes somatiques et biologiques",
+            "Objectifs de poids définis dans le contrat de soins",
+            "Diversification alimentaire progressive",
+            "Fiche alimentaire journalière (ressentis du patient)",
+            "Repas encadrés par les soignants",
+            "Surveillance biologique rapprochée"
+          ]
+        },
+        {
+          "title": "Phase 2 — Phase psychologique",
+          "items": [
+            "Suivi psychologique individuel",
+            "Poursuite TCC, affirmation de soi",
+            "Début art-thérapie",
+            "Abord corporel : relaxation, ateliers d'activité physique adaptée",
+            "Travail sur l'image corporelle"
+          ]
+        },
+        {
+          "title": "Phase de stabilisation",
+          "items": [
+            "Stabilisation du poids atteint",
+            "Préparation de la sortie",
+            "Permissions progressives",
+            "Planification du suivi ambulatoire"
+          ]
+        }
+      ]
+    }
+  }
+}

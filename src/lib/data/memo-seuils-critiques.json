@@ -1,0 +1,81 @@
+{
+  "source": "HAS 2010, PNDS AMP 2022, DU TCA FFAB 2025-2026",
+  "sections": [
+    {
+      "titre": "Seuils IMC d'hospitalisation",
+      "items": [
+        { "parametre": "IMC adulte", "seuil": "< 14 kg/m²", "action": "Hospitalisation", "detail": "IMC ≤ 12 → réanimation" },
+        { "parametre": "IMC > 17 ans", "seuil": "< 14 kg/m²", "action": "Hospitalisation", "detail": null },
+        { "parametre": "IMC 15-16 ans", "seuil": "< 13,2 kg/m²", "action": "Hospitalisation", "detail": null },
+        { "parametre": "IMC 13-14 ans", "seuil": "< 12,7 kg/m²", "action": "Hospitalisation", "detail": null },
+        { "parametre": "IMC enfant < 12 ans", "seuil": "Utiliser Waterlow + courbes", "action": "Pas de seuil IMC absolu", "detail": "Waterlow < 80% = dénutrition modérée, < 70% = sévère" }
+      ]
+    },
+    {
+      "titre": "Seuils cardiovasculaires",
+      "items": [
+        { "parametre": "FC (tous âges)", "seuil": "< 40/min", "action": "Hospitalisation", "detail": "Débat : < 50/min pour enfant < 12 ans (AAP 2021)" },
+        { "parametre": "FC si IMC < 13", "seuil": "Tachycardie > 60/min", "action": "Hospitalisation", "detail": null },
+        { "parametre": "PA adulte", "seuil": "< 90/60 mmHg", "action": "Hospitalisation", "detail": null },
+        { "parametre": "PA enfant/ado", "seuil": "< 80/50 mmHg", "action": "Hospitalisation", "detail": "Ou hypotension orthostatique" },
+        { "parametre": "Température", "seuil": "< 35°C (adulte) / < 35,5°C (enfant)", "action": "Hospitalisation", "detail": null },
+        { "parametre": "QTc", "seuil": "> 450 ms", "action": "Risque torsade de pointe", "detail": "Scope continu" }
+      ]
+    },
+    {
+      "titre": "Seuils biologiques critiques",
+      "items": [
+        { "parametre": "Kaliémie (K+)", "seuil": "< 3 mEq/L", "action": "Hospitalisation", "detail": "ECG systématique. Causes : vomissements, laxatifs" },
+        { "parametre": "Phosphorémie", "seuil": "< 0,5 mmol/L", "action": "Hospitalisation", "detail": "Marqueur précoce SRI. Surveiller quotidien en renutrition" },
+        { "parametre": "Natrémie basse", "seuil": "< 125 mmol/L", "action": "Hospitalisation", "detail": "Potomanie. Risque convulsions" },
+        { "parametre": "Natrémie haute", "seuil": "> 150 mmol/L", "action": "Hospitalisation", "detail": "Déshydratation sévère" },
+        { "parametre": "Glycémie sympt.", "seuil": "< 0,6 g/L", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Glycémie asympt.", "seuil": "< 0,3 g/L", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Cytolyse (enfant)", "seuil": "> 4× N", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Cytolyse (adulte)", "seuil": "> 10× N", "action": "Hospitalisation", "detail": "+ signes IHC → réanimation" },
+        { "parametre": "Leucocytes", "seuil": "< 1000/mm³", "action": "Hospitalisation", "detail": "Ou PNN < 500/mm³" },
+        { "parametre": "Plaquettes", "seuil": "< 60 000/mm³", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Clairance créat.", "seuil": "< 40 mL/min", "action": "Hospitalisation", "detail": "Insuffisance rénale" }
+      ]
+    },
+    {
+      "titre": "Seuils de renutrition (kcal/kg/j)",
+      "items": [
+        { "parametre": "IMC < 12 + foie perturbé", "seuil": "< 30 kcal/kg/j", "action": "SNG si IMC < 11-12", "detail": "30 ml/kg/j de liquides" },
+        { "parametre": "IMC < 12 + foie normal", "seuil": "30-40 kcal/kg/j", "action": "Renutrition progressive", "detail": null },
+        { "parametre": "IMC 12-14", "seuil": "40-60 kcal/kg/j", "action": "Hyposodé normoprotidique", "detail": null },
+        { "parametre": "IMC 15-20", "seuil": "60-70 kcal/kg/j", "action": "Peu salé puis normosodé", "detail": null },
+        { "parametre": "Haut risque SRI (enfant)", "seuil": "5-10 kcal/kg/j", "action": "Augmentation très progressive", "detail": "+300-400 kcal/semaine" },
+        { "parametre": "Risque modéré SRI", "seuil": "15-20 kcal/kg/j", "action": "Augmentation rapide", "detail": "Avoid underfeeding" },
+        { "parametre": "Higher calorie refeeding", "seuil": "1400 kcal/j initial", "action": "+67-250 kcal/j", "detail": "Protocole 8 semaines (Blanchet)" }
+      ]
+    },
+    {
+      "titre": "Seuils osseux",
+      "items": [
+        { "parametre": "Z-score (adolescent)", "seuil": "< -2", "action": "Ostéopénie/ostéoporose", "detail": null },
+        { "parametre": "T-score (adulte)", "seuil": "< -2,5", "action": "Ostéoporose", "detail": null },
+        { "parametre": "DMO indication", "seuil": "Aménorrhée > 6 mois", "action": "Ostéodensitométrie", "detail": "Puis tous les 2 ans si anomalie" }
+      ]
+    },
+    {
+      "titre": "Seuils psychiatriques d'hospitalisation",
+      "items": [
+        { "parametre": "TS réalisée ou avortée", "seuil": "—", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Plan suicidaire précis", "seuil": "—", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Automutilations répétées", "seuil": "—", "action": "Hospitalisation", "detail": null },
+        { "parametre": "Comorbidité psy sévère", "seuil": "—", "action": "Hospitalisation", "detail": "Dépression, psychose, abus substances" },
+        { "parametre": "État de mal boulimique", "seuil": "—", "action": "Hospitalisation urgente", "detail": "Incapacité à poursuivre activités habituelles" }
+      ]
+    },
+    {
+      "titre": "Repères de prise de poids",
+      "items": [
+        { "parametre": "En hospitalisation", "seuil": "0,5-1 kg/semaine", "action": "Objectif", "detail": null },
+        { "parametre": "En ambulatoire", "seuil": "~0,5 kg/semaine", "action": "Objectif raisonnable", "detail": null },
+        { "parametre": "Perte de poids rapide (enfant)", "seuil": "> 2 kg/semaine", "action": "Critère d'hospitalisation", "detail": null },
+        { "parametre": "Perte de poids rapide (adulte)", "seuil": "> 20% en 3 mois", "action": "Critère d'hospitalisation", "detail": null }
+      ]
+    }
+  ]
+}

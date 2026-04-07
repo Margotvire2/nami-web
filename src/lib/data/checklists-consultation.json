@@ -1,0 +1,246 @@
+[
+  {
+    "id": "bilan-initial-an",
+    "title": "Bilan initial — Anorexie mentale",
+    "source": "HAS 2010, PNDS AMP 2022",
+    "sections": [
+      {
+        "title": "Examen clinique",
+        "items": [
+          { "label": "Poids, taille, IMC → reporter sur courbes de croissance", "critical": true },
+          { "label": "Constantes : TA (couché/debout), FC, T°", "critical": true },
+          { "label": "Stade pubertaire (Tanner) si enfant/ado", "critical": false },
+          { "label": "Signes de dénutrition : lanugo, acrocyanose, œdèmes", "critical": false },
+          { "label": "Signes de purge : hypertrophie parotidienne, signe de Russell, érosions dentaires", "critical": false },
+          { "label": "Recherche hypotension orthostatique", "critical": true }
+        ]
+      },
+      {
+        "title": "Bilan biologique",
+        "items": [
+          { "label": "NFS (hémogramme)", "critical": true },
+          { "label": "Ionogramme sanguin (Na+, K+, Cl-, bicarbonates)", "critical": true },
+          { "label": "Calcémie, phosphorémie, 25-OH vitamine D", "critical": true },
+          { "label": "Fonction rénale : urée, créatinine", "critical": true },
+          { "label": "Fonction hépatique : ALAT, ASAT, PAL, TP", "critical": true },
+          { "label": "Albumine, préalbumine", "critical": false },
+          { "label": "CRP", "critical": false },
+          { "label": "Magnésémie", "critical": false },
+          { "label": "Folates, B12, ferritine (enfant/ado)", "critical": false },
+          { "label": "TSH, T4L, T3L (enfant/ado ou doute diagnostique)", "critical": false },
+          { "label": "IGF-1 (enfant)", "critical": false },
+          { "label": "FSH, LH, estradiol (ou testostérone)", "critical": false }
+        ]
+      },
+      {
+        "title": "Examens complémentaires",
+        "items": [
+          { "label": "ECG 12 dérivations", "critical": true },
+          { "label": "Ostéodensitométrie (si aménorrhée > 6 mois)", "critical": false }
+        ]
+      },
+      {
+        "title": "Évaluation psychiatrique",
+        "items": [
+          { "label": "Risque suicidaire (idéation, plan, moyens)", "critical": true },
+          { "label": "Comorbidités : dépression, anxiété, TOC", "critical": true },
+          { "label": "Addictions", "critical": false },
+          { "label": "TSA, TDAH (enfant/ado)", "critical": false },
+          { "label": "Traumatisme / harcèlement", "critical": false }
+        ]
+      },
+      {
+        "title": "Évaluation fonctionnelle",
+        "items": [
+          { "label": "Comportement alimentaire : restriction, sélection, purge", "critical": true },
+          { "label": "Activité physique : fréquence, durée, intensité", "critical": true },
+          { "label": "Retentissement scolaire/professionnel", "critical": false },
+          { "label": "Retentissement social et familial", "critical": false },
+          { "label": "Déni des troubles", "critical": false }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bilan-initial-bn",
+    "title": "Bilan initial — Boulimie nerveuse",
+    "source": "HAS 2019",
+    "sections": [
+      {
+        "title": "Examen clinique",
+        "items": [
+          { "label": "Poids, taille, IMC", "critical": true },
+          { "label": "Constantes : TA, FC, T°", "critical": true },
+          { "label": "Examen dentaire (érosion émail, caries)", "critical": true },
+          { "label": "Hypertrophie parotidienne", "critical": false },
+          { "label": "Signe de Russell (callosités mains)", "critical": false },
+          { "label": "Examen gynécologique", "critical": false }
+        ]
+      },
+      {
+        "title": "Bilan biologique",
+        "items": [
+          { "label": "Ionogramme sanguin (K+ +++ si vomissements)", "critical": true },
+          { "label": "ECG", "critical": true },
+          { "label": "Bilan métabolique si surpoids (glycémie, lipides)", "critical": false },
+          { "label": "NFS, bilan hépatique", "critical": false }
+        ]
+      },
+      {
+        "title": "Évaluation psychiatrique",
+        "items": [
+          { "label": "Risque suicidaire +++", "critical": true },
+          { "label": "Rechercher état de mal boulimique (urgence)", "critical": true },
+          { "label": "Comorbidités : dépression, anxiété, TP, addictions", "critical": true },
+          { "label": "Comportements sexuels à risques", "critical": false },
+          { "label": "Contexte sociofamilial", "critical": false }
+        ]
+      },
+      {
+        "title": "Caractérisation des crises",
+        "items": [
+          { "label": "Fréquence des crises (par semaine)", "critical": true },
+          { "label": "Type et quantité d'aliments", "critical": false },
+          { "label": "Perte de contrôle", "critical": true },
+          { "label": "Comportements compensatoires : vomissements, laxatifs, sport, jeûne", "critical": true },
+          { "label": "Contexte émotionnel des crises", "critical": false }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "surveillance-renutrition",
+    "title": "Surveillance de la renutrition — Prévention SRI",
+    "source": "HAS 2010, PNDS AMP 2022, Diététique DU TCA",
+    "sections": [
+      {
+        "title": "AVANT la renutrition",
+        "items": [
+          { "label": "Vitamine B1 (thiamine) SYSTÉMATIQUEMENT", "critical": true },
+          { "label": "Bilan biologique : phosphore, K+, Mg2+, glycémie", "critical": true },
+          { "label": "ECG", "critical": true },
+          { "label": "Poids", "critical": true }
+        ]
+      },
+      {
+        "title": "J1 à J5 (risque maximal SRI)",
+        "items": [
+          { "label": "Phosphorémie QUOTIDIENNE", "critical": true },
+          { "label": "Ionogramme quotidien", "critical": true },
+          { "label": "ECG quotidien", "critical": true },
+          { "label": "Poids quotidien", "critical": true },
+          { "label": "Surveillance clinique : œdèmes, tachycardie, confusion, dyspnée", "critical": true },
+          { "label": "Supplémentation phosphore systématique", "critical": true },
+          { "label": "Supplémentation K+ et Mg2+ selon biologie", "critical": false }
+        ]
+      },
+      {
+        "title": "J5 à J14",
+        "items": [
+          { "label": "Phosphorémie 2x/semaine", "critical": true },
+          { "label": "Ionogramme 2x/semaine", "critical": false },
+          { "label": "Poids 3x/semaine", "critical": false },
+          { "label": "Bilan hépatique de contrôle", "critical": false },
+          { "label": "Objectif prise de poids : 0,5-1 kg/semaine", "critical": false }
+        ]
+      },
+      {
+        "title": "Apports caloriques selon IMC",
+        "items": [
+          { "label": "IMC < 12 + bilan hépatique perturbé : < 30 kcal/kg/j", "critical": true },
+          { "label": "IMC < 12 + bilan hépatique normal : 30-40 kcal/kg/j", "critical": true },
+          { "label": "IMC 12-14 : 40-60 kcal/kg/j (hyposodé normoprotidique)", "critical": false },
+          { "label": "IMC 15-20 : 60-70 kcal/kg/j", "critical": false },
+          { "label": "Haut risque SRI (enfant) : débuter à 5-10 kcal/kg/j", "critical": true }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "urgence-tca",
+    "title": "Check-list urgence — Patient TCA aux urgences",
+    "source": "HAS 2010/2019, DU TCA FFAB",
+    "sections": [
+      {
+        "title": "Évaluation immédiate",
+        "items": [
+          { "label": "Poids, taille, IMC", "critical": true },
+          { "label": "TA couché/debout, FC, T°, SpO2", "critical": true },
+          { "label": "Glycémie capillaire", "critical": true },
+          { "label": "ECG 12 dérivations", "critical": true },
+          { "label": "BU (acétonurie, glycosurie)", "critical": true }
+        ]
+      },
+      {
+        "title": "Bilan biologique urgent",
+        "items": [
+          { "label": "Ionogramme complet (K+, Na+, Cl-, bicarbonates)", "critical": true },
+          { "label": "Phosphorémie", "critical": true },
+          { "label": "Magnésémie", "critical": true },
+          { "label": "Glycémie", "critical": true },
+          { "label": "Créatinine", "critical": true },
+          { "label": "NFS", "critical": true },
+          { "label": "Bilan hépatique (ALAT, ASAT)", "critical": true }
+        ]
+      },
+      {
+        "title": "Critères de réanimation",
+        "items": [
+          { "label": "IMC ≤ 12", "critical": true },
+          { "label": "Hypokaliémie sévère + troubles du rythme à l'ECG", "critical": true },
+          { "label": "Cytolyse hépatique + signes d'insuffisance hépatocellulaire", "critical": true },
+          { "label": "Insuffisance cardiaque décompensée", "critical": true },
+          { "label": "Défaillance multiviscérale (contexte SRI)", "critical": true },
+          { "label": "Trouble de la conscience", "critical": true }
+        ]
+      },
+      {
+        "title": "Évaluation psychiatrique",
+        "items": [
+          { "label": "Risque suicidaire (idéation, plan, moyens, TS)", "critical": true },
+          { "label": "État de mal boulimique", "critical": true },
+          { "label": "Automutilations", "critical": false },
+          { "label": "Comorbidités psychiatriques urgentes", "critical": false }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "suivi-ambulatoire-an",
+    "title": "Consultation de suivi — AN ambulatoire",
+    "source": "HAS 2010",
+    "sections": [
+      {
+        "title": "À chaque consultation",
+        "items": [
+          { "label": "Poids (reporter sur courbe si enfant/ado)", "critical": true },
+          { "label": "Constantes : FC, TA", "critical": true },
+          { "label": "Comportement alimentaire : restriction, diversification ?", "critical": true },
+          { "label": "Activité physique : intensité, fréquence ?", "critical": true },
+          { "label": "Conduites compensatoires ?", "critical": true },
+          { "label": "Évaluation de l'humeur, risque suicidaire", "critical": true },
+          { "label": "Observance de la psychothérapie", "critical": false },
+          { "label": "Retentissement social/scolaire/professionnel", "critical": false }
+        ]
+      },
+      {
+        "title": "Biologie de surveillance (selon sévérité)",
+        "items": [
+          { "label": "Ionogramme sanguin", "critical": false },
+          { "label": "Phosphorémie (si renutrition en cours)", "critical": false },
+          { "label": "NFS", "critical": false },
+          { "label": "Bilan hépatique (si IMC bas)", "critical": false }
+        ]
+      },
+      {
+        "title": "Réévaluation",
+        "items": [
+          { "label": "Évolution du poids vs objectif (PMBS)", "critical": true },
+          { "label": "Critères d'hospitalisation à vérifier", "critical": true },
+          { "label": "Si pas d'amélioration à 1-2 mois : intensifier la PEC", "critical": true },
+          { "label": "Coordination avec l'équipe pluridisciplinaire", "critical": false }
+        ]
+      }
+    ]
+  }
+]

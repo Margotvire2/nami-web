@@ -1,0 +1,261 @@
+{
+  "id": "psychopatho-adolescent-tca",
+  "title": "Psychopathologie de l'adolescent et TCA : puberté, développement, aspects culturels et historiques",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026 — Module 4 (Delorme)",
+    "DU TCA FFAB 2025-2026 — Module 1 (Viaud — Histoire)",
+    "DU TCA FFAB 2025-2026 — Module 2 (Votadoro — Culture)",
+    "Cours DIU TCA Ado",
+    "DU TCA — Psychopathologie psychanalytique (Nicolas)"
+  ],
+  "root": "choix-sujet",
+  "nodes": {
+    "choix-sujet": {
+      "type": "question",
+      "text": "Quel aspect explorer ?",
+      "options": [
+        { "label": "Puberté et TCA : le corps qui change", "next": "puberte" },
+        { "label": "Psychopathologie de l'adolescent", "next": "psychopatho-ado" },
+        { "label": "Approche psychanalytique des TCA", "next": "psychanalyse" },
+        { "label": "TCA et culture / société", "next": "culture" }
+      ]
+    },
+
+    "choix-sujet-2": {
+      "type": "question",
+      "text": "Autres aspects",
+      "options": [
+        { "label": "Histoire des TCA (de l'Antiquité à nos jours)", "next": "histoire" },
+        { "label": "Sociologie des TCA (médias, réseaux sociaux)", "next": "sociologie" }
+      ]
+    },
+
+    "puberte": {
+      "type": "action",
+      "text": "Puberté et TCA : le corps qui change",
+      "sections": [
+        {
+          "title": "Stades de Tanner",
+          "items": [
+            "Filles : apparition des seins entre 8 et 13 ans",
+            "Garçons : augmentation du volume testiculaire entre 10 et 14 ans",
+            "5 stades (1 = prépubère, 5 = adulte)",
+            "Évaluer le stade de Tanner à chaque consultation chez l'enfant/ado TCA"
+          ]
+        },
+        {
+          "title": "Puberté comme facteur déclencheur",
+          "items": [
+            "Transformations corporelles rapides et non contrôlées",
+            "Augmentation de la masse grasse chez la fille (morphologie qui change)",
+            "Émergence de la sexualité",
+            "Regard des autres sur le corps qui change",
+            "Période de vulnérabilité maximale pour les TCA : 10-24 ans"
+          ]
+        },
+        {
+          "title": "Conséquences du TCA sur la puberté",
+          "items": [
+            "Retard pubertaire si dénutrition précoce",
+            "Arrêt du développement pubertaire",
+            "Aménorrhée primaire (jamais eu de règles)",
+            "Hypogonadisme hypogonadotrope fonctionnel",
+            "Impact potentiellement irréversible si non traité"
+          ]
+        }
+      ]
+    },
+
+    "psychopatho-ado": {
+      "type": "action",
+      "text": "Psychopathologie de l'adolescent et TCA",
+      "info": "Source : Dr M. Delorme, DU TCA FFAB 2025-2026 — Module 4",
+      "sections": [
+        {
+          "title": "L'adolescence : processus normal",
+          "items": [
+            "Séparation-individuation (2e phase)",
+            "Construction de l'identité",
+            "Remaniements narcissiques (estime de soi fragile)",
+            "Émergence de la pensée abstraite",
+            "Importance du groupe de pairs",
+            "Quête d'autonomie vs besoin de sécurité"
+          ]
+        },
+        {
+          "title": "TCA comme expression psychopathologique",
+          "items": [
+            "Le TCA peut être un mode d'expression d'une souffrance psychique non verbalisable",
+            "Tentative de contrôle dans un moment de perte de contrôle (puberté, autonomisation)",
+            "Expression corporelle d'un conflit interne",
+            "Le corps devient le lieu du symptôme"
+          ]
+        },
+        {
+          "title": "Spécificités de la PEC chez l'adolescent",
+          "items": [
+            "Thérapie familiale en 1re intention (pas uniquement individuelle)",
+            "Impliquer l'adolescent dans les décisions (alliance thérapeutique)",
+            "Ne pas infantiliser ni traiter comme un adulte",
+            "Prendre en compte le développement cognitif (pensée concrète vs abstraite)",
+            "Attention au harcèlement scolaire et cyberharcèlement"
+          ]
+        }
+      ]
+    },
+
+    "psychanalyse": {
+      "type": "action",
+      "text": "Approche psychanalytique des TCA",
+      "info": "Source : Dre I. Nicolas, DU TCA FFAB 2025-2026 — Psychopathologie psychanalytique des TCA",
+      "sections": [
+        {
+          "title": "Lectures psychanalytiques de l'AN",
+          "items": [
+            "Refus du corps sexué et de la féminité (Bruch, Kestemberg)",
+            "Tentative de maîtrise toute-puissante du corps et des besoins",
+            "Défense contre la dépendance (à l'objet maternel)",
+            "L'anorexie comme « addiction au rien » (V. Marinov)",
+            "Le corps comme lieu de projections et de conflits"
+          ]
+        },
+        {
+          "title": "Relation d'objet et dynamique relationnelle",
+          "items": [
+            "Relation à la mère : fusion/séparation, contrôle/autonomie",
+            "Le symptôme alimentaire dans la relation transférentielle",
+            "Le déni comme mécanisme de défense (pas de mauvaise volonté)",
+            "La question du vide, du manque, du remplissage (BN/BED)"
+          ]
+        },
+        {
+          "title": "En pratique clinique",
+          "items": [
+            "La psychothérapie d'inspiration analytique est une approche COMPLÉMENTAIRE (pas en 1re intention seule dans l'AN)",
+            "Utile pour travailler en profondeur les conflits sous-jacents",
+            "Nécessite un thérapeute expérimenté avec les TCA",
+            "Ne remplace pas la renutrition et le suivi somatique"
+          ]
+        }
+      ]
+    },
+
+    "culture": {
+      "type": "action",
+      "text": "TCA et culture",
+      "info": "Source : Dr P. Votadoro, DU TCA FFAB 2025-2026 — TCA et culture",
+      "sections": [
+        {
+          "title": "Variation transculturelle",
+          "items": [
+            "Sex ratio : prédominance féminine NON organique — construction culturelle",
+            "Prévalence variable selon les pays et les cultures",
+            "AN : longtemps considérée comme « maladie des pays riches occidentaux » → remis en question",
+            "BN et BED : prévalence croissante dans les pays en transition économique",
+            "L'idéal de minceur varie selon les cultures et les époques"
+          ]
+        },
+        {
+          "title": "Facteurs culturels",
+          "items": [
+            "Pression médiatique sur l'image corporelle",
+            "Idéal de minceur véhiculé par la mode, les réseaux sociaux",
+            "Stigmatisation du surpoids",
+            "Valorisation du contrôle et de la performance",
+            "Migration : « acculturation » vers les normes occidentales = facteur de risque"
+          ]
+        },
+        {
+          "title": "Implications cliniques",
+          "items": [
+            "Adapter le discours au contexte culturel du patient",
+            "Ne pas plaquer un modèle occidental sur toutes les présentations",
+            "Les critères DSM sont des critères occidentaux — attention aux biais",
+            "La dysmorphophobie peut prendre des formes culturellement spécifiques"
+          ]
+        }
+      ]
+    },
+
+    "histoire": {
+      "type": "action",
+      "text": "Histoire des TCA — De l'Antiquité à nos jours",
+      "info": "Source : Dr JF Viaud, DU TCA FFAB 2025-2026 — Histoire des TCA",
+      "sections": [
+        {
+          "title": "Avant la médecine moderne",
+          "items": [
+            "Jeûnes mystiques et « saintes anorexiques » (Moyen Âge)",
+            "Anorexies religieuses : Catherine de Sienne, Marie de l'Incarnation",
+            "Distinction entre jeûne volontaire religieux et maladie non encore posée"
+          ]
+        },
+        {
+          "title": "Premières descriptions médicales",
+          "items": [
+            "Richard Morton (1689) : « phtisie nerveuse » — 1re description médicale reconnue",
+            "Charles Lasègue (1873, France) : « anorexie hystérique »",
+            "William Gull (1874, Angleterre) : « anorexia nervosa » — installe le terme",
+            "Débat de priorité entre Lasègue et Gull"
+          ]
+        },
+        {
+          "title": "XXe siècle",
+          "items": [
+            "Hilde Bruch (1960-70) : approche psychodynamique, « cage dorée »",
+            "Gerald Russell (1979) : description de la boulimie nerveuse",
+            "Albert Stunkard (1959) : 1re description du BED",
+            "DSM-III (1980) : 1re inclusion de l'AN",
+            "DSM-IV (1994) : AN + BN + EDNOS",
+            "DSM-5 (2013) : AN + BN + BED + ARFID — révision majeure"
+          ]
+        },
+        {
+          "title": "Évolution des modèles",
+          "items": [
+            "De la vision morale → à la vision psychiatrique → au modèle biopsychosocial",
+            "De la cause unique → au modèle multifactoriel (vulnérabilité × déclencheurs × maintien)",
+            "De la psychanalyse dominante → aux TCC, thérapies familiales, neurosciences",
+            "Aujourd'hui : trouble métabo-psychiatrique (GWAS), intégration microbiote, neuromodulation"
+          ]
+        }
+      ]
+    },
+
+    "sociologie": {
+      "type": "action",
+      "text": "Sociologie des TCA et impact des médias",
+      "sections": [
+        {
+          "title": "Réseaux sociaux et TCA",
+          "items": [
+            "Exposition aux corps « idéaux » filtrés → insatisfaction corporelle",
+            "Communautés pro-ana / pro-mia (promotion des TCA en ligne)",
+            "Comparaison sociale permanente",
+            "Impact démontré sur l'image corporelle et les comportements alimentaires",
+            "Mais aussi : communautés de soutien et de rétablissement en ligne"
+          ]
+        },
+        {
+          "title": "Industrie du régime et de la minceur",
+          "items": [
+            "Promotion de régimes restrictifs comme mode de vie",
+            "Clean eating, orthorexie, « healthy lifestyle » → porte d'entrée vers les TCA",
+            "Marketing ciblant les jeunes femmes",
+            "Culpabilisation autour de l'alimentation"
+          ]
+        },
+        {
+          "title": "En consultation",
+          "items": [
+            "Explorer l'usage des réseaux sociaux et leur impact sur le patient",
+            "Éducation aux médias (distinguer images retouchées vs réalité)",
+            "Les programmes de prévention en milieu scolaire sont bien reçus et jugés utiles",
+            "Intégrer la littératie numérique dans la PEC des adolescents"
+          ]
+        }
+      ]
+    }
+  }
+}

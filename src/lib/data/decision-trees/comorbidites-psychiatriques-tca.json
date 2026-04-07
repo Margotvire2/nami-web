@@ -1,0 +1,272 @@
+{
+  "id": "comorbidites-psychiatriques-tca",
+  "title": "Comorbidités psychiatriques et TCA",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026",
+    "DU TCA — Dépression et TCA",
+    "DU TCA — TCA et comorbidités psychiatriques (Tezenas du Montcel)",
+    "DU TCA — Troubles de la personnalité et TCA",
+    "DU TCA — Risque suicidaire et TCA",
+    "DU TCA — Addictions et TCA"
+  ],
+  "root": "type-comorbidite",
+  "nodes": {
+    "type-comorbidite": {
+      "type": "question",
+      "text": "Quelle comorbidité psychiatrique évaluer ?",
+      "options": [
+        { "label": "Dépression", "next": "depression" },
+        { "label": "Risque suicidaire", "next": "risque-suicidaire" },
+        { "label": "TSA (Trouble du Spectre Autistique)", "next": "tsa" },
+        { "label": "TDAH", "next": "tdah" }
+      ]
+    },
+
+    "type-comorbidite-suite": {
+      "type": "question",
+      "text": "Autres comorbidités",
+      "options": [
+        { "label": "Troubles de la personnalité", "next": "trouble-personnalite" },
+        { "label": "Addictions (alcool, tabac, substances)", "next": "addictions" },
+        { "label": "Schizophrénie / psychose", "next": "schizophrenie" },
+        { "label": "Anxiété / TOC", "next": "anxiete-toc" }
+      ]
+    },
+
+    "depression": {
+      "type": "action",
+      "text": "Dépression et TCA",
+      "info": "Comorbidité très fréquente. Attention : la dénutrition elle-même mime des symptômes dépressifs.",
+      "sections": [
+        {
+          "title": "Points clés",
+          "items": [
+            "La dépression est fréquemment associée aux TCA (AN, BN, BED)",
+            "La dénutrition peut induire des symptômes pseudo-dépressifs (anhédonie, ralentissement, troubles concentration)",
+            "Nécessité de réévaluer APRÈS renutrition suffisante pour distinguer dépression vraie vs effets de la dénutrition"
+          ]
+        },
+        {
+          "title": "Psychothérapie",
+          "items": [
+            "Psychothérapie de soutien +++",
+            "Psychothérapie structurée en monothérapie si EDC d'intensité légère",
+            "TCC, TIP, thérapie familiale, inspiration analytique"
+          ]
+        },
+        {
+          "title": "Traitement médicamenteux",
+          "items": [
+            "⚠ DÉCONSEILLÉ d'introduire un antidépresseur chez un patient dénutri",
+            "ISRS envisageables APRÈS renutrition si dépression persistante",
+            "Amitriptyline : preuve CONTRE son utilisation dans l'AN (WFSBP 2023)",
+            "Chez l'enfant dénutri : pas d'ISRS (PNDS AMP 2022)"
+          ]
+        }
+      ]
+    },
+
+    "risque-suicidaire": {
+      "type": "action",
+      "text": "Évaluation du risque suicidaire dans les TCA",
+      "info": "Le risque suicidaire est un critère d'hospitalisation. Les TCA sont associés à un risque de mortalité parmi les plus élevés des troubles psychiatriques.",
+      "sections": [
+        {
+          "title": "Évaluation",
+          "items": [
+            "Rechercher les idéations suicidaires (actives et passives)",
+            "Évaluer le plan suicidaire : préparation, moyens, intentionnalité",
+            "Rechercher ATCD de TS",
+            "Rechercher automutilations",
+            "Rechercher un stock de médicaments ou moyens létaux accessibles"
+          ]
+        },
+        {
+          "title": "Facteurs de risque spécifiques aux TCA",
+          "items": [
+            "Durée d'évolution du TCA",
+            "Conduites purgatives",
+            "Comorbidité dépressive",
+            "Isolement social",
+            "Douleur chronique liée au TCA"
+          ]
+        },
+        {
+          "title": "Conduite à tenir",
+          "items": [
+            "TS réalisée ou avortée → hospitalisation en urgence",
+            "Plan suicidaire précis → hospitalisation",
+            "Automutilations répétées → hospitalisation",
+            "Idéation sans risque imminent → suivi rapproché, sécuriser l'environnement",
+            "Hospitalisation sous contrainte si risque vital et soins consentis impossibles"
+          ]
+        }
+      ]
+    },
+
+    "tsa": {
+      "type": "action",
+      "text": "TSA et TCA",
+      "info": "80% de TCA chez les patients TSA. Vulnérabilité génétique partagée. Ne pas considérer le TCA comme simplement \"atypique\".",
+      "sections": [
+        {
+          "title": "Association TSA-TCA",
+          "items": [
+            "Sélectivité alimentaire et néophobie fréquentes dans le TSA",
+            "Ritualisation de l'alimentation, rigidité et habitudes alimentaires",
+            "Intérêts restreints hyperinvestis pouvant porter sur l'alimentation/le corps",
+            "TCA caractérisé chez 1% des hommes et 6% des femmes TSA",
+            "Questionnaire spécifique : SWEAA"
+          ]
+        },
+        {
+          "title": "Distinction diagnostique",
+          "items": [
+            "ARFID : sélectivité sans préoccupation image corporelle → fréquent dans TSA",
+            "AN : restriction avec peur de grossir → peut coexister avec TSA",
+            "Bien diagnostiquer le type de TCA, ne pas attribuer tout à l'autisme"
+          ]
+        },
+        {
+          "title": "Spécificités de la PEC",
+          "items": [
+            "Prendre en charge la rigidité cognitive",
+            "Prendre en charge les particularités sensorielles",
+            "Adapter les approches thérapeutiques (TCC adaptée)",
+            "Environnement de soin adapté (stimulations sensorielles, prévisibilité)",
+            "Travail avec la famille +++"
+          ]
+        }
+      ]
+    },
+
+    "tdah": {
+      "type": "action",
+      "text": "TDAH et TCA",
+      "sections": [
+        {
+          "title": "Association TDAH-TCA",
+          "items": [
+            "Impact de l'agitation motrice et de la distractibilité sur l'alimentation",
+            "Tachyphagie (manger trop vite)",
+            "Hyperphagie et impulsivité alimentaire",
+            "Association fréquente avec la boulimie et l'hyperphagie boulimique"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "Diagnostiquer et traiter le TDAH (peut améliorer le contrôle alimentaire)",
+            "Attention aux effets anorexigènes du méthylphénidate (surveillance poids)",
+            "TCC adaptée combinant les deux problématiques",
+            "Suivi diététique structuré"
+          ]
+        }
+      ]
+    },
+
+    "trouble-personnalite": {
+      "type": "action",
+      "text": "Troubles de la personnalité et TCA",
+      "sections": [
+        {
+          "title": "Associations fréquentes",
+          "items": [
+            "Trouble de la personnalité borderline : fréquemment associé à la BN et au BED",
+            "Personnalité évitante et obsessionnelle : associées à l'AN restrictive",
+            "La comorbidité TP aggrave le pronostic et complique la PEC"
+          ]
+        },
+        {
+          "title": "PEC spécifique",
+          "items": [
+            "Thérapie comportementale dialectique (TCD) si TP borderline + BN/BED",
+            "Travail sur la régulation émotionnelle",
+            "Contrat thérapeutique clair",
+            "PEC plus longue et risque de rupture de soins plus élevé",
+            "Attention au risque suicidaire +++ (TP borderline)"
+          ]
+        }
+      ]
+    },
+
+    "addictions": {
+      "type": "action",
+      "text": "Addictions et TCA",
+      "sections": [
+        {
+          "title": "Associations",
+          "items": [
+            "Alcool, tabac, substances psychoactives",
+            "Fréquentes surtout dans la BN et le BED",
+            "Modèle de vulnérabilité partagée (impulsivité, dysrégulation émotionnelle)",
+            "Rechercher systématiquement lors de l'évaluation initiale"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "PEC intégrée addiction + TCA (ne pas traiter l'un sans l'autre)",
+            "Évaluation addictologique",
+            "TCC adaptée",
+            "Attention aux interactions médicamenteuses",
+            "Tabac : ne pas ajouter un sevrage tabagique en phase aiguë du TCA (risque de décompensation)"
+          ]
+        }
+      ]
+    },
+
+    "schizophrenie": {
+      "type": "action",
+      "text": "Schizophrénie et TCA",
+      "info": "Ne pas réduire le TCA à un symptôme de la schizophrénie. Le TCA peut être une comorbidité à part entière.",
+      "sections": [
+        {
+          "title": "Points clés",
+          "items": [
+            "Sex ratio inversé : prédominance masculine dans la schizophrénie",
+            "TCA souvent considéré comme \"atypique\" chez l'homme → remise en question",
+            "Modification du comportement alimentaire : effets des neuroleptiques (prise de poids, syndrome métabolique)",
+            "Restriction alimentaire possible dans un contexte délirant (empoisonnement)"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "Bien diagnostiquer le TCA (pas seulement un symptôme psychotique)",
+            "Surveiller le poids sous neuroleptiques",
+            "PEC nutritionnelle adaptée",
+            "Coordination psychiatrie générale + équipe TCA"
+          ]
+        }
+      ]
+    },
+
+    "anxiete-toc": {
+      "type": "action",
+      "text": "Anxiété, TOC et TCA",
+      "sections": [
+        {
+          "title": "Associations",
+          "items": [
+            "Troubles anxieux très fréquemment comorbides des TCA",
+            "TOC : pensées intrusives autour de l'alimentation, rituels alimentaires",
+            "Anxiété sociale : peut aggraver l'isolement et les évitements alimentaires",
+            "L'AN comprend souvent des idéations obsédantes intrusives et permanentes"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "TCC : travail sur les cognitions anxieuses ET alimentaires",
+            "Exposition avec prévention de la réponse (rituels alimentaires)",
+            "ISRS si anxiété/TOC invalidant (après renutrition suffisante)",
+            "Mindfulness : approches complémentaires validées",
+            "Thérapie EMDR si traumatisme associé"
+          ]
+        }
+      ]
+    }
+  }
+}

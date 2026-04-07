@@ -1,0 +1,185 @@
+{
+  "id": "tca-obesite",
+  "title": "TCA et obésité : BED, chirurgie bariatrique, PEC spécifique",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — TCA chez l'obèse",
+    "DU TCA — Chirurgie bariatrique (Pr Poghosyan, Bichat)",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "DU TCA FFAB 2025-2026"
+  ],
+  "root": "contexte-obesite",
+  "nodes": {
+    "contexte-obesite": {
+      "type": "question",
+      "text": "Quel est le contexte ?",
+      "options": [
+        { "label": "Patient obèse avec suspicion de TCA", "next": "depistage-tca-obese" },
+        { "label": "Patient TCA avec obésité/surpoids (BED)", "next": "pec-bed-obesite" },
+        { "label": "Chirurgie bariatrique et TCA", "next": "chirurgie-baria" },
+        { "label": "Comorbidités de l'obésité à surveiller", "next": "comorbidites-obesite" }
+      ]
+    },
+
+    "depistage-tca-obese": {
+      "type": "action",
+      "text": "Dépistage d'un TCA chez un patient obèse",
+      "info": "Le TCA est fréquemment sous-diagnostiqué chez les patients obèses. La demande de perte de poids peut masquer un BED.",
+      "sections": [
+        {
+          "title": "Quand y penser ?",
+          "items": [
+            "Échecs répétés de régimes",
+            "Reprise de poids après chaque régime (effet yoyo)",
+            "Crises d'hyperphagie décrites ou suspectées",
+            "Alimentation émotionnelle (mange quand stressé, triste, anxieux)",
+            "Demande de chirurgie bariatrique",
+            "Restriction cognitive intense avec perte de contrôle",
+            "Antécédent de TCA (AN, BN)"
+          ]
+        },
+        {
+          "title": "Outils de dépistage",
+          "items": [
+            "SCOFF-F (≥ 2/5)",
+            "Questionnaire BES (Binge Eating Scale)",
+            "Questions : fréquence des crises, sentiment de perte de contrôle, alimentation émotionnelle"
+          ]
+        },
+        {
+          "title": "Diagnostic différentiel",
+          "items": [
+            "BED (hyperphagie boulimique) : crises sans compensation",
+            "BN (boulimie) : crises avec compensation (vomissements, laxatifs, sport)",
+            "Alimentation émotionnelle sans crises caractérisées",
+            "Night eating syndrome (alimentation nocturne)",
+            "Grignotage compulsif"
+          ]
+        }
+      ]
+    },
+
+    "pec-bed-obesite": {
+      "type": "action",
+      "text": "PEC du BED avec obésité",
+      "sections": [
+        {
+          "title": "Principes fondamentaux",
+          "items": [
+            "⚠ L'objectif premier = réduire les crises, PAS la perte de poids",
+            "⚠ NE PAS prescrire de régime restrictif (aggrave le TCA)",
+            "La perte de poids peut survenir secondairement à la réduction des crises",
+            "Comorbidités de l'obésité à prendre en charge en parallèle"
+          ]
+        },
+        {
+          "title": "Psychothérapie (1re intention)",
+          "items": [
+            "TCC adaptée aux TCA",
+            "Self-help guidé",
+            "TCD (régulation émotionnelle)",
+            "TIP",
+            "Psychoéducation"
+          ]
+        },
+        {
+          "title": "Traitement médicamenteux (2e intention)",
+          "items": [
+            "ISRS : peuvent réduire la fréquence des crises",
+            "Lisdexamfétamine : approuvé dans certains pays pour BED modéré à sévère",
+            "⚠ Pas de topiramate (balance bénéfice/risque défavorable)"
+          ]
+        },
+        {
+          "title": "PEC diététique",
+          "items": [
+            "Restructuration du comportement alimentaire (3 repas + collations)",
+            "Travail sur la régulation émotionnelle et l'alimentation",
+            "Pas de régime restrictif",
+            "Éducation nutritionnelle bienveillante"
+          ]
+        }
+      ]
+    },
+
+    "chirurgie-baria": {
+      "type": "action",
+      "text": "Chirurgie bariatrique et TCA",
+      "info": "L'obésité est la seule maladie chronique pour laquelle la chirurgie est le seul traitement efficace à long terme.",
+      "sections": [
+        {
+          "title": "Procédures principales (France)",
+          "items": [
+            "Sleeve gastrectomie : 68% des interventions",
+            "Bypass gastrique en Y (RYGB) : 30%",
+            "Anneau gastrique : 1%",
+            "Dérivation bilio-pancréatique (BPD/DS) : < 1%"
+          ]
+        },
+        {
+          "title": "Bénéfices",
+          "items": [
+            "Perte pondérale durable",
+            "Améliore les comorbidités : DT2, HTA, SAOS, NASH",
+            "Bypass > Sleeve pour le contrôle glycémique à long terme",
+            "Réduction de l'incidence des cancers liés à l'obésité",
+            "⚠ RGO est une contre-indication pour la sleeve"
+          ]
+        },
+        {
+          "title": "⚠ TCA et chirurgie bariatrique",
+          "items": [
+            "Dépister SYSTÉMATIQUEMENT un TCA avant toute chirurgie bariatrique",
+            "Un BED non traité est un facteur de mauvais pronostic post-chirurgie",
+            "Risque de transfert de comportement : restriction → crises → vomissements post-chirurgie",
+            "Risque de décompensation psychiatrique post-chirurgie",
+            "Évaluation psychiatrique pré-opératoire obligatoire",
+            "Suivi psychiatrique et diététique post-opératoire au long cours"
+          ]
+        },
+        {
+          "title": "Complications post-opératoires à connaître",
+          "items": [
+            "Morbidité précoce : tachycardie et polypnée = signes d'alerte",
+            "Carences nutritionnelles (fer, B12, calcium, vitamine D) → supplémentation à vie",
+            "Dumping syndrome (après bypass)",
+            "Risque de malnutrition si TCA post-chirurgie"
+          ]
+        }
+      ]
+    },
+
+    "comorbidites-obesite": {
+      "type": "action",
+      "text": "Comorbidités de l'obésité à surveiller",
+      "sections": [
+        {
+          "title": "Bilan métabolique",
+          "items": [
+            "Glycémie à jeun, HbA1c (DT2)",
+            "Bilan lipidique (dyslipidémie)",
+            "Bilan hépatique (NASH/stéatose)",
+            "Uricémie (goutte)"
+          ]
+        },
+        {
+          "title": "Cardiovasculaire",
+          "items": [
+            "PA (HTA)",
+            "ECG",
+            "Risque cardiovasculaire global"
+          ]
+        },
+        {
+          "title": "Autres",
+          "items": [
+            "Rechercher SAOS (syndrome d'apnées obstructives du sommeil)",
+            "Évaluation ostéo-articulaire",
+            "Dépression, anxiété",
+            "Estime de soi, qualité de vie"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,182 @@
+[
+  {
+    "id": "cas-1-louise",
+    "title": "Louise, 10 ans — Anorexie mentale à début précoce",
+    "source": "DU TCA — Dossiers progressifs (Dr Julia Clarke, GHU Paris)",
+    "difficulty": "intermediaire",
+    "tags": ["AN", "enfant", "AMP", "restrictive"],
+    "presentation": "Louise, 10 ans, scolarisée en CM2, adressée par son pédiatre. Élève brillante, perfectionniste, fait de l'escrime 3 fois/semaine. Depuis 4 mois, maux de ventre et diminution de l'alimentation. Ne mange pas à tous les repas, accepte légumes et laitages sans sucre. Dit ne pas faire de régime.",
+    "questions": [
+      {
+        "question": "Quel diagnostic psychiatrique évoquez-vous et sur quels arguments ?",
+        "options": [
+          { "label": "Anorexie mentale restrictive à début précoce", "correct": true },
+          { "label": "ARFID (trouble évitement/restriction)", "correct": false },
+          { "label": "Trouble anxieux avec retentissement alimentaire", "correct": false },
+          { "label": "Dépression avec perte d'appétit", "correct": false }
+        ],
+        "explanation": "Anorexie mentale restrictive à début précoce :\n- Restriction quantitative et qualitative des apports énergétiques\n- Poids bas, IMC bas\n- Peur de prendre du poids\n- Âge de début précoce < 13 ans (explorer développement pubertaire)\n- Terrain de vulnérabilité : perfectionnisme\n- Hyperactivité physique et intellectuelle"
+      },
+      {
+        "question": "Comment calculez-vous l'IMC et interprétez-vous les courbes de croissance ?",
+        "options": [
+          { "label": "IMC = poids/taille², interpréter sur les courbes de croissance", "correct": true },
+          { "label": "Utiliser le seuil adulte IMC < 18,5", "correct": false },
+          { "label": "Se fier au poids absolu uniquement", "correct": false },
+          { "label": "Comparer à la moyenne de la classe", "correct": false }
+        ],
+        "explanation": "IMC = poids/taille² = 13,5 kg/m²\nCourbes staturo-pondérales :\n- Cassure courbe poids (2 couloirs)\n- Stagnation courbe taille (> 1 an)\n- Courbe IMC : chute de 3 couloirs (du 25e au 3e percentile)\n- Début à 9 ans et demi"
+      },
+      {
+        "question": "Quelles complications rechercher chez cette jeune patiente ?",
+        "options": [
+          { "label": "Retentissement sur croissance staturale et développement pubertaire", "correct": true },
+          { "label": "Uniquement les complications cardiaques", "correct": false },
+          { "label": "Pas de bilan nécessaire à cet âge", "correct": false },
+          { "label": "Bilan osseux uniquement", "correct": false }
+        ],
+        "explanation": "À cet âge :\n- Risque de chronicisation du trouble ++\n- Retentissement sur croissance staturale et développement pubertaire\n- Complications somatiques (os, cœur, métaboliques)\n- Complications psychiatriques\n- Retentissement psychosocial (familial, socialisation, scolarité)"
+      },
+      {
+        "question": "Quels principes de prise en charge proposer ?",
+        "options": [
+          { "label": "PEC pluridisciplinaire précoce : somatique, psychiatrique, thérapie familiale, diététique, aménagements scolaires", "correct": true },
+          { "label": "Psychothérapie individuelle seule", "correct": false },
+          { "label": "Hospitalisation immédiate systématique", "correct": false },
+          { "label": "Régime hypercalorique et surveillance à 3 mois", "correct": false }
+        ],
+        "explanation": "1/ Repérage précoce et bilan diagnostique\n2/ Information trouble à l'enfant et ses parents : diagnostic, pronostic\n3/ Modalités de PEC :\n- PEC précoce et prolongée\n- Parcours selon sévérité (ambulatoire vs hospitalisation)\n- Objectifs dont renutrition (PMBS)\n- PEC pluridisciplinaire : médicale somatique/pédiatrique, psychiatrique, psychothérapie dont thérapie familiale, diététique, aménagements scolarité dont sport"
+      }
+    ]
+  },
+  {
+    "id": "cas-2-mme-p-boulimie",
+    "title": "Mme P., 25 ans — Boulimie nerveuse",
+    "source": "DU TCA — Dossiers progressifs (Dr Julia Clarke, GHU Paris)",
+    "difficulty": "intermediaire",
+    "tags": ["BN", "adulte", "vomissements"],
+    "presentation": "Mme P., 25 ans. Lutte depuis 2 ans pour perdre du poids. Compulsions alimentaires tous les 2 jours : jusqu'à 2 bols de riz, 5 paquets de brioches, un pot de pâte à tartiner. Depuis 3 mois, vomissements provoqués systématiques. Honte, demandeuse d'aide. 58 kg pour 162 cm (IMC = 22).",
+    "questions": [
+      {
+        "question": "Quel diagnostic évoquez-vous et sur quels arguments ?",
+        "options": [
+          { "label": "Boulimie nerveuse", "correct": true },
+          { "label": "Hyperphagie boulimique (BED)", "correct": false },
+          { "label": "Anorexie mentale avec crises de boulimie", "correct": false },
+          { "label": "Trouble alimentaire non spécifié", "correct": false }
+        ],
+        "explanation": "Boulimie nerveuse (IMC = 22 kg/m²) :\nA. Épisodes récurrents de crises d'hyperphagie : absorption en temps limité d'une quantité largement supérieure à la normale + sentiment de perte de contrôle\nB. Comportements compensatoires : vomissements provoqués\nC. Fréquence : au moins 1 fois/semaine pendant 3 mois\nD. Estime de soi influencée par le poids et la forme corporelle"
+      },
+      {
+        "question": "Quels éléments rechercher pour caractériser un accès hyperphagique ?",
+        "options": [
+          { "label": "Quantité anormale, durée limitée, perte de contrôle, aliments spécifiques, contexte émotionnel", "correct": true },
+          { "label": "Uniquement la quantité ingérée", "correct": false },
+          { "label": "Le type d'aliment uniquement", "correct": false },
+          { "label": "La fréquence des repas normaux", "correct": false }
+        ],
+        "explanation": "Caractériser l'accès hyperphagique :\n1. Absorption en période limitée (~2h) d'une quantité largement supérieure à la normale\n2. Sentiment de perte de contrôle (ne pas pouvoir s'arrêter)\n3. Contexte : seule, en cachette\n4. Émotions associées : honte, culpabilité\n5. Aliments consommés : souvent riches en calories, \"interdits\"\n6. Fréquence et horaires"
+      },
+      {
+        "question": "Quels risques liés au trouble expliquer à la patiente ?",
+        "options": [
+          { "label": "Hypokaliémie et complications cardiaques, digestives, dentaires, osseuses, psychiatriques", "correct": true },
+          { "label": "Risque de prise de poids uniquement", "correct": false },
+          { "label": "Pas de risque somatique si IMC normal", "correct": false },
+          { "label": "Risque psychiatrique uniquement", "correct": false }
+        ],
+        "explanation": "Risques :\n- Complications somatiques liées aux crises et vomissements\n- Dont hypokaliémie et complications cardiaques ++\n- Autres : digestives (œsophagite, Mallory-Weiss), dentaires (érosion émail), osseuses, endocriniennes\n- Psychiatriques : anxiété, dépression, addictions, évolution vers un autre TCA\n- Retentissement psychosocial"
+      },
+      {
+        "question": "Sa mère avait une anorexie mentale. Est-ce la cause ?",
+        "options": [
+          { "label": "Modèle étiopathogénique complexe, biopsychosocial — facteur de vulnérabilité génétique parmi d'autres", "correct": true },
+          { "label": "Oui, c'est héréditaire à 100%", "correct": false },
+          { "label": "Non, aucun lien", "correct": false },
+          { "label": "C'est causé par l'éducation maternelle", "correct": false }
+        ],
+        "explanation": "Modèle étiopathogénique complexe, biopsychosocial :\n- Facteurs de vulnérabilité dont génétique (héritabilité 50-80%) ET environnementaux\n- ATCD familiaux = facteur de risque, pas cause unique\n- Interaction gène-environnement\n- Ne pas culpabiliser la famille"
+      }
+    ]
+  },
+  {
+    "id": "cas-3-mme-p-evolution",
+    "title": "Mme P., 26 ans — Évolution BED vers BN + grossesse",
+    "source": "DU TCA — Dossiers progressifs (Dr Julia Clarke, GHU Paris)",
+    "difficulty": "avance",
+    "tags": ["BN", "BED", "adulte", "grossesse", "évolution"],
+    "presentation": "Mme P., 26 ans, RH en région parisienne, vit avec son conjoint. Préoccupée par son poids depuis l'adolescence. À 19 ans (départ du domicile familial) : crises d'hyperphagie 1 à 4 fois/semaine, en cachette. Depuis 6 mois : vomissements provoqués après les crises. IMC 19,8.",
+    "questions": [
+      {
+        "question": "Quel diagnostic actuel et quel diagnostic antérieur ?",
+        "options": [
+          { "label": "Actuel : boulimie nerveuse. Antérieur : hyperphagie boulimique (BED)", "correct": true },
+          { "label": "Actuel : BED. Antérieur : anorexie", "correct": false },
+          { "label": "Actuel et antérieur : boulimie", "correct": false },
+          { "label": "Actuel : TCA non spécifié", "correct": false }
+        ],
+        "explanation": "Diagnostic actuel : Boulimie nerveuse (crises + vomissements + préoccupations corporelles, IMC 19,8)\nDiagnostic antérieur : Hyperphagie boulimique (crises d'hyperphagie SANS comportement compensatoire à 19 ans)\nIllustre la possibilité d'évolution d'un type de TCA vers un autre."
+      },
+      {
+        "question": "Quelles autres stratégies de contrôle du poids rechercher ?",
+        "options": [
+          { "label": "Activité physique excessive, laxatifs, restriction, potomanie, exposition au froid/chaud", "correct": true },
+          { "label": "Uniquement les vomissements", "correct": false },
+          { "label": "Uniquement l'exercice physique", "correct": false },
+          { "label": "Pas d'autre stratégie à rechercher", "correct": false }
+        ],
+        "explanation": "Rechercher systématiquement :\n- Activité physique problématique\n- Laxatifs, autres médicaments (diurétiques, coupe-faim)\n- Restriction alimentaire, jeûne\n- Exposition au froid, au chaud\n- Potomanie\n- Mésusage d'insuline (si diabète)"
+      },
+      {
+        "question": "Elle envisage une grossesse. Que répondre ?",
+        "options": [
+          { "label": "Informer sur les risques (fertilité, grossesse, post-partum), idéal = stabilisation avant", "correct": true },
+          { "label": "Contre-indication absolue à la grossesse", "correct": false },
+          { "label": "Aucun risque si IMC normal", "correct": false },
+          { "label": "Attendre la guérison complète avant toute discussion", "correct": false }
+        ],
+        "explanation": "- Retentissement du TCA sur la fertilité : rechercher aménorrhée, discuter contraception\n- L'ovulation peut survenir malgré l'aménorrhée → risque de grossesse non planifiée\n- Risques pendant la grossesse : RCIU, prématurité\n- TCA et post-partum : risque de rechute +++\n- Idéal : stabilisation et suivi adapté AVANT la grossesse"
+      }
+    ]
+  },
+  {
+    "id": "cas-4-mme-r-sportive",
+    "title": "Mme R., 19 ans — AN restrictive + activité physique excessive",
+    "source": "DU TCA — Dossiers progressifs (Dr Julia Clarke, GHU Paris)",
+    "difficulty": "avance",
+    "tags": ["AN", "adulte", "sport", "activité physique", "restrictive"],
+    "presentation": "Mme R., 19 ans, étudiante en droit, course à pied en club depuis 4 ans. Passionnée, « pleine d'énergie ». S'entraîne tous les jours, 20 km/jour en moyenne + musculation. Pour améliorer ses performances, a progressivement restreint son alimentation. IMC = 15.",
+    "questions": [
+      {
+        "question": "Quels symptômes rechercher pour compléter l'observation ?",
+        "options": [
+          { "label": "Croissance, crises d'hyperphagie, sous-type AN, sévérité, aménorrhée, fractures, malaises, comorbidités psy", "correct": true },
+          { "label": "Uniquement l'IMC et le poids", "correct": false },
+          { "label": "Bilan biologique seul", "correct": false },
+          { "label": "Évaluation sportive uniquement", "correct": false }
+        ],
+        "explanation": "Rechercher :\n- Croissance staturo-pondérale (courbes)\n- Crises d'hyperphagie et comportements compensatoires → sous-type d'AN\n- Stratégies de contrôle du poids\n- Sévérité du trouble\n- Complications : aménorrhée, blessures, fractures de fatigue, malaises\n- Retentissement cognitif, socialisation\n- Comorbidités psychiatriques"
+      },
+      {
+        "question": "Quelles complications possibles de son trouble ?",
+        "options": [
+          { "label": "Complications de la dénutrition + de l'activité physique problématique + psychiatriques + psychosociales", "correct": true },
+          { "label": "Complications sportives uniquement", "correct": false },
+          { "label": "Pas de complication à 19 ans", "correct": false },
+          { "label": "Complications psychiatriques uniquement", "correct": false }
+        ],
+        "explanation": "Complications de la dénutrition : troubles cognitifs, cardiaques, digestives, hématologiques, endocriniennes, ostéo-articulaires, fonte musculaire, cutanées, bucco-dentaires\nComplications de l'activité physique problématique : cardiaques, ostéo-articulaires (fractures de fatigue), aménorrhée\nComplications psychiatriques : dépression, anxiété, risque suicidaire\nRetentissement psychosocial"
+      },
+      {
+        "question": "Après amélioration, elle craint de faire des crises de boulimie en réintroduisant des aliments. Que répondre ?",
+        "options": [
+          { "label": "Possibilité d'évolution vers un autre TCA, exposition progressive, limiter la restriction cognitive", "correct": true },
+          { "label": "Aucun risque si elle mange normalement", "correct": false },
+          { "label": "Éviter de réintroduire les aliments « à risque »", "correct": false },
+          { "label": "C'est inévitable, ne rien faire", "correct": false }
+        ],
+        "explanation": "- Possibilité d'évolution vers un autre TCA (AN → BN fréquent)\n- Exposition progressive à la diversité alimentaire\n- Limiter la restriction cognitive (pas d'aliments \"interdits\")\n- Renutrition vers un poids de bonne santé\n- Rassurer : l'accompagnement thérapeutique permet de gérer cette phase"
+      }
+    ]
+  }
+]

@@ -1,0 +1,503 @@
+{
+  "id": "reperage-tca",
+  "title": "Repérage des TCA en médecine générale",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Anorexie mentale : prise en charge",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "PNDS AMP 2022 — Anorexie mentale à début précoce",
+    "NICE 2016 — Eating disorders: recognition and treatment",
+    "DU TCA FFAB 2025-2026"
+  ],
+  "root": "age-group",
+  "nodes": {
+    "age-group": {
+      "type": "question",
+      "text": "Quelle est la tranche d'âge du patient ?",
+      "options": [
+        { "label": "Enfant < 10 ans", "next": "enfant-alertes" },
+        { "label": "Adolescent 10-18 ans", "next": "ado-alertes" },
+        { "label": "Adulte > 18 ans", "next": "adulte-alertes" }
+      ]
+    },
+
+    "enfant-alertes": {
+      "type": "checklist",
+      "text": "Signaux d'alerte — Enfant < 10 ans",
+      "info": "Rechercher un ou plusieurs des signes suivants :",
+      "items": [
+        "Cassure ou infléchissement de la courbe staturo-pondérale (poids ET taille)",
+        "Refus alimentaire / sélectivité extrême / néophobie persistante",
+        "Ralentissement ou arrêt de la croissance staturale",
+        "Retard pubertaire",
+        "Plaintes abdominales répétées",
+        "Activité physique excessive pour l'âge",
+        "Malaises"
+      ],
+      "options": [
+        { "label": "≥ 1 signe présent", "next": "enfant-evaluation" },
+        { "label": "Aucun signe", "next": "surveillance" }
+      ]
+    },
+
+    "enfant-evaluation": {
+      "type": "action",
+      "text": "Évaluation clinique — Enfant",
+      "actions": [
+        "Reporter poids, taille, IMC sur les courbes de croissance (carnet de santé)",
+        "Calculer l'indice de Waterlow : Poids / Poids attendu pour la taille",
+        "Évaluation pluridisciplinaire : pédiatrique (gastro + endocrino), pédopsychiatrique, diététique, +/- orthophonie, +/- psychomotricité"
+      ],
+      "info": "⚠ Ne pas utiliser un seuil d'IMC isolé (3e ou 5e percentile insuffisant). C'est l'ÉVOLUTION de la courbe qui compte.",
+      "thresholds": {
+        "waterlow": {
+          "< 80%": "Dénutrition modérée",
+          "< 70%": "Dénutrition sévère"
+        }
+      },
+      "next": "enfant-diagnostic"
+    },
+
+    "enfant-diagnostic": {
+      "type": "question",
+      "text": "Le patient présente-t-il une peur de grossir ou une préoccupation de l'image corporelle ?",
+      "info": "Distinction clé entre AMP et ARFID (critères B et C du DSM-5)",
+      "options": [
+        { "label": "Oui — peur de grossir / préoccupation image", "next": "diagnostic-amp" },
+        { "label": "Non — restriction sans cognition anorexique", "next": "diagnostic-arfid" },
+        { "label": "Autre (mérycisme, TAP)", "next": "diagnostic-tcape" }
+      ]
+    },
+
+    "diagnostic-amp": {
+      "type": "result",
+      "text": "Suspicion d'Anorexie Mentale à début Précoce (AMP)",
+      "severity": "high",
+      "next": "enfant-hospitalisation"
+    },
+
+    "diagnostic-arfid": {
+      "type": "result",
+      "text": "Suspicion d'ARFID (Avoidant/Restrictive Food Intake Disorder)",
+      "severity": "moderate",
+      "next": "enfant-hospitalisation"
+    },
+
+    "diagnostic-tcape": {
+      "type": "result",
+      "text": "Suspicion de TCAPE / Trouble Alimentaire du Petit Enfant",
+      "severity": "moderate",
+      "info": "Rechercher mérycisme, TAP (Trouble de l'Alimentation du nourrisson). Éliminer allergie alimentaire.",
+      "next": "enfant-hospitalisation"
+    },
+
+    "enfant-hospitalisation": {
+      "type": "checklist",
+      "text": "Critères d'hospitalisation — Enfant / Adolescent (HAS 2010)",
+      "info": "L'indication d'hospitalisation ne repose pas sur un seul critère mais sur leur association et leur évolutivité. Présence d'au moins 1 critère = hospitalisation.",
+      "sections": [
+        {
+          "title": "Anamnestiques",
+          "items": [
+            "Perte de poids rapide : > 2 kg/semaine",
+            "Aphagie totale (refus de manger)",
+            "Refus de boire",
+            "Lipothymies ou malaises d'allure orthostatique",
+            "Fatigabilité voire épuisement"
+          ]
+        },
+        {
+          "title": "Cliniques",
+          "items": [
+            "IMC < 12,7 kg/m² (13-14 ans) / < 13,2 (15-16 ans) / < 14 (> 17 ans)",
+            "Bradycardie < 40/min (débat : < 50/min pour < 12 ans selon AAP 2021)",
+            "Tachycardie",
+            "PA < 80/50 mmHg ou hypotension orthostatique",
+            "Hypothermie < 35,5°C",
+            "Ralentissement idéique et verbal, confusion",
+            "Syndrome occlusif"
+          ]
+        },
+        {
+          "title": "Paracliniques",
+          "items": [
+            "Hypoglycémie < 0,6 g/L",
+            "Hypokaliémie, hyponatrémie, hypophosphorémie, hypomagnésémie",
+            "Cytolyse hépatique > 4xN",
+            "Leuconeutropénie < 1000/mm³",
+            "Thrombopénie < 60 000/mm³",
+            "Acétonurie"
+          ]
+        },
+        {
+          "title": "Psychiatriques",
+          "items": [
+            "Tentative de suicide réalisée ou avortée / plan suicidaire",
+            "Automutilations répétées",
+            "Comorbidité psychiatrique sévère"
+          ]
+        }
+      ],
+      "options": [
+        { "label": "≥ 1 critère présent", "next": "hospitalisation-urgente" },
+        { "label": "Aucun critère", "next": "pec-ambulatoire-enfant" }
+      ]
+    },
+
+    "ado-alertes": {
+      "type": "checklist",
+      "text": "Signaux d'alerte — Adolescent 10-18 ans",
+      "info": "Population à plus haut risque (pic de fréquence vers 14 ans, 270/100 000 filles 15-19 ans). Rechercher :",
+      "items": [
+        "Cassure courbe de croissance (poids ET/OU taille)",
+        "Perte de poids rapide",
+        "Aménorrhée primaire ou secondaire (⚠ peut être masquée par contraception)",
+        "Retard pubertaire / arrêt développement pubertaire",
+        "Hyperactivité physique / sport excessif",
+        "Isolement social / baisse résultats scolaires",
+        "Préoccupation excessive image corporelle",
+        "Comportements alimentaires restrictifs ou purgatifs"
+      ],
+      "options": [
+        { "label": "≥ 1 signe présent", "next": "ado-reperage" },
+        { "label": "Aucun signe", "next": "surveillance" }
+      ]
+    },
+
+    "ado-reperage": {
+      "type": "action",
+      "text": "Repérage ciblé — Adolescent",
+      "actions": [
+        "Poser les questions ouvertes HAS 2019",
+        "Administrer le questionnaire SCOFF-F"
+      ],
+      "tools": [
+        {
+          "name": "Questions ouvertes (HAS 2019)",
+          "items": [
+            "As-tu un problème avec ton poids ou ton alimentation ?",
+            "Ton poids t'inquiète-t-il ?",
+            "Est-ce que tu te fais vomir ?"
+          ]
+        },
+        {
+          "name": "SCOFF-F (≥ 2/5 = suspicion)",
+          "items": [
+            "S — Te fais-tu vomir ? (Sick)",
+            "C — As-tu perdu le contrôle sur ton alimentation ? (Control)",
+            "O — As-tu perdu plus de 6 kg en 3 mois ? (One stone)",
+            "F — Te trouves-tu gros(se) alors qu'on te trouve mince ? (Fat)",
+            "F — La nourriture domine-t-elle ta vie ? (Food)"
+          ],
+          "threshold": "≥ 2 réponses positives"
+        }
+      ],
+      "options": [
+        { "label": "Réponses inquiétantes / SCOFF ≥ 2", "next": "ado-evaluation" },
+        { "label": "Rien d'inquiétant", "next": "surveillance" }
+      ]
+    },
+
+    "ado-evaluation": {
+      "type": "action",
+      "text": "Évaluation clinique — Adolescent",
+      "info": "Rechercher le Triple A : Anorexie + Amaigrissement + Aménorrhée",
+      "actions": [
+        "Poids, taille, IMC → reporter sur COURBES DE CROISSANCE",
+        "Constantes : TA, FC, T°",
+        "Stade pubertaire (Tanner)",
+        "Signes de dénutrition : lanugo, acrocyanose, œdèmes",
+        "Signes de purge : hypertrophie parotidienne, signe de Russell, érosions dentaires"
+      ],
+      "next": "ado-diagnostic"
+    },
+
+    "ado-diagnostic": {
+      "type": "question",
+      "text": "Orientation diagnostique",
+      "options": [
+        {
+          "label": "Restriction + peur prise de poids + IMC bas",
+          "description": "ANOREXIE MENTALE",
+          "next": "ado-comorbidites"
+        },
+        {
+          "label": "Crises hyperphagie + compensation (vomissements, laxatifs, sport)",
+          "description": "BOULIMIE NERVEUSE",
+          "next": "ado-comorbidites"
+        },
+        {
+          "label": "Restriction SANS préoccupation image corporelle",
+          "description": "ARFID",
+          "next": "ado-comorbidites"
+        },
+        {
+          "label": "Tableau mixte ou atypique",
+          "description": "TCA non spécifié",
+          "next": "ado-comorbidites"
+        }
+      ]
+    },
+
+    "ado-comorbidites": {
+      "type": "checklist",
+      "text": "Recherche de comorbidités — Adolescent",
+      "items": [
+        "Dépression, anxiété, TOC",
+        "Risque suicidaire +++",
+        "Addictions",
+        "TSA, TDAH",
+        "Traumatisme / harcèlement"
+      ],
+      "next": "enfant-hospitalisation"
+    },
+
+    "adulte-alertes": {
+      "type": "checklist",
+      "text": "Signaux d'alerte — Adulte > 18 ans",
+      "info": "Rechercher un ou plusieurs des signes suivants :",
+      "items": [
+        "Variations pondérales rapides sans cause organique",
+        "Aménorrhée secondaire / troubles fertilité",
+        "Symptômes GI inexpliqués (RGO, transit, douleurs gastriques)",
+        "Problèmes dentaires (érosion émail)",
+        "Hypertrophie parotidienne",
+        "Ostéopénie / fractures de fragilité chez sujet jeune",
+        "Diabète type 1 avec déséquilibre inexpliqué",
+        "Hypokaliémie inexpliquée",
+        "Demande répétée de régime / préoccupation excessive poids"
+      ],
+      "options": [
+        { "label": "≥ 1 signe présent", "next": "adulte-reperage" },
+        { "label": "Aucun signe", "next": "surveillance" }
+      ]
+    },
+
+    "adulte-reperage": {
+      "type": "action",
+      "text": "Repérage ciblé — Adulte",
+      "tools": [
+        {
+          "name": "Questions ouvertes (HAS 2019)",
+          "items": [
+            "Avez-vous ou avez-vous eu un problème avec votre poids ou votre alimentation ?",
+            "Votre poids vous inquiète-t-il de manière excessive ?",
+            "Votre poids influence-t-il la façon dont vous vous sentez ?",
+            "Est-ce que quelqu'un de votre entourage pense que vous avez un problème avec l'alimentation ?",
+            "Est-ce que vous vomissez ?"
+          ]
+        },
+        {
+          "name": "SCOFF-F (≥ 2/5 = suspicion)",
+          "items": [
+            "S — Vous faites-vous vomir ? (Sick)",
+            "C — Avez-vous perdu le contrôle sur votre alimentation ? (Control)",
+            "O — Avez-vous perdu plus de 6 kg en 3 mois ? (One stone)",
+            "F — Vous trouvez-vous gros(se) alors qu'on vous trouve mince ? (Fat)",
+            "F — La nourriture domine-t-elle votre vie ? (Food)"
+          ],
+          "threshold": "≥ 2 réponses positives"
+        }
+      ],
+      "options": [
+        { "label": "Réponses inquiétantes / SCOFF ≥ 2", "next": "adulte-evaluation" },
+        { "label": "Rien d'inquiétant", "next": "surveillance" }
+      ]
+    },
+
+    "adulte-evaluation": {
+      "type": "action",
+      "text": "Évaluation clinique — Adulte",
+      "actions": [
+        "Poids, taille, IMC (P/T²)",
+        "Constantes : TA, FC, T°",
+        "Signes de dénutrition / déshydratation",
+        "Signes de purge : hypertrophie parotidienne, signe de Russell, érosions dentaires"
+      ],
+      "next": "adulte-algorithme"
+    },
+
+    "adulte-algorithme": {
+      "type": "question",
+      "text": "Algorithme diagnostique (Centre Expert TCA)",
+      "info": "Version schématique simplifiée — la pose du diagnostic doit prendre en compte l'histoire de la maladie",
+      "options": [
+        {
+          "label": "IMC < 18,5",
+          "next": "adulte-imc-bas"
+        },
+        {
+          "label": "IMC ≥ 18,5",
+          "next": "adulte-imc-normal"
+        }
+      ]
+    },
+
+    "adulte-imc-bas": {
+      "type": "question",
+      "text": "Accès hyperphagiques ou conduites de purge ?",
+      "options": [
+        { "label": "Non", "description": "ANOREXIE MENTALE restrictive", "next": "adulte-comorbidites" },
+        { "label": "Oui", "description": "ANOREXIE MENTALE avec accès/purge", "next": "adulte-comorbidites" }
+      ]
+    },
+
+    "adulte-imc-normal": {
+      "type": "question",
+      "text": "Accès hyperphagiques ?",
+      "options": [
+        { "label": "Oui", "next": "adulte-compensation" },
+        { "label": "Non — mais préoccupations corporelles", "description": "TCA non spécifié", "next": "adulte-comorbidites" },
+        { "label": "Non — restriction sans préoccupation image", "description": "ARFID", "next": "adulte-comorbidites" }
+      ]
+    },
+
+    "adulte-compensation": {
+      "type": "question",
+      "text": "Comportements compensatoires ? (vomissements, laxatifs, sport excessif, jeûne)",
+      "options": [
+        { "label": "Oui", "description": "BOULIMIE NERVEUSE", "next": "adulte-comorbidites" },
+        { "label": "Non", "description": "HYPERPHAGIE BOULIMIQUE (Binge Eating Disorder)", "next": "adulte-comorbidites" }
+      ]
+    },
+
+    "adulte-comorbidites": {
+      "type": "checklist",
+      "text": "Recherche de comorbidités — Adulte",
+      "items": [
+        "Dépression, anxiété, TOC",
+        "Risque suicidaire",
+        "Addictions (alcool, tabac, substances)",
+        "Troubles de la personnalité",
+        "Diabète / pathologies avec régime"
+      ],
+      "next": "adulte-hospitalisation"
+    },
+
+    "adulte-hospitalisation": {
+      "type": "checklist",
+      "text": "Critères d'hospitalisation — Adulte (HAS 2010)",
+      "info": "L'indication d'hospitalisation ne repose pas sur un seul critère mais sur leur association et leur évolutivité.",
+      "sections": [
+        {
+          "title": "Anamnestiques",
+          "items": [
+            "Perte de 20% du poids en 3 mois",
+            "Malaises / chutes / perte de connaissance",
+            "Vomissements incoercibles",
+            "Échec de la renutrition ambulatoire"
+          ]
+        },
+        {
+          "title": "Cliniques",
+          "items": [
+            "IMC < 14 kg/m²",
+            "Déshydratation clinique",
+            "Amyotrophie importante avec hypotonie axiale",
+            "Hypothermie < 35°C",
+            "Hypotension < 90/60 mmHg",
+            "Bradycardie sinusale < 40/min",
+            "Tachycardie repos > 60/min si IMC < 13"
+          ]
+        },
+        {
+          "title": "Paracliniques",
+          "items": [
+            "ECG anormal (hors fréquence cardiaque)",
+            "Hypoglycémie < 0,6 g/L (ou < 0,3 g/L asymptomatique)",
+            "Cytolyse hépatique > 10xN",
+            "Hypokaliémie < 3 mEq/L",
+            "Hypophosphorémie < 0,5 mmol/L",
+            "Insuffisance rénale (clairance < 40 mL/min)",
+            "Natrémie < 125 ou > 150 mmol/L",
+            "Leucopénie < 1000/mm³ (ou neutrophiles < 500/mm³)"
+          ]
+        },
+        {
+          "title": "Psychiatriques",
+          "items": [
+            "Tentative de suicide réalisée ou avortée / plan suicidaire",
+            "Automutilations répétées",
+            "Comorbidité psychiatrique justifiant hospitalisation"
+          ]
+        },
+        {
+          "title": "Environnementaux",
+          "items": [
+            "Échec de la prise en charge ambulatoire",
+            "Environnement ne permettant pas les soins"
+          ]
+        }
+      ],
+      "options": [
+        { "label": "IMC ≤ 12", "next": "hospitalisation-immediate" },
+        { "label": "≥ 1 autre critère présent", "next": "hospitalisation-urgente" },
+        { "label": "Aucun critère", "next": "pec-ambulatoire-adulte" }
+      ]
+    },
+
+    "hospitalisation-immediate": {
+      "type": "result",
+      "text": "HOSPITALISATION D'URGENCE IMMÉDIATE",
+      "severity": "critical",
+      "actions": [
+        "Repos au lit",
+        "Réchauffement si hypothermie",
+        "Supplémentation immédiate en phosphore (per os ou IV)",
+        "Supplémentation en micronutriments",
+        "Surveillance scope / ECG",
+        "Prévention du syndrome de renutrition inappropriée (SRI)"
+      ]
+    },
+
+    "hospitalisation-urgente": {
+      "type": "result",
+      "text": "HOSPITALISATION RECOMMANDÉE",
+      "severity": "high",
+      "actions": [
+        "Hospitalisation en service adapté (médecine, psychiatrie, ou spécialisé TCA)",
+        "Urgence somatique → réanimation si perturbations métaboliques graves",
+        "Urgence psychiatrique → service psychiatrique si risque suicidaire élevé",
+        "Coordination somatique + psychiatrique indispensable"
+      ]
+    },
+
+    "pec-ambulatoire-enfant": {
+      "type": "result",
+      "text": "Prise en charge ambulatoire pluridisciplinaire — Enfant/Adolescent",
+      "severity": "moderate",
+      "actions": [
+        "Adresser au spécialiste TCA / centre expert",
+        "Suivi somatique rapproché par le médecin traitant",
+        "Évaluation diététique",
+        "Prise en charge pédopsychiatrique / psychologique",
+        "Information et accompagnement de l'entourage +++",
+        "Réévaluation si pas d'amélioration après 1-2 mois de PEC ambulatoire"
+      ]
+    },
+
+    "pec-ambulatoire-adulte": {
+      "type": "result",
+      "text": "Prise en charge ambulatoire pluridisciplinaire — Adulte",
+      "severity": "moderate",
+      "actions": [
+        "Adresser au spécialiste TCA / centre expert",
+        "Suivi somatique rapproché par le médecin traitant",
+        "Évaluation diététique",
+        "Prise en charge psychiatrique / psychologique",
+        "Réévaluation régulière des critères d'hospitalisation"
+      ]
+    },
+
+    "surveillance": {
+      "type": "result",
+      "text": "Pas de suspicion active — Surveillance",
+      "severity": "low",
+      "actions": [
+        "Rester vigilant lors des consultations suivantes",
+        "Surveiller les courbes de croissance (enfant/ado)",
+        "Réévaluer si nouveau signe d'alerte"
+      ]
+    }
+  }
+}

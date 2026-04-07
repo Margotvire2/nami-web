@@ -1,0 +1,154 @@
+[
+  {
+    "id": "an",
+    "nom": "Anorexie Mentale",
+    "code_dsm5": "307.1",
+    "source": "DSM-5 (APA 2013), HAS 2010",
+    "criteres": [
+      {
+        "lettre": "A",
+        "texte": "Restriction des apports énergétiques par rapport aux besoins, aboutissant à un poids significativement trop faible compte tenu de l'âge, du sexe et du stade de développement."
+      },
+      {
+        "lettre": "B",
+        "texte": "Peur intense de prendre du poids ou de devenir gros, alors que le poids est inférieur à la normale, ou persistance de comportements venant interférer avec la prise de poids même en présence d'un poids bas."
+      },
+      {
+        "lettre": "C",
+        "texte": "Altération de la perception du poids ou de la forme de son propre corps, influence excessive du poids ou de la forme corporelle sur l'estime de soi, ou manque de reconnaissance persistant de la gravité de la maigreur actuelle."
+      }
+    ],
+    "sous_types": [
+      { "nom": "Type restrictif", "description": "La perte de poids est obtenue essentiellement par le régime, le jeûne ou l'exercice physique excessif. Pas de crises d'hyperphagie ni de purge." },
+      { "nom": "Type hyperphagique/purgatif", "description": "Crises récurrentes d'hyperphagie et/ou recours à des vomissements provoqués ou à des comportements purgatifs (laxatifs, diurétiques)." }
+    ],
+    "severite_imc": [
+      { "niveau": "Léger", "seuil": "IMC ≥ 17 kg/m²" },
+      { "niveau": "Modéré", "seuil": "IMC 16-16,99" },
+      { "niveau": "Grave", "seuil": "IMC 15-15,99" },
+      { "niveau": "Extrême", "seuil": "IMC < 15" }
+    ],
+    "notes": [
+      "L'aménorrhée n'est plus un critère dans le DSM-5 (l'était dans le DSM-IV)",
+      "Chez l'enfant : les critères sont les mêmes mais les classifications internationales sont peu adaptées à la population pédiatrique",
+      "AMP : apparition avant 13-14 ans, avant les premiers signes pubertaires"
+    ]
+  },
+  {
+    "id": "bn",
+    "nom": "Boulimie Nerveuse",
+    "code_dsm5": "307.51",
+    "source": "DSM-5 (APA 2013), HAS 2019",
+    "criteres": [
+      {
+        "lettre": "A",
+        "texte": "Épisodes récurrents de crises d'hyperphagie (binge eating) : absorption en une période de temps limitée (~2h) d'une quantité de nourriture largement supérieure à ce que la plupart des gens mangeraient + sentiment de perte de contrôle pendant l'épisode."
+      },
+      {
+        "lettre": "B",
+        "texte": "Comportements compensatoires inappropriés et récurrents visant à prévenir la prise de poids : vomissements provoqués, abus de laxatifs, diurétiques, ou autres médicaments, jeûne, exercice physique excessif."
+      },
+      {
+        "lettre": "C",
+        "texte": "Les crises d'hyperphagie et les comportements compensatoires surviennent en moyenne au moins 1 fois par semaine pendant 3 mois."
+      },
+      {
+        "lettre": "D",
+        "texte": "L'estime de soi est influencée de manière excessive par la forme corporelle et le poids."
+      },
+      {
+        "lettre": "E",
+        "texte": "Le trouble ne survient pas exclusivement pendant des épisodes d'anorexie mentale."
+      }
+    ],
+    "sous_types": [],
+    "severite_imc": [
+      { "niveau": "Léger", "seuil": "1-3 épisodes compensatoires/semaine" },
+      { "niveau": "Modéré", "seuil": "4-7 épisodes/semaine" },
+      { "niveau": "Grave", "seuil": "8-13 épisodes/semaine" },
+      { "niveau": "Extrême", "seuil": "≥ 14 épisodes/semaine" }
+    ],
+    "notes": [
+      "IMC souvent normal ou en surpoids",
+      "Le seuil de fréquence a été abaissé du DSM-IV au DSM-5 (2x/sem → 1x/sem)",
+      "Âge moyen de début : 18 ans"
+    ]
+  },
+  {
+    "id": "bed",
+    "nom": "Hyperphagie Boulimique (Binge Eating Disorder)",
+    "code_dsm5": "307.51",
+    "source": "DSM-5 (APA 2013), HAS 2019",
+    "criteres": [
+      {
+        "lettre": "A",
+        "texte": "Épisodes récurrents de crises d'hyperphagie : absorption en temps limité d'une quantité largement supérieure à la normale + sentiment de perte de contrôle."
+      },
+      {
+        "lettre": "B",
+        "texte": "Les épisodes sont associés à au moins 3 des caractéristiques suivantes : manger beaucoup plus rapidement que la normale, manger jusqu'à éprouver une sensation pénible de distension abdominale, manger de grandes quantités sans sensation de faim, manger seul par gêne, se sentir dégoûté de soi-même / déprimé / coupable après."
+      },
+      {
+        "lettre": "C",
+        "texte": "Les crises d'hyperphagie entraînent une détresse marquée."
+      },
+      {
+        "lettre": "D",
+        "texte": "Les crises surviennent en moyenne au moins 1 fois par semaine pendant 3 mois."
+      },
+      {
+        "lettre": "E",
+        "texte": "Les crises ne sont PAS associées à des comportements compensatoires inappropriés (contrairement à la boulimie) et ne surviennent pas exclusivement au cours d'une AN ou BN."
+      }
+    ],
+    "sous_types": [],
+    "severite_imc": [
+      { "niveau": "Léger", "seuil": "1-3 crises/semaine" },
+      { "niveau": "Modéré", "seuil": "4-7 crises/semaine" },
+      { "niveau": "Grave", "seuil": "8-13 crises/semaine" },
+      { "niveau": "Extrême", "seuil": "≥ 14 crises/semaine" }
+    ],
+    "notes": [
+      "Différence clé avec la BN : PAS de comportement compensatoire",
+      "Souvent associé au surpoids ou à l'obésité",
+      "Abaissement du seuil de 6 à 3 mois entre DSM-IV et DSM-5 → augmentation de la prévalence de 50%",
+      "Critique : le critère jours/semaine serait plus pertinent que le nombre de crises/semaine"
+    ]
+  },
+  {
+    "id": "arfid",
+    "nom": "ARFID (Avoidant/Restrictive Food Intake Disorder)",
+    "code_dsm5": "307.59",
+    "source": "DSM-5 (APA 2013)",
+    "criteres": [
+      {
+        "lettre": "A",
+        "texte": "Trouble de l'alimentation ou du comportement alimentaire (ex: manque d'intérêt apparent pour l'alimentation, évitement basé sur les caractéristiques sensorielles, inquiétude concernant les conséquences aversives de l'alimentation) se manifestant par une incapacité persistante à satisfaire ses besoins nutritionnels et/ou énergétiques, associé à au moins un des éléments suivants : perte de poids significative (ou incapacité à atteindre le poids attendu chez l'enfant), déficit nutritionnel significatif, dépendance à un apport nutritionnel entéral ou à des compléments alimentaires oraux, retentissement marqué sur le fonctionnement psychosocial."
+      },
+      {
+        "lettre": "B",
+        "texte": "La perturbation n'est pas mieux expliquée par un manque de nourriture disponible ou par une pratique culturellement admise."
+      },
+      {
+        "lettre": "C",
+        "texte": "Le comportement alimentaire ne survient pas exclusivement au cours d'une anorexie mentale ou d'une boulimie, et il n'y a pas d'argument en faveur d'une perturbation de l'image du corps."
+      },
+      {
+        "lettre": "D",
+        "texte": "Le trouble n'est pas imputable à une affection médicale concomitante ou n'est pas mieux expliqué par un autre trouble mental."
+      }
+    ],
+    "sous_types": [
+      { "nom": "Sélectivité / néophobie", "description": "Évitement basé sur les caractéristiques sensorielles (texture, goût, odeur, couleur)" },
+      { "nom": "Manque d'intérêt", "description": "Petit appétit, absence de plaisir alimentaire" },
+      { "nom": "Phobie", "description": "Phagophobie (peur d'avaler), peur de vomir, peur de s'étouffer" }
+    ],
+    "severite_imc": [],
+    "notes": [
+      "Distinction clé avec l'AN : PAS de peur de grossir ni de préoccupation de l'image corporelle",
+      "Overlap avec l'AMP chez l'enfant — le DSM-5 les distingue par les critères B et C de l'AN (cognitions anorexiques)",
+      "80% de TCA chez les patients TSA, dont fréquemment ARFID",
+      "Nouveau dans le DSM-5 (remplace le « trouble alimentaire du nourrisson » du DSM-IV)"
+    ]
+  }
+]

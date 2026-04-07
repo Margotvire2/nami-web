@@ -42,6 +42,14 @@ export default function MessagesPage() {
         </p>
       </div>
 
+      {/* [LEGAL] Bannière permanente — coordination uniquement */}
+      <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 shrink-0 flex items-center gap-2">
+        <span className="text-amber-600 text-xs font-semibold">⚠</span>
+        <p className="text-xs text-amber-700">
+          Cette messagerie est réservée à la coordination entre professionnels. En cas d&apos;urgence : <span className="font-semibold">15</span> ou <span className="font-semibold">112</span>.
+        </p>
+      </div>
+
       {/* Layout liste + conversation */}
       <div className="flex-1 flex overflow-hidden">
         {/* Liste des care cases */}
@@ -74,7 +82,8 @@ export default function MessagesPage() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <MessageSquare size={32} className="text-muted-foreground/20 mb-3" />
-              <p className="text-sm text-muted-foreground">Sélectionnez un dossier pour voir les messages.</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Démarrez un fil de coordination</p>
+              <p className="text-xs text-muted-foreground/70 max-w-xs">Sélectionnez un dossier patient à gauche pour échanger avec l&apos;équipe de suivi.</p>
             </div>
           )}
         </div>

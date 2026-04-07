@@ -1,0 +1,232 @@
+{
+  "id": "sensations-alimentaires",
+  "title": "Sensations alimentaires : faim, satiété, rassasiement — comprendre et rééduquer",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — Sensations alimentaires (Pr Pierre Bustany, 2024)",
+    "DU TCA — Mécanismes centraux et périphériques faim/satiété (Michèle Chabert, EPHE)",
+    "DU TCA — Mindfulness TCA (Loretta Sala, 2024)",
+    "DU TCA — Approche nutritionnelle étiopathogénie 2025"
+  ],
+  "root": "comprendre-ou-reeduquer",
+  "nodes": {
+    "comprendre-ou-reeduquer": {
+      "type": "question",
+      "text": "Quel est l'objectif ?",
+      "options": [
+        { "label": "Comprendre les mécanismes (expliquer au patient)", "next": "mecanismes" },
+        { "label": "Rééduquer les sensations alimentaires", "next": "reeducation" }
+      ]
+    },
+
+    "mecanismes": {
+      "type": "question",
+      "text": "Quel mécanisme explorer ?",
+      "options": [
+        { "label": "Régulation homéostatique (faim / satiété)", "next": "homeostatique" },
+        { "label": "Régulation hédonique (plaisir / récompense)", "next": "hedonique" },
+        { "label": "Hormones de la faim et de la satiété", "next": "hormones" },
+        { "label": "Dysrégulation dans les TCA", "next": "dysregulation" }
+      ]
+    },
+
+    "homeostatique": {
+      "type": "action",
+      "text": "Régulation homéostatique de la prise alimentaire",
+      "info": "Réponse au déficit nutritionnel. Signaux métaboliques et digestifs.",
+      "sections": [
+        {
+          "title": "Le signal de faim",
+          "items": [
+            "Un signal de faim déclenche le repas (corrélation postprandiale)",
+            "Hypothalamus latéral = \"centre de la faim\"",
+            "Activité contrôlée par : niveau d'utilisation du glucose, NPY, distension gastrique, ghréline, insuline, leptine"
+          ]
+        },
+        {
+          "title": "Le rassasiement",
+          "items": [
+            "Le rassasiement survient lorsque le plaisir s'annule",
+            "Signaux : récepteurs à l'étirement gastrique, chimiorécepteurs intestinaux, osmorécepteurs",
+            "Peptides : CCK, PYY, GLP-1, glucagon",
+            "La ghréline diminue à mesure que l'estomac se distend"
+          ]
+        },
+        {
+          "title": "La satiété",
+          "items": [
+            "État de non-faim entre les repas",
+            "Signaux post-absorptifs : nutriments dans le sang, signaux hépatiques",
+            "Durée dépend de la composition du repas (protéines > lipides > glucides)"
+          ]
+        },
+        {
+          "title": "Séquence normale",
+          "items": [
+            "FAIM → déclenchement du repas → RASSASIEMENT → arrêt du repas → SATIÉTÉ → jusqu'au prochain signal de faim"
+          ]
+        }
+      ]
+    },
+
+    "hedonique": {
+      "type": "action",
+      "text": "Régulation hédonique (plaisir et récompense)",
+      "info": "Réponse au plaisir. Peut surpasser la régulation homéostatique.",
+      "sections": [
+        {
+          "title": "Circuit de la récompense",
+          "items": [
+            "L'humeur détermine le plaisir apporté par les signaux sensoriels de l'aliment",
+            "Neurones de prise alimentaire : signaux sensoriels (goût, odeur) → plaisir → comportement d'ingestion",
+            "Apprentissage : le plaisir est conditionné par l'expérience passée",
+            "Dopamine = neurotransmetteur central du circuit de récompense"
+          ]
+        },
+        {
+          "title": "Valeur hédonique",
+          "items": [
+            "La valeur hédonique d'un aliment diminue pendant le repas (rassasiement sensoriel spécifique)",
+            "Permet la diversification alimentaire : on se lasse d'un goût mais un autre reste appétissant",
+            "Perturbée dans les TCA : l'AN réduit la réponse hédonique, la BN la recherche excessivement"
+          ]
+        },
+        {
+          "title": "Impact des nutriments sur le cerveau",
+          "items": [
+            "Les nutriments modifient directement le fonctionnement cérébral",
+            "Cycles nycthéméraux de la faim et de la satiété",
+            "La restriction cognitive perturbe les signaux hédoniques naturels"
+          ]
+        }
+      ]
+    },
+
+    "hormones": {
+      "type": "action",
+      "text": "Hormones de la faim et de la satiété",
+      "sections": [
+        {
+          "title": "Ghréline — \"hormone de la faim\"",
+          "items": [
+            "Produite par l'estomac",
+            "Taux élevé avant les repas, diminue après",
+            "Stimule l'appétit",
+            "Élevée dans l'AN (résistance à son effet orexigène)",
+            "Rôle dans l'hyperactivité physique de l'AN"
+          ]
+        },
+        {
+          "title": "Leptine — \"hormone de la satiété\"",
+          "items": [
+            "Produite par les adipocytes (tissu adipeux)",
+            "Anti-obésité, signale les réserves énergétiques",
+            "Très basse dans l'AN (masse grasse diminuée) → signal de famine permanent",
+            "Rôle dans l'aménorrhée (influence l'axe gonadotrope)",
+            "Se normalise avec la restauration pondérale"
+          ]
+        },
+        {
+          "title": "Insuline",
+          "items": [
+            "Produite par le pancréas",
+            "Signal de satiété à long terme",
+            "Perturbée dans les associations TCA + diabète",
+            "Mésusage possible (diabulimie)"
+          ]
+        },
+        {
+          "title": "Peptides intestinaux",
+          "items": [
+            "CCK (cholécystokinine) : satiété à court terme",
+            "PYY : réduit l'appétit après le repas",
+            "GLP-1 : satiété, ralentit la vidange gastrique",
+            "NPY (neuropeptide Y) : puissant stimulant de l'appétit"
+          ]
+        }
+      ]
+    },
+
+    "dysregulation": {
+      "type": "action",
+      "text": "Dysrégulation des sensations alimentaires dans les TCA",
+      "sections": [
+        {
+          "title": "Anorexie mentale",
+          "items": [
+            "Ghréline élevée mais résistance à l'effet orexigène → le patient ne ressent plus la faim normalement",
+            "Leptine très basse → signal de famine chronique",
+            "Réduction de la réponse hédonique (le plaisir alimentaire diminue)",
+            "Restriction cognitive : le contrôle volontaire surpasse les signaux corporels",
+            "Altération de l'intéroception (difficulté à percevoir les signaux du corps)",
+            "Effets renforçants de la restriction : sécrétion d'endorphines, sentiment de contrôle"
+          ]
+        },
+        {
+          "title": "Boulimie nerveuse",
+          "items": [
+            "Cycle restriction → faim intense → crises → purge",
+            "Dysrégulation sérotoninergique et dopaminergique",
+            "Recherche excessive de récompense alimentaire",
+            "Perte du signal de rassasiement pendant les crises",
+            "Restriction cognitive intense entre les crises"
+          ]
+        },
+        {
+          "title": "Hyperphagie boulimique (BED)",
+          "items": [
+            "Crises sans restriction préalable (contrairement à la BN)",
+            "Alimentation émotionnelle : les émotions déclenchent la prise alimentaire, pas la faim",
+            "Dysrégulation émotionnelle > dysrégulation métabolique"
+          ]
+        }
+      ]
+    },
+
+    "reeducation": {
+      "type": "action",
+      "text": "Rééduquer les sensations alimentaires",
+      "info": "3 axes de PEC (Loretta Sala, Mindfulness TCA 2024) : réintégrer les ressentis corporels, travailler sur l'évitement expérientiel, travailler sur les cognitions.",
+      "sections": [
+        {
+          "title": "Axe 1 — Réintégrer les ressentis corporels et de goût",
+          "items": [
+            "Pour une alimentation en rapport avec les besoins physiologiques (faim, satiété, rassasiement, plaisir)",
+            "Pour modifier les troubles de l'image du corps",
+            "Pour approcher les émotions \"de l'intérieur\"",
+            "Exercices de pleine conscience alimentaire (manger en conscience)",
+            "Reconnexion aux signaux de faim et de satiété"
+          ]
+        },
+        {
+          "title": "Axe 2 — Travailler sur l'évitement expérientiel",
+          "items": [
+            "Évitement de la douleur, du rejet, de la honte",
+            "L'alimentation (ou la restriction) comme stratégie d'évitement émotionnel",
+            "Exposition progressive aux émotions et aux sensations",
+            "Acceptation plutôt qu'évitement"
+          ]
+        },
+        {
+          "title": "Axe 3 — Travailler sur les cognitions et les schémas",
+          "items": [
+            "Croyances dysfonctionnelles sur l'alimentation, le poids, le corps",
+            "Restriction cognitive : \"aliments interdits\", \"bons/mauvais aliments\"",
+            "Restructuration cognitive (TCC)",
+            "Flexibilité alimentaire : aucun aliment n'est interdit"
+          ]
+        },
+        {
+          "title": "Outils pratiques",
+          "items": [
+            "Mindfulness / pleine conscience alimentaire",
+            "Carnet alimentaire avec sensations (faim 0-10, satiété 0-10, émotions)",
+            "Exposition progressive aux aliments évités",
+            "Structuration des repas (3 repas + collations) pour reréguler les signaux",
+            "Psychomotricité : travail sur la conscience intéroceptive"
+          ]
+        }
+      ]
+    }
+  }
+}

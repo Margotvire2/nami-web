@@ -1,0 +1,180 @@
+{
+  "id": "populations-specifiques-tca",
+  "title": "TCA dans les populations spécifiques",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026 — Module 4",
+    "DU TCA — TCA masculin (Trably)",
+    "DU TCA — Spécificités des TCA chez les mineurs transidentitaires (Joachim)",
+    "DU TCA — Diabètes et TCA",
+    "DU TCA — TCA et comorbidités somatiques"
+  ],
+  "root": "population",
+  "nodes": {
+    "population": {
+      "type": "question",
+      "text": "Quelle population spécifique ?",
+      "options": [
+        { "label": "TCA au masculin", "next": "masculin" },
+        { "label": "Mineurs transidentitaires / non binaires", "next": "trans" },
+        { "label": "Diabète type 1 et TCA", "next": "diabete" },
+        { "label": "Sportifs", "next": "sportifs" }
+      ]
+    },
+
+    "masculin": {
+      "type": "action",
+      "text": "TCA au masculin",
+      "info": "Les TCA masculins sont sous-diagnostiqués. Ne pas réduire les formes masculines à des \"TCA atypiques\".",
+      "sections": [
+        {
+          "title": "Spécificités cliniques",
+          "items": [
+            "Préoccupations corporelles différentes : musculature, taille du sexe, calvitie (vs peau, ventre, poids chez la femme)",
+            "Muscle dysmorphia (dysmorphie musculaire) : un temps considéré comme l'\"anorexie inversée\"",
+            "Symptômes communs avec les TCA féminins : restriction, objectif de leanness, culpabilité post-prandiale, hyperactivité physique",
+            "La dysmorphie musculaire atteint aussi des femmes (10-15%)"
+          ]
+        },
+        {
+          "title": "Difficultés diagnostiques",
+          "items": [
+            "Sous-diagnostic : les outils de dépistage sont souvent calibrés pour les femmes",
+            "Honte et stigmatisation : les hommes consultent moins pour des TCA",
+            "Formes masculines souvent associées à tort à la schizophrénie ou au TSA",
+            "Les critères de l'aménorrhée ne s'appliquent pas → rechercher hypo-testostéronémie"
+          ]
+        },
+        {
+          "title": "Spécificités de PEC",
+          "items": [
+            "Adapter le discours et les outils thérapeutiques",
+            "Rechercher la dysmorphie musculaire",
+            "Rechercher l'usage de stéroïdes anabolisants",
+            "Complications osseuses aussi fréquentes chez le garçon",
+            "Le vécu dans le soin : attention à l'inadaptation des services (majoritairement féminins)"
+          ]
+        }
+      ]
+    },
+
+    "trans": {
+      "type": "action",
+      "text": "TCA chez les mineurs transidentitaires et non binaires",
+      "info": "Sources : Dr S. Joachim et al., 2025 — Spécificités épidémiologiques ++",
+      "sections": [
+        {
+          "title": "Épidémiologie",
+          "items": [
+            "Prévalence élevée de TCA chez les jeunes trans et non binaires",
+            "Outils de dépistage spécifiques : EDE-Q, SCOFF couplé, ADO-BED, NIAS",
+            "Association fréquente avec dysphorie corporelle liée à l'identité de genre"
+          ]
+        },
+        {
+          "title": "Spécificités cliniques",
+          "items": [
+            "La dysphorie corporelle liée au genre peut se confondre avec les préoccupations corporelles du TCA",
+            "Restriction alimentaire possible pour modifier les caractéristiques sexuelles secondaires",
+            "Comportements compensatoires liés à l'insatisfaction corporelle genrée"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "Approche intégrative : PEC du TCA + accompagnement de la transidentité",
+            "Investissement familial central",
+            "Information claire, complète et adaptée",
+            "PEC individuelle et groupale",
+            "Coordination avec l'équipe d'accompagnement de la transidentité"
+          ]
+        }
+      ]
+    },
+
+    "diabete": {
+      "type": "action",
+      "text": "Diabète type 1 et TCA",
+      "info": "TCA 2 à 3 fois plus fréquents chez les patients DT1 (F > H). Prévalence estimée : 7 à 30-39%.",
+      "sections": [
+        {
+          "title": "\"Diabulimie\"",
+          "items": [
+            "Mésusage de l'insuline pour contrôler le poids",
+            "Sous-dosage ou omission volontaire de doses d'insuline",
+            "→ Augmentation glycémie → glycosurie → fuite énergétique urinaire",
+            "→ Augmentation de l'HbA1c",
+            "Complications graves : acidocétose diabétique, rétinopathie accélérée, neuropathie, néphropathie"
+          ]
+        },
+        {
+          "title": "Formes de TCA dans le DT1",
+          "items": [
+            "AN : restriction alimentaire",
+            "BED : crises d'hyperphagie",
+            "Purge osmotique (omission d'insuline)",
+            "Restrictions cognitives liées aux contraintes du diabète"
+          ]
+        },
+        {
+          "title": "Repérage des sujets à risque",
+          "items": [
+            "ATCD familiaux de TCA, de troubles psychiatriques ou de diabète",
+            "ATCD de surpoids ou de TCA précédant le diabète",
+            "Comorbidité psychiatrique",
+            "Étayage familial insuffisant",
+            "HbA1c inexpliquée ou très fluctuante",
+            "Perte de poids inexpliquée chez un DT1"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "Ne pas être trop restrictif ni normatif dans les consignes alimentaires",
+            "PEC intégrée diabéto + TCA (ne pas traiter l'un sans l'autre)",
+            "Prévention : Diabetes Body Project (groupe interactif image corporelle + DT1)",
+            "Psychoéducation adaptée",
+            "Suivi rapproché HbA1c et poids"
+          ]
+        }
+      ]
+    },
+
+    "sportifs": {
+      "type": "action",
+      "text": "TCA et activité physique / sport",
+      "info": "L'activité physique excessive est un facteur de maintien majeur des TCA.",
+      "sections": [
+        {
+          "title": "Usage problématique de l'activité physique",
+          "items": [
+            "Exercice physique excessif et compulsif",
+            "Fréquent dans l'AN (+++ association avec autre indication d'hospitalisation)",
+            "Peut être le mode de compensation principal (AN restrictive ou BN)",
+            "Associé à une présentation clinique plus sévère et un moins bon pronostic"
+          ]
+        },
+        {
+          "title": "Populations sportives à risque",
+          "items": [
+            "Sports à catégorie de poids (judo, boxe, aviron)",
+            "Sports d'endurance (course à pied, cyclisme)",
+            "Sports esthétiques (danse, gymnastique, patinage)",
+            "Triade de l'athlète féminine : TCA + aménorrhée + ostéoporose"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "Évaluer l'activité physique à chaque consultation (fréquence, durée, intensité, modalités)",
+            "Modération puis réintroduction progressive et encadrée",
+            "Aménagements scolaires si nécessaire (EPS)",
+            "Auto-observation de l'activité physique (outils : fiches d'auto-observation)",
+            "Activité physique adaptée (APA) encadrée par un professionnel formé",
+            "⚠ L'exercice excessif seul n'est pas un critère d'hospitalisation, mais en association avec un autre critère → OUI"
+          ]
+        }
+      ]
+    }
+  }
+}

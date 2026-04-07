@@ -1,0 +1,397 @@
+{
+  "id": "bilans-biologiques-tca",
+  "title": "Quels bilans biologiques prescrire et comment les interpréter ?",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Anorexie mentale",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "PNDS AMP 2022",
+    "DU TCA FFAB 2025-2026 — Module 3 (De Tournemire, Blanchet)",
+    "DU TCA — Complications osseuses 2024"
+  ],
+  "root": "contexte-bilan",
+  "nodes": {
+    "contexte-bilan": {
+      "type": "question",
+      "text": "Dans quel contexte prescrivez-vous le bilan ?",
+      "options": [
+        { "label": "Bilan initial (diagnostic posé)", "next": "bilan-initial" },
+        { "label": "Bilan de surveillance en cours de suivi", "next": "bilan-surveillance" },
+        { "label": "Bilan en urgence", "next": "bilan-urgence" },
+        { "label": "Bilan spécifique (osseux, endocrino, fertilité)", "next": "bilan-specifique" }
+      ]
+    },
+
+    "bilan-initial": {
+      "type": "action",
+      "text": "Bilan paraclinique initial (HAS 2010 — une fois le diagnostic établi)",
+      "sections": [
+        {
+          "title": "Bilan biologique standard",
+          "items": [
+            "Hémogramme (NFS) : anémie, leucopénie, thrombopénie",
+            "Ionogramme sanguin : Na+, K+, Cl-, bicarbonates",
+            "Calcémie, phosphorémie, 25-OH vitamine D3",
+            "Fonction rénale : urée, créatinine, clairance de la créatinine",
+            "Fonction hépatique : ALAT, ASAT, PAL, TP",
+            "Albumine, préalbumine",
+            "CRP",
+            "⚠ Il n'est PAS recommandé de faire un dosage de TSH sauf doute diagnostique persistant (hyperthyroïdie)"
+          ]
+        },
+        {
+          "title": "Bilan complémentaire (enfant/ado — PNDS AMP 2022)",
+          "items": [
+            "Folates, B12, ferritine",
+            "TSH, T4 libre, T3 libre (hypothyroïdie fonctionnelle = sd basse T3)",
+            "IGF-1 (retentissement sur la croissance)",
+            "FSH, LH, estradiol (ou testostérone chez le garçon)",
+            "Magnésémie"
+          ]
+        },
+        {
+          "title": "Examens complémentaires non biologiques",
+          "items": [
+            "ECG 12 dérivations (systématique)",
+            "Ostéodensitométrie : après 6 mois d'aménorrhée, puis tous les 2 ans si anomalies ou aménorrhée persistante"
+          ]
+        },
+        {
+          "title": "Bilan supplémentaire si BN/BED (HAS 2019)",
+          "items": [
+            "Examen bucco-dentaire (érosions émail)",
+            "Bilan métabolique si surpoids/obésité : glycémie à jeun, bilan lipidique, HbA1c",
+            "Examen gynécologique"
+          ]
+        }
+      ],
+      "next": "interpretation"
+    },
+
+    "bilan-urgence": {
+      "type": "action",
+      "text": "Bilan biologique en urgence",
+      "info": "À prescrire en urgence devant toute suspicion de décompensation somatique.",
+      "sections": [
+        {
+          "title": "Bilan minimum en urgence",
+          "items": [
+            "Ionogramme sanguin complet (Na+, K+, Cl-, bicarbonates)",
+            "Phosphorémie +++",
+            "Magnésémie",
+            "Glycémie",
+            "Créatinine",
+            "NFS",
+            "Bilan hépatique (ALAT, ASAT)",
+            "BU (acétonurie, glycosurie)",
+            "ECG 12 dérivations"
+          ]
+        },
+        {
+          "title": "Quand répéter le bilan ?",
+          "items": [
+            "En cas de perturbation : répéter selon l'anomalie",
+            "Variations pondérales rapides : répéter Na+, phosphore",
+            "Vomissements provoqués : répéter K+",
+            "Renutrition en cours : phosphorémie QUOTIDIENNE les 5 premiers jours"
+          ]
+        }
+      ],
+      "next": "interpretation"
+    },
+
+    "bilan-surveillance": {
+      "type": "action",
+      "text": "Bilan de surveillance en cours de suivi",
+      "sections": [
+        {
+          "title": "AN en suivi ambulatoire",
+          "items": [
+            "Ionogramme sanguin : selon la sévérité (mensuel si IMC bas, trimestriel si stable)",
+            "Phosphorémie : si renutrition en cours",
+            "NFS : tous les 3-6 mois",
+            "Bilan hépatique : si anomalie initiale ou IMC très bas",
+            "Albumine, préalbumine : reflet de l'état nutritionnel",
+            "ECG : si anomalie initiale ou IMC < 14"
+          ]
+        },
+        {
+          "title": "BN en suivi",
+          "items": [
+            "Ionogramme sanguin : RÉGULIER (risque hypokaliémie chronique)",
+            "Fréquence selon l'intensité des purges (mensuel si purges fréquentes)",
+            "Créatinine : surveillance fonction rénale",
+            "ECG si hypokaliémie ou symptômes cardiaques"
+          ]
+        },
+        {
+          "title": "BED en suivi",
+          "items": [
+            "Bilan métabolique : glycémie à jeun, HbA1c, bilan lipidique",
+            "Bilan hépatique (stéatose)",
+            "Fréquence : tous les 6-12 mois selon comorbidités"
+          ]
+        }
+      ]
+    },
+
+    "interpretation": {
+      "type": "question",
+      "text": "Quel marqueur interpréter ?",
+      "options": [
+        { "label": "Ionogramme et électrolytes", "next": "interp-iono" },
+        { "label": "NFS et lignées sanguines", "next": "interp-nfs" },
+        { "label": "Fonction hépatique", "next": "interp-foie" },
+        { "label": "Marqueurs nutritionnels et endocrino", "next": "interp-nutrition" }
+      ]
+    },
+
+    "interp-iono": {
+      "type": "action",
+      "text": "Interprétation de l'ionogramme dans les TCA",
+      "sections": [
+        {
+          "title": "Kaliémie (K+)",
+          "items": [
+            "Cause principale : vomissements, laxatifs, diurétiques",
+            "K+ < 3 mEq/L = critère d'hospitalisation HAS",
+            "Risque : troubles du rythme cardiaque, allongement QT, torsade de pointe",
+            "ECG systématique si hypokaliémie",
+            "Correction : supplémentation K+ per os ou IV selon sévérité"
+          ]
+        },
+        {
+          "title": "Natrémie (Na+)",
+          "items": [
+            "Na+ < 125 mmol/L = critère d'hospitalisation (risque convulsions — potomanie)",
+            "Na+ > 150 mmol/L = critère d'hospitalisation (déshydratation sévère)",
+            "Potomanie : hyponatrémie de dilution (intoxication à l'eau)",
+            "Correction LENTE (risque myélinolyse centropontine)"
+          ]
+        },
+        {
+          "title": "Phosphorémie",
+          "items": [
+            "Phosphore < 0,5 mmol/L = critère d'hospitalisation",
+            "Marqueur le plus précoce et spécifique du SRI",
+            "Chute brutale dans les 72h suivant la renutrition = ALERTE SRI",
+            "Surveillance quotidienne pendant la renutrition",
+            "Supplémentation systématique si renutrition d'un patient dénutri"
+          ]
+        },
+        {
+          "title": "Réserve alcaline / Chlore",
+          "items": [
+            "Alcalose métabolique hypochlorémique = vomissements",
+            "Acidose métabolique = laxatifs",
+            "Utile pour objectiver des conduites purgatives niées par le patient"
+          ]
+        },
+        {
+          "title": "Magnésémie",
+          "items": [
+            "Souvent basse dans la dénutrition sévère",
+            "Hypomagnésémie aggrave l'hypokaliémie (rend la correction du K+ difficile)",
+            "À corriger en parallèle du potassium"
+          ]
+        }
+      ]
+    },
+
+    "interp-nfs": {
+      "type": "action",
+      "text": "Interprétation de la NFS dans les TCA",
+      "sections": [
+        {
+          "title": "Leucopénie / neutropénie",
+          "items": [
+            "Leucopénie < 1000/mm³ = critère d'hospitalisation",
+            "Neutrophiles < 500/mm³ = critère d'hospitalisation",
+            "Fréquente dans la dénutrition sévère (atteinte médullaire)",
+            "Risque infectieux augmenté",
+            "Se normalise avec la renutrition"
+          ]
+        },
+        {
+          "title": "Thrombopénie",
+          "items": [
+            "Plaquettes < 60 000/mm³ = critère d'hospitalisation",
+            "Atteinte médullaire de la dénutrition"
+          ]
+        },
+        {
+          "title": "Anémie",
+          "items": [
+            "Anémie possible (carence en fer, B12, folates)",
+            "Doser ferritine, B12, folates si anémie",
+            "Peut être masquée par l'hémoconcentration (déshydratation)"
+          ]
+        },
+        {
+          "title": "Myélogramme",
+          "items": [
+            "Indiqué si pancytopénie sévère inexpliquée",
+            "Moelle de déprivation / atrophie séreuse = dénutrition",
+            "Réversible avec la renutrition"
+          ]
+        }
+      ]
+    },
+
+    "interp-foie": {
+      "type": "action",
+      "text": "Interprétation du bilan hépatique dans les TCA",
+      "sections": [
+        {
+          "title": "Cytolyse hépatique",
+          "items": [
+            "Cytolyse > 4xN (enfant/ado) ou > 10xN (adulte) = critère d'hospitalisation",
+            "2 causes possibles :",
+            "1. Hépatite de dénutrition (foie de jeûne) : IMC très bas, cytolyse modérée",
+            "2. Hépatite de renutrition (SRI) : cytolyse survenant pendant la reprise alimentaire",
+            "⚠ Si cytolyse + signes d'insuffisance hépatocellulaire → réanimation"
+          ]
+        },
+        {
+          "title": "Conduite à tenir",
+          "items": [
+            "Si bilan hépatique perturbé + IMC < 12 : ration calorique < 30 kcal/kg/j",
+            "Si bilan hépatique normal + IMC < 12 : ration 30-40 kcal/kg/j",
+            "Surveillance du TP (facteur de gravité)",
+            "Contrôle bilan hépatique à J2-J3 de la renutrition"
+          ]
+        }
+      ]
+    },
+
+    "interp-nutrition": {
+      "type": "action",
+      "text": "Marqueurs nutritionnels et endocriniens",
+      "sections": [
+        {
+          "title": "Albumine et préalbumine",
+          "items": [
+            "Albumine : marqueur d'état nutritionnel à long terme (demi-vie 20j)",
+            "Préalbumine (transthyrétine) : marqueur d'état nutritionnel à court terme (demi-vie 2j)",
+            "Utiles pour le suivi de la renutrition",
+            "⚠ L'albumine peut être faussement normale par hémoconcentration"
+          ]
+        },
+        {
+          "title": "Glycémie",
+          "items": [
+            "Hypoglycémie : adaptation au jeûne",
+            "< 0,6 g/L symptomatique = critère d'hospitalisation",
+            "< 0,3 g/L même asymptomatique = critère d'hospitalisation",
+            "Rechercher insuffisance hépatique associée"
+          ]
+        },
+        {
+          "title": "Thyroïde",
+          "items": [
+            "Syndrome de basse T3 : adaptation à la dénutrition (pas une hypothyroïdie vraie)",
+            "TSH souvent normale ou basse",
+            "Ne PAS traiter par hormones thyroïdiennes",
+            "Se normalise avec la renutrition",
+            "Dosage TSH : uniquement si doute diagnostique avec hyperthyroïdie"
+          ]
+        },
+        {
+          "title": "Axe gonadotrope",
+          "items": [
+            "FSH, LH basses (hypogonadisme hypogonadotrope fonctionnel)",
+            "Estradiol bas (femme) / testostérone basse (homme)",
+            "Cause de l'aménorrhée, de l'ostéoporose, du retard pubertaire",
+            "Se normalise avec la restauration pondérale",
+            "Ne PAS substituer par hormones sexuelles pour traiter l'ostéoporose de l'AN"
+          ]
+        },
+        {
+          "title": "IGF-1",
+          "items": [
+            "Basse dans la dénutrition",
+            "Reflet du retentissement sur la croissance (enfant/ado)",
+            "Utile pour le suivi de la renutrition chez l'enfant"
+          ]
+        },
+        {
+          "title": "⚠ Marqueurs diagnostiques ?",
+          "items": [
+            "Il n'existe PAS de marqueur biologique permettant de DIAGNOSTIQUER un TCA",
+            "Le diagnostic est CLINIQUE (critères DSM-5)",
+            "Les marqueurs biologiques servent à évaluer la GRAVITÉ et les COMPLICATIONS",
+            "Un bilan normal n'exclut PAS un TCA"
+          ]
+        }
+      ]
+    },
+
+    "bilan-specifique": {
+      "type": "question",
+      "text": "Quel bilan spécifique ?",
+      "options": [
+        { "label": "Bilan osseux", "next": "bilan-osseux" },
+        { "label": "Bilan endocrinien complet", "next": "bilan-endocrino" },
+        { "label": "Bilan de fertilité", "next": "bilan-fertilite" },
+        { "label": "Bilan cardiaque", "next": "bilan-cardiaque" }
+      ]
+    },
+
+    "bilan-osseux": {
+      "type": "result",
+      "text": "Bilan osseux",
+      "severity": "moderate",
+      "actions": [
+        "Ostéodensitométrie (DMO) : indication remboursée si hypogonadisme",
+        "Après 6 mois d'aménorrhée, puis tous les 2 ans si anomalies",
+        "Biologie : calcémie, phosphorémie, albuminémie, créatinine, 25-OH vitamine D",
+        "Évaluation de la ration calcique par questionnaire",
+        "Pas de place pour les marqueurs du remodelage osseux en routine",
+        "Seuils : Z-score < -2 (ado), T-score < -2,5 (adulte) = ostéoporose"
+      ]
+    },
+
+    "bilan-endocrino": {
+      "type": "result",
+      "text": "Bilan endocrinien complet",
+      "severity": "moderate",
+      "actions": [
+        "TSH, T4L, T3L : syndrome de basse T3 (adaptation, pas hypothyroïdie vraie)",
+        "FSH, LH, estradiol (femme) ou testostérone (homme)",
+        "IGF-1 (retentissement croissance, enfant)",
+        "Cortisol libre urinaire (hypercorticisme fonctionnel dans l'AN)",
+        "Leptine (recherche, pas en routine)",
+        "À interpréter dans le contexte nutritionnel : la plupart se normalisent avec la renutrition"
+      ]
+    },
+
+    "bilan-fertilite": {
+      "type": "result",
+      "text": "Bilan de fertilité",
+      "severity": "moderate",
+      "actions": [
+        "FSH, LH, estradiol",
+        "Échographie pelvienne (évaluation ovarienne)",
+        "AMH si bilan de fertilité approfondi",
+        "⚠ L'ovulation peut survenir malgré l'aménorrhée → discuter contraception",
+        "Idéal : stabilisation du TCA AVANT projet de grossesse",
+        "Rechercher aménorrhée : primaire (jamais eu de règles) ou secondaire"
+      ]
+    },
+
+    "bilan-cardiaque": {
+      "type": "result",
+      "text": "Bilan cardiaque",
+      "severity": "high",
+      "actions": [
+        "ECG 12 dérivations SYSTÉMATIQUE : rechercher QT long, bradycardie, troubles du rythme, onde U",
+        "Scope si IMC < 14 ou anomalie ionique",
+        "Échographie cardiaque si suspicion d'épanchement péricardique ou d'insuffisance cardiaque",
+        "Seuils ECG critiques :",
+        "— Bradycardie < 40/min = critère d'hospitalisation",
+        "— QT corrigé > 450 ms = risque de torsade de pointe",
+        "— Tachycardie repos > 60/min si IMC < 13 = critère d'hospitalisation"
+      ]
+    }
+  }
+}

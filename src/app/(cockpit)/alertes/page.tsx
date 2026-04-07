@@ -8,25 +8,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Bell, AlertTriangle, CheckCircle2, Clock, FileText } from "lucide-react";
+import { ClipboardList, CheckCircle2, Clock, FileText, Info } from "lucide-react";
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
+// [LEGAL] Wording conforme : indicateurs de complétude, jamais "alerte clinique"
 
 const SEVERITY_META: Record<string, { label: string; className: string; order: number }> = {
-  CRITICAL: { label: "Critique",     className: "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border", order: 0 },
-  HIGH:     { label: "Élevé",        className: "bg-severity-high-bg text-severity-high-foreground border-severity-high-border",             order: 1 },
-  WARNING:  { label: "Attention",    className: "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",    order: 2 },
-  INFO:     { label: "Information",  className: "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",             order: 3 },
+  CRITICAL: { label: "À traiter en priorité", className: "bg-severity-critical-bg text-severity-critical-foreground border-severity-critical-border", order: 0 },
+  HIGH:     { label: "À compléter",           className: "bg-severity-high-bg text-severity-high-foreground border-severity-high-border",             order: 1 },
+  WARNING:  { label: "À vérifier",            className: "bg-severity-warning-bg text-severity-warning-foreground border-severity-warning-border",    order: 2 },
+  INFO:     { label: "Information",            className: "bg-severity-info-bg text-severity-info-foreground border-severity-info-border",             order: 3 },
 };
 
 const ALERT_TYPE_LABEL: Record<string, string> = {
-  PATIENT_INACTIVE: "Patient inactif",
-  NO_FOLLOW_UP_SCHEDULED: "Pas de suivi programmé",
-  MISSING_DOCUMENT: "Document manquant",
-  SYMPTOM_ESCALATION: "Escalade symptômes",
-  INCOMPLETE_CARE_TEAM: "Équipe incomplète",
+  PATIENT_INACTIVE: "Activité patient à vérifier",
+  NO_FOLLOW_UP_SCHEDULED: "Prochain rendez-vous à planifier",
+  MISSING_DOCUMENT: "Document à compléter",
+  SYMPTOM_ESCALATION: "Élément à documenter",
+  INCOMPLETE_CARE_TEAM: "Équipe à compléter",
   OVERDUE_TASK: "Tâche en retard",
-  REFERRAL_PENDING_TOO_LONG: "Adressage en attente",
+  REFERRAL_PENDING_TOO_LONG: "Adressage en attente de réponse",
 };
 
 const STATUS_TABS = [
@@ -98,15 +99,15 @@ export default function AlertesPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold flex items-center gap-2">
-              <Bell size={16} /> Alertes
+              <ClipboardList size={16} /> Organisation des dossiers
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Surveillance clinique cross-patients
+              Indicateurs de complétude de vos dossiers patients
             </p>
           </div>
           <div className="flex items-center gap-3 text-[11px]">
-            {openCount > 0 && <span className="text-foreground font-medium">{openCount} ouverte{openCount > 1 ? "s" : ""}</span>}
-            {criticalCount > 0 && <span className="text-destructive font-semibold">{criticalCount} critique{criticalCount > 1 ? "s" : ""}</span>}
+            {openCount > 0 && <span className="text-foreground font-medium">{openCount} élément{openCount > 1 ? "s" : ""} à traiter</span>}
+            {criticalCount > 0 && <span className="text-amber-600 font-semibold">{criticalCount} prioritaire{criticalCount > 1 ? "s" : ""}</span>}
           </div>
         </div>
       </div>
@@ -143,8 +144,11 @@ export default function AlertesPage() {
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <CheckCircle2 size={28} className="text-green-400 mb-3" />
-            <p className="text-sm text-muted-foreground">
-              {statusFilter === "OPEN" ? "Aucune alerte ouverte." : "Aucune alerte."}
+            <p className="text-sm font-medium text-green-600 mb-1">
+              Tous les éléments du dossier sont à jour
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Aucun élément de complétude ne nécessite votre attention.
             </p>
           </div>
         ) : (
@@ -200,7 +204,12 @@ function AlertCard({ alert, careCase }: {
             </span>
             <span className="text-[10px] text-muted-foreground">{typeLabel}</span>
           </div>
-          <p className="text-sm font-medium">{alert.title}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium">{alert.title}</p>
+            <span title="Indicateur de complétude du dossier — non clinique" className="cursor-help">
+              <Info size={12} className="text-muted-foreground/50" />
+            </span>
+          </div>
           {alert.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{alert.description}</p>}
 
           <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">

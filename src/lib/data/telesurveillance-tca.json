@@ -1,0 +1,864 @@
+{
+  "version": "1.0",
+  "source": "HAS 2010/2019, PNDS AMP 2022, DU TCA FFAB 2025-2026",
+  "description": "Modèle de données de télésurveillance TCA — données à collecter par professionnel, seuils d'alerte automatisés, sources de saisie",
+
+  "professionals": [
+    {
+      "id": "medecin-generaliste",
+      "label": "Médecin généraliste / Pédiatre",
+      "role": "coordinateur_somatique",
+      "frequence_consultation": "hebdomadaire à mensuelle selon sévérité",
+      "datasets": [
+        {
+          "category": "anthropometrie",
+          "label": "Anthropométrie",
+          "fields": [
+            {
+              "id": "poids",
+              "label": "Poids",
+              "type": "number",
+              "unit": "kg",
+              "precision": 1,
+              "frequency": "each_consultation",
+              "source": ["consultation", "ide", "patient_app"],
+              "track_history": true,
+              "alerts": [
+                { "condition": "perte > 2 kg/semaine", "severity": "critical", "population": "enfant_ado", "message": "Perte de poids rapide — critère d'hospitalisation HAS" },
+                { "condition": "perte > 20% en 3 mois", "severity": "critical", "population": "adulte", "message": "Perte pondérale majeure — critère d'hospitalisation HAS" },
+                { "condition": "stagnation > 4 semaines sous objectif", "severity": "high", "message": "Stagnation pondérale — réévaluer la PEC" }
+              ]
+            },
+            {
+              "id": "taille",
+              "label": "Taille",
+              "type": "number",
+              "unit": "cm",
+              "precision": 1,
+              "frequency": "mensuelle_enfant",
+              "source": ["consultation"],
+              "track_history": true,
+              "alerts": [
+                { "condition": "stagnation > 6 mois", "severity": "high", "population": "enfant_ado", "message": "Stagnation staturale — impact croissance" }
+              ]
+            },
+            {
+              "id": "imc",
+              "label": "IMC",
+              "type": "computed",
+              "formula": "poids / (taille/100)²",
+              "unit": "kg/m²",
+              "precision": 1,
+              "track_history": true,
+              "alerts": [
+                { "condition": "< 12", "severity": "critical", "population": "adulte", "message": "IMC ≤ 12 — RÉANIMATION" },
+                { "condition": "< 14", "severity": "critical", "population": "adulte_17plus", "message": "IMC < 14 — critère d'hospitalisation" },
+                { "condition": "< 13.2", "severity": "critical", "population": "ado_15_16", "message": "IMC < 13,2 — critère d'hospitalisation (15-16 ans)" },
+                { "condition": "< 12.7", "severity": "critical", "population": "ado_13_14", "message": "IMC < 12,7 — critère d'hospitalisation (13-14 ans)" }
+              ]
+            },
+            {
+              "id": "pmbs",
+              "label": "Poids Minimum de Bonne Santé (objectif)",
+              "type": "number",
+              "unit": "kg",
+              "precision": 1,
+              "frequency": "initial_puis_revision",
+              "source": ["dieteticien", "consultation"],
+              "notes": "PMBS = IMC cible × taille². IMC cible = couloir antérieur à la maladie."
+            },
+            {
+              "id": "waterlow",
+              "label": "Indice de Waterlow",
+              "type": "computed",
+              "formula": "poids / poids_attendu_taille × 100",
+              "unit": "%",
+              "population": "enfant",
+              "alerts": [
+                { "condition": "< 80", "severity": "high", "message": "Dénutrition modérée (Waterlow < 80%)" },
+                { "condition": "< 70", "severity": "critical", "message": "Dénutrition sévère (Waterlow < 70%)" }
+              ]
+            }
+          ]
+        },
+        {
+          "category": "constantes",
+          "label": "Constantes vitales",
+          "fields": [
+            {
+              "id": "fc",
+              "label": "Fréquence cardiaque",
+              "type": "number",
+              "unit": "bpm",
+              "frequency": "each_consultation",
+              "source": ["consultation", "ide", "patient_app_connected_device"],
+              "track_history": true,
+              "alerts": [
+                { "condition": "< 40", "severity": "critical", "message": "Bradycardie < 40/min — critère d'hospitalisation" },
+                { "condition": "< 50", "severity": "high", "population": "enfant_moins_12", "message": "Bradycardie < 50/min chez enfant < 12 ans — discuter hospitalisation (AAP 2021)" },
+                { "condition": "> 60 si imc < 13", "severity": "critical", "message": "Tachycardie repos > 60/min avec IMC < 13 — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "pa_systolique",
+              "label": "PA systolique",
+              "type": "number",
+              "unit": "mmHg",
+              "frequency": "each_consultation",
+              "source": ["consultation", "ide"],
+              "alerts": [
+                { "condition": "< 90", "severity": "critical", "population": "adulte", "message": "Hypotension < 90 mmHg — critère d'hospitalisation" },
+                { "condition": "< 80", "severity": "critical", "population": "enfant_ado", "message": "PA < 80 mmHg — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "pa_diastolique",
+              "label": "PA diastolique",
+              "type": "number",
+              "unit": "mmHg",
+              "frequency": "each_consultation",
+              "source": ["consultation", "ide"]
+            },
+            {
+              "id": "hypotension_orthostatique",
+              "label": "Hypotension orthostatique",
+              "type": "boolean",
+              "frequency": "each_consultation",
+              "source": ["consultation"],
+              "alerts": [
+                { "condition": "true", "severity": "high", "message": "Hypotension orthostatique présente" }
+              ]
+            },
+            {
+              "id": "temperature",
+              "label": "Température",
+              "type": "number",
+              "unit": "°C",
+              "precision": 1,
+              "frequency": "each_consultation",
+              "source": ["consultation", "ide"],
+              "alerts": [
+                { "condition": "< 35", "severity": "critical", "population": "adulte", "message": "Hypothermie < 35°C — critère d'hospitalisation" },
+                { "condition": "< 35.5", "severity": "critical", "population": "enfant_ado", "message": "Hypothermie < 35,5°C — critère d'hospitalisation" }
+              ]
+            }
+          ]
+        },
+        {
+          "category": "biologie",
+          "label": "Biologie",
+          "fields": [
+            {
+              "id": "kaliemie",
+              "label": "Kaliémie (K+)",
+              "type": "number",
+              "unit": "mEq/L",
+              "precision": 1,
+              "source": ["laboratoire", "consultation_saisie"],
+              "track_history": true,
+              "alerts": [
+                { "condition": "< 3", "severity": "critical", "message": "Hypokaliémie < 3 mEq/L — critère d'hospitalisation. ECG urgent." },
+                { "condition": "< 3.5", "severity": "high", "message": "Hypokaliémie modérée — surveillance rapprochée" }
+              ]
+            },
+            {
+              "id": "natremie",
+              "label": "Natrémie (Na+)",
+              "type": "number",
+              "unit": "mmol/L",
+              "precision": 0,
+              "source": ["laboratoire"],
+              "track_history": true,
+              "alerts": [
+                { "condition": "< 125", "severity": "critical", "message": "Hyponatrémie < 125 — risque convulsions (potomanie)" },
+                { "condition": "> 150", "severity": "critical", "message": "Hypernatrémie > 150 — déshydratation sévère" }
+              ]
+            },
+            {
+              "id": "phosphoremie",
+              "label": "Phosphorémie",
+              "type": "number",
+              "unit": "mmol/L",
+              "precision": 2,
+              "source": ["laboratoire"],
+              "track_history": true,
+              "alerts": [
+                { "condition": "< 0.5", "severity": "critical", "message": "Hypophosphorémie < 0,5 — critère d'hospitalisation. Marqueur SRI." },
+                { "condition": "baisse > 30% en 72h", "severity": "critical", "message": "Chute brutale phosphore — ALERTE SRI" }
+              ]
+            },
+            {
+              "id": "magnesemie",
+              "label": "Magnésémie",
+              "type": "number",
+              "unit": "mmol/L",
+              "precision": 2,
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 0.7", "severity": "high", "message": "Hypomagnésémie — corriger (aggrave l'hypokaliémie)" }
+              ]
+            },
+            {
+              "id": "glycemie",
+              "label": "Glycémie",
+              "type": "number",
+              "unit": "g/L",
+              "precision": 2,
+              "source": ["laboratoire", "ide_capillaire"],
+              "alerts": [
+                { "condition": "< 0.6 symptomatique", "severity": "critical", "message": "Hypoglycémie symptomatique — critère d'hospitalisation" },
+                { "condition": "< 0.3", "severity": "critical", "message": "Hypoglycémie sévère < 0,3 g/L — critère d'hospitalisation même asymptomatique" }
+              ]
+            },
+            {
+              "id": "hemoglobine",
+              "label": "Hémoglobine",
+              "type": "number",
+              "unit": "g/dL",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 10", "severity": "high", "message": "Anémie — rechercher carence" }
+              ]
+            },
+            {
+              "id": "leucocytes",
+              "label": "Leucocytes",
+              "type": "number",
+              "unit": "/mm³",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 1000", "severity": "critical", "message": "Leucopénie < 1000 — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "pnn",
+              "label": "Polynucléaires neutrophiles",
+              "type": "number",
+              "unit": "/mm³",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 500", "severity": "critical", "message": "Neutropénie < 500 — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "plaquettes",
+              "label": "Plaquettes",
+              "type": "number",
+              "unit": "/mm³",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 60000", "severity": "critical", "message": "Thrombopénie < 60 000 — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "alat",
+              "label": "ALAT",
+              "type": "number",
+              "unit": "UI/L",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "> 4xN", "severity": "critical", "population": "enfant_ado", "message": "Cytolyse > 4×N — critère d'hospitalisation enfant" },
+                { "condition": "> 10xN", "severity": "critical", "population": "adulte", "message": "Cytolyse > 10×N — critère d'hospitalisation adulte. Si signes IHC → réanimation" }
+              ]
+            },
+            {
+              "id": "creatinine",
+              "label": "Créatinine",
+              "type": "number",
+              "unit": "µmol/L",
+              "source": ["laboratoire"]
+            },
+            {
+              "id": "clairance_creat",
+              "label": "Clairance créatinine",
+              "type": "number",
+              "unit": "mL/min",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 40", "severity": "critical", "message": "Insuffisance rénale (clairance < 40) — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "albumine",
+              "label": "Albumine",
+              "type": "number",
+              "unit": "g/L",
+              "source": ["laboratoire"],
+              "notes": "Marqueur nutritionnel long terme (demi-vie 20j). Peut être faussement normal si hémoconcentration."
+            },
+            {
+              "id": "prealbumine",
+              "label": "Préalbumine",
+              "type": "number",
+              "unit": "g/L",
+              "source": ["laboratoire"],
+              "notes": "Marqueur nutritionnel court terme (demi-vie 2j). Utile pour le suivi de la renutrition."
+            },
+            {
+              "id": "tsh",
+              "label": "TSH",
+              "type": "number",
+              "unit": "mUI/L",
+              "source": ["laboratoire"],
+              "notes": "Non recommandé en routine sauf doute diagnostique (hyperthyroïdie). Sd basse T3 = adaptation, pas hypothyroïdie."
+            },
+            {
+              "id": "vitamine_d",
+              "label": "25-OH Vitamine D",
+              "type": "number",
+              "unit": "ng/mL",
+              "source": ["laboratoire"],
+              "alerts": [
+                { "condition": "< 20", "severity": "moderate", "message": "Carence en vitamine D — supplémentation" }
+              ]
+            }
+          ]
+        },
+        {
+          "category": "ecg",
+          "label": "ECG",
+          "fields": [
+            {
+              "id": "qtc",
+              "label": "QTc",
+              "type": "number",
+              "unit": "ms",
+              "source": ["consultation"],
+              "alerts": [
+                { "condition": "> 450", "severity": "critical", "message": "QTc allongé > 450 ms — risque torsade de pointe" }
+              ]
+            },
+            {
+              "id": "ecg_anomalie",
+              "label": "Anomalie ECG",
+              "type": "boolean",
+              "source": ["consultation"],
+              "alerts": [
+                { "condition": "true", "severity": "critical", "message": "Anomalie ECG (hors FC) — critère d'hospitalisation" }
+              ]
+            },
+            {
+              "id": "onde_u",
+              "label": "Onde U présente",
+              "type": "boolean",
+              "source": ["consultation"],
+              "alerts": [
+                { "condition": "true", "severity": "high", "message": "Onde U — signe d'hypokaliémie, vérifier ionogramme" }
+              ]
+            }
+          ]
+        },
+        {
+          "category": "puberte",
+          "label": "Puberté et croissance",
+          "population": "enfant_ado",
+          "fields": [
+            {
+              "id": "tanner",
+              "label": "Stade de Tanner",
+              "type": "select",
+              "options": ["1", "2", "3", "4", "5"],
+              "source": ["consultation"],
+              "frequency": "trimestrielle",
+              "alerts": [
+                { "condition": "stagnation > 1 an", "severity": "high", "message": "Retard ou arrêt pubertaire — avis endocrino" }
+              ]
+            },
+            {
+              "id": "age_osseux",
+              "label": "Âge osseux",
+              "type": "number",
+              "unit": "ans",
+              "source": ["radiologie"],
+              "notes": "Rx main-poignet gauche. Utile si retard de croissance."
+            }
+          ]
+        },
+        {
+          "category": "amenorrhee",
+          "label": "Cycles menstruels",
+          "fields": [
+            {
+              "id": "type_amenorrhee",
+              "label": "Type d'aménorrhée",
+              "type": "select",
+              "options": ["pas_amenorrhee", "primaire", "secondaire", "sous_contraception"],
+              "source": ["consultation", "patient_app"]
+            },
+            {
+              "id": "date_dernieres_regles",
+              "label": "Date dernières règles",
+              "type": "date",
+              "source": ["consultation", "patient_app"],
+              "alerts": [
+                { "condition": "> 6 mois", "severity": "moderate", "message": "Aménorrhée > 6 mois — ostéodensitométrie recommandée" }
+              ]
+            },
+            {
+              "id": "contraception",
+              "label": "Contraception",
+              "type": "text",
+              "source": ["consultation"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "psychiatre",
+      "label": "Psychiatre / Pédopsychiatre",
+      "role": "coordinateur_psychiatrique",
+      "frequence_consultation": "hebdomadaire à bimensuelle",
+      "datasets": [
+        {
+          "category": "diagnostic_tca",
+          "label": "Diagnostic TCA",
+          "fields": [
+            { "id": "type_tca", "label": "Type de TCA", "type": "select", "options": ["AN_restrictive", "AN_binge_purge", "BN", "BED", "ARFID", "TCA_non_specifie"], "source": ["consultation"] },
+            { "id": "severite_dsm5", "label": "Sévérité DSM-5", "type": "select", "options": ["leger", "modere", "grave", "extreme"], "source": ["consultation"] },
+            { "id": "anciennete_mois", "label": "Ancienneté du trouble", "type": "number", "unit": "mois", "source": ["consultation"] },
+            { "id": "atcd_tca", "label": "ATCD de TCA (autres types)", "type": "text", "source": ["consultation"] }
+          ]
+        },
+        {
+          "category": "risque_suicidaire",
+          "label": "Risque suicidaire",
+          "fields": [
+            {
+              "id": "ideation_suicidaire",
+              "label": "Idéation suicidaire",
+              "type": "select",
+              "options": ["absente", "passive", "active_sans_plan", "active_avec_plan"],
+              "source": ["consultation", "transcription"],
+              "alerts": [
+                { "condition": "active_avec_plan", "severity": "critical", "message": "Plan suicidaire — HOSPITALISATION" },
+                { "condition": "active_sans_plan", "severity": "high", "message": "Idéation suicidaire active — renforcer suivi" }
+              ]
+            },
+            { "id": "atcd_ts", "label": "ATCD de tentative de suicide", "type": "boolean", "source": ["consultation"] },
+            {
+              "id": "automutilations",
+              "label": "Automutilations",
+              "type": "select",
+              "options": ["absentes", "occasionnelles", "repetees"],
+              "source": ["consultation", "transcription"],
+              "alerts": [
+                { "condition": "repetees", "severity": "critical", "message": "Automutilations répétées — critère d'hospitalisation" }
+              ]
+            },
+            { "id": "moyens_accessibles", "label": "Moyens létaux accessibles", "type": "boolean", "source": ["consultation"], "alerts": [{ "condition": "true", "severity": "critical", "message": "Moyens létaux accessibles — sécuriser l'environnement" }] }
+          ]
+        },
+        {
+          "category": "humeur_anxiete",
+          "label": "Humeur et anxiété",
+          "fields": [
+            { "id": "score_depression", "label": "Score dépression (BDI)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true, "alerts": [{ "condition": "> 29", "severity": "high", "message": "Dépression sévère (BDI > 29)" }] },
+            { "id": "score_anxiete", "label": "Score anxiété (STAI/HAM-A)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true },
+            { "id": "anxiete_preprandiale", "label": "Anxiété pré-prandiale (EVA 0-10)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true, "alerts": [{ "condition": "> 8", "severity": "moderate", "message": "Anxiété pré-prandiale sévère" }] }
+          ]
+        },
+        {
+          "category": "comorbidites",
+          "label": "Comorbidités psychiatriques",
+          "fields": [
+            { "id": "depression", "label": "Épisode dépressif caractérisé", "type": "boolean", "source": ["consultation"] },
+            { "id": "toc", "label": "TOC", "type": "boolean", "source": ["consultation"] },
+            { "id": "trouble_anxieux", "label": "Trouble anxieux", "type": "boolean", "source": ["consultation"] },
+            { "id": "tp", "label": "Trouble de la personnalité", "type": "text", "source": ["consultation"] },
+            { "id": "addictions", "label": "Addictions", "type": "text", "source": ["consultation"] },
+            { "id": "tsa", "label": "TSA", "type": "boolean", "source": ["consultation"] },
+            { "id": "tdah", "label": "TDAH", "type": "boolean", "source": ["consultation"] },
+            { "id": "trauma", "label": "Psychotraumatisme identifié", "type": "boolean", "source": ["consultation"] }
+          ]
+        },
+        {
+          "category": "prescriptions",
+          "label": "Prescriptions",
+          "fields": [
+            { "id": "medicaments", "label": "Traitements en cours", "type": "medication_list", "source": ["consultation"], "fields_per_item": ["molecule", "posologie", "indication", "date_debut"] },
+            { "id": "supplementation", "label": "Supplémentation", "type": "medication_list", "source": ["consultation"] }
+          ]
+        },
+        {
+          "category": "motivation",
+          "label": "Motivation et alliance",
+          "fields": [
+            { "id": "stade_motivation", "label": "Stade de motivation (Prochaska)", "type": "select", "options": ["precontemplation", "contemplation", "preparation", "action", "maintien"], "source": ["consultation", "transcription"] },
+            { "id": "alliance_therapeutique", "label": "Alliance thérapeutique (EVA 0-10)", "type": "number", "source": ["consultation"] },
+            { "id": "deni", "label": "Degré de déni (EVA 0-10)", "type": "number", "source": ["consultation"], "alerts": [{ "condition": "> 7", "severity": "moderate", "message": "Déni important — travail motivationnel prioritaire" }] }
+          ]
+        },
+        {
+          "category": "retentissement",
+          "label": "Retentissement fonctionnel",
+          "fields": [
+            { "id": "fonctionnement_social", "label": "Fonctionnement social (EVA 0-10)", "type": "number", "source": ["consultation", "transcription"], "track_history": true },
+            { "id": "fonctionnement_scolaire_pro", "label": "Fonctionnement scolaire/professionnel (EVA 0-10)", "type": "number", "source": ["consultation", "transcription"], "track_history": true },
+            { "id": "qualite_sommeil", "label": "Qualité sommeil (EVA 0-10)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "psychologue",
+      "label": "Psychologue / Psychothérapeute",
+      "role": "psychotherapie",
+      "frequence_consultation": "hebdomadaire",
+      "datasets": [
+        {
+          "category": "therapie",
+          "label": "Suivi psychothérapeutique",
+          "fields": [
+            { "id": "type_therapie", "label": "Type de thérapie", "type": "select", "options": ["TCC", "FBT_Maudsley", "TIP", "TCD", "psychodynamique", "EMDR", "CRT", "autre"], "source": ["consultation"] },
+            { "id": "phase_fbt", "label": "Phase FBT (si applicable)", "type": "select", "options": ["phase_1", "phase_2", "phase_3"], "source": ["consultation"] },
+            { "id": "objectifs_therapeutiques", "label": "Objectifs thérapeutiques actuels", "type": "text", "source": ["consultation"] },
+            { "id": "progression", "label": "Progression globale (EVA 0-10)", "type": "number", "source": ["consultation"], "track_history": true, "alerts": [{ "condition": "stagnation > 8 semaines", "severity": "moderate", "message": "Stagnation thérapeutique > 2 mois — réévaluer approche" }] }
+          ]
+        },
+        {
+          "category": "cognitions",
+          "label": "Cognitions et émotions",
+          "fields": [
+            { "id": "restriction_cognitive", "label": "Restriction cognitive (EVA 0-10)", "type": "number", "source": ["consultation", "transcription"], "track_history": true },
+            { "id": "preoccupation_poids", "label": "Préoccupation poids/corps (EVA 0-10)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true },
+            { "id": "alexithymie", "label": "Alexithymie suspectée", "type": "boolean", "source": ["consultation"] },
+            { "id": "flexibilite_cognitive", "label": "Flexibilité cognitive (si CRT)", "type": "number", "source": ["consultation"], "track_history": true },
+            { "id": "image_corporelle_eva", "label": "Satisfaction image corporelle (EVA 0-10)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true }
+          ]
+        },
+        {
+          "category": "questionnaires",
+          "label": "Questionnaires standardisés",
+          "fields": [
+            { "id": "edeq_score", "label": "EDE-Q (score global)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true },
+            { "id": "edi_score", "label": "EDI (score)", "type": "number", "source": ["consultation"], "track_history": true },
+            { "id": "eat26_score", "label": "EAT-26 (score)", "type": "number", "source": ["consultation", "patient_app"], "track_history": true, "alerts": [{ "condition": "> 20", "severity": "moderate", "message": "EAT-26 positif (> 20)" }] },
+            { "id": "scoff_score", "label": "SCOFF-F (score)", "type": "number", "source": ["consultation", "patient_app"], "alerts": [{ "condition": ">= 2", "severity": "moderate", "message": "SCOFF positif (≥ 2)" }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dieteticien",
+      "label": "Diététicien(ne)",
+      "role": "nutrition",
+      "frequence_consultation": "hebdomadaire à bimensuelle",
+      "datasets": [
+        {
+          "category": "apports",
+          "label": "Apports alimentaires",
+          "fields": [
+            { "id": "kcal_jour", "label": "Apports estimés", "type": "number", "unit": "kcal/j", "source": ["consultation", "patient_app_carnet"], "track_history": true, "alerts": [{ "condition": "< objectif pendant > 1 semaine", "severity": "high", "message": "Apports inférieurs à l'objectif de renutrition" }] },
+            { "id": "nb_repas_jour", "label": "Nombre de repas/jour", "type": "number", "source": ["consultation", "patient_app_carnet"], "alerts": [{ "condition": "< 3", "severity": "moderate", "message": "Moins de 3 repas/jour — structuration insuffisante" }] },
+            { "id": "collations", "label": "Collations prises", "type": "boolean", "source": ["patient_app_carnet"] },
+            { "id": "hydratation_litres", "label": "Hydratation", "type": "number", "unit": "L/j", "source": ["consultation", "patient_app"], "alerts": [{ "condition": "> 3", "severity": "high", "message": "Potomanie suspectée (> 3L/j) — vérifier natrémie" }] }
+          ]
+        },
+        {
+          "category": "comportement_alimentaire",
+          "label": "Comportement alimentaire",
+          "fields": [
+            { "id": "nb_crises_semaine", "label": "Crises d'hyperphagie / semaine", "type": "number", "source": ["consultation", "patient_app_carnet", "transcription"], "track_history": true, "alerts": [{ "condition": "augmentation > 50%", "severity": "high", "message": "Augmentation des crises — réévaluer" }] },
+            { "id": "nb_purges_semaine", "label": "Conduites de purge / semaine", "type": "number", "source": ["consultation", "patient_app_carnet", "transcription"], "track_history": true, "alerts": [{ "condition": "> 0 nouveau", "severity": "high", "message": "Apparition ou reprise de purges" }] },
+            { "id": "type_purge", "label": "Type de purge", "type": "multiselect", "options": ["vomissements", "laxatifs", "diuretiques", "sport_excessif", "jeune", "insuline_omission"], "source": ["consultation", "transcription"] },
+            { "id": "nb_aliments_acceptes", "label": "Nombre d'aliments acceptés", "type": "number", "source": ["consultation"], "track_history": true, "alerts": [{ "condition": "diminution", "severity": "moderate", "message": "Réduction du répertoire alimentaire" }] },
+            { "id": "aliments_reintroduits", "label": "Aliments réintroduits cette semaine", "type": "text", "source": ["consultation"] },
+            { "id": "aliments_gachettes", "label": "Aliments gâchettes identifiés", "type": "text", "source": ["consultation"] }
+          ]
+        },
+        {
+          "category": "carnet_alimentaire",
+          "label": "Carnet alimentaire (patient)",
+          "fields": [
+            { "id": "repas_detail", "label": "Détail du repas", "type": "text", "source": ["patient_app_carnet"] },
+            { "id": "heure_repas", "label": "Heure du repas", "type": "time", "source": ["patient_app_carnet"] },
+            { "id": "faim_avant", "label": "Faim avant (EVA 0-10)", "type": "number", "source": ["patient_app_carnet"] },
+            { "id": "satiete_apres", "label": "Satiété après (EVA 0-10)", "type": "number", "source": ["patient_app_carnet"] },
+            { "id": "emotion_repas", "label": "Émotion associée", "type": "text", "source": ["patient_app_carnet"] },
+            { "id": "crise_ce_repas", "label": "Crise à ce repas", "type": "boolean", "source": ["patient_app_carnet"] },
+            { "id": "purge_apres", "label": "Purge après ce repas", "type": "boolean", "source": ["patient_app_carnet"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "psychomotricien",
+      "label": "Psychomotricien(ne)",
+      "role": "corporel",
+      "frequence_consultation": "hebdomadaire",
+      "datasets": [
+        {
+          "category": "bilan_psychomoteur",
+          "label": "Bilan psychomoteur",
+          "fields": [
+            { "id": "schema_corporel", "label": "Schéma corporel (EVA 0-10)", "type": "number", "source": ["consultation"], "track_history": true },
+            { "id": "image_corps", "label": "Image du corps (EVA 0-10)", "type": "number", "source": ["consultation"], "track_history": true },
+            { "id": "interoception", "label": "Intéroception faim/satiété (EVA 0-10)", "type": "number", "source": ["consultation"], "track_history": true },
+            { "id": "tonus", "label": "Tonus/posture", "type": "select", "options": ["normal", "hypertonie", "hypotonie", "hypotonie_axiale"], "source": ["consultation"], "alerts": [{ "condition": "hypotonie_axiale", "severity": "high", "message": "Hypotonie axiale — signe de dénutrition sévère" }] },
+            { "id": "rapport_toucher", "label": "Acceptation du contact/toucher (EVA 0-10)", "type": "number", "source": ["consultation"], "track_history": true }
+          ]
+        },
+        {
+          "category": "activite_physique",
+          "label": "Activité physique",
+          "fields": [
+            { "id": "type_ap", "label": "Type d'activité", "type": "text", "source": ["consultation", "patient_app"] },
+            { "id": "duree_ap_semaine", "label": "Durée AP / semaine", "type": "number", "unit": "min", "source": ["consultation", "patient_app", "connected_device"], "track_history": true, "alerts": [{ "condition": "> seuil_prescrit", "severity": "high", "message": "Activité physique excessive — au-delà du cadre prescrit" }] },
+            { "id": "ap_compulsive", "label": "Caractère compulsif de l'AP", "type": "boolean", "source": ["consultation", "transcription"], "alerts": [{ "condition": "true", "severity": "high", "message": "Activité physique compulsive détectée" }] },
+            { "id": "vecu_ap", "label": "Vécu de l'AP (plaisir vs obligation)", "type": "select", "options": ["plaisir", "neutre", "obligation", "compulsion"], "source": ["consultation"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gynecologue",
+      "label": "Gynécologue",
+      "role": "gynecologie",
+      "frequence_consultation": "semestrielle à annuelle",
+      "datasets": [
+        {
+          "category": "gyneco",
+          "label": "Suivi gynécologique",
+          "fields": [
+            { "id": "fsh", "label": "FSH", "type": "number", "unit": "UI/L", "source": ["laboratoire"] },
+            { "id": "lh", "label": "LH", "type": "number", "unit": "UI/L", "source": ["laboratoire"] },
+            { "id": "estradiol", "label": "Estradiol", "type": "number", "unit": "pg/mL", "source": ["laboratoire"], "alerts": [{ "condition": "< 20", "severity": "moderate", "message": "Hypoestrogénie — risque osseux et fertilité" }] },
+            { "id": "echo_pelvienne", "label": "Échographie pelvienne", "type": "text", "source": ["imagerie"] },
+            { "id": "projet_grossesse", "label": "Projet de grossesse", "type": "boolean", "source": ["consultation"], "alerts": [{ "condition": "true si TCA actif", "severity": "high", "message": "Projet de grossesse avec TCA actif — stabiliser AVANT" }] },
+            { "id": "amh", "label": "AMH (si bilan fertilité)", "type": "number", "unit": "ng/mL", "source": ["laboratoire"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "endocrinologue",
+      "label": "Endocrinologue",
+      "role": "endocrinologie",
+      "frequence_consultation": "trimestrielle à semestrielle",
+      "population": "enfant_ado",
+      "datasets": [
+        {
+          "category": "endocrino",
+          "label": "Bilan endocrinien",
+          "fields": [
+            { "id": "igf1", "label": "IGF-1", "type": "number", "source": ["laboratoire"], "notes": "Reflet retentissement sur croissance" },
+            { "id": "t3l", "label": "T3 libre", "type": "number", "source": ["laboratoire"], "notes": "Basse T3 = adaptation, pas hypothyroïdie. Ne pas traiter." },
+            { "id": "cortisol", "label": "Cortisol", "type": "number", "source": ["laboratoire"], "notes": "Hypercorticisme fonctionnel fréquent dans AN." },
+            { "id": "testosterone", "label": "Testostérone (si garçon)", "type": "number", "source": ["laboratoire"] },
+            { "id": "dmo_zscore", "label": "DMO Z-score", "type": "number", "source": ["imagerie"], "alerts": [{ "condition": "< -2", "severity": "high", "message": "Ostéopénie/ostéoporose (Z-score < -2)" }] },
+            { "id": "dmo_tscore", "label": "DMO T-score (adulte)", "type": "number", "source": ["imagerie"], "alerts": [{ "condition": "< -2.5", "severity": "high", "message": "Ostéoporose (T-score < -2,5)" }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dentiste",
+      "label": "Chirurgien-dentiste",
+      "role": "dentaire",
+      "frequence_consultation": "tous les 6 mois si vomissements",
+      "datasets": [
+        {
+          "category": "dentaire",
+          "label": "Suivi dentaire",
+          "fields": [
+            { "id": "bewe_score", "label": "Score BEWE", "type": "number", "source": ["consultation"], "track_history": true, "alerts": [{ "condition": "augmentation", "severity": "moderate", "message": "Progression des érosions dentaires" }] },
+            { "id": "erosions", "label": "Érosions (localisation)", "type": "text", "source": ["consultation"] },
+            { "id": "caries_nouvelles", "label": "Nouvelles caries", "type": "number", "source": ["consultation"] },
+            { "id": "sensibilite", "label": "Hypersensibilité", "type": "boolean", "source": ["consultation", "patient_app"] },
+            { "id": "traitements_dentaires", "label": "Traitements réalisés", "type": "text", "source": ["consultation"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assistante-sociale",
+      "label": "Assistante sociale",
+      "role": "social",
+      "frequence_consultation": "selon besoin",
+      "datasets": [
+        {
+          "category": "social",
+          "label": "Situation sociale",
+          "fields": [
+            { "id": "scolarite_statut", "label": "Statut scolaire/professionnel", "type": "select", "options": ["scolarise_normal", "amenagements", "soins_etudes", "decrochage", "emploi", "arret_travail", "sans_activite"], "source": ["consultation"], "alerts": [{ "condition": "decrochage", "severity": "moderate", "message": "Déscolarisation — intervention assistante sociale" }] },
+            { "id": "ald", "label": "ALD 23 (AN)", "type": "boolean", "source": ["consultation"] },
+            { "id": "aeeh", "label": "AEEH (enfant)", "type": "boolean", "source": ["consultation"] },
+            { "id": "ajpp", "label": "AJPP (présence parentale)", "type": "boolean", "source": ["consultation"] },
+            { "id": "couverture_sociale", "label": "Couverture sociale", "type": "select", "options": ["regime_general", "cmu", "ame", "sans_couverture"], "source": ["consultation"], "alerts": [{ "condition": "sans_couverture", "severity": "high", "message": "Pas de couverture sociale — frein majeur aux soins" }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ide-liberal",
+      "label": "IDE libéral(e)",
+      "role": "surveillance_domicile",
+      "frequence_consultation": "quotidienne à plurihebdomadaire",
+      "datasets": [
+        {
+          "category": "surveillance_quotidienne",
+          "label": "Surveillance quotidienne",
+          "fields": [
+            { "id": "poids_ide", "label": "Poids", "type": "number", "unit": "kg", "source": ["ide"] },
+            { "id": "fc_ide", "label": "FC", "type": "number", "unit": "bpm", "source": ["ide"] },
+            { "id": "pa_ide", "label": "PA", "type": "text", "source": ["ide"] },
+            { "id": "temp_ide", "label": "T°", "type": "number", "unit": "°C", "source": ["ide"] },
+            { "id": "repas_pris", "label": "Repas pris (oui/partiel/non)", "type": "select", "options": ["oui", "partiel", "non"], "source": ["ide"], "alerts": [{ "condition": "non", "severity": "high", "message": "Refus alimentaire total — alerter le médecin" }] },
+            { "id": "cno_pris", "label": "CNO pris", "type": "boolean", "source": ["ide"] },
+            { "id": "comportement_observe", "label": "Comportement observé", "type": "text", "source": ["ide", "transcription"] },
+            { "id": "malaise", "label": "Malaise / chute", "type": "boolean", "source": ["ide"], "alerts": [{ "condition": "true", "severity": "critical", "message": "Malaise signalé — consultation médicale urgente" }] },
+            { "id": "glycemie_capillaire", "label": "Glycémie capillaire", "type": "number", "unit": "g/L", "source": ["ide"], "alerts": [{ "condition": "< 0.6", "severity": "critical", "message": "Hypoglycémie — resucrage + alerte médecin" }] }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "alert_rules": {
+    "description": "Règles d'alerte automatisées combinant les données de plusieurs professionnels",
+    "rules": [
+      {
+        "id": "hospitalisation_somatique",
+        "label": "Critères d'hospitalisation somatique (HAS 2010)",
+        "logic": "OR",
+        "conditions": [
+          "imc < seuil_age",
+          "fc < 40",
+          "pa_systolique < seuil_age",
+          "temperature < seuil_age",
+          "kaliemie < 3",
+          "phosphoremie < 0.5",
+          "natremie < 125 OR > 150",
+          "glycemie < 0.6 symptomatique OR < 0.3",
+          "alat > seuil_age_x_N",
+          "leucocytes < 1000",
+          "plaquettes < 60000",
+          "clairance_creat < 40",
+          "ecg_anomalie = true",
+          "perte_poids_rapide"
+        ],
+        "severity": "critical",
+        "action": "Hospitalisation recommandée — vérifier critères HAS"
+      },
+      {
+        "id": "hospitalisation_psychiatrique",
+        "label": "Critères d'hospitalisation psychiatrique",
+        "logic": "OR",
+        "conditions": [
+          "ideation_suicidaire = active_avec_plan",
+          "automutilations = repetees",
+          "comorbidite_psy_severe = true"
+        ],
+        "severity": "critical",
+        "action": "Hospitalisation psychiatrique recommandée"
+      },
+      {
+        "id": "stagnation_pec",
+        "label": "Stagnation de la PEC ambulatoire",
+        "logic": "AND",
+        "conditions": [
+          "poids stagnant > 4 semaines",
+          "progression_therapeutique stagnante > 8 semaines"
+        ],
+        "severity": "high",
+        "action": "Réévaluer la PEC — discuter intensification (HDJ, HTP)"
+      },
+      {
+        "id": "risque_sri",
+        "label": "Risque de syndrome de renutrition",
+        "logic": "AND",
+        "conditions": [
+          "renutrition_en_cours = true",
+          "phosphoremie en baisse > 20% en 48h"
+        ],
+        "severity": "critical",
+        "action": "ALERTE SRI — surveillance renforcée phosphore quotidien"
+      },
+      {
+        "id": "rdv_manque",
+        "label": "RDV manqué",
+        "logic": "OR",
+        "conditions": [
+          "rdv_manque_count >= 2 consecutifs",
+          "dernier_rdv > frequence_prevue × 2"
+        ],
+        "severity": "high",
+        "action": "Risque de rupture de soins — recontacter le patient"
+      },
+      {
+        "id": "aggravation_comportementale",
+        "label": "Aggravation comportementale",
+        "logic": "OR",
+        "conditions": [
+          "nb_crises_semaine augmentation > 50%",
+          "nb_purges_semaine apparition ou augmentation",
+          "ap_compulsive = true nouveau",
+          "nb_aliments_acceptes en diminution"
+        ],
+        "severity": "high",
+        "action": "Aggravation du TCA — coordonner psy + diét + MG"
+      }
+    ]
+  },
+
+  "data_sources": {
+    "consultation": {
+      "label": "Saisie en consultation",
+      "description": "Le professionnel saisit les données pendant ou après la consultation"
+    },
+    "transcription": {
+      "label": "Retranscription audio",
+      "description": "Données extraites automatiquement de l'enregistrement/retranscription de la consultation"
+    },
+    "patient_app": {
+      "label": "Application patient",
+      "description": "Le patient saisit directement dans son app (humeur, sommeil, EVA)"
+    },
+    "patient_app_carnet": {
+      "label": "Carnet alimentaire (app patient)",
+      "description": "Le patient remplit son carnet alimentaire dans l'app (repas, émotions, crises)"
+    },
+    "patient_app_connected_device": {
+      "label": "Objets connectés patient",
+      "description": "Données remontées automatiquement (balance connectée, montre FC, podomètre)"
+    },
+    "laboratoire": {
+      "label": "Résultats de laboratoire",
+      "description": "Importation automatique des résultats biologiques (HL7/FHIR ou saisie manuelle)"
+    },
+    "imagerie": {
+      "label": "Résultats d'imagerie",
+      "description": "DMO, échographie, IRM — saisie manuelle du résultat"
+    },
+    "ide": {
+      "label": "Saisie IDE (domicile)",
+      "description": "L'IDE libéral saisit les données lors de chaque passage"
+    },
+    "ide_capillaire": {
+      "label": "Mesure capillaire IDE",
+      "description": "Glycémie capillaire au doigt"
+    },
+    "connected_device": {
+      "label": "Dispositif médical connecté",
+      "description": "Balance, tensiomètre, ECG portable — données remontées automatiquement"
+    }
+  },
+
+  "shared_dashboard": {
+    "description": "Données visibles par TOUS les professionnels de l'équipe sur le tableau de bord commun",
+    "fields": [
+      "poids", "imc", "courbe_poids", "pmbs",
+      "fc", "pa_systolique", "pa_diastolique", "temperature",
+      "kaliemie", "phosphoremie", "glycemie", "nfs_resume", "bilan_hepatique_resume",
+      "ecg_resume",
+      "type_tca", "severite_dsm5",
+      "risque_suicidaire_niveau",
+      "traitements_en_cours",
+      "nb_crises_semaine", "nb_purges_semaine",
+      "stade_motivation",
+      "prochains_rdv_equipe",
+      "alertes_actives"
+    ]
+  }
+}

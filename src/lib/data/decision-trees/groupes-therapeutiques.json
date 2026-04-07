@@ -1,0 +1,218 @@
+{
+  "id": "groupes-therapeutiques",
+  "title": "Groupes thérapeutiques, ateliers et médiations dans les TCA",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026",
+    "DU TCA — PEC infirmière 2024",
+    "DU TCA — Psychomotricité (cours DU)",
+    "DU TCA — Mindfulness (Sala 2024)",
+    "DU TCA — DIU TCA slides 2026",
+    "DU TCA — Groupe AN Parents"
+  ],
+  "root": "type-groupe",
+  "nodes": {
+    "type-groupe": {
+      "type": "question",
+      "text": "Quel type de groupe ou d'atelier ?",
+      "options": [
+        { "label": "PEC de groupe pour les patients", "next": "groupes-patients" },
+        { "label": "Groupes pour les familles / parents", "next": "groupes-familles" },
+        { "label": "Médiations corporelles", "next": "mediations-corporelles" },
+        { "label": "Médiations créatives et expressives", "next": "mediations-creatives" }
+      ]
+    },
+
+    "groupes-patients": {
+      "type": "action",
+      "text": "PEC de groupe pour les patients",
+      "sections": [
+        {
+          "title": "Groupes de psychoéducation",
+          "items": [
+            "Information sur la maladie, les mécanismes, les complications",
+            "Travail sur les croyances autour de l'alimentation et du corps",
+            "Compréhension des facteurs de maintien",
+            "En groupe : 45 min, 3-10 participants (format ETP)",
+            "Individuel ou groupe selon disponibilité et indication"
+          ]
+        },
+        {
+          "title": "Groupe de parole",
+          "items": [
+            "Espace d'expression libre, confidentiel",
+            "Partage d'expérience entre patients",
+            "Animé par un professionnel (psychologue, IDE, psychiatre)",
+            "Fréquence : 1 fois/semaine en hospitalisation",
+            "Réduction de l'isolement, validation des émotions"
+          ]
+        },
+        {
+          "title": "Groupe TCC / affirmation de soi",
+          "items": [
+            "Travail sur les pensées automatiques et les schémas cognitifs",
+            "Exercices d'affirmation de soi",
+            "Jeux de rôle : situations sociales, repas, commentaires sur le corps",
+            "Exposition en groupe (repas au self, sortie restaurant)"
+          ]
+        },
+        {
+          "title": "Groupe de rétablissement (modèle CMME)",
+          "items": [
+            "Observer où j'en suis à travers le prisme du rétablissement",
+            "Ressources personnelles et environnementales",
+            "Témoignages et espoir",
+            "Vulnérabilité, sens et confiance",
+            "Expérience des autres et pairs aidants"
+          ]
+        },
+        {
+          "title": "Groupe de compétences TCD",
+          "items": [
+            "2h30/semaine, cycle des 4 modules",
+            "Mindfulness, tolérance à la détresse, régulation émotionnelle, efficacité interpersonnelle",
+            "Exercices pratiques et mise en situation",
+            "Homework entre les s��ances"
+          ]
+        }
+      ]
+    },
+
+    "groupes-familles": {
+      "type": "action",
+      "text": "Groupes pour les familles et les parents",
+      "sections": [
+        {
+          "title": "Groupes de parents",
+          "items": [
+            "Psychoéducation familiale : comprendre la maladie",
+            "Partage d'expérience entre familles",
+            "Réduire l'isolement et la culpabilité parentale",
+            "Outils pratiques : comment se comporter aux repas, comment communiquer",
+            "Fréquence variable : mensuel, bimensuel"
+          ]
+        },
+        {
+          "title": "Thérapie multifamiliale (MFT)",
+          "items": [
+            "Plusieurs familles travaillant ensemble (patients + parents + fratrie)",
+            "Apprentissage par observation des autres familles",
+            "Soutien mutuel entre familles",
+            "Exercices pratiques : repas en commun, jeux de rôle, résolution de problèmes",
+            "Efficacité démontrée dans l'AN de l'adolescent",
+            "Complémentaire à la thérapie familiale individuelle (FBT)"
+          ]
+        },
+        {
+          "title": "Repas thérapeutique familial",
+          "items": [
+            "Le repas est pris en présence des parents dans l'unité de soin",
+            "Observation de la dynamique familiale autour de l'alimentation",
+            "Accompagnement par l'équipe soignante",
+            "Objectif : transférer les compétences acquises en hospitalisation vers le domicile",
+            "Préparation de la sortie"
+          ]
+        },
+        {
+          "title": "Ressources pour les familles",
+          "items": [
+            "Boîte à outils Maudsley (Carers Toolkit)",
+            "Associations : FNA-TCA, FFAB",
+            "Ligne d'écoute : 0 810 037 037",
+            "Groupes de soutien en ligne"
+          ]
+        }
+      ]
+    },
+
+    "mediations-corporelles": {
+      "type": "action",
+      "text": "Médiations corporelles",
+      "info": "Source : Psychomotricité et TCA (cours DU), DIU TCA slides 2026",
+      "sections": [
+        {
+          "title": "Psychomotricité",
+          "items": [
+            "Travail sur le schéma corporel et l'image du corps",
+            "Conscience corporelle (intéroception)",
+            "Médiations : conscience corporelle (impressive), expression corporelle (expressive)",
+            "Avec ou sans objet médiateur",
+            "Verbalisations : 1 mot, couleur, boîte avant/après, cartes Dixit",
+            "Corps et psychotraumatisme : sécurité → relation → conscience → représentation de soi → plaisir"
+          ]
+        },
+        {
+          "title": "Relaxation",
+          "items": [
+            "Détente guidée kinésique",
+            "Relaxation progressive (Jacobson)",
+            "Sophrologie adaptée",
+            "En individuel ou en groupe"
+          ]
+        },
+        {
+          "title": "Mouvement et expression corporelle",
+          "items": [
+            "Mouvement dansé",
+            "Éveil corporel (groupe)",
+            "Yoga th��rapeutique",
+            "Balnéothérapie",
+            "Objectif : se réapproprier son corps au-delà du poids et de l'apparence"
+          ]
+        },
+        {
+          "title": "Activité physique adaptée (APA)",
+          "items": [
+            "Encadrée par un professionnel formé (pas du sport libre)",
+            "Objectif : réintroduire un rapport sain au mouvement",
+            "Auto-observation de l'activité physique et des postures (fiches Hetzel)",
+            "Contrat d'activité physique personnalisé",
+            "Ne pas interdire le sport mais le réintroduire autrement"
+          ]
+        }
+      ]
+    },
+
+    "mediations-creatives": {
+      "type": "action",
+      "text": "Médiations créatives et expressives",
+      "sections": [
+        {
+          "title": "Art-thérapie",
+          "items": [
+            "Dessin, peinture, modelage (terre)",
+            "Expression non verbale des émotions et du vécu",
+            "Pas besoin de talent artistique — le processus compte, pas le résultat",
+            "Début en phase 2 de l'hospitalisation (après la renutrition initiale)",
+            "Efficacité non formellement établie mais pas de contre-indication (HAS)"
+          ]
+        },
+        {
+          "title": "Photographie thérapeutique",
+          "items": [
+            "Travail sur l'image de soi",
+            "Auto-portrait : regarder son image autrement",
+            "Exploration du rapport au corps via l'objectif"
+          ]
+        },
+        {
+          "title": "Ateliers cuisine thérapeutique",
+          "items": [
+            "Réapprivoiser l'aliment par le toucher, l'odeur, la préparation",
+            "Exposition progressive dans un cadre sécurisant",
+            "Aspect social et convivial de la cuisine",
+            "Encadré par le diététicien et/ou l'ergothérapeute"
+          ]
+        },
+        {
+          "title": "Ergothérapie et esthétique",
+          "items": [
+            "Ateliers d'esthétique : prendre soin de son corps autrement que par le contrôle alimentaire",
+            "Ergothérapie : activités de la vie quotidienne, autonomie",
+            "Toucher-détente thérapeutique"
+          ]
+        }
+      ]
+    }
+  }
+}

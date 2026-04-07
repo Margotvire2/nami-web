@@ -1,0 +1,314 @@
+{
+  "id": "suivi-ambulatoire-tca",
+  "title": "Suivi ambulatoire et prévention de la rechute",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Anorexie mentale",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "PNDS AMP 2022",
+    "DU TCA FFAB 2025-2026"
+  ],
+  "root": "contexte-suivi",
+  "nodes": {
+    "contexte-suivi": {
+      "type": "question",
+      "text": "Dans quel contexte se situe le suivi ?",
+      "options": [
+        { "label": "Suivi initial après diagnostic (jamais hospitalisé)", "next": "suivi-initial" },
+        { "label": "Post-hospitalisation temps plein", "next": "suivi-post-hospit" },
+        { "label": "Suivi en cours — réévaluation", "next": "reevaluation" }
+      ]
+    },
+
+    "suivi-initial": {
+      "type": "action",
+      "text": "Mise en place du suivi ambulatoire initial",
+      "info": "La PEC ambulatoire est recommandée en 1re intention si les critères de gravité sont absents.",
+      "sections": [
+        {
+          "title": "Coordination des soins",
+          "items": [
+            "Désigner un médecin coordinateur (généraliste, pédiatre, ou psychiatre selon la situation)",
+            "Constituer l'équipe pluridisciplinaire",
+            "Définir le projet de soins individualisé avec le patient (et les parents si mineur)"
+          ]
+        },
+        {
+          "title": "Équipe pluridisciplinaire",
+          "items": [
+            "Médecin traitant : suivi somatique, constantes, biologie",
+            "Psychiatre / pédopsychiatre : évaluation et suivi psychiatrique",
+            "Psychologue / psychothérapeute : psychothérapie (TCC, familiale, TIP selon indication)",
+            "Diététicien(ne) : suivi nutritionnel",
+            "+/- Assistante sociale",
+            "+/- Groupes thérapeutiques (expression corporelle, groupe de paroles)"
+          ]
+        }
+      ],
+      "next": "suivi-frequence"
+    },
+
+    "suivi-post-hospit": {
+      "type": "action",
+      "text": "Suivi post-hospitalisation",
+      "info": "Les mois suivant une hospitalisation sont une période difficile +++. 30 à 50% de rechute dans l'année.",
+      "sections": [
+        {
+          "title": "Modalités de relais",
+          "items": [
+            "Suivi médical ambulatoire avec l'équipe référente",
+            "Hôpital de jour (HDJ) en relais si besoin d'un suivi plus étayant que la consultation simple",
+            "Possibilité de phases de retour en soins programmées (séquentiel) autour d'objectifs précis"
+          ]
+        },
+        {
+          "title": "Indications HDJ",
+          "items": [
+            "Suivi ambulatoire insuffisant",
+            "Post-hospitalisation nécessitant plus qu'une PEC en ambulatoire",
+            "⚠ Contre-indications HDJ : instabilité somatique/psychiatrique, refus d'engagement"
+          ]
+        },
+        {
+          "title": "Objectifs post-hospitalisation",
+          "items": [
+            "Maintien de la rémission",
+            "Stabilisation du poids",
+            "Maintien des acquis thérapeutiques",
+            "Prévention de la rechute"
+          ]
+        }
+      ],
+      "next": "suivi-frequence"
+    },
+
+    "suivi-frequence": {
+      "type": "action",
+      "text": "Fréquence et contenu des consultations de suivi",
+      "sections": [
+        {
+          "title": "Suivi somatique (médecin traitant)",
+          "items": [
+            "Poids, taille (si enfant/ado), IMC à chaque consultation",
+            "Reporter sur les courbes de croissance (enfant/ado)",
+            "Constantes : TA, FC, T°",
+            "Rechercher signes de dénutrition, déshydratation, purge",
+            "Fréquence : hebdomadaire à mensuelle selon la gravité"
+          ]
+        },
+        {
+          "title": "Bilan biologique de surveillance",
+          "items": [
+            "Ionogramme sanguin (K+, Na+, Cl-, bicarbonates)",
+            "Phosphorémie, magnésémie",
+            "NFS",
+            "Bilan hépatique",
+            "Glycémie",
+            "Créatinine",
+            "Fréquence : selon la sévérité et les conduites de purge"
+          ]
+        },
+        {
+          "title": "Suivi psychiatrique / psychologique",
+          "items": [
+            "Poursuite de la psychothérapie",
+            "Évaluation régulière du risque suicidaire",
+            "Évaluation des comorbidités (dépression, anxiété)",
+            "Thérapie familiale si adolescent"
+          ]
+        },
+        {
+          "title": "Suivi diététique",
+          "items": [
+            "Accompagnement à la diversification alimentaire",
+            "Suivi des objectifs nutritionnels",
+            "Carnet alimentaire si pertinent"
+          ]
+        },
+        {
+          "title": "Suivi spécifique selon le type",
+          "items": [
+            "AN : suivi dentaire, ostéodensitométrie, gynécologique (aménorrhée, fertilité)",
+            "BN : suivi dentaire (érosions), ionogramme régulier",
+            "BED : bilan métabolique (glycémie, lipides, TA)",
+            "ARFID enfant : suivi croissance, supplémentation vitamines"
+          ]
+        }
+      ],
+      "next": "reevaluation"
+    },
+
+    "reevaluation": {
+      "type": "question",
+      "text": "Comment évolue le patient ?",
+      "options": [
+        { "label": "Amélioration (prise de poids, diminution des crises, amélioration psychique)", "next": "evolution-favorable" },
+        { "label": "Stagnation (pas d'amélioration après 1-2 mois)", "next": "evolution-stagnation" },
+        { "label": "Dégradation (perte de poids, augmentation des crises, aggravation psychiatrique)", "next": "evolution-degradation" },
+        { "label": "Suspicion de rechute (après période d'amélioration)", "next": "rechute" }
+      ]
+    },
+
+    "evolution-favorable": {
+      "type": "action",
+      "text": "Évolution favorable — Poursuite du suivi",
+      "actions": [
+        "Maintenir la PEC en cours",
+        "Espacement progressif des consultations",
+        "Maintenir le suivi au moins 1 an après la rémission",
+        "Renforcer les acquis thérapeutiques",
+        "Préparer la fin progressive du suivi"
+      ],
+      "next": "criteres-remission"
+    },
+
+    "criteres-remission": {
+      "type": "checklist",
+      "text": "Critères de rémission (à évaluer régulièrement)",
+      "items": [
+        "Poids stable dans la fourchette cible depuis ≥ 3 mois",
+        "Alimentation diversifiée et autonome",
+        "Absence de conduites de purge",
+        "Absence de restriction alimentaire pathologique",
+        "Reprise des menstruations (si applicable)",
+        "Amélioration de la perception de l'image corporelle",
+        "Amélioration du fonctionnement social, familial, scolaire/professionnel",
+        "Absence de comorbidité psychiatrique active non traitée"
+      ],
+      "options": [
+        { "label": "Tous les critères remplis", "next": "fin-suivi" },
+        { "label": "Rémission partielle", "next": "remission-partielle" }
+      ]
+    },
+
+    "fin-suivi": {
+      "type": "result",
+      "text": "Espacement et fin progressive du suivi",
+      "severity": "low",
+      "actions": [
+        "Espacement des consultations (mensuel → trimestriel → semestriel)",
+        "Maintenir un suivi annuel pendant 2-3 ans",
+        "Donner les consignes de reconsultation si rechute",
+        "Le patient et son entourage doivent connaître les signes d'alerte de rechute"
+      ]
+    },
+
+    "remission-partielle": {
+      "type": "result",
+      "text": "Rémission partielle — Maintien du suivi rapproché",
+      "severity": "moderate",
+      "actions": [
+        "Maintenir la fréquence de suivi actuelle",
+        "Identifier les objectifs non atteints et adapter la PEC",
+        "Réévaluer à 3 mois"
+      ]
+    },
+
+    "evolution-stagnation": {
+      "type": "action",
+      "text": "Stagnation — Réévaluation de la PEC",
+      "info": "Si pas d'amélioration clinique après 1-2 mois de PEC ambulatoire bien conduite.",
+      "actions": [
+        "Réévaluer le diagnostic (forme mixte ? comorbidité manquée ?)",
+        "Réévaluer l'alliance thérapeutique et la motivation",
+        "Réévaluer l'environnement familial et social",
+        "Discuter un changement d'approche psychothérapeutique"
+      ],
+      "next": "stagnation-decision"
+    },
+
+    "stagnation-decision": {
+      "type": "question",
+      "text": "Quelle intensification ?",
+      "options": [
+        { "label": "Renforcer l'ambulatoire (ajout intervenants, augmenter fréquence)", "next": "intensifier-ambulatoire" },
+        { "label": "Passer en hôpital de jour (HDJ)", "next": "passage-hdj" },
+        { "label": "Hospitalisation temps plein", "next": "passage-htp" }
+      ]
+    },
+
+    "intensifier-ambulatoire": {
+      "type": "result",
+      "text": "Intensification ambulatoire",
+      "severity": "moderate",
+      "actions": [
+        "Augmenter la fréquence des consultations",
+        "Ajouter des intervenants si nécessaire (diététicien, psychomotricien...)",
+        "Reprendre le travail motivationnel",
+        "Impliquer davantage la famille/l'entourage",
+        "Réévaluer à 1 mois"
+      ]
+    },
+
+    "passage-hdj": {
+      "type": "result",
+      "text": "Passage en Hôpital de Jour (HDJ)",
+      "severity": "high",
+      "info": "Indications : suivi ambulatoire insuffisant, post-hospitalisation nécessitant un cadre plus étayant.",
+      "actions": [
+        "Orienter vers un HDJ avec compétences TCA",
+        "Définir les objectifs de l'HDJ avec le patient",
+        "Maintenir le suivi avec le médecin traitant en parallèle",
+        "Réévaluer régulièrement l'indication"
+      ]
+    },
+
+    "passage-htp": {
+      "type": "result",
+      "text": "Hospitalisation temps plein",
+      "severity": "high",
+      "actions": [
+        "Vérifier les critères d'hospitalisation HAS (cf. arbre repérage)",
+        "Orienter vers un service spécialisé TCA si possible",
+        "Préparer l'hospitalisation avec le patient et sa famille",
+        "Objectif : durée la plus courte possible avec relais HDJ/ambulatoire"
+      ]
+    },
+
+    "evolution-degradation": {
+      "type": "action",
+      "text": "Dégradation — Évaluation urgente",
+      "actions": [
+        "Réévaluer les critères d'hospitalisation (cf. arbre repérage)",
+        "Bilan biologique en urgence",
+        "ECG",
+        "Évaluation du risque suicidaire",
+        "Peser le patient"
+      ],
+      "next": "degradation-decision"
+    },
+
+    "degradation-decision": {
+      "type": "question",
+      "text": "Critères d'hospitalisation présents ?",
+      "options": [
+        { "label": "Oui — critères somatiques ou psychiatriques", "next": "passage-htp" },
+        { "label": "Non mais dégradation nette", "next": "passage-hdj" },
+        { "label": "Non et dégradation modérée", "next": "intensifier-ambulatoire" }
+      ]
+    },
+
+    "rechute": {
+      "type": "action",
+      "text": "Suspicion de rechute",
+      "info": "Signes d'alerte de rechute : reprise des conduites restrictives ou purgatives, perte de poids, isolement social, arrêt de la psychothérapie.",
+      "actions": [
+        "Recontacter l'équipe référente",
+        "Bilan somatique complet (constantes, biologie)",
+        "Réévaluer les critères d'hospitalisation",
+        "Évaluer le risque suicidaire",
+        "Reprendre un suivi rapproché"
+      ],
+      "next": "rechute-decision"
+    },
+
+    "rechute-decision": {
+      "type": "question",
+      "text": "Quelle est la sévérité de la rechute ?",
+      "options": [
+        { "label": "Rechute légère (perte de poids modérée, reprise partielle des symptômes)", "next": "intensifier-ambulatoire" },
+        { "label": "Rechute sévère (critères de gravité)", "next": "passage-htp" }
+      ]
+    }
+  }
+}

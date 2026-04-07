@@ -1,0 +1,276 @@
+{
+  "id": "parcours-soins-qui-fait-quoi",
+  "title": "Parcours de soins : qui fait quoi ? Vers qui adresser ? Hôpital vs ambulatoire ?",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010/2019",
+    "PNDS AMP 2022",
+    "DU TCA FFAB 2025-2026",
+    "DU TCA — PEC infirmière (2024)",
+    "DU TCA — Psychomotricité et TCA",
+    "DU TCA — HDJ ados TCA"
+  ],
+  "root": "question-parcours",
+  "nodes": {
+    "question-parcours": {
+      "type": "question",
+      "text": "Quelle question sur le parcours de soins ?",
+      "options": [
+        { "label": "Hôpital ou ambulatoire ? Comment décider ?", "next": "hopital-vs-ambulatoire" },
+        { "label": "Qui fait quoi dans l'équipe ?", "next": "equipe-qui-fait-quoi" },
+        { "label": "Vers qui adresser mon patient ?", "next": "adresser" },
+        { "label": "Comment adapter la PEC selon l'évolution ?", "next": "adapter-pec" }
+      ]
+    },
+
+    "hopital-vs-ambulatoire": {
+      "type": "action",
+      "text": "Hôpital vs ambulatoire — Comment décider ?",
+      "sections": [
+        {
+          "title": "Ambulatoire = 1re intention si :",
+          "items": [
+            "Pas de critère somatique d'hospitalisation (IMC > 14 adulte, pas d'anomalie bio grave)",
+            "Pas de critère psychiatrique d'hospitalisation (pas de TS, pas de risque suicidaire élevé)",
+            "Environnement familial/social permettant les soins",
+            "Patient coopérant (même partiellement)",
+            "BN et BED : TOUJOURS ambulatoire en 1re intention"
+          ]
+        },
+        {
+          "title": "Hôpital de jour (HDJ) si :",
+          "items": [
+            "Suivi ambulatoire insuffisant",
+            "Post-hospitalisation nécessitant plus que la consultation simple",
+            "Critère pondéral (variable selon les services)",
+            "Patient capable de s'engager dans ce type de PEC",
+            "⚠ Contre-indications : instabilité somatique/psychiatrique, refus d'engagement"
+          ]
+        },
+        {
+          "title": "Hospitalisation temps plein (HTP) si :",
+          "items": [
+            "≥ 1 critère somatique d'hospitalisation HAS 2010",
+            "≥ 1 critère psychiatrique d'hospitalisation",
+            "Échec ambulatoire après 1-2 mois de PEC bien conduite",
+            "Environnement familial ne permettant pas les soins",
+            "BN : urgence (hypokaliémie, risque suicidaire, état de mal boulimique, échec ambulatoire)"
+          ]
+        },
+        {
+          "title": "Hospitalisation sous contrainte",
+          "items": [
+            "UNIQUEMENT si risque vital engagé ET soins consentis impossibles",
+            "En dernier recours"
+          ]
+        },
+        {
+          "title": "Principes d'hospitalisation",
+          "items": [
+            "Durée la plus courte possible (effet délétère des hospitalisations prolongées, surtout chez l'enfant)",
+            "Relais HDJ recommandé dès que possible",
+            "Contrat de soins co-construit avec le patient",
+            "Suivi ambulatoire au long cours après la sortie"
+          ]
+        }
+      ]
+    },
+
+    "equipe-qui-fait-quoi": {
+      "type": "action",
+      "text": "Rôle de chaque professionnel dans l'équipe",
+      "sections": [
+        {
+          "title": "Médecin coordinateur",
+          "items": [
+            "Assure la coordination de l'ensemble des soins",
+            "Peut être le psychiatre, le pédiatre ou le médecin traitant selon la situation",
+            "Choix selon : âge du patient, sévérité, parcours de soins, disponibilité",
+            "Référent unique identifié par le patient"
+          ]
+        },
+        {
+          "title": "Médecin traitant / pédiatre",
+          "items": [
+            "Suivi somatique rapproché : poids, taille, constantes",
+            "Prescription et interprétation des bilans biologiques",
+            "Reporter sur les courbes de croissance (enfant/ado)",
+            "Coordination avec l'équipe spécialisée",
+            "Surveillance des critères d'hospitalisation",
+            "Lettre de liaison avec les spécialistes"
+          ]
+        },
+        {
+          "title": "Psychiatre / pédopsychiatre",
+          "items": [
+            "Diagnostic du TCA et des comorbidités",
+            "Évaluation du risque suicidaire",
+            "Prescription médicamenteuse si indiquée (ISRS 2e intention dans BN, anxiolytiques ponctuels, traitement des comorbidités)",
+            "Suivi individuel du patient",
+            "Entretiens avec les parents",
+            "Coordination de la PEC psychiatrique",
+            "⚠ Ce que le psychiatre prescrit et pourquoi :",
+            "— AN : PAS de médicament en 1re intention. Supplémentation si carence",
+            "— BN : TCC en 1re intention, ISRS (fluoxétine 60mg) en 2e intention si TCC impossible",
+            "— Comorbidité dépressive : ISRS APRÈS renutrition suffisante",
+            "— Anxiété pré-prandiale sévère : anxiolytique ponctuel (courte durée)",
+            "— Insomnie : hygiène du sommeil d'abord, hypnotique en dernier recours"
+          ]
+        },
+        {
+          "title": "Psychologue / psychothérapeute",
+          "items": [
+            "Psychothérapie structurée (TCC, TIP, psychodynamique selon indication)",
+            "Comment doit travailler la psychologue :",
+            "— AN ado : thérapie familiale (Maudsley/FBT) en 1re intention",
+            "— AN adulte : TCC ou TIP ou psychodynamique",
+            "— BN : TCC adaptée aux TCA (programme d'exposition, colonnes de Beck, carnet alimentaire)",
+            "— BED : TCC + travail sur la régulation émotionnelle",
+            "— ARFID : exposition progressive, TCC anxiété",
+            "— Si trauma : EMDR ou TCC centrée trauma",
+            "— Si TP borderline : TCD (thérapie comportementale dialectique)",
+            "Évaluation neuropsychologique si besoin (remédiation cognitive dans l'AN)"
+          ]
+        },
+        {
+          "title": "Diététicien(ne)",
+          "items": [
+            "Évaluation nutritionnelle initiale",
+            "Calcul du PMBS (objectif pondéral)",
+            "Entretiens hebdomadaires pour adapter la ration",
+            "Réintroduction progressive des aliments évités",
+            "Ateliers diététiques",
+            "Éducation nutritionnelle (non normative)",
+            "Carnet alimentaire (avec émotions si BN/BED)"
+          ]
+        },
+        {
+          "title": "Psychomotricien(ne)",
+          "items": [
+            "Quand intervient le/la psychomotricien(ne) :",
+            "— Troubles du schéma corporel et de l'image du corps +++",
+            "— Difficultés de conscience corporelle (intéroception)",
+            "— Psychotraumatisme avec retentissement corporel",
+            "— Phase 2 de l'hospitalisation (après renutrition initiale)",
+            "Bilan psychomoteur : schéma corporel, image du corps, motricité, sensorialité, corps en relation",
+            "Médiations thérapeutiques :",
+            "— Conscience corporelle (impressive)",
+            "— Expression corporelle (théâtre, mime, danse)",
+            "— Relaxation",
+            "— Balnéothérapie, yoga",
+            "— Travail avec objet médiateur (terre, photographie)",
+            "— Travail sur le corps traumatisé : sécurité → relation → conscience corporelle → représentation de soi"
+          ]
+        },
+        {
+          "title": "Infirmier(ère) (en hospitalisation)",
+          "items": [
+            "Référent IDE du parcours de soins",
+            "Surveillance quotidienne : poids, constantes, scope",
+            "Accompagnement aux repas (repas thérapeutiques)",
+            "Surveillance des conduites purgatives",
+            "Surveillance nocturne (allers-retours toilettes)",
+            "Surveillance état cutané",
+            "Bilans sanguins et urinaires",
+            "Administration traitements (tolérance, efficacité)"
+          ]
+        },
+        {
+          "title": "Autres intervenants",
+          "items": [
+            "Assistante sociale : démarches, aménagements scolaires/professionnels",
+            "Orthophoniste : si ARFID avec troubles de l'oralité",
+            "Art-thérapeute : phase 2 (expression, créativité)",
+            "Éducateur spécialisé : si HDJ ou hospitalisation (ados)"
+          ]
+        }
+      ]
+    },
+
+    "adresser": {
+      "type": "action",
+      "text": "Vers qui adresser mon patient ?",
+      "sections": [
+        {
+          "title": "Si suspicion de TCA en médecine générale",
+          "items": [
+            "Adresser vers un psychiatre ou pédopsychiatre avec compétences TCA",
+            "Ou vers un centre expert TCA / consultation spécialisée TCA",
+            "En parallèle : garder le suivi somatique rapproché",
+            "FFAB : annuaire des centres spécialisés (ffab.fr)"
+          ]
+        },
+        {
+          "title": "Si critères de gravité",
+          "items": [
+            "Urgences somatiques : service de médecine/pédiatrie (pas psychiatrie en 1re intention si urgence somatique)",
+            "Urgences psychiatriques : si risque suicidaire élevé",
+            "Centre de référence AMP (Hôpital Robert Debré) : si enfant < 10 ans"
+          ]
+        },
+        {
+          "title": "Si BN ou BED sans critère de gravité",
+          "items": [
+            "Psychologue/psychothérapeute formé TCC-TCA en ville",
+            "Centre expert TCA si forme sévère ou échec ambulatoire",
+            "Psychiatre si comorbidités ou besoin de traitement médicamenteux"
+          ]
+        },
+        {
+          "title": "Si ARFID enfant",
+          "items": [
+            "Pédiatre (gastro + endocrino)",
+            "Pédopsychiatre",
+            "Orthophoniste spécialisé(e) oralité",
+            "Diététicien(ne)",
+            "Psychomotricien(ne)"
+          ]
+        }
+      ]
+    },
+
+    "adapter-pec": {
+      "type": "action",
+      "text": "Comment adapter la PEC selon l'évolution ?",
+      "sections": [
+        {
+          "title": "Pas d'amélioration après 1-2 mois ambulatoire",
+          "items": [
+            "Réévaluer le diagnostic (forme mixte ? comorbidité manquée ?)",
+            "Réévaluer l'alliance thérapeutique",
+            "Intensifier : augmenter la fréquence, ajouter des intervenants",
+            "Discuter HDJ",
+            "Discuter hospitalisation si critères"
+          ]
+        },
+        {
+          "title": "Amélioration puis rechute",
+          "items": [
+            "Reprendre un suivi rapproché immédiatement",
+            "Réévaluer les critères d'hospitalisation",
+            "Ne pas attendre : la rechute précoce prise en charge tôt a un meilleur pronostic",
+            "30-50% de rechute dans l'année suivant l'hospitalisation = NORMAL, pas un échec"
+          ]
+        },
+        {
+          "title": "Passage AN → BN (ou inverse)",
+          "items": [
+            "Fréquent : les TCA évoluent, les patients peuvent passer d'un type à l'autre",
+            "Adapter la PEC au tableau actuel",
+            "Informer le patient que c'est une évolution connue"
+          ]
+        },
+        {
+          "title": "Chronicisation",
+          "items": [
+            "Si TCA > 7 ans d'évolution : forme chronique",
+            "Objectifs thérapeutiques à adapter : amélioration de la qualité de vie plutôt que guérison complète",
+            "Approche orientée rétablissement (recovery)",
+            "Réduction des risques",
+            "Maintien du lien thérapeutique au long cours"
+          ]
+        }
+      ]
+    }
+  }
+}

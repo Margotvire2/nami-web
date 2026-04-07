@@ -1,0 +1,200 @@
+{
+  "id": "retablissement-chronicite",
+  "title": "Rétablissement, chronicité et adaptation des objectifs",
+  "version": "1.0",
+  "sources": [
+    "DU TCA — Le chemin du rétablissement des TCA",
+    "DU TCA — Groupe Rétablissement de la CMME (UPC)",
+    "DU TCA FFAB 2025-2026",
+    "HAS 2010"
+  ],
+  "root": "contexte-retablissement",
+  "nodes": {
+    "contexte-retablissement": {
+      "type": "question",
+      "text": "Quel est le contexte ?",
+      "options": [
+        { "label": "Pronostic et évolution naturelle des TCA", "next": "pronostic" },
+        { "label": "Forme chronique — adapter les objectifs", "next": "chronicite" },
+        { "label": "Approche orientée rétablissement (recovery)", "next": "recovery" },
+        { "label": "Prévention de la rechute", "next": "prevention-rechute" }
+      ]
+    },
+
+    "pronostic": {
+      "type": "action",
+      "text": "Pronostic et évolution naturelle des TCA",
+      "sections": [
+        {
+          "title": "Anorexie mentale — Pronostic (Steinhausen 2002)",
+          "items": [
+            "À 10 ans d'évolution : < 50% de chance de rémission complète",
+            "Mortalité proche de 5% à 10 ans",
+            "Risque létal de 0,5%/année d'évolution",
+            "Mortalité de 10,5 après 10 ans en post-hospitalisation adulte (Huas 2009)",
+            "Les services spécialisés sélectionnent des formes sévères → surmortalité observée"
+          ]
+        },
+        {
+          "title": "Facteurs de bon pronostic",
+          "items": [
+            "Restauration d'un poids de bonne santé = objectif essentiel",
+            "Bonnes relations intrafamiliales",
+            "Temps symptomatique court avant l'entrée dans les soins",
+            "Prise en charge précoce +++",
+            "Absence de comorbidité psychiatrique sévère"
+          ]
+        },
+        {
+          "title": "Facteurs de mauvais pronostic",
+          "items": [
+            "Durée d'évolution longue",
+            "IMC le plus bas atteint (plus il est bas, moins bon le pronostic)",
+            "Comorbidités psychiatriques (dépression, TP, addictions)",
+            "Usage problématique de l'activité physique",
+            "Âge de début très précoce (AMP) : pronostic incertain"
+          ]
+        },
+        {
+          "title": "Risques évolutifs",
+          "items": [
+            "Complications somatiques (os, cœur, fertilité)",
+            "Comorbidités psychiatriques",
+            "Risque de chronicisation",
+            "Passage d'un type de TCA à un autre (AN → BN fréquent)",
+            "Altération qualité de vie sociale, familiale, scolaire/professionnelle",
+            "30-50% de rechute dans l'année suivant l'hospitalisation"
+          ]
+        }
+      ]
+    },
+
+    "chronicite": {
+      "type": "action",
+      "text": "Forme chronique — Adapter les objectifs",
+      "info": "Si TCA > 7 ans d'évolution, on considère souvent une forme chronique. L'approche change.",
+      "sections": [
+        {
+          "title": "Changement de paradigme",
+          "items": [
+            "Objectif : amélioration de la qualité de vie plutôt que guérison complète",
+            "Réduction des risques somatiques et psychiatriques",
+            "Maintien du lien thérapeutique au long cours",
+            "Acceptation d'un fonctionnement \"avec\" le trouble",
+            "Prévention des complications les plus graves"
+          ]
+        },
+        {
+          "title": "Objectifs adaptés",
+          "items": [
+            "Poids de compromis (pas nécessairement le PMBS idéal)",
+            "Stabilisation plutôt que normalisation complète",
+            "Réduction de la fréquence/sévérité des crises (BN, BED)",
+            "Maintien d'une alimentation minimum suffisante pour éviter les urgences",
+            "Qualité de vie : travail, relations, activités"
+          ]
+        },
+        {
+          "title": "Suivi adapté",
+          "items": [
+            "Consultations espacées mais régulières (ne pas perdre le lien)",
+            "Surveillance somatique minimum (constantes, biologie selon clinique)",
+            "Équipe référente stable et identifiée",
+            "Possibilité de réintensifier les soins si dégradation",
+            "Approche orientée rétablissement"
+          ]
+        }
+      ]
+    },
+
+    "recovery": {
+      "type": "action",
+      "text": "Approche orientée rétablissement (recovery)",
+      "info": "Le rétablissement n'est pas un point d'arrivée mais un chemin continu.",
+      "sections": [
+        {
+          "title": "Concept de rétablissement",
+          "items": [
+            "Le rétablissement est un processus, pas un état binaire guéri/malade",
+            "Il est possible de vivre une vie satisfaisante même avec des symptômes résiduels",
+            "Le patient est acteur de son rétablissement",
+            "Métaphore du voyage en montagne : chaque pas compte, il y a des passages difficiles et des plateaux"
+          ]
+        },
+        {
+          "title": "Groupe Rétablissement (modèle CMME Paris)",
+          "items": [
+            "Observer où j'en suis à travers le prisme du rétablissement",
+            "Session 1 : Rétablissement et guérison / ressources personnelles",
+            "Session 2 : Témoignages et espoir",
+            "Session 3 : Vulnérabilité, sens et confiance",
+            "Préparer la suite et continuer à se rétablir",
+            "Session 4 : Les étapes du rétablissement / ressources environnementales",
+            "Session 5 : L'expérience des autres",
+            "Session 6 : Bilan et perspectives"
+          ]
+        },
+        {
+          "title": "Dimensions du rétablissement",
+          "items": [
+            "Clinique : réduction/disparition des symptômes",
+            "Fonctionnel : reprendre une vie sociale, professionnelle, affective",
+            "Personnel : reconstruire l'identité au-delà du TCA",
+            "Existentiel : trouver du sens, de l'espoir, de la confiance"
+          ]
+        },
+        {
+          "title": "En pratique",
+          "items": [
+            "Intégrer la notion de rétablissement dès le début de la PEC",
+            "Soutenir l'espoir (la guérison est possible)",
+            "Favoriser l'autonomie du patient",
+            "Pairs aidants / témoignages de personnes rétablies",
+            "Associations de patients (FNA-TCA)"
+          ]
+        }
+      ]
+    },
+
+    "prevention-rechute": {
+      "type": "action",
+      "text": "Prévention de la rechute",
+      "sections": [
+        {
+          "title": "Signes d'alerte de rechute à connaître (patient + entourage)",
+          "items": [
+            "Reprise des conduites restrictives ou de la sélection alimentaire",
+            "Reprise des pesées compulsives",
+            "Augmentation de l'activité physique",
+            "Isolement social progressif",
+            "Abandon de la psychothérapie ou des consultations",
+            "Perte de poids (même modérée)",
+            "Retour des préoccupations excessives sur le poids/corps",
+            "Troubles du sommeil, irritabilité"
+          ]
+        },
+        {
+          "title": "Facteurs de risque de rechute",
+          "items": [
+            "Événement de vie stressant",
+            "Période de transition (déménagement, études, rupture)",
+            "Période périnatale (grossesse, post-partum)",
+            "Arrêt trop précoce du suivi",
+            "Poids de sortie trop bas (objectif non atteint)"
+          ]
+        },
+        {
+          "title": "Stratégies de prévention",
+          "items": [
+            "Suivi au long cours (au moins 1 an après rémission, idéalement 2-3 ans)",
+            "Le patient doit connaître ses signes d'alerte personnels",
+            "Plan de crise co-construit : que faire si rechute ? Qui contacter ?",
+            "Entourage informé des signes d'alerte",
+            "Consultations d'entretien (même si tout va bien)",
+            "Ne pas attendre : reconsulter au premier signe"
+          ]
+        }
+      ]
+    }
+  }
+}

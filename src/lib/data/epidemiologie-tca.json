@@ -1,0 +1,91 @@
+{
+  "source": "DU TCA FFAB 2025-2026 — Pr N. Godart, Epidémiologie des TCA. HAS 2010/2019. Steinhausen 2002.",
+  "troubles": [
+    {
+      "nom": "Anorexie Mentale",
+      "code": "AN",
+      "prevalence": {
+        "femmes": "0,4% (Occident) — varie de 0,39% (Portugal) à 2,2% (Finlande)",
+        "hommes": "< 0,1%",
+        "adolescentes": "0,5-1%"
+      },
+      "incidence": {
+        "population_generale": "8 cas / 100 000 pers/an (consultants médecine générale)",
+        "filles_15_19": "270 / 100 000 pers/an (Keski-Rakhonen, 2007)",
+        "garcons_10_24": "15,7 / 100 000 pers/an (Raevuori, 2009)",
+        "hospitalisations": "1,2 / 100 000 — stable depuis 1970 (Milos, 2004)"
+      },
+      "sex_ratio": "1 homme / 10 femmes (stable)",
+      "age_debut": "Pic vers 14 ans. AMP possible dès 6-7 ans.",
+      "mortalite": {
+        "risque_letal": "0,5% / année d'évolution",
+        "a_10_ans": "~5% (Steinhausen, 2002)",
+        "post_hospit_adulte": "10,5 à 10 ans (Huas, 2009) — surmortalité liée à la sélection de formes sévères"
+      },
+      "pronostic_10_ans": "< 50% rémission complète, ~25% forme chronique, ~25% amélioration partielle",
+      "rechute": "30-50% dans l'année suivant l'hospitalisation"
+    },
+    {
+      "nom": "Boulimie Nerveuse",
+      "code": "BN",
+      "prevalence": {
+        "femmes": "1-3% (vie entière)",
+        "hommes": "0,1-0,5%",
+        "ados_11_20": "~1,5%"
+      },
+      "incidence": {
+        "population_generale": "200 / 100 000 pers-années (filles 16-20 ans, Keski-Rakhonen 2009)",
+        "medecine_generale_pays_bas": "17/100 000 (1995-99) → 6/100 000 (2005-09) — en baisse (Smink 2016)",
+        "pic": "Entre 16 et 20 ans"
+      },
+      "sex_ratio": "3 femmes / 1 homme",
+      "age_debut": "Âge moyen : 18 ans",
+      "mortalite": { "risque_letal": "Moindre que l'AN mais non négligeable" },
+      "notes": "Formes partielles 2-3x plus fréquentes que la BN complète"
+    },
+    {
+      "nom": "Hyperphagie Boulimique",
+      "code": "BED",
+      "prevalence": {
+        "population_generale": "3-5% (vie entière)",
+        "femmes": "3,5%",
+        "hommes": "2%"
+      },
+      "incidence": { "notes": "Données limitées — prévalence augmentée de 50% depuis le DSM-5 (abaissement seuil de 6 à 3 mois)" },
+      "sex_ratio": "Plus équilibré que AN et BN (2F/1H)",
+      "age_debut": "Variable, souvent plus tardif (20-30 ans)",
+      "mortalite": { "notes": "Mortalité liée aux complications de l'obésité associée" },
+      "notes": "TCA le plus fréquent en population générale"
+    },
+    {
+      "nom": "ARFID",
+      "code": "ARFID",
+      "prevalence": {
+        "population_clinique": "5-22% des consultations pédiatriques pour troubles alimentaires",
+        "population_generale": "Données limitées"
+      },
+      "incidence": { "notes": "En augmentation depuis l'introduction dans le DSM-5 (2013)" },
+      "sex_ratio": "Plus équilibré que AN/BN. Prédominance masculine dans les formes liées au TSA.",
+      "age_debut": "Enfance +++. Peut persister à l'adolescence et l'âge adulte.",
+      "mortalite": { "notes": "Liée au degré de dénutrition et aux carences" },
+      "notes": "80% de TCA chez les patients TSA, dont fréquemment ARFID"
+    },
+    {
+      "nom": "AMP (Anorexie Mentale à début Précoce)",
+      "code": "AMP",
+      "prevalence": { "notes": "Maladie rare" },
+      "incidence": {
+        "chiffre": "1,1 à 7,5 / 100 000 — en augmentation (Madden 2009, Herpertz-Dahlmann 2019)"
+      },
+      "sex_ratio": "3 garçons / 10 filles (Hudson & Pope, 2007)",
+      "age_debut": "Avant 13-14 ans, avant les premiers signes pubertaires. Formes très précoces avant 10-11 ans (Tanner 1).",
+      "mortalite": { "notes": "Pronostic à long terme peu étudié. Durée d'évolution et âge très précoce = facteurs de mauvais pronostic." },
+      "notes": "Centre de référence : Hôpital Robert Debré, AP-HP, Paris"
+    }
+  ],
+  "donnees_generales": {
+    "modele_budowski": "Sur 1000 adultes exposés à un trouble de santé → 750 perçoivent un trouble → 250 consultent en médecine générale → 9 hospitalisés → 1 hospitalisé en CHU",
+    "formes_partielles": "Les formes partielles/subsyndromiques sont plus fréquentes que les formes complètes, mais avec des comorbidités fréquentes",
+    "evolution_inter_TCA": "Fréquent : les patients peuvent passer d'un type de TCA à un autre (AN → BN fréquent)"
+  }
+}

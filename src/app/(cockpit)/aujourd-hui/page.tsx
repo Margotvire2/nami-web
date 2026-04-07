@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -8,38 +8,17 @@ import { useRouter } from "next/navigation";
 import {
   Stethoscope, ArrowLeftRight, Clock, ChevronRight, X,
   MapPin, Video, Phone, Mail, Check, FileText, Users,
-  Building2, FlaskConical, Radio,
 } from "lucide-react";
-import { useNamiStore } from "@/lib/nami-store";
+import { useAuthStore } from "@/lib/store";
+import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiWithToken, type ConnectionRequest, type AppointmentRequest } from "@/lib/api";
+import { toast } from "sonner";
+import { UserPlus } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
-
-interface ConsultationMock {
-  id: string;
-  time: string;
-  patient: string;
-  initials: string;
-  type: "suivi" | "premiere" | "teleconsult";
-  typeLabel: string;
-  duration: string;
-  mode: string;
-  status: "past" | "next" | "upcoming";
-  detail: PatientDetail;
-}
-
-interface PatientDetail {
-  age: number;
-  dob: string;
-  phone: string;
-  email: string;
-  motif: string;
-  mood: string;
-  progression: string;
-  vigilance: string;
-  nextRdv: string | null;
-}
 
 interface TodoItem {
   id: string;
@@ -68,76 +47,8 @@ interface MessageItem {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLINICAL DETAILS — données de consultation (mood, progression, vigilance)
-// Ces données n'existent pas encore dans le domain Appointment.
-// Elles sont indexées par patientId pour être rattachées aux RDV du store.
+// STATIC DATA (todos, news, messages — à connecter plus tard)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-const CLINICAL_DETAILS: Record<string, Omit<PatientDetail, "age" | "dob" | "phone" | "email">> = {
-  "pat-2": { motif: "Bilan mensuel", mood: "Bonne", progression: "Gestion des repas du soir", vigilance: "Stress professionnel", nextRdv: "Mardi 22 avril · 09h00" },
-  "pat-3": { motif: "Suivi boulimie", mood: "Stable", progression: "Rituels matinaux", vigilance: "Isolement social", nextRdv: "Vendredi 25 avril · 10h30" },
-  "pat-1": { motif: "Bilan mensuel TCA", mood: "Stable", progression: "Rituels du matin", vigilance: "Reprise du sport", nextRdv: "Mardi 21 avril · 14h00" },
-  "pat-4": { motif: "Première consultation obésité", mood: "Anxieuse", progression: "Première venue, à évaluer", vigilance: "Antécédents cardiovasculaires", nextRdv: null },
-  "pat-5": { motif: "Suivi anorexie", mood: "Fragile", progression: "Légère reprise de poids", vigilance: "Déni persistant", nextRdv: "Lundi 28 avril · 17h00" },
-};
-
-const TYPE_LABELS: Record<string, { type: ConsultationMock["type"]; label: string }> = {
-  premiere: { type: "premiere", label: "Première consultation" },
-  suivi: { type: "suivi", label: "Suivi régulier" },
-  bilan: { type: "suivi", label: "Bilan" },
-  teleconsultation: { type: "teleconsult", label: "Téléconsultation" },
-  urgence: { type: "suivi", label: "Urgence" },
-};
-
-/** Construit les ConsultationMock depuis le store central */
-function buildConsultationsFromStore(store: ReturnType<typeof useNamiStore.getState>): ConsultationMock[] {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-
-  // RDV du jour pour le praticien pra-1 (Dr Suela)
-  const todayApts = Object.values(store.appointments)
-    .filter((a) => a.practitionerId === "pra-1" && new Date(a.startAt) >= today && new Date(a.startAt) < tomorrow && a.status !== "cancelled")
-    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-
-  const SIMULATED_HOUR = 13;
-  const simNow = SIMULATED_HOUR * 60 + 45;
-
-  return todayApts.map((apt) => {
-    const patient = store.patients[apt.patientId];
-    const startDate = new Date(apt.startAt);
-    const endDate = new Date(apt.endAt);
-    const aptMin = startDate.getHours() * 60 + startDate.getMinutes();
-    const durMin = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
-    const isPast = aptMin + durMin < simNow;
-    const isNext = !isPast && aptMin <= simNow + 30 && aptMin > simNow - durMin;
-
-    const tl = TYPE_LABELS[apt.type] ?? TYPE_LABELS.suivi;
-    const clinical = CLINICAL_DETAILS[apt.patientId] ?? { motif: apt.reason, mood: "—", progression: "—", vigilance: "—", nextRdv: null };
-
-    const dob = patient?.dateOfBirth ? new Date(patient.dateOfBirth) : null;
-    const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.25 * 86400000)) : 0;
-
-    return {
-      id: apt.id,
-      time: startDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
-      patient: patient ? `${patient.firstName} ${patient.lastName}` : "Patient",
-      initials: patient ? `${patient.firstName[0]}${patient.lastName[0]}` : "??",
-      type: tl.type,
-      typeLabel: tl.label,
-      duration: durMin >= 60 ? `${Math.floor(durMin / 60)}h${durMin % 60 > 0 ? (durMin % 60).toString().padStart(2, "0") : ""}` : `${durMin}min`,
-      mode: apt.mode === "video" || apt.mode === "phone" ? "Téléconsultation" : "Présentiel",
-      status: isPast ? "past" as const : isNext ? "next" as const : "upcoming" as const,
-      detail: {
-        age,
-        dob: dob ? dob.toLocaleDateString("fr-FR") : "—",
-        phone: patient?.phone ?? "—",
-        email: patient?.email ?? "—",
-        ...clinical,
-      },
-    };
-  });
-}
 
 const TODO_ITEMS: TodoItem[] = [
   { id: "t1", icon: ArrowLeftRight, iconBg: "bg-amber-50 text-amber-600", title: "3 adressages sans réponse", sub: "Le plus ancien : il y a 4 jours", href: "/adressages" },
@@ -193,23 +104,22 @@ function formatGap(mins: number): string {
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const user = useAuthStore((s) => s.user);
 
-  // ── Lire les RDV depuis le store central ──
-  const storeState = useNamiStore.getState();
-  const CONSULTATIONS = useMemo(() => buildConsultationsFromStore(storeState), [storeState]);
+  // ── Lire les RDV depuis l'API ──
+  const { consultations, nextConsultation: nextConsult, totalToday, isLoading, isError, refetch } = useDashboard();
 
-  const selected = CONSULTATIONS.find((c) => c.id === selectedId) ?? null;
-  const nextConsult = CONSULTATIONS.find((c) => c.status === "next");
+  const selected = consultations.find((c: DashboardConsultation) => c.id === selectedId) ?? null;
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-white border-b border-[#E8ECF4] px-6 py-5 shrink-0">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Bonjour, Amélie</h1>
+          <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Bonjour{user ? `, ${user.firstName}` : ""}</h1>
           <div className="flex items-center gap-2 mt-3 flex-wrap">
             <Link href="/agenda" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[13px] font-medium hover:bg-indigo-100 transition-colors">
-              <Stethoscope size={14} /> 5 consultations aujourd'hui
+              <Stethoscope size={14} /> {totalToday} consultation{totalToday !== 1 ? "s" : ""} aujourd&apos;hui
             </Link>
             <Link href="/adressages" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-[13px] font-medium hover:bg-amber-100 transition-colors">
               <ArrowLeftRight size={14} /> 3 adressages en attente
@@ -234,15 +144,33 @@ export default function DashboardPage() {
                 <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E8ECF4" }}>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-5" style={{ fontFamily: "var(--font-inter)" }}>MA JOURNÉE</p>
 
+                  {isLoading && (
+                    <div className="flex items-center justify-center h-40">
+                      <div className="w-5 h-5 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+
+                  {isError && (
+                    <div className="text-center py-8 text-[13px] text-red-400">
+                      Erreur de chargement — <button onClick={() => refetch()} className="underline">Réessayer</button>
+                    </div>
+                  )}
+
+                  {!isLoading && !isError && consultations.length === 0 && (
+                    <div className="text-center py-8 text-[13px] text-[#94A3B8]">
+                      Aucune consultation aujourd&apos;hui
+                    </div>
+                  )}
+
                   <div className="space-y-0">
-                    {CONSULTATIONS.map((c, i) => {
+                    {consultations.map((c: DashboardConsultation, i: number) => {
                       const tp = TYPE_PILL[c.type];
                       const isPast = c.status === "past";
                       const isNext = c.status === "next";
 
                       // Gap before this consultation
                       const prevEndMin = i > 0 ? (() => {
-                        const prev = CONSULTATIONS[i - 1];
+                        const prev = consultations[i - 1];
                         const [ph, pm] = prev.time.split(":").map(Number);
                         const dur = parseInt(prev.duration);
                         return ph * 60 + pm + dur;
@@ -350,6 +278,15 @@ export default function DashboardPage() {
                 </div>
               </motion.div>
 
+              {/* DEMANDES DE PATIENTS (ConnectionRequests) */}
+              <IncomingRequestsSection />
+
+              {/* DEMANDES DE RDV (AppointmentRequests) */}
+              <AppointmentRequestsSection />
+
+              {/* DEMANDES DE COORDINATION (Referrals reçus) */}
+              <IncomingReferralsSection />
+
               {/* ACTUALITÉS */}
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
                 <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
@@ -440,46 +377,14 @@ export default function DashboardPage() {
                   <div className="bg-[#F8FAFC] rounded-xl p-4 space-y-2 text-[13px] text-[#374151]">
                     <p className="flex items-center gap-2"><Clock size={13} className="text-[#94A3B8]" /> {selected.time} · {selected.duration}</p>
                     <p className="flex items-center gap-2">{selected.mode === "Téléconsultation" ? <Video size={13} className="text-[#94A3B8]" /> : <MapPin size={13} className="text-[#94A3B8]" />} {selected.mode}</p>
-                    <p className="text-[#64748B] italic">{selected.detail.motif}</p>
+                    <p className="text-[#64748B] italic">{selected.typeLabel}</p>
                   </div>
-                </div>
-
-                {/* Situation clinique */}
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>SITUATION CLINIQUE</p>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <span className="text-base">🧠</span>
-                      <div><p className="text-[11px] font-semibold text-[#94A3B8]">Humeur</p><p className="text-[13px] text-[#0F172A] font-medium">{selected.detail.mood}</p></div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="text-base">📈</span>
-                      <div><p className="text-[11px] font-semibold text-[#94A3B8]">Progression</p><p className="text-[13px] text-[#0F172A] font-medium">{selected.detail.progression}</p></div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="text-base">⚠️</span>
-                      <div><p className="text-[11px] font-semibold text-[#94A3B8]">Vigilance</p><p className="text-[13px] text-[#0F172A] font-medium">{selected.detail.vigilance}</p></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Prochain RDV */}
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>PROCHAIN RDV</p>
-                  {selected.detail.nextRdv ? (
-                    <p className="text-[13px] text-[#374151] font-medium">{selected.detail.nextRdv}</p>
-                  ) : (
-                    <div>
-                      <p className="text-[13px] text-[#94A3B8] italic">Aucun RDV planifié</p>
-                      <button className="mt-2 text-[13px] font-medium text-[#4F46E5] hover:underline">Planifier →</button>
-                    </div>
-                  )}
                 </div>
               </div>
 
               {/* CTA */}
               <div className="px-5 py-4 border-t border-[#E8ECF4] shrink-0">
-                <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.id}`); }} className="w-full h-10 rounded-xl bg-[#4F46E5] text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
+                <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.patientId}`); }} className="w-full h-10 rounded-xl bg-[#4F46E5] text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
                   Voir le dossier complet <ChevronRight size={16} />
                 </button>
               </div>
@@ -488,5 +393,339 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEMANDES DE PATIENTS — section dashboard
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function IncomingRequestsSection() {
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
+
+  const { data: requests } = useQuery({
+    queryKey: ["connection-requests-pending"],
+    queryFn: () => {
+      if (!accessToken) return [];
+      const api = apiWithToken(accessToken);
+      return api.connectionRequests.incoming("PENDING");
+    },
+    enabled: !!accessToken,
+    refetchInterval: 30000,
+  });
+
+  const pending = requests ?? [];
+  if (pending.length === 0) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>
+              DEMANDES DE PATIENTS
+            </p>
+            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#4F46E5] text-white text-[10px] font-semibold flex items-center justify-center">
+              {pending.length}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {pending.map((cr) => (
+            <RequestCard key={cr.id} cr={cr} accessToken={accessToken!} qc={qc} />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function RequestCard({ cr, accessToken, qc }: { cr: ConnectionRequest; accessToken: string; qc: ReturnType<typeof useQueryClient> }) {
+  const api = apiWithToken(accessToken);
+
+  const acceptMut = useMutation({
+    mutationFn: () => api.connectionRequests.respond(cr.id, { decision: "ACCEPTED" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["connection-requests-pending"] });
+      qc.invalidateQueries({ queryKey: ["care-cases"] });
+      toast.success(`Demande de ${cr.patient?.firstName} acceptée — dossier créé`);
+    },
+    onError: () => toast.error("Erreur"),
+  });
+
+  const declineMut = useMutation({
+    mutationFn: () => api.connectionRequests.respond(cr.id, { decision: "DECLINED" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["connection-requests-pending"] });
+      toast.success("Demande déclinée");
+    },
+    onError: () => toast.error("Erreur"),
+  });
+
+  const daysAgo = Math.floor((Date.now() - new Date(cr.createdAt).getTime()) / 86400000);
+  const timeLabel = daysAgo === 0 ? "aujourd'hui" : daysAgo === 1 ? "hier" : `il y a ${daysAgo}j`;
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAFBFF] border border-[#E8ECF4]">
+      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+        {cr.patient?.firstName?.[0]}{cr.patient?.lastName?.[0]}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-medium text-[#0F172A] truncate">
+          {cr.patient?.firstName} {cr.patient?.lastName}
+        </p>
+        <p className="text-[11px] text-[#94A3B8] truncate">
+          {cr.reason || "Demande de suivi"} · {timeLabel}
+        </p>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => acceptMut.mutate()}
+          disabled={acceptMut.isPending}
+          className="h-7 px-3 rounded-lg bg-[#4F46E5] text-white text-[11px] font-medium hover:bg-[#4338CA] transition-colors disabled:opacity-50"
+        >
+          Accepter
+        </button>
+        <button
+          onClick={() => declineMut.mutate()}
+          disabled={declineMut.isPending}
+          className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors disabled:opacity-50"
+        >
+          Décliner
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEMANDES DE RDV — section dashboard (AppointmentRequests)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function AppointmentRequestsSection() {
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
+  const router = useRouter();
+
+  const { data: requests } = useQuery({
+    queryKey: ["appointment-requests-pending"],
+    queryFn: () => {
+      if (!accessToken) return [];
+      const api = apiWithToken(accessToken);
+      return api.appointmentRequests.list("PENDING");
+    },
+    enabled: !!accessToken,
+    refetchInterval: 30000,
+  });
+
+  const pending = requests ?? [];
+  if (pending.length === 0) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>
+              DEMANDES DE RENDEZ-VOUS
+            </p>
+            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#7C3AED] text-white text-[10px] font-semibold flex items-center justify-center">
+              {pending.length}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {pending.map((ar) => (
+            <AppointmentRequestCard key={ar.id} ar={ar} accessToken={accessToken!} qc={qc} router={router} />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AppointmentRequestCard({
+  ar,
+  accessToken,
+  qc,
+  router,
+}: {
+  ar: AppointmentRequest;
+  accessToken: string;
+  qc: ReturnType<typeof useQueryClient>;
+  router: ReturnType<typeof useRouter>;
+}) {
+  const api = apiWithToken(accessToken);
+
+  const acceptMut = useMutation({
+    mutationFn: () => api.appointmentRequests.accept(ar.id),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["appointment-requests-pending"] });
+      qc.invalidateQueries({ queryKey: ["care-cases"] });
+      toast.success(data.message, {
+        action: {
+          label: "Voir le dossier",
+          onClick: () => router.push(`/patients/${data.careCaseId}`),
+        },
+      });
+    },
+    onError: () => toast.error("Erreur lors de l'acceptation"),
+  });
+
+  const declineMut = useMutation({
+    mutationFn: () => api.appointmentRequests.decline(ar.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["appointment-requests-pending"] });
+      toast.success("Demande de RDV déclinée");
+    },
+    onError: () => toast.error("Erreur"),
+  });
+
+  const daysAgo = Math.floor((Date.now() - new Date(ar.createdAt).getTime()) / 86400000);
+  const timeLabel = daysAgo === 0 ? "aujourd'hui" : daysAgo === 1 ? "hier" : `il y a ${daysAgo}j`;
+
+  const rdvDate = ar.requestedDate
+    ? new Date(ar.requestedDate).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAF9FF] border border-[#E8E5F4]">
+      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+        {ar.patientFirstName[0]}{ar.patientLastName[0]}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-medium text-[#0F172A] truncate">
+          {ar.patientFirstName} {ar.patientLastName}
+        </p>
+        <p className="text-[11px] text-[#94A3B8] truncate">
+          {ar.motif || "Demande de RDV"}
+          {rdvDate && ` · ${rdvDate}`}
+          {" · "}{timeLabel}
+        </p>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => acceptMut.mutate()}
+          disabled={acceptMut.isPending}
+          className="h-7 px-3 rounded-lg bg-[#7C3AED] text-white text-[11px] font-medium hover:bg-[#6D28D9] transition-colors disabled:opacity-50"
+        >
+          {acceptMut.isPending ? "…" : "Accepter"}
+        </button>
+        <button
+          onClick={() => declineMut.mutate()}
+          disabled={declineMut.isPending}
+          className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors disabled:opacity-50"
+        >
+          Décliner
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── DEMANDES DE COORDINATION REÇUES (Referrals) ─────────────────────────────
+
+function IncomingReferralsSection() {
+  const { accessToken } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+  const qc = useQueryClient();
+
+  const { data: referrals = [] } = useQuery({
+    queryKey: ["referrals-incoming"],
+    queryFn: () => api.referrals.incoming({ status: "SENT" }),
+    enabled: !!accessToken,
+  });
+
+  const acceptRefMut = useMutation({
+    mutationFn: (id: string) => api.referrals.respond(id, "ACCEPTED"),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["referrals-incoming"] }); },
+  });
+
+  const declineRefMut = useMutation({
+    mutationFn: ({ id, note }: { id: string; note: string }) =>
+      api.referrals.respond(id, "DECLINED", note),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["referrals-incoming"] }); },
+  });
+
+  const [declRefId, setDeclRefId] = useState<string | null>(null);
+  const [declRefReason, setDeclRefReason] = useState("");
+
+  const pending = (referrals as any[]).filter(
+    (r: any) => ["SENT", "RECEIVED", "UNDER_REVIEW"].includes(r.status)
+  );
+
+  if (pending.length === 0) return null;
+
+  const PRI_BADGE: Record<string, string> = {
+    ROUTINE: "bg-emerald-50 text-emerald-700",
+    URGENT: "bg-amber-50 text-amber-700",
+    EMERGENCY: "bg-red-50 text-red-700",
+  };
+  const PRI_LABEL: Record<string, string> = {
+    ROUTINE: "Routine", URGENT: "Sous 15j", EMERGENCY: "Urgent",
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>
+            DEMANDES DE COORDINATION ({pending.length})
+          </p>
+          <Link href="/adressages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir</Link>
+        </div>
+        <div className="space-y-3">
+          {pending.map((ref: any) => (
+            <div key={ref.id} className="rounded-xl border border-[#E8ECF4] p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold">
+                    {ref.sender?.firstName?.[0]}{ref.sender?.lastName?.[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-[#0F172A]">
+                      {ref.sender?.firstName} {ref.sender?.lastName}
+                      <span className="text-[#94A3B8] font-normal"> vous adresse </span>
+                      {ref.careCase?.caseTitle}
+                    </p>
+                    <p className="text-[11px] text-[#94A3B8] mt-0.5 line-clamp-1 italic">{ref.clinicalReason}</p>
+                  </div>
+                </div>
+                <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${PRI_BADGE[ref.priority] ?? ""}`}>
+                  {PRI_LABEL[ref.priority] ?? ref.priority}
+                </span>
+              </div>
+              {declRefId === ref.id ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[#64748B]">Motif du refus (obligatoire)</p>
+                  <textarea value={declRefReason} onChange={(e: any) => setDeclRefReason(e.target.value)}
+                    placeholder="File complète, spécialité inadaptée..."
+                    className="w-full rounded-lg border border-[#E8ECF4] px-3 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-indigo-200" rows={2} />
+                  <p className="text-[10px] text-[#94A3B8]">Le refus discriminatoire est passible de sanctions (art. L.1110-3 CSP)</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => { if (!declRefReason.trim()) return; declineRefMut.mutate({ id: ref.id, note: declRefReason }); setDeclRefId(null); setDeclRefReason(""); }}
+                      disabled={!declRefReason.trim() || declineRefMut.isPending}
+                      className="h-7 px-3 rounded-lg bg-red-50 text-red-700 text-[11px] font-medium hover:bg-red-100 transition-colors disabled:opacity-50">Confirmer le refus</button>
+                    <button onClick={() => { setDeclRefId(null); setDeclRefReason(""); }}
+                      className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors">Annuler</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => acceptRefMut.mutate(ref.id)} disabled={acceptRefMut.isPending}
+                    className="h-7 px-3 rounded-lg bg-[#4F46E5] text-white text-[11px] font-medium hover:bg-[#4338CA] transition-colors disabled:opacity-50">
+                    {acceptRefMut.isPending ? "…" : "Accepter"}</button>
+                  <button onClick={() => setDeclRefId(ref.id)}
+                    className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors">Décliner</button>
+                  <Link href={`/patients/${ref.careCaseId}`}
+                    className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors flex items-center">Voir le dossier</Link>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 }

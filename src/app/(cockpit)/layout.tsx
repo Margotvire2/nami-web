@@ -1,19 +1,46 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
+import { onboardingApi } from "@/lib/api";
 import { Sidebar } from "@/components/sidebar";
 
 export default function CockpitLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
+  // Auth guard
   useEffect(() => {
     if (!accessToken) router.replace("/login");
   }, [accessToken, router]);
 
-  if (!accessToken) return null;
+  // Onboarding guard — providers only
+  useEffect(() => {
+    if (!accessToken || !user) return;
+    if (user.roleType !== "PROVIDER") {
+      setOnboardingChecked(true);
+      return;
+    }
+
+    onboardingApi
+      .me(accessToken)
+      .then(({ profile }) => {
+        if (profile.onboardingStep !== "DONE") {
+          router.replace("/onboarding");
+        } else {
+          setOnboardingChecked(true);
+        }
+      })
+      .catch(() => {
+        // Si erreur (profil inexistant, etc.), on laisse passer
+        setOnboardingChecked(true);
+      });
+  }, [accessToken, user, router]);
+
+  if (!accessToken || !onboardingChecked) return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

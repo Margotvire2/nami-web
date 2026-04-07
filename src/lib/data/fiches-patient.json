@@ -1,0 +1,114 @@
+[
+  {
+    "id": "fiche-patient-an",
+    "titre": "Comprendre l'anorexie mentale",
+    "destinataire": "Patient et entourage",
+    "source": "Livret anorexie, Fiches HAS, DU TCA FFAB",
+    "sections": [
+      {
+        "titre": "Qu'est-ce que l'anorexie mentale ?",
+        "contenu": "L'anorexie mentale est une maladie, pas un choix. Elle se caractérise par une restriction alimentaire importante, une peur intense de prendre du poids, et une perception déformée de son corps. Elle touche principalement les adolescents et les jeunes adultes, mais peut survenir à tout âge."
+      },
+      {
+        "titre": "Ce n'est pas de votre faute",
+        "contenu": "Ni le patient ni sa famille ne sont responsables de cette maladie. L'anorexie mentale est d'origine multifactorielle : génétique, psychologique et environnementale. Il n'y a pas de famille « type »."
+      },
+      {
+        "titre": "La guérison est possible",
+        "contenu": "Avec une prise en charge précoce et adaptée, la guérison est possible. Plus le traitement commence tôt, meilleur est le pronostic. Le parcours peut être long, avec des hauts et des bas, mais chaque pas compte."
+      },
+      {
+        "titre": "Les signes à surveiller",
+        "contenu": "Perte de poids rapide, refus de manger, tri alimentaire, hyperactivité physique, isolement, fatigue, froid permanent, absence de règles. Si vous observez ces signes chez un proche, consultez."
+      },
+      {
+        "titre": "Le traitement",
+        "contenu": "La prise en charge est pluridisciplinaire : médecin, psychiatre ou psychologue, diététicien(ne). Elle comprend un suivi médical (poids, constantes, biologie), un accompagnement nutritionnel progressif, une psychothérapie, et un soutien de l'entourage."
+      },
+      {
+        "titre": "Pour l'entourage",
+        "contenu": "Votre rôle est important mais vous n'êtes pas soignant. Ne forcez pas à manger. Ne commentez pas le poids ou l'apparence. Écoutez sans juger. Restez présent. N'hésitez pas à demander de l'aide pour vous aussi (groupes de parents, associations)."
+      },
+      {
+        "titre": "Quand consulter en urgence ?",
+        "contenu": "Malaises, perte de connaissance, cœur qui bat très lentement, confusion, incapacité totale à manger ou boire, idées suicidaires. Appelez le 15 (SAMU) ou le 112."
+      },
+      {
+        "titre": "Ressources",
+        "contenu": "Anorexie Boulimie Info Écoute : 0 810 037 037\nFNA-TCA : fna-tca.org\nFFAB : ffab.fr (annuaire des structures)\nHAS : recommandations sur has-sante.fr"
+      }
+    ]
+  },
+  {
+    "id": "fiche-patient-bn",
+    "titre": "Comprendre la boulimie",
+    "destinataire": "Patient et entourage",
+    "source": "Fiches HAS Boulimie 2019, DU TCA FFAB",
+    "sections": [
+      {
+        "titre": "Qu'est-ce que la boulimie ?",
+        "contenu": "La boulimie se caractérise par des crises pendant lesquelles on mange en grande quantité avec un sentiment de perte de contrôle, suivies de comportements pour « compenser » (vomissements, sport excessif, jeûne). C'est une maladie, pas un manque de volonté."
+      },
+      {
+        "titre": "Vous n'êtes pas seul(e)",
+        "contenu": "La boulimie touche 1 à 3% des femmes et environ 0,5% des hommes. Beaucoup de personnes vivent avec ce trouble en silence pendant des années. Demander de l'aide est un acte de courage, pas de faiblesse."
+      },
+      {
+        "titre": "Les risques pour la santé",
+        "contenu": "Les vomissements répétés peuvent entraîner des problèmes cardiaques (baisse du potassium), des dommages aux dents (érosion de l'émail), des problèmes digestifs, et une fatigue importante. Un suivi médical régulier est essentiel."
+      },
+      {
+        "titre": "Le traitement",
+        "contenu": "Le traitement de première intention est la psychothérapie (TCC). Des outils existent : carnet alimentaire, techniques de gestion des émotions, travail sur les pensées automatiques. Un médicament (fluoxétine) peut être proposé en complément si nécessaire."
+      },
+      {
+        "titre": "Conseils pratiques",
+        "contenu": "Essayez de structurer vos repas (3 repas + collations). Après un vomissement, ne vous brossez pas les dents immédiatement (attendre 30 min) — rincez avec de l'eau + bicarbonate. N'hésitez pas à en parler à votre médecin ou à un professionnel de confiance."
+      },
+      {
+        "titre": "Quand consulter en urgence ?",
+        "contenu": "Si les crises deviennent incontrôlables et empêchent de vivre normalement (état de mal boulimique), malaises, palpitations, sang dans les vomissements, idées noires. Appelez le 15 ou le 112."
+      },
+      {
+        "titre": "Ressources",
+        "contenu": "Anorexie Boulimie Info Écoute : 0 810 037 037\nFNA-TCA : fna-tca.org\nFFAB : ffab.fr"
+      }
+    ]
+  },
+  {
+    "id": "fiche-entourage",
+    "titre": "Comment aider un proche souffrant de TCA ?",
+    "destinataire": "Famille et entourage",
+    "source": "Boîte à outils Maudsley (Carers Toolkit), Groupe AN Parents, DU TCA FFAB",
+    "sections": [
+      {
+        "titre": "Comprendre la maladie",
+        "contenu": "Les TCA sont des maladies complexes, pas des caprices. Votre proche ne fait pas exprès. Le déni fait souvent partie de la maladie. La guérison est un processus long qui demande patience et persévérance."
+      },
+      {
+        "titre": "Ce que vous pouvez faire",
+        "contenu": "Être présent sans juger. Écouter. Ne pas commenter le poids, le corps ou la quantité mangée. Exprimer votre inquiétude avec bienveillance (« je m'inquiète pour toi » plutôt que « tu ne manges rien »). Maintenir des moments agréables ensemble en dehors des repas."
+      },
+      {
+        "titre": "Ce qu'il vaut mieux éviter",
+        "contenu": "Ne pas forcer à manger. Ne pas surveiller les repas de façon intrusive (sauf si l'équipe soignante le demande). Ne pas culpabiliser (« tu nous fais du mal »). Ne pas menacer. Ne pas banaliser (« c'est juste une phase »). Ne pas commenter l'apparence physique."
+      },
+      {
+        "titre": "Prendre soin de vous",
+        "contenu": "Accompagner un proche malade est épuisant. Vous avez le droit d'être fatigué, en colère, triste. Cherchez du soutien pour vous : groupes de parents, associations, psychologue. Vous ne pouvez aider que si vous allez bien vous-même."
+      },
+      {
+        "titre": "Travailler avec l'équipe soignante",
+        "contenu": "L'alliance avec l'équipe est essentielle. Participez aux rendez-vous quand c'est proposé. Posez vos questions. Vous êtes partenaire du soin, pas responsable de la maladie. La thérapie familiale peut être très bénéfique."
+      },
+      {
+        "titre": "Signes d'alerte : quand agir vite",
+        "contenu": "Perte de poids très rapide, malaises, propos suicidaires, refus total de s'alimenter ou de boire, vomissements de sang. → Appelez le 15 ou emmenez aux urgences."
+      },
+      {
+        "titre": "Ressources pour l'entourage",
+        "contenu": "FNA-TCA : fna-tca.org (association de familles)\nAnorexie Boulimie Info Écoute : 0 810 037 037\nBoîte à outils Maudsley : disponible auprès de l'équipe soignante\nGroupes de parents : se renseigner auprès du centre de soin"
+      }
+    ]
+  }
+]

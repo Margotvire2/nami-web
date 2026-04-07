@@ -1,0 +1,291 @@
+{
+  "id": "urgences-somatiques-tca",
+  "title": "Urgences somatiques dans les TCA",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Critères d'hospitalisation temps plein",
+    "HAS 2019 — Boulimie : fiche urgences",
+    "DU TCA FFAB 2025-2026 — Module 3",
+    "PNDS AMP 2022"
+  ],
+  "root": "motif-urgence",
+  "nodes": {
+    "motif-urgence": {
+      "type": "question",
+      "text": "Quel est le motif d'admission aux urgences ?",
+      "options": [
+        { "label": "Dénutrition sévère / IMC très bas", "next": "denutrition-evaluation" },
+        { "label": "Malaise / perte de connaissance", "next": "malaise-evaluation" },
+        { "label": "Vomissements incoercibles / état de mal boulimique", "next": "vomissements-evaluation" },
+        { "label": "Risque suicidaire / urgence psychiatrique", "next": "urgence-psy" }
+      ]
+    },
+
+    "denutrition-evaluation": {
+      "type": "action",
+      "text": "Évaluation en urgence — Dénutrition sévère",
+      "actions": [
+        "Poids, taille, IMC",
+        "Constantes : TA (couché/debout), FC, T°, SpO2",
+        "ECG 12 dérivations",
+        "Bilan biologique en urgence : ionogramme complet, phosphorémie, magnésémie, glycémie, NFS, bilan hépatique, créatinine, BU (acétonurie)"
+      ],
+      "next": "denutrition-gravite"
+    },
+
+    "denutrition-gravite": {
+      "type": "question",
+      "text": "Quel est le niveau de gravité ?",
+      "options": [
+        { "label": "IMC ≤ 12 (adulte)", "next": "reanimation" },
+        { "label": "IMC 12-14 (adulte) ou critères somatiques présents", "next": "hospitalisation-med" },
+        { "label": "IMC < 12,7-14 selon âge (enfant/ado) — cf. seuils HAS", "next": "hospitalisation-ped" },
+        { "label": "IMC > 14 sans critère de gravité", "next": "orientation-consultation" }
+      ]
+    },
+
+    "reanimation": {
+      "type": "result",
+      "text": "RÉANIMATION / SOINS INTENSIFS",
+      "severity": "critical",
+      "info": "IMC ≤ 12 ou défaillance d'organe engageant le pronostic vital.",
+      "actions": [
+        "Repos au lit strict",
+        "Réchauffement si hypothermie",
+        "Scope : monitoring cardiaque continu",
+        "Supplémentation IMMÉDIATE et SYSTÉMATIQUE en phosphore (per os ou IV)",
+        "Supplémentation en micronutriments : potassium, magnésium, vitamines (B1 +++ avant toute renutrition)",
+        "⚠ PRÉVENTION DU SYNDROME DE RENUTRITION INAPPROPRIÉE (SRI) :",
+        "— Renutrition TRÈS progressive (débuter à 10-20 kcal/kg/j)",
+        "— Surveillance phosphorémie quotidienne les 5 premiers jours",
+        "— Surveillance ionogramme, magnésémie, ECG quotidiens",
+        "— Risque maximal dans les 72 premières heures"
+      ],
+      "indications_rea": [
+        "Hypokaliémie sévère avec troubles du rythme à l'ECG",
+        "Cytolyse hépatique avec signes d'insuffisance hépatocellulaire",
+        "Insuffisance cardiaque décompensée",
+        "Défaillance multiviscérale (contexte de SRI)",
+        "Hypoglycémie sévère symptomatique",
+        "Trouble de la conscience"
+      ]
+    },
+
+    "hospitalisation-med": {
+      "type": "result",
+      "text": "HOSPITALISATION en service de médecine",
+      "severity": "high",
+      "info": "Service avec expérience des TCA si possible. Coordination somatique + psychiatrique indispensable.",
+      "actions": [
+        "Repos au lit adapté",
+        "Renutrition progressive avec prévention du SRI",
+        "Supplémentation phosphore, potassium, magnésium selon biologie",
+        "Vitamine B1 (thiamine) AVANT renutrition",
+        "ECG de contrôle",
+        "Surveillance constantes : poids quotidien, FC, TA, T°",
+        "Bilan biologique de contrôle à J2-J3",
+        "Évaluation psychiatrique dans les 24h",
+        "Évaluation du risque suicidaire",
+        "Prévenir l'équipe spécialisée TCA pour relais"
+      ]
+    },
+
+    "hospitalisation-ped": {
+      "type": "result",
+      "text": "HOSPITALISATION en service de pédiatrie",
+      "severity": "high",
+      "info": "Seuils d'IMC selon l'âge (HAS 2010) : < 14 (> 17 ans), < 13,2 (15-16 ans), < 12,7 (13-14 ans). Chez l'enfant < 12 ans : utiliser les courbes et l'indice de Waterlow.",
+      "actions": [
+        "Mêmes mesures d'urgence que l'adulte adaptées à l'âge",
+        "Renutrition progressive avec prévention du SRI",
+        "⚠ FC < 50/min chez l'enfant < 12 ans = critère d'hospitalisation (AAP 2021)",
+        "Surveillance des courbes de croissance",
+        "Information et présence parentale",
+        "Évaluation pédopsychiatrique",
+        "Contacter le centre de référence AMP si < 10 ans"
+      ]
+    },
+
+    "malaise-evaluation": {
+      "type": "action",
+      "text": "Évaluation en urgence — Malaise / perte de connaissance",
+      "actions": [
+        "Constantes : TA couché/debout (rechercher hypotension orthostatique), FC, T°, glycémie capillaire",
+        "ECG 12 dérivations (rechercher QT long, troubles du rythme, bradycardie)",
+        "Bilan biologique : ionogramme (K+, Na+), phosphorémie, magnésémie, glycémie, NFS",
+        "Poids, IMC"
+      ],
+      "next": "malaise-diagnostic"
+    },
+
+    "malaise-diagnostic": {
+      "type": "question",
+      "text": "Quelle est la cause du malaise ?",
+      "options": [
+        { "label": "Hypotension orthostatique / déshydratation", "next": "malaise-deshydratation" },
+        { "label": "Hypoglycémie", "next": "malaise-hypoglycemie" },
+        { "label": "Trouble du rythme / anomalie ECG", "next": "malaise-cardiaque" },
+        { "label": "Hypokaliémie", "next": "malaise-hypokaliemie" }
+      ]
+    },
+
+    "malaise-deshydratation": {
+      "type": "result",
+      "text": "Malaise par déshydratation / hypotension",
+      "severity": "high",
+      "actions": [
+        "Réhydratation progressive (per os ou IV selon sévérité)",
+        "Surveillance TA et FC",
+        "Rechercher la cause : vomissements, laxatifs, restriction hydrique, potomanie",
+        "⚠ Si natrémie < 125 mmol/L (potomanie) : risque de convulsions",
+        "⚠ Si natrémie > 150 mmol/L : déshydratation sévère",
+        "Hospitalisation si critères de gravité"
+      ]
+    },
+
+    "malaise-hypoglycemie": {
+      "type": "result",
+      "text": "Malaise par hypoglycémie",
+      "severity": "high",
+      "actions": [
+        "Resucrage immédiat",
+        "⚠ Hypoglycémie symptomatique < 0,6 g/L = critère d'hospitalisation",
+        "⚠ Hypoglycémie asymptomatique < 0,3 g/L = critère d'hospitalisation",
+        "Surveillance glycémique rapprochée",
+        "Rechercher la cause : jeûne prolongé, dénutrition sévère, insuffisance hépatique"
+      ]
+    },
+
+    "malaise-cardiaque": {
+      "type": "result",
+      "text": "Trouble du rythme / anomalie ECG — URGENCE",
+      "severity": "critical",
+      "actions": [
+        "Scope continu",
+        "Correction des troubles ioniques en URGENCE",
+        "Si QT long : risque de torsade de pointe → réanimation",
+        "Si bradycardie < 40/min : surveillance scope, discuter réanimation",
+        "Ionogramme de contrôle rapproché",
+        "Avis cardiologique si nécessaire"
+      ]
+    },
+
+    "malaise-hypokaliemie": {
+      "type": "result",
+      "text": "Hypokaliémie",
+      "severity": "high",
+      "info": "Cause fréquente : vomissements, laxatifs, diurétiques.",
+      "actions": [
+        "ECG immédiat (rechercher troubles du rythme, QT long, onde U)",
+        "⚠ K+ < 3 mEq/L = critère d'hospitalisation (HAS 2010)",
+        "Supplémentation potassique (per os ou IV selon sévérité et ECG)",
+        "Surveillance ionogramme de contrôle",
+        "Rechercher et traiter la cause (arrêt des purges)",
+        "Si troubles du rythme associés → réanimation"
+      ]
+    },
+
+    "vomissements-evaluation": {
+      "type": "action",
+      "text": "Évaluation en urgence — Vomissements / État de mal boulimique",
+      "info": "L'état de mal boulimique = incapacité à poursuivre les activités habituelles du fait de la grande fréquence des crises. C'est une URGENCE.",
+      "actions": [
+        "Constantes : TA, FC, T°",
+        "ECG",
+        "Ionogramme en urgence (K+, Na+, Cl-, bicarbonates)",
+        "Phosphorémie, magnésémie",
+        "Glycémie",
+        "Poids, IMC",
+        "Examen psychiatrique : risque suicidaire, comorbidités"
+      ],
+      "next": "vomissements-gravite"
+    },
+
+    "vomissements-gravite": {
+      "type": "question",
+      "text": "Niveau de gravité",
+      "options": [
+        { "label": "IMC ≤ 12 ou anomalie ECG ou hypokaliémie sévère", "next": "reanimation" },
+        { "label": "État de mal boulimique ou vomissements incoercibles", "next": "hospitalisation-bn-urgente" },
+        { "label": "Vomissements contrôlés, biologie peu perturbée", "next": "orientation-consultation" }
+      ]
+    },
+
+    "hospitalisation-bn-urgente": {
+      "type": "result",
+      "text": "HOSPITALISATION — Urgence boulimique",
+      "severity": "high",
+      "actions": [
+        "Repos au lit",
+        "Correction des troubles ioniques",
+        "Supplémentation phosphore si dénutrition associée",
+        "Prévention du SRI si renutrition nécessaire",
+        "Surveillance ECG, ionogramme de contrôle",
+        "Évaluation psychiatrique : risque suicidaire, état dépressif",
+        "Rechercher comportements sexuels à risque",
+        "Évaluer le contexte sociofamilial",
+        "Orienter vers équipe spécialisée TCA"
+      ]
+    },
+
+    "urgence-psy": {
+      "type": "action",
+      "text": "Évaluation en urgence — Risque suicidaire",
+      "actions": [
+        "Évaluation du risque suicidaire : idéation, plan, moyens, intentionnalité",
+        "Rechercher TS réalisée ou avortée",
+        "Rechercher automutilations",
+        "Évaluation somatique concomitante (le patient TCA peut avoir des critères somatiques de gravité)",
+        "Rechercher intoxication médicamenteuse volontaire"
+      ],
+      "next": "urgence-psy-orientation"
+    },
+
+    "urgence-psy-orientation": {
+      "type": "question",
+      "text": "Orientation",
+      "options": [
+        { "label": "TS réalisée ou risque imminent", "next": "hospitalisation-psy-urgente" },
+        { "label": "Idéation suicidaire sans risque imminent", "next": "hospitalisation-psy-programmee" },
+        { "label": "Pas de risque suicidaire actif", "next": "orientation-consultation" }
+      ]
+    },
+
+    "hospitalisation-psy-urgente": {
+      "type": "result",
+      "text": "HOSPITALISATION PSYCHIATRIQUE EN URGENCE",
+      "severity": "critical",
+      "actions": [
+        "Hospitalisation sous contrainte si risque vital engagé et soins consentis impossibles",
+        "Bilan somatique complet (le TCA peut engager le pronostic vital indépendamment du risque suicidaire)",
+        "Surveillance rapprochée",
+        "Coordination psychiatrie + somatique"
+      ]
+    },
+
+    "hospitalisation-psy-programmee": {
+      "type": "result",
+      "text": "Hospitalisation psychiatrique à programmer",
+      "severity": "high",
+      "actions": [
+        "Consultation psychiatrique urgente",
+        "Mise en sécurité",
+        "Organiser une hospitalisation en service adapté (psychiatrie avec compétences TCA si possible)",
+        "Traitement des comorbidités"
+      ]
+    },
+
+    "orientation-consultation": {
+      "type": "result",
+      "text": "Orientation vers consultation spécialisée",
+      "severity": "moderate",
+      "actions": [
+        "Pas de critère d'hospitalisation immédiate",
+        "Orienter vers le médecin traitant et/ou centre expert TCA",
+        "Programmer une consultation spécialisée rapide",
+        "Donner les consignes de reconsultation en urgence si aggravation",
+        "Lettre au médecin traitant avec les résultats du bilan"
+      ]
+    }
+  }
+}

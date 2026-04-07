@@ -1,0 +1,156 @@
+{
+  "id": "pec-dentaire-tca",
+  "title": "Prise en charge dentaire dans les TCA",
+  "version": "1.0",
+  "sources": [
+    "HAS 2019 — Fiche boulimie : prise en charge dentaire",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "DU TCA FFAB 2025-2026"
+  ],
+  "root": "contexte-dentaire",
+  "nodes": {
+    "contexte-dentaire": {
+      "type": "question",
+      "text": "Quel est le contexte ?",
+      "options": [
+        { "label": "Évaluation dentaire initiale", "next": "evaluation-initiale" },
+        { "label": "Patient avec érosions dentaires avérées", "next": "erosions" },
+        { "label": "Conseils de prévention à donner au patient", "next": "prevention" }
+      ]
+    },
+
+    "evaluation-initiale": {
+      "type": "action",
+      "text": "Évaluation dentaire initiale chez un patient TCA",
+      "info": "HAS 2019 : rechercher d'emblée l'existence de lésions dentaires et les tracer dans le dossier (indice BEWE).",
+      "sections": [
+        {
+          "title": "Recommandations",
+          "items": [
+            "Examen clinique approfondi AVANT tout examen complémentaire",
+            "Utiliser l'indice BEWE (Basic Erosive Wear Examination) pour coter les lésions",
+            "Attitude bienveillante, sans jugement ni culpabilisation",
+            "Se baser sur les lésions constatées pour évoquer les habitudes alimentaires",
+            "Attitude informative sur les mécanismes et les stratégies de soins possibles"
+          ]
+        },
+        {
+          "title": "Recueillir",
+          "items": [
+            "Attentes du patient (esthétiques, douleur)",
+            "Ancienneté et fréquence des vomissements",
+            "Habitudes d'hygiène bucco-dentaire",
+            "Consommation de boissons acides",
+            "Reflux gastro-œsophagien",
+            "Mérycisme éventuel",
+            "Traitements en cours"
+          ]
+        },
+        {
+          "title": "Signes à rechercher",
+          "items": [
+            "Érosion de l'émail (face linguale/palatine +++ = pathognomonique des vomissements)",
+            "Caries multiples",
+            "Hypersensibilité dentaire",
+            "Hypertrophie parotidienne",
+            "Sécheresse buccale (xérostomie)",
+            "Lésions des muqueuses (érythème palatin, ulcérations)",
+            "Perte de la dimension verticale d'occlusion"
+          ]
+        }
+      ],
+      "next": "orientation-dentaire"
+    },
+
+    "erosions": {
+      "type": "action",
+      "text": "Érosions dentaires avérées — PEC",
+      "sections": [
+        {
+          "title": "Physiopathologie",
+          "items": [
+            "Acide gastrique (pH 1-2) au contact de l'émail lors des vomissements",
+            "Reflux acide (RGO) : même mécanisme",
+            "Mérycisme : exposition acide prolongée",
+            "Aggravé par le brossage immédiat après vomissements (émail fragilisé)"
+          ]
+        },
+        {
+          "title": "Classification des lésions",
+          "items": [
+            "Stade précoce : perte de brillance de l'émail, érosion linguale/palatine débutante",
+            "Stade modéré : perte d'émail visible, sensibilité au chaud/froid",
+            "Stade avancé : exposition dentinaire, perte de hauteur coronaire, risque de nécrose pulpaire"
+          ]
+        },
+        {
+          "title": "Traitements",
+          "items": [
+            "Phase aiguë (vomissements en cours) : protéger et stabiliser, pas de restaurations définitives",
+            "Vernis fluoré professionnel",
+            "Reminéralisation (gel fluoré, CPP-ACP)",
+            "Phase de stabilisation (vomissements contrôlés) : restaurations possibles",
+            "Composites directs, facettes, couronnes selon l'étendue",
+            "Réhabilitation prothétique si perte importante de substance"
+          ]
+        }
+      ]
+    },
+
+    "prevention": {
+      "type": "action",
+      "text": "Conseils de prévention pour le patient",
+      "sections": [
+        {
+          "title": "Après les vomissements (si le patient vomit encore)",
+          "items": [
+            "⚠ NE PAS se brosser les dents immédiatement après les vomissements (attendre 30-60 min)",
+            "Rincer la bouche avec de l'eau + bicarbonate de sodium (1 cuillère à café dans un verre d'eau)",
+            "Ou rincer avec un bain de bouche fluoré",
+            "L'objectif est de neutraliser l'acidité avant le brossage"
+          ]
+        },
+        {
+          "title": "Hygiène bucco-dentaire quotidienne",
+          "items": [
+            "Brossage 2x/jour avec dentifrice fluoré (≥ 1450 ppm de fluor)",
+            "Brosse à dents souple (ne pas agresser l'émail fragilisé)",
+            "Brossage doux, sans pression excessive",
+            "Fil dentaire ou brossettes interdentaires"
+          ]
+        },
+        {
+          "title": "Alimentation",
+          "items": [
+            "Limiter les boissons acides (sodas, jus d'agrumes, vinaigre)",
+            "Utiliser une paille pour les boissons acides (réduit le contact avec les dents)",
+            "Ne pas garder les aliments/boissons acides en bouche",
+            "Stimuler la salive : chewing-gum sans sucre (xylitol)"
+          ]
+        },
+        {
+          "title": "Suivi",
+          "items": [
+            "Consultations dentaires régulières (tous les 6 mois minimum)",
+            "Surveillance de l'évolution des lésions (photos, indice BEWE)",
+            "Coordination avec l'équipe TCA",
+            "Le traitement du TCA est la meilleure prévention des lésions dentaires"
+          ]
+        }
+      ]
+    },
+
+    "orientation-dentaire": {
+      "type": "result",
+      "text": "Orientation",
+      "severity": "moderate",
+      "actions": [
+        "Si lésions débutantes : suivi par dentiste habituel avec protocole de prévention",
+        "Si lésions modérées à sévères : adresser vers un chirurgien-dentiste ayant l'expérience des TCA",
+        "Si réhabilitation prothétique nécessaire : attendre la stabilisation du TCA si possible",
+        "Coordination dentiste ↔ équipe TCA indispensable",
+        "Informer le dentiste du diagnostic de TCA (avec accord du patient)"
+      ]
+    }
+  }
+}

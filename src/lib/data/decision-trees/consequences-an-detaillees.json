@@ -1,0 +1,491 @@
+{
+  "id": "consequences-an-detaillees",
+  "title": "Conséquences somatiques et psychologiques de l'anorexie mentale — par organe",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026 — Module 3 (De Tournemire)",
+    "Cours DIU TCA Ado",
+    "DU TCA — Complications osseuses 2024",
+    "DU TCA — Composition corporelle (LDL1)",
+    "DU TCA — Neuro-endocrinologie",
+    "DU TCA — Approche cognitive (Berthoz 2024)"
+  ],
+  "root": "type-consequence",
+  "nodes": {
+    "type-consequence": {
+      "type": "question",
+      "text": "Quel type de conséquences explorer ?",
+      "options": [
+        { "label": "Conséquences somatiques (par organe)", "next": "somatique-organe" },
+        { "label": "Conséquences psychologiques et cognitives", "next": "psycho-cognitif" },
+        { "label": "Conséquences sur le développement (enfant/ado)", "next": "developpement" }
+      ]
+    },
+
+    "somatique-organe": {
+      "type": "question",
+      "text": "Quel organe / système ?",
+      "options": [
+        { "label": "Cœur et vaisseaux", "next": "cardio" },
+        { "label": "Système digestif", "next": "digestif" },
+        { "label": "Os et articulations", "next": "osseux" },
+        { "label": "Système nerveux", "next": "neuro" }
+      ]
+    },
+
+    "somatique-organe-2": {
+      "type": "question",
+      "text": "Autres systèmes",
+      "options": [
+        { "label": "Sang et moelle osseuse", "next": "hemato" },
+        { "label": "Reins", "next": "renal" },
+        { "label": "Peau, cheveux, ongles", "next": "cutane" },
+        { "label": "Muscles (sarcopénie)", "next": "musculaire" }
+      ]
+    },
+
+    "cardio": {
+      "type": "action",
+      "text": "Conséquences cardiovasculaires de l'AN",
+      "sections": [
+        {
+          "title": "Anomalies fréquentes",
+          "items": [
+            "Bradycardie sinusale — anomalie la plus commune (liée à la basse T3)",
+            "Réduction de la masse myocardique et de la fraction d'éjection",
+            "Hypotension artérielle",
+            "Prolapsus mitral (réduction du volume ventriculaire)",
+            "Épanchement péricardique (dénutrition sévère)"
+          ]
+        },
+        {
+          "title": "Anomalies ECG",
+          "items": [
+            "Allongement du QTc (risque de torsade de pointe et mort subite)",
+            "Onde U (hypokaliémie)",
+            "Troubles du rythme : extrasystoles, tachycardie, fibrillation",
+            "Bradycardie < 40/min = critère d'hospitalisation"
+          ]
+        },
+        {
+          "title": "Surveillance recommandée",
+          "items": [
+            "ECG systématique au bilan initial et en suivi",
+            "Scope continu si IMC < 14 ou anomalie ionique",
+            "Relevé des fréquences cardiaques sur 48-72h via capteur (centres spécialisés)",
+            "Échographie cardiaque si suspicion d'épanchement ou d'insuffisance cardiaque"
+          ]
+        },
+        {
+          "title": "Réversibilité",
+          "items": [
+            "La plupart des anomalies sont réversibles avec la renutrition",
+            "⚠ Le risque de mort subite par trouble du rythme persiste tant que l'hypokaliémie n'est pas corrigée"
+          ]
+        }
+      ]
+    },
+
+    "digestif": {
+      "type": "action",
+      "text": "Conséquences digestives de l'AN",
+      "sections": [
+        {
+          "title": "Lié à la dénutrition",
+          "items": [
+            "Gastroparésie (retard de vidange gastrique) → sensation de plénitude rapide",
+            "Constipation sévère (ralentissement du transit)",
+            "Hépatite de dénutrition (cytolyse hépatique = « foie de jeûne »)",
+            "Syndrome de l'artère mésentérique supérieure (SMA) : compression duodénale par perte du coussinet graisseux"
+          ]
+        },
+        {
+          "title": "Lié aux conduites de purge",
+          "items": [
+            "Hypertrophie parotidienne",
+            "Œsophagite, RGO",
+            "Ulcérations pharyngées",
+            "Syndrome de Mallory-Weiss (déchirure œsophagienne)",
+            "Rupture œsophagienne (exceptionnelle, urgence vitale)",
+            "Constipation et mélanose colique (laxatifs)"
+          ]
+        },
+        {
+          "title": "Hépatite de renutrition",
+          "items": [
+            "Cytolyse apparaissant pendant la reprise alimentaire (SRI)",
+            "Différencier de l'hépatite de dénutrition +++",
+            "Si cytolyse + signes d'IHC → réanimation"
+          ]
+        }
+      ]
+    },
+
+    "osseux": {
+      "type": "action",
+      "text": "Conséquences osseuses de l'AN",
+      "info": "Ostéopénie/ostéoporose fréquentes (fille ET garçon). Début précoce : 6 mois après le début de la perte de poids/aménorrhée.",
+      "sections": [
+        {
+          "title": "Physiopathologie multifactorielle",
+          "items": [
+            "Dénutrition directe",
+            "Hypoestrogénie (femme) / hypotestostéronémie (homme)",
+            "Hypercorticisme fonctionnel",
+            "Hyperactivité physique",
+            "Syndrome de basse T3",
+            "Iatrogène (corticoïdes si MICI associée)"
+          ]
+        },
+        {
+          "title": "Conséquences",
+          "items": [
+            "Ostéopénie → ostéoporose",
+            "Limitation du pic de masse osseuse (enfant/ado +++)",
+            "Augmentation du risque fracturaire",
+            "Fractures de fatigue (même valeur que fractures de fragilité)",
+            "Tassements vertébraux"
+          ]
+        },
+        {
+          "title": "Le SEUL traitement efficace",
+          "items": [
+            "RENUTRITION et restauration pondérale +++",
+            "Reprise des menstruations",
+            "Supplémentation vitamine D et calcium si carence",
+            "Pas de bisphosphonates en 1re intention chez l'adolescent",
+            "Pas de pilule œstroprogestative pour traiter l'ostéoporose de l'AN"
+          ]
+        }
+      ]
+    },
+
+    "neuro": {
+      "type": "action",
+      "text": "Conséquences neurologiques et cognitives de l'AN",
+      "sections": [
+        {
+          "title": "Atteintes structurelles",
+          "items": [
+            "Atrophie cérébrale (substance grise) — partiellement réversible avec renutrition",
+            "Dilatation des ventricules cérébraux",
+            "Diminution du volume hippocampique"
+          ]
+        },
+        {
+          "title": "Troubles cognitifs",
+          "items": [
+            "Troubles de la concentration et de l'attention",
+            "Fatigabilité cognitive",
+            "Rigidité cognitive (difficulté à changer de stratégie, « set shifting »)",
+            "Faiblesse de la cohérence centrale (focus sur les détails au détriment de la vue d'ensemble)",
+            "Ralentissement idéique (dans les formes sévères)",
+            "Crises convulsives (dénutrition extrême ou hyponatrémie)"
+          ]
+        },
+        {
+          "title": "Compressions nerveuses",
+          "items": [
+            "Compression du nerf sciatique poplité externe (SPE) par perte du capiton graisseux",
+            "Paresthésies, pied tombant"
+          ]
+        },
+        {
+          "title": "Réversibilité",
+          "items": [
+            "L'atrophie cérébrale est partiellement réversible avec la renutrition",
+            "Les troubles cognitifs s'améliorent avec la restauration pondérale",
+            "Certains déficits (flexibilité, cohérence centrale) peuvent persister — cibles de la remédiation cognitive"
+          ]
+        }
+      ]
+    },
+
+    "hemato": {
+      "type": "action",
+      "text": "Conséquences hématologiques de l'AN",
+      "sections": [
+        {
+          "title": "Hypométabolisme médullaire",
+          "items": [
+            "Anémie modérée",
+            "Leuconeutropénie (risque infectieux)",
+            "Thrombopénie"
+          ]
+        },
+        {
+          "title": "Dégénérescence gélatineuse de la moelle osseuse",
+          "items": [
+            "Atrophie séreuse ou « moelle de déprivation »",
+            "Pancytopénie dans les formes sévères",
+            "Myélogramme : cellularité pauvre"
+          ]
+        },
+        {
+          "title": "Seuils d'hospitalisation",
+          "items": [
+            "Leucocytes < 1000/mm³ ou PNN < 500/mm³",
+            "Plaquettes < 60 000/mm³",
+            "Réversible avec la renutrition"
+          ]
+        }
+      ]
+    },
+
+    "renal": {
+      "type": "action",
+      "text": "Conséquences rénales de l'AN",
+      "sections": [
+        {
+          "title": "Atteintes rénales",
+          "items": [
+            "Insuffisance rénale fonctionnelle (déshydratation)",
+            "Insuffisance rénale organique : néphropathie tubulo-interstitielle par hypokaliémie chronique",
+            "Lithiases urinaires",
+            "Infections urinaires",
+            "Clairance créatinine < 40 mL/min = critère d'hospitalisation"
+          ]
+        }
+      ]
+    },
+
+    "cutane": {
+      "type": "action",
+      "text": "Conséquences cutanées de l'AN",
+      "sections": [
+        {
+          "title": "Signes cutanés de dénutrition",
+          "items": [
+            "Lanugo (duvet fin sur le corps — thermorégulation)",
+            "Xérose (peau sèche)",
+            "Acrocyanose (extrémités bleutées)",
+            "Caroténodermie (teint orangé — excès de caroténoïdes)",
+            "Ictère (souvent syndrome de Gilbert démasqué)",
+            "Effluvium télogène (chute de cheveux diffuse)",
+            "Atteintes unguéales (ongles cassants, striés)",
+            "Purpura",
+            "Escarres (dénutrition sévère + immobilisation)",
+            "Acné"
+          ]
+        }
+      ]
+    },
+
+    "musculaire": {
+      "type": "action",
+      "text": "Conséquences musculaires de l'AN",
+      "sections": [
+        {
+          "title": "Sarcopénie et fonte musculaire",
+          "items": [
+            "Amyotrophie importante (perte de masse musculaire)",
+            "Hypotonie axiale dans les formes sévères",
+            "Fatigabilité musculaire",
+            "Amyotrophie importante avec hypotonie axiale = critère d'hospitalisation adulte"
+          ]
+        },
+        {
+          "title": "Composition corporelle",
+          "items": [
+            "Perte de masse grasse ET de masse maigre",
+            "Impédancemétrie : permet d'évaluer la composition corporelle",
+            "La restauration de la masse maigre est plus lente que celle de la masse grasse"
+          ]
+        }
+      ]
+    },
+
+    "psycho-cognitif": {
+      "type": "question",
+      "text": "Conséquences psychologiques et cognitives",
+      "options": [
+        { "label": "Profil cognitif de l'AN (rigidité, cohérence centrale)", "next": "profil-cognitif" },
+        { "label": "Cognitions sociales et alexithymie", "next": "cognitions-sociales" },
+        { "label": "Conséquences psychiatriques", "next": "consequences-psy" },
+        { "label": "Image corporelle et perception de soi", "next": "image-corporelle" }
+      ]
+    },
+
+    "profil-cognitif": {
+      "type": "action",
+      "text": "Profil cognitif dans l'AN",
+      "info": "Source : Sylvie Berthoz, Approche cognitive des TCA, DU TCA 2024",
+      "sections": [
+        {
+          "title": "Caractéristiques cognitives de l'AN",
+          "items": [
+            "Rigidité cognitive : difficulté à changer de stratégie (set shifting altéré)",
+            "Faiblesse de la cohérence centrale : focus sur les détails, difficulté à voir la « big picture »",
+            "Perfectionnisme cognitif",
+            "Pensée dichotomique (tout ou rien)",
+            "Surestimation de la menace (biais attentionnel vers les stimuli alimentaires/corporels)"
+          ]
+        },
+        {
+          "title": "Remédiation cognitive (CRT)",
+          "items": [
+            "Cognitive Remediation Therapy : intervention ciblant les processus cognitifs",
+            "Travail de la flexibilité cognitive et de la cohérence centrale",
+            "Exercices NON liés à l'alimentation (puzzles, exercices cognitifs variés)",
+            "Efficacité démontrée sur l'attention au détail et la flexibilité (Tchanturia 2017, Leppanen 2018)",
+            "Peut faciliter l'engagement dans les autres thérapies",
+            "Adaptée aussi pour l'obésité (CRT-O)"
+          ]
+        },
+        {
+          "title": "Ces traits sont-ils cause ou conséquence ?",
+          "items": [
+            "Certains traits (rigidité, perfectionnisme) pré-existent au TCA = facteurs de vulnérabilité",
+            "La dénutrition aggrave les déficits cognitifs",
+            "Certains déficits persistent après restauration pondérale = endophénotypes ?",
+            "Retrouvés chez les apparentés non atteints → composante génétique"
+          ]
+        }
+      ]
+    },
+
+    "cognitions-sociales": {
+      "type": "action",
+      "text": "Cognitions sociales et alexithymie dans l'AN",
+      "info": "Source : Berthoz, DU TCA 2024",
+      "sections": [
+        {
+          "title": "Alexithymie",
+          "items": [
+            "Difficulté à identifier et verbaliser ses émotions",
+            "Fréquente dans l'AN (30-70% selon les études)",
+            "Contribue aux difficultés relationnelles et au maintien du trouble",
+            "L'alimentation peut servir de stratégie de régulation émotionnelle de substitution"
+          ]
+        },
+        {
+          "title": "Théorie de l'esprit et cognitions sociales",
+          "items": [
+            "Difficultés de reconnaissance des émotions chez autrui",
+            "Altération de la théorie de l'esprit (comprendre les intentions des autres)",
+            "Peut se confondre avec les difficultés du TSA → diagnostic différentiel important",
+            "Contribue à l'isolement social"
+          ]
+        },
+        {
+          "title": "Implications thérapeutiques",
+          "items": [
+            "Travail sur l'identification et l'expression des émotions",
+            "Mindfulness : reconnexion aux ressentis internes",
+            "Psychomotricité : conscience corporelle et intéroception",
+            "TCC : travail sur l'évitement expérientiel"
+          ]
+        }
+      ]
+    },
+
+    "consequences-psy": {
+      "type": "action",
+      "text": "Conséquences psychiatriques de l'AN",
+      "sections": [
+        {
+          "title": "Effets de la dénutrition sur le psychisme",
+          "items": [
+            "Symptômes pseudo-dépressifs : anhédonie, ralentissement, retrait social",
+            "Irritabilité, labilité émotionnelle",
+            "Anxiété (surtout pré-prandiale)",
+            "Obsessions alimentaires envahissantes",
+            "Troubles du sommeil",
+            "⚠ Nécessité de réévaluer APRÈS renutrition : ces symptômes peuvent disparaître avec la restauration pondérale"
+          ]
+        },
+        {
+          "title": "Comorbidités psychiatriques (vraies)",
+          "items": [
+            "Dépression caractérisée (à distinguer des effets de la dénutrition)",
+            "Troubles anxieux, TOC",
+            "Risque suicidaire (mortalité parmi les plus élevées des troubles psychiatriques)",
+            "Addictions",
+            "Troubles de la personnalité (évitante, obsessionnelle, borderline)",
+            "TSA, TDAH"
+          ]
+        },
+        {
+          "title": "Retentissement psychosocial",
+          "items": [
+            "Isolement social progressif",
+            "Décrochage scolaire / professionnel",
+            "Altération des relations familiales",
+            "Perte d'identité au-delà du TCA",
+            "Altération de la qualité de vie"
+          ]
+        }
+      ]
+    },
+
+    "image-corporelle": {
+      "type": "action",
+      "text": "Image corporelle et perception de soi",
+      "sections": [
+        {
+          "title": "Perturbation de l'image corporelle",
+          "items": [
+            "Critère C du DSM-5 : altération de la perception du poids ou de la forme",
+            "Dysmorphophobie : se voir gros(se) malgré la maigreur objective",
+            "Le déni de la maigreur fait partie de la maladie",
+            "Influence excessive du poids et de la forme sur l'estime de soi"
+          ]
+        },
+        {
+          "title": "Approches thérapeutiques",
+          "items": [
+            "Psychomotricité : travail sur le schéma corporel et l'image du corps",
+            "TCC : restructuration cognitive des croyances sur le corps",
+            "Exposition en miroir (progressive, encadrée)",
+            "Mindfulness : reconnexion aux sensations corporelles sans jugement",
+            "Art-thérapie, photographie thérapeutique"
+          ]
+        }
+      ]
+    },
+
+    "developpement": {
+      "type": "action",
+      "text": "Conséquences sur le développement (enfant/adolescent)",
+      "info": "Spécifiques à l'enfant et l'adolescent — irréversibles si non traitées à temps.",
+      "sections": [
+        {
+          "title": "Croissance",
+          "items": [
+            "Ralentissement ou arrêt de la croissance staturale",
+            "Cassure de la courbe de taille (peut être le 1er signe)",
+            "Taille adulte potentiellement réduite si AN prolongée",
+            "Défaut d'acquisition du pic de masse osseuse"
+          ]
+        },
+        {
+          "title": "Puberté",
+          "items": [
+            "Retard pubertaire ou arrêt du développement pubertaire",
+            "Aménorrhée primaire (jamais eu de règles) ou secondaire",
+            "Perturbation de l'axe gonadotrope → hypogonadisme",
+            "Conséquences à long terme : fertilité, sexualité"
+          ]
+        },
+        {
+          "title": "Développement cérébral",
+          "items": [
+            "L'adolescence est une période critique de maturation cérébrale",
+            "La dénutrition pendant cette période peut avoir un impact durable",
+            "Atrophie cérébrale (partiellement réversible)",
+            "Impact sur les apprentissages, la mémoire, les fonctions exécutives"
+          ]
+        },
+        {
+          "title": "Développement psychosocial",
+          "items": [
+            "Décrochage scolaire",
+            "Isolement vis-à-vis des pairs",
+            "Retard dans les étapes développementales (autonomie, identité, sexualité)",
+            "Impact sur la dynamique familiale"
+          ]
+        }
+      ]
+    }
+  }
+}

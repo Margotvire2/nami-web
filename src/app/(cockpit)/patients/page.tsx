@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, CareCase } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import { Search, ChevronRight, Users, AlertTriangle, Clock, Plus } from "lucide-react";
+import { Search, ChevronRight, Users, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import ImportModal from "./import/import-modal";
+import PatientsEmptyState from "./empty-state";
+import { CreatePatientModal } from "./create-patient-modal";
+import type { ImportResult } from "./import/import.types";
 
 const RISK_STYLE: Record<string, string> = {
   CRITICAL: "text-severity-critical font-semibold",
@@ -45,10 +49,13 @@ const TABS = [
 export default function PatientsPage() {
   const { accessToken } = useAuthStore();
   const api = apiWithToken(accessToken!);
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState("active");
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: cases, isLoading } = useQuery({
     queryKey: ["care-cases", "all"],
@@ -100,8 +107,11 @@ export default function PatientsPage() {
                 className="pl-8 h-8 text-xs w-56"
               />
             </div>
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => toast.info("Création de dossier bientôt disponible")}>
-              <Plus size={12} /> Nouveau dossier
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setImportOpen(true)}>
+              <Upload size={12} /> Importer
+            </Button>
+            <Button size="sm" className="text-xs gap-1.5 h-8" onClick={() => setCreateOpen(true)}>
+              <Plus size={12} /> Nouveau patient
             </Button>
           </div>
         </div>
@@ -170,6 +180,11 @@ export default function PatientsPage() {
           <div className="p-6 space-y-2">
             {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 rounded" />)}
           </div>
+        ) : allCases.length === 0 ? (
+          <PatientsEmptyState
+            onImport={() => setImportOpen(true)}
+            onCreateManual={() => toast.info("Création manuelle bientôt disponible")}
+          />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Users size={24} className="text-muted-foreground/30 mb-3" />
@@ -196,6 +211,16 @@ export default function PatientsPage() {
           </table>
         )}
       </div>
+
+      <ImportModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSuccess={(result: ImportResult) => {
+          toast.success(`${result.success} patient${result.success !== 1 ? "s" : ""} importé${result.success !== 1 ? "s" : ""}`);
+          queryClient.invalidateQueries({ queryKey: ["care-cases"] });
+        }}
+      />
+      <CreatePatientModal open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

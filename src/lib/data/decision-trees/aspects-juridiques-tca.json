@@ -1,0 +1,174 @@
+{
+  "id": "aspects-juridiques-tca",
+  "title": "Aspects juridiques et éthiques : hospitalisation sous contrainte, droits du patient, mineur",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Anorexie mentale",
+    "Reco2clics HAS — Hospitalisation sous contrainte",
+    "DU TCA FFAB 2025-2026",
+    "DU TCA — Psychotraumatologie et TCA"
+  ],
+  "root": "question-juridique",
+  "nodes": {
+    "question-juridique": {
+      "type": "question",
+      "text": "Quel aspect juridique ou éthique ?",
+      "options": [
+        { "label": "Hospitalisation sous contrainte", "next": "contrainte" },
+        { "label": "Droits du patient et information", "next": "droits-patient" },
+        { "label": "Spécificités du mineur", "next": "mineur" },
+        { "label": "Questions éthiques dans les TCA", "next": "ethique" }
+      ]
+    },
+
+    "contrainte": {
+      "type": "action",
+      "text": "Hospitalisation sous contrainte dans les TCA",
+      "info": "HAS 2010 : La contrainte ne doit être utilisée que lorsque le risque vital est engagé et que des soins consentis sont impossibles.",
+      "sections": [
+        {
+          "title": "Principes",
+          "items": [
+            "L'hospitalisation sous contrainte est le DERNIER recours",
+            "Conditions : risque vital engagé ET soins consentis impossibles",
+            "Le refus de soins seul ne suffit pas à justifier la contrainte",
+            "Le déni fait partie de la maladie — ne signifie pas incapacité de consentement"
+          ]
+        },
+        {
+          "title": "Modalités légales (adulte)",
+          "items": [
+            "SDT (Soins à la Demande d'un Tiers) : 2 certificats médicaux + demande d'un tiers",
+            "SDRE (Soins sur Décision du Représentant de l'État) : si danger pour l'ordre public (rare dans les TCA)",
+            "SDT en urgence : 1 seul certificat médical si péril imminent",
+            "Contrôle du juge des libertés dans les 12 jours",
+            "Réévaluation régulière de la nécessité de la contrainte"
+          ]
+        },
+        {
+          "title": "Dans la pratique des TCA",
+          "items": [
+            "Situations possibles : IMC extrêmement bas avec refus total de soins, risque vital immédiat",
+            "La contrainte nutritionnelle (nutrition entérale forcée) pose des questions éthiques majeures",
+            "L'alliance thérapeutique est détruite par la contrainte — à reconstruire ensuite",
+            "Privilégier toujours la négociation et le travail motivationnel avant la contrainte",
+            "La contrainte peut sauver la vie mais ne guérit pas le TCA"
+          ]
+        }
+      ]
+    },
+
+    "droits-patient": {
+      "type": "action",
+      "text": "Droits du patient et information",
+      "info": "HAS 2010 : Il est recommandé d'informer le patient et son entourage.",
+      "sections": [
+        {
+          "title": "Droit à l'information (Loi Kouchner 2002)",
+          "items": [
+            "Le patient a droit à une information claire, loyale et appropriée sur son état de santé",
+            "Information sur le diagnostic, le pronostic, les traitements proposés, les risques",
+            "L'information doit être adaptée à l'âge et aux capacités du patient",
+            "Le consentement éclairé est la règle"
+          ]
+        },
+        {
+          "title": "Secret médical et entourage",
+          "items": [
+            "Le secret médical s'applique même vis-à-vis de la famille (patient majeur)",
+            "Partage d'informations avec l'entourage : uniquement avec accord du patient",
+            "Exception : danger vital immédiat",
+            "Pour les mineurs : les titulaires de l'autorité parentale sont informés"
+          ]
+        },
+        {
+          "title": "Ressources d'information",
+          "items": [
+            "Orienter vers les associations : FFAB (ffab.fr), FNA-TCA (fna-tca.org)",
+            "Fiches HAS disponibles en ligne",
+            "Anorexie Boulimie Info Écoute : 0 810 037 037",
+            "Anorexiclic : tca-poitoucharentes.fr/anorexiclic (AN en médecine générale)"
+          ]
+        }
+      ]
+    },
+
+    "mineur": {
+      "type": "action",
+      "text": "Spécificités juridiques du mineur",
+      "sections": [
+        {
+          "title": "Consentement du mineur",
+          "items": [
+            "L'autorité parentale détient le pouvoir de décision thérapeutique",
+            "Le consentement du mineur doit être recherché (selon sa maturité)",
+            "Le mineur doit être informé de manière adaptée à son âge",
+            "Droit à la confidentialité pour certains actes (sexualité, contraception) à partir de 16 ans"
+          ]
+        },
+        {
+          "title": "Hospitalisation du mineur",
+          "items": [
+            "Consentement des deux titulaires de l'autorité parentale requis",
+            "En cas de désaccord parental : saisir le juge des enfants",
+            "En cas de refus parental avec mise en danger : signalement et saisine du juge",
+            "L'hospitalisation d'un mineur ne relève pas de la SDT/SDRE mais de l'autorité parentale"
+          ]
+        },
+        {
+          "title": "Signalement et protection de l'enfance",
+          "items": [
+            "Obligation de signalement si suspicion de maltraitance, harcèlement, abus",
+            "Le TCA peut révéler une situation de danger (trauma, violences)",
+            "Rechercher systématiquement : maltraitance, harcèlement, traumatisme",
+            "Signalement au Procureur de la République ou à la CRIP"
+          ]
+        }
+      ]
+    },
+
+    "ethique": {
+      "type": "action",
+      "text": "Questions éthiques dans les TCA",
+      "sections": [
+        {
+          "title": "Le paradoxe du consentement dans l'AN",
+          "items": [
+            "Le patient AN peut refuser les soins tout en étant en danger vital",
+            "Le déni fait partie de la maladie — mais le patient n'est pas « incapable »",
+            "La dénutrition altère les fonctions cognitives — le consentement est-il « éclairé » ?",
+            "Pas de réponse simple — évaluation au cas par cas"
+          ]
+        },
+        {
+          "title": "Nutrition entérale sous contrainte",
+          "items": [
+            "Mesure de survie dans les situations extrêmes",
+            "Vécu traumatique possible pour le patient",
+            "Efficacité sur le poids mais pas sur le TCA lui-même",
+            "Doit être menée par des équipes expérimentées",
+            "Cadre juridique strict obligatoire"
+          ]
+        },
+        {
+          "title": "Neuromodulation et recherche",
+          "items": [
+            "DBS (stimulation cérébrale profonde) : questions éthiques sur le consentement chez des patients dénutris",
+            "Essais sur des patients AN chroniques résistants — population vulnérable",
+            "Psychédéliques (psilocybine) : cadre éthique et réglementaire à définir",
+            "Balance bénéfice/risque à peser particulièrement chez des patients fragiles"
+          ]
+        },
+        {
+          "title": "Chronicité et fin de vie",
+          "items": [
+            "AN chronique résistante : quand les objectifs curatifs ne sont plus atteignables",
+            "Soins palliatifs dans les cas extrêmes : débat éthique en cours",
+            "Approche orientée rétablissement même dans les formes chroniques",
+            "Le maintien du lien thérapeutique reste toujours un objectif"
+          ]
+        }
+      ]
+    }
+  }
+}

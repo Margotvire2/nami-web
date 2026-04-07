@@ -1,233 +1,305 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  CheckCircle2, ArrowRight, Users, Shield,
-  Stethoscope, Heart, Clock,
+  CheckCircle2,
+  ArrowRight,
+  Shield,
+  Clock,
+  Loader2,
+  AlertTriangle,
+  Stethoscope,
 } from "lucide-react";
+import { invitationsApi, authApi, type Invitation } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 
-/*
-  Page publique /invite/:token
-  Le soignant invité arrive ici via un lien.
-  Si déjà compte → bouton "Se connecter"
-  Si nouveau → signup express en 3 champs (nom, spécialité, mdp)
-*/
-
-// Mock : données de l'invitation (en prod, fetch depuis le backend avec le token)
-const MOCK_INVITE = {
-  inviter: {
-    firstName: "Amélie",
-    lastName: "Suela",
-    specialty: "Médecin généraliste",
-    establishment: "Cabinet Necker, Paris",
-  },
-  message: "Bonjour, je souhaiterais collaborer avec vous sur le suivi de nos patients en nutrition et TCA. Rejoignez Nami pour faciliter notre coordination !",
-  teamSize: 4,
-  sharedPatients: 3,
-};
-
-const SPECIALTIES = [
-  "Médecin généraliste", "Diététicien(ne)", "Psychologue", "Psychiatre",
-  "Endocrinologue", "Pédiatre", "Cardiologue", "Néphrologue",
-  "Kinésithérapeute", "Infirmier(ère)", "Autre",
-];
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
   const router = useRouter();
-  const [step, setStep] = useState<"welcome" | "signup" | "done">("welcome");
+  const { setAccessToken } = useAuthStore();
+
+  const [step, setStep] = useState<"loading" | "welcome" | "signup" | "done" | "error">("loading");
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
+
+  // Signup form
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [specialty, setSpecialty] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const inv = MOCK_INVITE;
+  // Load invitation on mount
+  useEffect(() => {
+    invitationsApi
+      .get(token)
+      .then((inv) => {
+        setInvitation(inv);
+        if (inv.toEmail) setEmail(inv.toEmail);
+        if (inv.isExpired) {
+          setStep("error");
+        } else if (inv.status === "ACCEPTED") {
+          setStep("done");
+        } else {
+          setStep("welcome");
+        }
+      })
+      .catch(() => setStep("error"));
+  }, [token]);
 
   async function handleSignup() {
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) return;
-    setLoading(true);
-    // Simule le signup (en prod : appel API avec le token d'invitation)
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setStep("done");
-    toast.success("Bienvenue sur Nami !");
+    setSubmitting(true);
+
+    try {
+      // 1. Create account
+      const { accessToken } = await authApi.signup({
+        email: email.trim(),
+        password,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        roleType: "PROVIDER",
+      });
+
+      // 2. Accept invitation
+      const me = await authApi.me(accessToken);
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/invitations/${token}/accept`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ personId: me.id }),
+        }
+      );
+
+      // Auto-login
+      setAccessToken(accessToken);
+
+      setStep("done");
+      toast.success("Bienvenue sur Nami !");
+
+      // Redirect after brief delay
+      setTimeout(() => router.push("/aujourd-hui"), 1500);
+    } catch (err: any) {
+      const msg = err?.message?.includes("409") || err?.message?.includes("Unique")
+        ? "Un compte avec cet email existe déjà. Connectez-vous."
+        : "Erreur lors de la création du compte";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // Loading
+  if (step === "loading") {
+    return (
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Error / expired
+  if (step === "error") {
+    return (
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-card rounded-2xl border p-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto">
+            <AlertTriangle size={28} className="text-destructive" />
+          </div>
+          <h1 className="text-lg font-semibold">
+            {invitation?.isExpired ? "Invitation expirée" : "Invitation introuvable"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {invitation?.isExpired
+              ? "Cette invitation a expiré. Demandez à votre confrère d'en renvoyer une nouvelle."
+              : "Ce lien d'invitation n'est pas valide. Vérifiez le lien ou contactez l'expéditeur."}
+          </p>
+          <Link href="/login">
+            <Button variant="outline" className="text-xs">
+              Se connecter
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F2FA] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[520px]">
-
-        {/* ── Step 1 : Welcome ── */}
-        {step === "welcome" && (
-          <div className="space-y-6">
-            {/* Card principale */}
-            <div className="bg-white rounded-2xl p-8 space-y-6" style={{ border: "1px solid #E8ECF4" }}>
+    <div className="min-h-screen bg-muted/20 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[480px]">
+        {/* ── Welcome ── */}
+        {step === "welcome" && invitation && (
+          <div className="space-y-5">
+            <div className="bg-card rounded-2xl border p-8 space-y-6">
               {/* Logo */}
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-[12px] bg-[#4F46E5] flex items-center justify-center">
-                  <span className="text-white text-sm font-extrabold">N</span>
+                <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground text-sm font-extrabold">N</span>
                 </div>
-                <span className="text-lg font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
+                <span className="text-lg font-bold text-foreground tracking-tight">Nami</span>
               </div>
 
               {/* Invitation */}
               <div>
-                <h1 className="text-[24px] font-bold text-[#0F172A] leading-tight tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>
-                  {inv.inviter.firstName} {inv.inviter.lastName} vous invite à collaborer
+                <h1 className="text-xl font-bold text-foreground leading-tight tracking-tight">
+                  {invitation.fromPerson.firstName} {invitation.fromPerson.lastName} vous invite à collaborer
                 </h1>
-                <p className="text-sm text-[#64748B] mt-2 flex items-center gap-1.5">
-                  <Stethoscope size={14} className="text-[#94A3B8]" />
-                  {inv.inviter.specialty} · {inv.inviter.establishment}
-                </p>
+                {invitation.careCase && (
+                  <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                    <Stethoscope size={13} className="text-muted-foreground/60" />
+                    {invitation.careCase.caseTitle}
+                  </p>
+                )}
               </div>
 
-              {/* Message personnalisé */}
-              {inv.message && (
-                <div className="bg-[#F0F2FA] rounded-xl p-4">
-                  <p className="text-sm text-[#374151] leading-relaxed italic">"{inv.message}"</p>
+              {/* Message */}
+              {invitation.message && (
+                <div className="bg-muted/30 rounded-xl p-4">
+                  <p className="text-sm text-foreground/80 leading-relaxed italic">
+                    &quot;{invitation.message}&quot;
+                  </p>
                 </div>
               )}
 
-              {/* Stats équipe */}
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                  <Users size={14} className="text-[#4F46E5]" />
-                  <span><span className="font-semibold text-[#0F172A]">{inv.teamSize}</span> membres</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                  <Heart size={14} className="text-[#4F46E5]" />
-                  <span><span className="font-semibold text-[#0F172A]">{inv.sharedPatients}</span> patients partagés</span>
-                </div>
-              </div>
-
               {/* CTAs */}
-              <div className="space-y-3">
-                <button
+              <div className="space-y-2.5">
+                <Button
+                  className="w-full h-11 text-sm gap-2"
                   onClick={() => setStep("signup")}
-                  className="w-full h-12 rounded-xl bg-[#4F46E5] text-white text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors"
                 >
-                  Créer mon compte <ArrowRight size={16} />
-                </button>
-                <Link
-                  href="/login"
-                  className="w-full h-12 rounded-xl bg-white text-[#4F46E5] text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-[#EEF2FF] transition-colors"
-                  style={{ border: "1px solid #E8ECF4" }}
-                >
-                  J'ai déjà un compte
+                  Créer mon compte <ArrowRight size={15} />
+                </Button>
+                <Link href="/login" className="block">
+                  <Button variant="outline" className="w-full h-11 text-sm">
+                    J&apos;ai déjà un compte
+                  </Button>
                 </Link>
               </div>
             </div>
 
-            {/* Trust signals */}
-            <div className="flex items-center justify-center gap-6 text-[12px] text-[#94A3B8]">
-              <span className="flex items-center gap-1"><Shield size={12} /> Données sécurisées</span>
-              <span className="flex items-center gap-1"><Clock size={12} /> Inscription en 45 sec</span>
+            {/* Trust */}
+            <div className="flex items-center justify-center gap-6 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1"><Shield size={11} /> Données sécurisées</span>
+              <span className="flex items-center gap-1"><Clock size={11} /> Inscription en 45 sec</span>
             </div>
           </div>
         )}
 
-        {/* ── Step 2 : Signup express ── */}
-        {step === "signup" && (
-          <div className="bg-white rounded-2xl p-8 space-y-6" style={{ border: "1px solid #E8ECF4" }}>
+        {/* ── Signup ── */}
+        {step === "signup" && invitation && (
+          <div className="bg-card rounded-2xl border p-8 space-y-5">
             <div>
-              <button onClick={() => setStep("welcome")} className="text-xs text-[#64748B] hover:text-[#4F46E5] transition-colors mb-3">← Retour</button>
-              <h2 className="text-[20px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Créer votre compte</h2>
-              <p className="text-sm text-[#64748B] mt-1">Rejoignez l'équipe de {inv.inviter.firstName} {inv.inviter.lastName} en 3 étapes.</p>
+              <button
+                onClick={() => setStep("welcome")}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors mb-3"
+              >
+                ← Retour
+              </button>
+              <h2 className="text-lg font-bold text-foreground tracking-tight">
+                Créer votre compte
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Rejoignez l&apos;équipe de {invitation.fromPerson.firstName} {invitation.fromPerson.lastName}.
+              </p>
             </div>
 
-            <div className="space-y-4">
-              {/* Nom */}
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Prénom</label>
-                  <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Prénom" autoFocus className="w-full h-10 mt-1.5 rounded-[10px] bg-[#F0F2FA] px-4 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
+                  <label className="text-[11px] font-medium text-muted-foreground">Prénom</label>
+                  <Input
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Prénom"
+                    className="h-9 text-xs mt-1"
+                    autoFocus
+                  />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Nom</label>
-                  <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Nom" className="w-full h-10 mt-1.5 rounded-[10px] bg-[#F0F2FA] px-4 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
+                  <label className="text-[11px] font-medium text-muted-foreground">Nom</label>
+                  <Input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Nom"
+                    className="h-9 text-xs mt-1"
+                  />
                 </div>
               </div>
 
-              {/* Email */}
               <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Email professionnel</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="vous@cabinet.fr" className="w-full h-10 mt-1.5 rounded-[10px] bg-[#F0F2FA] px-4 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
+                <label className="text-[11px] font-medium text-muted-foreground">Email professionnel</label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="vous@cabinet.fr"
+                  className="h-9 text-xs mt-1"
+                />
               </div>
 
-              {/* Spécialité */}
               <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Spécialité</label>
-                <select value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="w-full h-10 mt-1.5 rounded-[10px] bg-[#F0F2FA] px-4 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20">
-                  <option value="">Choisir votre spécialité</option>
-                  {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              {/* Mot de passe */}
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Mot de passe</label>
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Min. 8 caractères" className="w-full h-10 mt-1.5 rounded-[10px] bg-[#F0F2FA] px-4 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20" />
+                <label className="text-[11px] font-medium text-muted-foreground">Mot de passe</label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 8 caractères"
+                  className="h-9 text-xs mt-1"
+                />
               </div>
             </div>
 
-            <button
+            <Button
+              className="w-full h-10 text-sm gap-2"
               onClick={handleSignup}
-              disabled={loading || !firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()}
-              className={`w-full h-12 rounded-xl text-[15px] font-semibold flex items-center justify-center gap-2 transition-colors ${
-                !loading && firstName.trim() && lastName.trim() && email.trim() && password.trim()
-                  ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]"
-                  : "bg-[#E8ECF4] text-[#94A3B8] cursor-not-allowed"
-              }`}
+              disabled={submitting || !firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()}
             >
-              {loading ? "Création du compte…" : "Rejoindre l'équipe"}
-            </button>
+              {submitting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : null}
+              {submitting ? "Création du compte…" : "Rejoindre l'équipe"}
+            </Button>
 
-            <p className="text-[11px] text-[#94A3B8] text-center leading-relaxed">
-              En créant votre compte, vous acceptez les conditions d'utilisation de Nami.
+            <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+              En créant votre compte, vous acceptez les conditions d&apos;utilisation de Nami.
             </p>
           </div>
         )}
 
-        {/* ── Step 3 : Done ── */}
+        {/* ── Done ── */}
         {step === "done" && (
-          <div className="bg-white rounded-2xl p-8 text-center space-y-6" style={{ border: "1px solid #E8ECF4" }}>
-            <div className="w-16 h-16 rounded-2xl bg-[#F0FDF4] flex items-center justify-center mx-auto">
-              <CheckCircle2 size={32} className="text-[#059669]" />
+          <div className="bg-card rounded-2xl border p-8 text-center space-y-5">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto">
+              <CheckCircle2 size={28} className="text-emerald-600" />
             </div>
 
             <div>
-              <h2 className="text-[22px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>
-                Bienvenue, {firstName} !
+              <h2 className="text-lg font-bold text-foreground tracking-tight">
+                {firstName ? `Bienvenue, ${firstName} !` : "Bienvenue sur Nami !"}
               </h2>
-              <p className="text-sm text-[#64748B] mt-2 leading-relaxed max-w-sm mx-auto">
-                Vous faites maintenant partie de l'équipe de {inv.inviter.firstName} {inv.inviter.lastName}. Vous pouvez accéder aux dossiers partagés et coordonner vos prises en charge.
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed max-w-sm mx-auto">
+                {invitation
+                  ? `Vous faites maintenant partie de l'équipe de ${invitation.fromPerson.firstName} ${invitation.fromPerson.lastName}. Connectez-vous pour accéder à vos dossiers.`
+                  : "Votre compte est créé. Connectez-vous pour commencer."}
               </p>
             </div>
 
-            <div className="bg-[#F0F2FA] rounded-xl p-4 space-y-2 text-left">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>Votre équipe</p>
-              <div className="flex items-center gap-2">
-                {[inv.inviter, { firstName, lastName }].map((m, i) => (
-                  <div key={i} className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
-                    {m.firstName[0]}{m.lastName[0]}
-                  </div>
-                ))}
-                <span className="text-xs text-[#64748B]">+ {inv.teamSize - 1} autres</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => router.push("/login")}
-              className="w-full h-12 rounded-xl bg-[#4F46E5] text-white text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors"
-            >
-              Accéder au cockpit <ArrowRight size={16} />
-            </button>
+            <Link href="/login">
+              <Button className="text-sm gap-2">
+                Se connecter <ArrowRight size={14} />
+              </Button>
+            </Link>
           </div>
         )}
       </div>

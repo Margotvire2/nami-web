@@ -1,0 +1,278 @@
+{
+  "id": "vie-quotidienne-tca",
+  "title": "Vie quotidienne et TCA : sommeil, sexualité, prévention, pairs aidants, orthorexie",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026",
+    "DU TCA — Dépression et TCA",
+    "DU TCA — Psychopathologie psychanalytique (Nicolas)",
+    "DU TCA — Diététique (Miot)",
+    "DU TCA — Soins orientés rétablissement (UPC)"
+  ],
+  "root": "sujet",
+  "nodes": {
+    "sujet": {
+      "type": "question",
+      "text": "Quel sujet ?",
+      "options": [
+        { "label": "Sommeil et TCA", "next": "sommeil" },
+        { "label": "Sexualité et TCA", "next": "sexualite" },
+        { "label": "Orthorexie et TCA atypiques", "next": "orthorexie" },
+        { "label": "Pairs aidants et médiateurs de santé", "next": "pairs" }
+      ]
+    },
+
+    "sujet-2": {
+      "type": "question",
+      "text": "Autres sujets",
+      "options": [
+        { "label": "Prévention primaire des TCA", "next": "prevention" },
+        { "label": "Épigénétique et TCA", "next": "epigenetique" }
+      ]
+    },
+
+    "sommeil": {
+      "type": "action",
+      "text": "Sommeil et TCA",
+      "sections": [
+        {
+          "title": "Troubles du sommeil dans les TCA",
+          "items": [
+            "Insomnie fréquente dans l'AN (liée à la dénutrition et à l'hyperactivité)",
+            "Insomnie avec réveil précoce typique de la dépression comorbide (90% des dépressifs)",
+            "Hypersomnie possible (10% des cas dépressifs)",
+            "Sommeil fragmenté par l'hyperactivité nocturne (AN)",
+            "Night eating syndrome : alimentation nocturne compulsive",
+            "Impact de l'hypercorticisme fonctionnel sur le sommeil"
+          ]
+        },
+        {
+          "title": "Mécanismes",
+          "items": [
+            "La dénutrition perturbe les cycles nycthéméraux",
+            "L'hypoglycémie nocturne peut provoquer des réveils",
+            "L'anxiété pré-prandiale du lendemain perturbe l'endormissement",
+            "Les crises nocturnes (BN) fragmentent le sommeil"
+          ]
+        },
+        {
+          "title": "PEC",
+          "items": [
+            "La renutrition améliore le sommeil (restauration des cycles)",
+            "Hygiène du sommeil en 1re intention",
+            "Traiter la dépression et l'anxiété comorbides",
+            "Hypnotiques : dernier recours, courte durée",
+            "Mindfulness et relaxation comme outils complémentaires"
+          ]
+        }
+      ]
+    },
+
+    "sexualite": {
+      "type": "action",
+      "text": "Sexualité et TCA",
+      "sections": [
+        {
+          "title": "Impact des TCA sur la sexualité",
+          "items": [
+            "Baisse de la libido (dénutrition → hypogonadisme → baisse des hormones sexuelles)",
+            "Évitement de l'intimité et du contact corporel",
+            "Perturbation de l'image du corps → difficultés dans la relation intime",
+            "Honte du corps, difficulté à se montrer nu(e)",
+            "Les conduites purgatives (vomissements) peuvent créer de la honte dans le couple"
+          ]
+        },
+        {
+          "title": "Lecture psychodynamique",
+          "items": [
+            "AN : refus du corps sexué, régression pré-pubertaire",
+            "Le TCA comme défense contre l'émergence de la sexualité",
+            "Le vide et le contrôle comme substitut à la relation à l'autre",
+            "La question de l'intimité est centrale dans le travail thérapeutique au long cours"
+          ]
+        },
+        {
+          "title": "En pratique",
+          "items": [
+            "Sujet rarement abordé spontanément par les patients → le soignant doit ouvrir la discussion",
+            "La restauration hormonale (renutrition) restaure progressivement la libido",
+            "Travail sur l'image corporelle (psychomotricité, TCC)",
+            "Thérapie de couple si nécessaire",
+            "Rechercher systématiquement un traumatisme sexuel (facteur déclencheur possible)"
+          ]
+        }
+      ]
+    },
+
+    "orthorexie": {
+      "type": "action",
+      "text": "Orthorexie et TCA atypiques",
+      "info": "L'orthorexie n'est pas un diagnostic officiel du DSM-5 mais est reconnue comme un comportement à risque.",
+      "sections": [
+        {
+          "title": "Orthorexie",
+          "items": [
+            "Obsession de manger « sain » et « pur »",
+            "Restriction progressive des aliments « acceptables »",
+            "Isolement social lié aux contraintes alimentaires (ne plus manger chez les autres)",
+            "Clean eating, régimes d'exclusion multiples (sans gluten, sans lactose, végan strict… sans indication médicale)",
+            "Peut être une porte d'entrée vers l'AN restrictive",
+            "Peut masquer un TCA sous couvert de « santé »"
+          ]
+        },
+        {
+          "title": "Autres TCA atypiques",
+          "items": [
+            "Obésité iatrogène (psychotropes → prise de poids → TCA secondaire)",
+            "Night eating syndrome",
+            "Pica (ingestion de substances non alimentaires)",
+            "Mérycisme (régurgitation et remastication)",
+            "TCA non spécifié (EDNOS / OSFED) : formes partielles, les PLUS fréquentes"
+          ]
+        },
+        {
+          "title": "Repérage",
+          "items": [
+            "Interroger sur les régimes d'exclusion et leur motivation",
+            "Évaluer le retentissement social et nutritionnel",
+            "Un régime qui isole et entraîne des carences = signal d'alerte",
+            "L'orthorexie peut évoluer vers un TCA caractérisé"
+          ]
+        }
+      ]
+    },
+
+    "pairs": {
+      "type": "action",
+      "text": "Pairs aidants et médiateurs de santé pair (MSP)",
+      "info": "Source : DU TCA — Soins orientés rétablissement, UPC CMME 2024",
+      "sections": [
+        {
+          "title": "Qu'est-ce qu'un médiateur de santé pair ?",
+          "items": [
+            "Personne ayant vécu un TCA et étant en rétablissement avancé",
+            "Formé(e) professionnellement à l'accompagnement par les pairs",
+            "Intégré(e) dans une équipe de soin (pas un bénévole isolé)",
+            "Apporte un savoir expérientiel complémentaire au savoir professionnel"
+          ]
+        },
+        {
+          "title": "Rôle du MSP dans les TCA",
+          "items": [
+            "Témoignage : du rétablissement à l'engagement professionnel",
+            "Modèle de rétablissement incarné (« la guérison est possible, je l'ai vécu »)",
+            "Soutien par l'identification (le patient se reconnaît)",
+            "Réduction de la stigmatisation",
+            "Co-animation de groupes thérapeutiques",
+            "Participation aux réunions d'équipe"
+          ]
+        },
+        {
+          "title": "En France",
+          "items": [
+            "Pratique encore émergente dans les TCA (plus développé en psychiatrie générale)",
+            "Diplôme universitaire de pair aidant en santé mentale",
+            "Intégration progressive dans les centres spécialisés TCA (ex : CMME Paris)",
+            "Associations de patients rétablis (FNA-TCA)"
+          ]
+        },
+        {
+          "title": "Bénéfices démontrés",
+          "items": [
+            "Amélioration de l'espoir et de la motivation des patients",
+            "Réduction de l'isolement",
+            "Complémentarité avec les approches professionnelles",
+            "Enrichissement de l'équipe soignante par le savoir expérientiel"
+          ]
+        }
+      ]
+    },
+
+    "prevention": {
+      "type": "action",
+      "text": "Prévention primaire des TCA",
+      "sections": [
+        {
+          "title": "Prévention universelle vs sélective",
+          "items": [
+            "Universelle : destinée à toute la population (programmes scolaires)",
+            "Sélective : destinée aux populations à risque (sportifs, adolescentes, danseurs)",
+            "Les TCA touchent majoritairement les filles mais la prévention universelle reste pertinente (touche plus de monde)",
+            "Différencier le contenu selon le public"
+          ]
+        },
+        {
+          "title": "Exemples de programmes validés",
+          "items": [
+            "Programme filles 11-13 ans (Killen, 1996) : normalité de la prise de poids pubertaire, risques des régimes",
+            "Body Project (Stice) : dissonance cognitive sur l'idéal de minceur — efficacité démontrée",
+            "Programmes scolaires de littératie corporelle et médiatique",
+            "Ces programmes sont bien reçus par les enseignants et les élèves"
+          ]
+        },
+        {
+          "title": "Messages de prévention",
+          "items": [
+            "Le caractère normal de la prise de poids à la puberté",
+            "Les risques des régimes restrictifs (porte d'entrée vers les TCA)",
+            "L'esprit critique face aux médias et réseaux sociaux",
+            "La diversité des corps est normale",
+            "Les signes d'alerte à connaître pour soi et pour les autres"
+          ]
+        },
+        {
+          "title": "Limites",
+          "items": [
+            "Cesser la prévention universelle ? Débat en cours",
+            "Risque de « normaliser » les TCA en en parlant trop ? Non démontré",
+            "Efficacité à long terme des programmes incertaine",
+            "La prévention seule ne suffit pas — nécessite un maillage avec le repérage et la PEC"
+          ]
+        }
+      ]
+    },
+
+    "epigenetique": {
+      "type": "action",
+      "text": "Épigénétique et TCA",
+      "info": "Source : Gorwood, DU TCA 2024 — Anorexie et génétique",
+      "sections": [
+        {
+          "title": "Définition",
+          "items": [
+            "L'épigénétique = modifications SUR le génome, mais pas DU génome",
+            "Modifications qui ne changent pas la séquence ADN mais modifient l'expression des gènes",
+            "Peuvent être induites par l'environnement",
+            "Peuvent être pérennes dans le temps (et potentiellement transmissibles)"
+          ]
+        },
+        {
+          "title": "Mécanismes",
+          "items": [
+            "Méthylation de l'ADN (îlots CpG) : silençage de gènes",
+            "Modifications des histones : ouverture/fermeture de la chromatine",
+            "MicroARN : régulation post-transcriptionnelle"
+          ]
+        },
+        {
+          "title": "Épigénétique et TCA",
+          "items": [
+            "Le stress, la dénutrition et les traumatismes modifient les marques épigénétiques",
+            "Modifications épigénétiques décrites sur les gènes de la sérotonine, du BDNF, de l'axe du stress",
+            "La dénutrition précoce (in utero, petite enfance) peut programmer des modifications durables",
+            "Hypothèse : les modifications épigénétiques pourraient expliquer pourquoi certains TCA résistent au traitement"
+          ]
+        },
+        {
+          "title": "Perspectives",
+          "items": [
+            "Biomarqueurs épigénétiques pour prédire le pronostic ?",
+            "Réversibilité des marques épigénétiques comme cible thérapeutique ?",
+            "Prévention transgénérationnelle : les ATCD maternels de TCA pourraient influencer l'enfant via l'épigénétique",
+            "Recherche encore très précoce — pas d'application clinique directe à ce jour"
+          ]
+        }
+      ]
+    }
+  }
+}

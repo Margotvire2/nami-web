@@ -1,0 +1,210 @@
+{
+  "id": "nutrition-renutrition-tca",
+  "title": "Comment renutrire et accompagner sur le plan diététique ?",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010",
+    "PNDS AMP 2022",
+    "DU TCA FFAB 2025-2026",
+    "Diététique DU TCA (Judith Miot, GHU Paris)",
+    "DU TCA — Interv. diet DIU TCA enfant-ado"
+  ],
+  "root": "contexte-nutrition",
+  "nodes": {
+    "contexte-nutrition": {
+      "type": "question",
+      "text": "Quel est le contexte nutritionnel ?",
+      "options": [
+        { "label": "Renutrition en urgence (dénutrition sévère)", "next": "renutrition-urgente" },
+        { "label": "Renutrition en hospitalisation (hors urgence)", "next": "renutrition-hospit" },
+        { "label": "Suivi diététique ambulatoire — AN", "next": "diet-ambulatoire-an" },
+        { "label": "Suivi diététique ambulatoire — BN / BED", "next": "diet-ambulatoire-bn" }
+      ]
+    },
+
+    "renutrition-urgente": {
+      "type": "action",
+      "text": "Renutrition en urgence — Dénutrition sévère",
+      "info": "⚠ Risque de Syndrome de Renutrition Inappropriée (SRI). Risque maximal dans les 72 premières heures.",
+      "sections": [
+        {
+          "title": "AVANT de renutrire",
+          "items": [
+            "Vitamine B1 (thiamine) SYSTÉMATIQUEMENT avant toute renutrition",
+            "Bilan biologique : phosphorémie, kaliémie, magnésémie, glycémie",
+            "ECG",
+            "Peser le patient"
+          ]
+        },
+        {
+          "title": "Protocole de renutrition progressive",
+          "items": [
+            "Débuter à 10-20 kcal/kg/jour",
+            "Augmentation progressive sur 5-7 jours",
+            "Supplémentation SYSTÉMATIQUE en phosphore dès J1",
+            "Supplémentation potassium et magnésium selon biologie",
+            "Supplémentation multivitamines"
+          ]
+        },
+        {
+          "title": "Surveillance SRI",
+          "items": [
+            "Phosphorémie QUOTIDIENNE les 5 premiers jours",
+            "Ionogramme quotidien",
+            "ECG quotidien",
+            "Poids quotidien (rechercher prise de poids trop rapide = rétention hydrosodée)",
+            "Surveillance clinique : œdèmes, tachycardie, confusion"
+          ]
+        }
+      ],
+      "next": "nutrition-enterale"
+    },
+
+    "nutrition-enterale": {
+      "type": "question",
+      "text": "La nutrition entérale est-elle indiquée ?",
+      "info": "L'indication de la nutrition entérale se discute de façon PLURIDISCIPLINAIRE.",
+      "options": [
+        { "label": "Dénutrition extrême mettant en jeu le pronostic vital", "next": "sng-indication" },
+        { "label": "Dénutrition sévère + stagnation pondérale prolongée", "next": "sng-indication" },
+        { "label": "Le patient peut s'alimenter per os", "next": "renutrition-hospit" }
+      ]
+    },
+
+    "sng-indication": {
+      "type": "result",
+      "text": "Nutrition entérale par sonde naso-gastrique (SNG)",
+      "severity": "high",
+      "info": "Doit être menée par des équipes expérimentées. L'objectif final est de permettre au patient de reprendre une alimentation adaptée par lui-même.",
+      "actions": [
+        "Mise en place par équipes expérimentées uniquement",
+        "Doit être vécue comme une aide transitoire",
+        "Débuter d'autant plus progressivement que la dénutrition est sévère",
+        "Prévention du SRI +++",
+        "Objectif : relais vers alimentation orale dès que possible",
+        "Accompagnement psychologique du patient (vécu de la SNG)"
+      ]
+    },
+
+    "renutrition-hospit": {
+      "type": "action",
+      "text": "Renutrition en hospitalisation (hors urgence extrême)",
+      "sections": [
+        {
+          "title": "Calcul de l'objectif pondéral (PMBS)",
+          "items": [
+            "Poids Minimum de Bonne Santé (PMBS) individualisé",
+            "Basé sur : âge, taille, croissance antérieure, stade pubertaire",
+            "Objectif : remettre l'enfant/ado sur son couloir d'IMC antérieur à la maladie (+/- 1 couloir)",
+            "Si ATCD surpoids : cibler le 75e percentile d'IMC",
+            "Si faible corpulence : cibler le 25e percentile",
+            "Formule : PMBS = IMC cible × taille actuelle²"
+          ]
+        },
+        {
+          "title": "Modalités de renutrition",
+          "items": [
+            "Repas encadrés par l'équipe soignante",
+            "Augmentation progressive des apports",
+            "Diversification alimentaire progressive",
+            "Pesée régulière (protocole du service)",
+            "Objectif de prise de poids : 0,5 à 1 kg/semaine en hospitalisation"
+          ]
+        },
+        {
+          "title": "Accompagnement",
+          "items": [
+            "Repas thérapeutiques (soignant présent)",
+            "Suivi diététique rapproché",
+            "Soutien psychologique autour des repas (anxiété pré-prandiale)",
+            "L'objectif pondéral est un objectif essentiel du traitement hospitalier (HAS, APA)"
+          ]
+        }
+      ],
+      "next": "facteurs-bon-pronostic"
+    },
+
+    "facteurs-bon-pronostic": {
+      "type": "result",
+      "text": "Facteurs de bon pronostic",
+      "severity": "low",
+      "info": "Steinhausen 2002 ; HAS 2010",
+      "actions": [
+        "Restauration d'un poids de bonne santé = objectif essentiel",
+        "Bonnes relations intrafamiliales",
+        "Temps symptomatique court avant l'entrée dans les soins",
+        "Prise en charge précoce"
+      ]
+    },
+
+    "diet-ambulatoire-an": {
+      "type": "action",
+      "text": "Suivi diététique ambulatoire — Anorexie Mentale",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Reprise pondérale progressive",
+            "Diversification alimentaire progressive",
+            "Réduction de la restriction qualitative et quantitative",
+            "Exposition progressive à la diversité alimentaire",
+            "Limiter la restriction cognitive"
+          ]
+        },
+        {
+          "title": "Outils",
+          "items": [
+            "Carnet alimentaire (si bien toléré par le patient)",
+            "Structuration des repas (3 repas + collations)",
+            "Éducation nutritionnelle adaptée (pas normative)",
+            "Ne pas être trop restrictif ni normatif dans les consignes"
+          ]
+        },
+        {
+          "title": "Points de vigilance",
+          "items": [
+            "Possibilité d'évolution vers un autre TCA (BN) lors de la diversification",
+            "Exposition progressive aux aliments \"interdits\" par le patient",
+            "Le patient peut craindre la perte de contrôle alimentaire → rassurer et accompagner",
+            "Adapter le rythme au patient"
+          ]
+        }
+      ]
+    },
+
+    "diet-ambulatoire-bn": {
+      "type": "action",
+      "text": "Suivi diététique ambulatoire — Boulimie / BED",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Structurer les repas (3 repas + collations régulières)",
+            "Réduire les crises d'hyperphagie",
+            "Identifier et travailler sur les aliments \"gâchettes\"",
+            "Rompre le cycle restriction → crises → purge"
+          ]
+        },
+        {
+          "title": "Outils (approche TCC-diététique)",
+          "items": [
+            "Carnet alimentaire avec émotions et heures",
+            "Colonnes de Beck (pensées automatiques autour de l'alimentation)",
+            "Programme d'exposition progressive aux aliments gâchettes",
+            "Exposition progressive en quantité et en intensité",
+            "Repas avec un aliment gâchette, quantité supérieure au nombre de convives"
+          ]
+        },
+        {
+          "title": "Points clés",
+          "items": [
+            "⚠ BED : NE PAS prescrire de régime restrictif (aggrave le TCA)",
+            "Psychoéducation alimentaire",
+            "Travail sur la régulation émotionnelle liée à l'alimentation",
+            "Prendre les médicaments à distance des conduites de purge (BN)"
+          ]
+        }
+      ]
+    }
+  }
+}

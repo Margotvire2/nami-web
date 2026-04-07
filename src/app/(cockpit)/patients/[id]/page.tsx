@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, observationsApi, type ObservationInput } from "@/lib/api";
 import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clinical-lifeline";
 import { PatientOverview } from "@/components/nami/patient-overview";
+import { ObservationForm } from "@/components/nami/observation-form";
+import { ObservationDashboard } from "@/components/nami/observation-dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { useTimeline } from "@/hooks/useTimeline";
+import { ReferralModal } from "./referral-modal";
 import {
   type TimelineEvent,
   TIMELINE_CATEGORIES,
@@ -103,19 +106,15 @@ function daysAgo(d: string) {
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
-type Section = "overview" | "timeline" | "notes" | "documents" | "equipe" | "taches" | "rdv" | "journal" | "messages" | "pilotage";
+type Section = "overview" | "timeline" | "notes" | "journal" | "documents" | "suivi";
 
 const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
   { key: "overview",  label: "Vue d'ensemble",  icon: <ActivityIcon size={13} /> },
-  { key: "pilotage",  label: "Pilotage IA",      icon: <Sparkles size={13} /> },
+  { key: "suivi",     label: "Suivi",            icon: <Crosshair size={13} /> },
   { key: "timeline",  label: "Timeline",         icon: <Clock size={13} /> },
   { key: "notes",     label: "Notes",             icon: <FileText size={13} /> },
-  { key: "documents", label: "Documents",         icon: <FileText size={13} /> },
-  { key: "equipe",    label: "Équipe",            icon: <Users size={13} /> },
-  { key: "taches",    label: "Tâches",            icon: <CheckSquare size={13} /> },
-  { key: "rdv",       label: "Rendez-vous",       icon: <CalendarDays size={13} /> },
   { key: "journal",   label: "Journal patient",   icon: <BookOpen size={13} /> },
-  { key: "messages",  label: "Messages",          icon: <MessageSquare size={13} /> },
+  { key: "documents", label: "Documents",         icon: <FileText size={13} /> },
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -128,6 +127,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const api = apiWithToken(accessToken!);
   const [section, setSection] = useState<Section>("overview");
   const [noteOpen, setNoteOpen] = useState(false);
+  const [referralOpen, setReferralOpen] = useState(false);
 
   const { data: careCase, isLoading } = useQuery({
     queryKey: ["care-case", id],
@@ -139,51 +139,324 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} careCaseId={id} api={api} />
+      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
+      <ReferralModal
+        open={referralOpen}
+        onClose={() => setReferralOpen(false)}
+        careCaseId={id}
+        patientFirstName={careCase.patient?.firstName ?? "le patient"}
+        senderRoleType={careCase.leadProvider?.specialties?.[0]?.includes("Médecin") ? "PHYSICIAN" : "PROVIDER"}
+      />
 
-      <div className="flex-1 flex overflow-hidden">
-        <nav className="w-44 shrink-0 border-r bg-card overflow-y-auto py-3 px-2">
-          {NAV.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setSection(item.key)}
-              className={`w-full flex items-center gap-2.5 px-3 h-9 rounded-lg text-[13px] transition-all duration-150 text-left ${
-                section === item.key
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              <span className="shrink-0">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
+      {/* ── Onglets (5 max) ── */}
+      <nav className="bg-card border-b px-6 shrink-0 flex">
+        {NAV.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setSection(item.key)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors -mb-px ${
+              section === item.key
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span className="shrink-0">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+      </nav>
 
-        <main className="flex-1 overflow-y-auto">
-          <MainContent section={section} careCaseId={id} careCase={careCase} api={api} />
-        </main>
+      {/* ── Contenu ── */}
+      <div className="flex-1 overflow-hidden">
+        {section === "overview" ? (
+          <div className="h-full flex overflow-hidden">
+            {/* Colonne 1 — Résumé dossier */}
+            <div className="flex-1 overflow-y-auto border-r p-5 space-y-5">
+              <ClinicalSummaryCard careCase={careCase} careCaseId={id} api={api} />
+              <CompletenessIndicators careCaseId={id} api={api} />
+              <CareTeamCompact careCaseId={id} api={api} careCase={careCase} />
+            </div>
 
-        <aside className="w-72 shrink-0 overflow-y-auto bg-card py-5 px-4">
-          <PilotagePanel careCaseId={id} careCase={careCase} api={api} />
-        </aside>
+            {/* Colonne 2 — Timeline clinique */}
+            <div className="flex-1 overflow-y-auto border-r p-5">
+              <CompactTimelineView careCaseId={id} careCase={careCase} />
+            </div>
+
+            {/* Colonne 3 — À faire maintenant */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              <UrgentTasksColumn careCaseId={id} api={api} />
+              <UpcomingAppointmentsColumn careCaseId={id} api={api} />
+              <LatestMessageColumn careCaseId={id} api={api} />
+            </div>
+          </div>
+        ) : section === "timeline" ? (
+          <div className="h-full overflow-y-auto">
+            <TimelineTab careCaseId={id} careCase={careCase} />
+          </div>
+        ) : section === "notes" ? (
+          <div className="h-full overflow-y-auto">
+            <NotesSection careCaseId={id} api={api} />
+          </div>
+        ) : section === "journal" ? (
+          <div className="h-full overflow-y-auto">
+            <JournalSection careCaseId={id} api={api} />
+          </div>
+        ) : section === "documents" ? (
+          <div className="h-full overflow-y-auto">
+            <DocumentsSection careCaseId={id} api={api} patientFirstName={careCase.patient.firstName} />
+          </div>
+        ) : section === "suivi" ? (
+          <div className="h-full overflow-y-auto">
+            <SuiviSection careCaseId={id} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
+// ── Col 1 : Indicateurs de complétude ──────────────────────────────────────
+
+function CompletenessIndicators({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
+  const { data: gaps } = useQuery({
+    queryKey: ["care-gaps", careCaseId],
+    queryFn: () => api.intelligence.careGaps(careCaseId),
+  });
+  const { data: alerts } = useQuery({
+    queryKey: ["alerts", careCaseId],
+    queryFn: () => api.alerts.list(careCaseId),
+  });
+  const openAlerts = (alerts ?? []).filter((a) => a.status === "OPEN");
+
+  // Completeness checklist based on alerts + gaps
+  const items: { label: string; ok: boolean }[] = [];
+
+  // Check for missing bio
+  const hasBioAlert = openAlerts.some((a) => a.alertType === "MISSING_DOCUMENT");
+  items.push({ label: "Bilan biologique à jour", ok: !hasBioAlert });
+
+  // Check for upcoming appointment
+  const hasRdvAlert = openAlerts.some((a) => a.alertType === "NO_FOLLOW_UP_SCHEDULED");
+  items.push({ label: "Prochain RDV planifié", ok: !hasRdvAlert });
+
+  // Check for team
+  const hasTeamAlert = openAlerts.some((a) => a.alertType === "INCOMPLETE_CARE_TEAM");
+  items.push({ label: "Équipe pluridisciplinaire", ok: !hasTeamAlert });
+
+  // Check for overdue tasks
+  const hasTaskAlert = openAlerts.some((a) => a.alertType === "OVERDUE_TASK");
+  items.push({ label: "Tâches à jour", ok: !hasTaskAlert });
+
+  // Gap-based indicators
+  const gapItems = (gaps?.gaps ?? []).slice(0, 3);
+  for (const gap of gapItems) {
+    if (!items.some((i) => i.label.includes(gap.title.split(" ")[0]))) {
+      items.push({ label: gap.title, ok: false });
+    }
+  }
+
+  return (
+    <BlockTitle title="Complétude du dossier" icon={<Crosshair size={13} />}
+      sub="Indicateurs de complétude — non cliniques"
+    >
+      <div className="space-y-1.5">
+        {items.map((item, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs">
+            <div className={`w-2 h-2 rounded-full shrink-0 ${item.ok ? "bg-green-500" : "bg-amber-400"}`} />
+            <span className={item.ok ? "text-muted-foreground" : "text-foreground font-medium"}>{item.label}</span>
+            {!item.ok && (
+              <span title="Indicateur de complétude du dossier — non clinique" className="text-muted-foreground/40 cursor-help text-[10px]">ⓘ</span>
+            )}
+          </div>
+        ))}
+        {items.length === 0 && <p className="text-xs text-green-600 font-medium">Tous les éléments sont à jour</p>}
+      </div>
+    </BlockTitle>
+  );
+}
+
+// ── Col 1 : Équipe compacte ────────────────────────────────────────────────
+
+function CareTeamCompact({ careCaseId, api, careCase }: {
+  careCaseId: string; api: ReturnType<typeof apiWithToken>; careCase: CareCaseDetail;
+}) {
+  const { data } = useQuery({ queryKey: ["team", careCaseId], queryFn: () => api.team.list(careCaseId) });
+  const members = data ?? [];
+
+  return (
+    <BlockTitle title="Équipe de soin" icon={<Users size={13} />} sub={`${members.length} membre${members.length > 1 ? "s" : ""}`}>
+      {members.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Aucun membre — <Link href="/adressages" className="text-primary hover:underline">adresser un confrère</Link></p>
+      ) : (
+        <div className="space-y-2">
+          {members.map((m) => (
+            <div key={m.id} className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                {m.person.firstName[0]}{m.person.lastName[0]}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate">{m.person.firstName} {m.person.lastName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{m.roleInCase}</p>
+              </div>
+            </div>
+          ))}
+          <Link href="/equipe" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 mt-2">
+            Gérer l&apos;équipe <ChevronRight size={11} />
+          </Link>
+        </div>
+      )}
+    </BlockTitle>
+  );
+}
+
+// ── Col 3 : Tâches urgentes ────────────────────────────────────────────────
+
+function UrgentTasksColumn({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["tasks", careCaseId], queryFn: () => api.tasks.list(careCaseId) });
+  const toggle = useMutation({
+    mutationFn: (taskId: string) => api.tasks.update(careCaseId, taskId, { status: "COMPLETED" }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tasks", careCaseId] }),
+  });
+
+  const pending = (data ?? [])
+    .filter((t) => t.status !== "COMPLETED" && t.status !== "CANCELLED")
+    .sort((a, b) => {
+      // Overdue first, then by priority
+      const aOverdue = a.dueDate && new Date(a.dueDate) < new Date() ? 1 : 0;
+      const bOverdue = b.dueDate && new Date(b.dueDate) < new Date() ? 1 : 0;
+      if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+      const prio = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+      return (prio[a.priority] ?? 3) - (prio[b.priority] ?? 3);
+    })
+    .slice(0, 3);
+
+  return (
+    <BlockTitle title="À faire maintenant" icon={<CheckSquare size={13} />} sub={`${pending.length} tâche${pending.length > 1 ? "s" : ""} prioritaire${pending.length > 1 ? "s" : ""}`}>
+      {pending.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Aucune tâche en attente</p>
+      ) : (
+        <div className="space-y-2.5">
+          {pending.map((t) => {
+            const isOverdue = t.dueDate && new Date(t.dueDate) < new Date();
+            return (
+              <div key={t.id} className={`flex items-start gap-2.5 rounded-lg border p-3 ${isOverdue ? "border-amber-300 bg-amber-50/50" : "bg-white"}`}>
+                <input type="checkbox" className="mt-0.5 accent-primary shrink-0 cursor-pointer" onChange={() => toggle.mutate(t.id)} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium leading-snug">{t.title}</p>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                    {t.dueDate && (
+                      <span className={`flex items-center gap-0.5 ${isOverdue ? "text-amber-700 font-semibold" : ""}`}>
+                        <Clock size={9} /> {new Date(t.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                        {isOverdue && " (en retard)"}
+                      </span>
+                    )}
+                    <span className={PRIORITY_STYLE[t.priority]}>{t.priority}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <Link href="#" onClick={(e) => { e.preventDefault(); }} className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+            Voir toutes les tâches <ChevronRight size={11} />
+          </Link>
+        </div>
+      )}
+    </BlockTitle>
+  );
+}
+
+// ── Col 3 : Prochains RDV ──────────────────────────────────────────────────
+
+function UpcomingAppointmentsColumn({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
+  const { data } = useQuery({
+    queryKey: ["appointments", careCaseId],
+    queryFn: () => api.appointments.list({ careCaseId }),
+  });
+  const upcoming = (data ?? [])
+    .filter((a) => new Date(a.startAt) > new Date() && a.status !== "CANCELLED")
+    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    .slice(0, 2);
+
+  return (
+    <BlockTitle title="Prochains RDV" icon={<CalendarDays size={13} />}>
+      {upcoming.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Aucun RDV à venir — <Link href="/agenda" className="text-primary hover:underline">planifier</Link></p>
+      ) : (
+        <div className="space-y-1.5">
+          {upcoming.map((a) => <AppointmentRow key={a.id} appointment={a} />)}
+          <Link href="/agenda" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+            Voir l&apos;agenda <ChevronRight size={11} />
+          </Link>
+        </div>
+      )}
+    </BlockTitle>
+  );
+}
+
+// ── Col 3 : Dernier message de coordination ─────────────────────────────────
+
+function LatestMessageColumn({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
+  const { data: messages } = useQuery({
+    queryKey: ["messages", careCaseId],
+    queryFn: () => api.messages.list(careCaseId),
+  });
+  const lastMsg = messages?.length ? messages[messages.length - 1] : null;
+  const totalCount = messages?.length ?? 0;
+
+  return (
+    <BlockTitle title="Coordination" icon={<MessageSquare size={13} />} sub={totalCount > 0 ? `${totalCount} message${totalCount > 1 ? "s" : ""}` : undefined}>
+      {!lastMsg ? (
+        <p className="text-xs text-muted-foreground">Aucun message — démarrez la coordination avec l&apos;équipe</p>
+      ) : (
+        <div className="rounded-lg border bg-white p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+              {lastMsg.sender.firstName[0]}{lastMsg.sender.lastName[0]}
+            </div>
+            <p className="text-[11px] font-medium">{lastMsg.sender.firstName} {lastMsg.sender.lastName}</p>
+            <span className="text-[10px] text-muted-foreground ml-auto">
+              {new Date(lastMsg.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{lastMsg.body}</p>
+          <Link href="/messages" className="text-[11px] text-primary hover:underline flex items-center gap-0.5">
+            Voir la conversation <ChevronRight size={11} />
+          </Link>
+        </div>
+      )}
+    </BlockTitle>
+  );
+}
+
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function PatientHeader({ careCase: c, onAddNote, careCaseId, api }: {
-  careCase: CareCaseDetail; onAddNote: () => void;
+function PatientHeader({ careCase: c, onAddNote, onReferral, careCaseId, api }: {
+  careCase: CareCaseDetail; onAddNote: () => void; onReferral: () => void;
   careCaseId: string; api: ReturnType<typeof apiWithToken>;
 }) {
   const qc = useQueryClient();
-  const aiSummarize = useMutation({
-    mutationFn: () => api.intelligence.summarize(careCaseId, true),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["care-case", careCaseId] }); toast.success("Résumé IA généré"); },
-    onError: () => toast.error("Erreur lors de la génération"),
-  });
+  const { accessToken } = useAuthStore();
+  const [aiStreaming, setAiStreaming] = useState(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  const handleAiSummarize = useCallback(() => {
+    if (!accessToken) return;
+    setAiStreaming(true);
+    const es = new EventSource(
+      `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(accessToken)}`
+    );
+    es.onmessage = (e) => {
+      if (e.data === "[DONE]") {
+        es.close();
+        setAiStreaming(false);
+        qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        toast.success("Résumé IA généré");
+      }
+    };
+    es.onerror = () => { es.close(); setAiStreaming(false); toast.error("Erreur lors de la génération"); };
+  }, [accessToken, careCaseId, qc, API_URL]);
 
   return (
     <header className="bg-card px-8 py-6 shrink-0">
@@ -217,12 +490,12 @@ function PatientHeader({ careCase: c, onAddNote, careCaseId, api }: {
         <div className="flex items-center gap-1.5 flex-wrap shrink-0">
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onAddNote}><FileText size={12} /> Note</Button>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={() => toast.info("Création de tâche bientôt disponible")}><CheckSquare size={12} /> Tâche</Button>
-          <Link href="/adressages"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><ArrowLeftRight size={12} /> Adresser</Button></Link>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onReferral}><ArrowLeftRight size={12} /> Adresser</Button>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={() => toast.info("Envoi de message bientôt disponible")}><MessageSquare size={12} /> Message</Button>
           <Link href="/agenda"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><CalendarPlus size={12} /> RDV</Button></Link>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"
-            onClick={() => aiSummarize.mutate()} disabled={aiSummarize.isPending}>
-            <Sparkles size={12} /> {aiSummarize.isPending ? "Génération…" : "Résumé IA"}
+            onClick={handleAiSummarize} disabled={aiStreaming}>
+            <Sparkles size={12} /> {aiStreaming ? "Génération…" : "Résumé IA"}
           </Button>
         </div>
       </div>
@@ -238,7 +511,7 @@ function NoteInline({ careCaseId, api, onClose }: {
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const create = useMutation({
-    mutationFn: () => api.notes.create(careCaseId, { noteType: "GENERAL", body }),
+    mutationFn: () => api.notes.create(careCaseId, { noteType: "EVOLUTION", body }),
     onSuccess: () => {
       ["timeline", "notes", "care-case"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       toast.success("Note ajoutée"); onClose();
@@ -260,28 +533,6 @@ function NoteInline({ careCaseId, api, onClose }: {
       </div>
     </div>
   );
-}
-
-// ─── Contenu par section ──────────────────────────────────────────────────────
-
-function MainContent({ section, careCaseId, careCase, api }: {
-  section: Section; careCaseId: string; careCase: CareCaseDetail;
-  api: ReturnType<typeof apiWithToken>;
-}) {
-  switch (section) {
-    case "overview":  return <OverviewSection careCaseId={careCaseId} careCase={careCase} api={api} />;
-    case "pilotage":  return <PilotageIASection careCaseId={careCaseId} careCase={careCase} api={api} />;
-    case "timeline":  return <TimelineTab careCaseId={careCaseId} careCase={careCase} />;
-    case "notes":     return <NotesSection careCaseId={careCaseId} api={api} />;
-    case "equipe":    return <EquipeSection careCaseId={careCaseId} api={api} />;
-    case "taches":    return <TachesSection careCaseId={careCaseId} api={api} />;
-    case "rdv":       return <RDVSection careCaseId={careCaseId} api={api} />;
-    case "journal":   return <JournalSection careCaseId={careCaseId} api={api} />;
-    case "documents": return <DocumentsSection careCaseId={careCaseId} api={api} />;
-    case "messages":  return <MessagesSection careCaseId={careCaseId} api={api} />;
-    default:
-      return <div className="flex items-center justify-center h-48"><p className="text-sm text-muted-foreground">Cette section arrive bientôt.</p></div>;
-  }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -306,62 +557,71 @@ function TimelineTab({ careCaseId, careCase }: {
   );
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// VUE D'ENSEMBLE
-// ═════════════════════════════════════════════════════════════════════════════
-
-function OverviewSection({ careCaseId, careCase, api }: {
-  careCaseId: string; careCase: CareCaseDetail; api: ReturnType<typeof apiWithToken>;
-}) {
-  const criticite = careCase.riskLevel === "CRITICAL" ? "critique" as const : careCase.riskLevel === "HIGH" ? "surveillance" as const : "stable" as const;
-  return (
-    <div className="p-6 max-w-4xl">
-      <PatientOverview
-        patient={{
-          firstName: careCase.patient.firstName,
-          lastName: careCase.patient.lastName,
-          criticite,
-          pathologie: careCase.caseType,
-          leadPraticien: careCase.leadProvider?.person.firstName + " " + (careCase.leadProvider?.person.lastName ?? ""),
-          leadSpecialite: "",
-          suiviDepuis: new Date(careCase.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
-          clinicalSummary: careCase.clinicalSummary,
-          riskLevel: careCase.riskLevel,
-        }}
-        careCaseId={careCaseId}
-      />
-    </div>
-  );
-}
-
-function ClinicalSummaryCard({ careCase: c, careCaseId, api }: {
+function ClinicalSummaryCard({ careCase: c, careCaseId }: {
   careCase: CareCaseDetail; careCaseId: string; api: ReturnType<typeof apiWithToken>;
 }) {
   const qc = useQueryClient();
-  const summarize = useMutation({
-    mutationFn: () => api.intelligence.summarize(careCaseId, true),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["care-case", careCaseId] }); toast.success("Résumé IA généré"); },
-    onError: () => toast.error("Erreur"),
-  });
+  const { accessToken } = useAuthStore();
+  const [streamText, setStreamText] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  const displayedSummary = isStreaming ? streamText : (c.clinicalSummary ?? "");
+
+  const handleStream = useCallback(() => {
+    if (!accessToken) return;
+    setIsStreaming(true);
+    setStreamText("");
+
+    const es = new EventSource(
+      `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(accessToken)}`
+    );
+
+    es.onmessage = (e) => {
+      if (e.data === "[DONE]") {
+        es.close();
+        setIsStreaming(false);
+        qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        toast.success("Résumé IA généré");
+        return;
+      }
+      try {
+        const { text, error } = JSON.parse(e.data);
+        if (error) {
+          toast.error(error);
+          es.close();
+          setIsStreaming(false);
+          return;
+        }
+        if (text) setStreamText((prev) => prev + text);
+      } catch { /* ignore parse errors */ }
+    };
+
+    es.onerror = () => {
+      es.close();
+      setIsStreaming(false);
+      if (!streamText) toast.error("Erreur de connexion au résumé IA");
+    };
+  }, [accessToken, careCaseId, qc, API_URL, streamText]);
 
   return (
     <BlockTitle title="Résumé clinique" icon={<Sparkles size={13} />}
       action={
         <Button size="sm" variant="ghost" className="text-xs h-7 gap-1 text-muted-foreground"
-          onClick={() => summarize.mutate()} disabled={summarize.isPending}>
-          <Sparkles size={11} /> {summarize.isPending ? "Génération…" : c.clinicalSummary ? "Actualiser" : "Générer IA"}
+          onClick={handleStream} disabled={isStreaming}>
+          <Sparkles size={11} /> {isStreaming ? "Génération…" : c.clinicalSummary ? "Actualiser" : "Générer IA"}
         </Button>
       }
     >
-      {!c.clinicalSummary && !c.mainConcern ? (
+      {!displayedSummary && !c.mainConcern ? (
         <div className="rounded-xl border border-dashed bg-muted/10 p-8 text-center">
           <Sparkles size={20} className="text-muted-foreground/30 mx-auto mb-2.5" />
           <p className="text-sm font-medium text-muted-foreground">Aucun résumé clinique disponible</p>
           <p className="text-xs text-muted-foreground/60 mt-1 max-w-xs mx-auto leading-relaxed">
             Générez un résumé IA pour transformer le dossier en prose clinique lisible et structurée.
           </p>
-          <Button size="sm" className="mt-4 text-xs gap-1.5 h-7" onClick={() => summarize.mutate()} disabled={summarize.isPending}>
-            <Sparkles size={11} /> {summarize.isPending ? "Génération…" : "Générer le résumé"}
+          <Button size="sm" className="mt-4 text-xs gap-1.5 h-7" onClick={handleStream} disabled={isStreaming}>
+            <Sparkles size={11} /> {isStreaming ? "Génération…" : "Générer le résumé"}
           </Button>
         </div>
       ) : (
@@ -372,12 +632,15 @@ function ClinicalSummaryCard({ careCase: c, careCaseId, api }: {
               <p className="text-sm leading-relaxed">{c.mainConcern}</p>
             </div>
           )}
-          {c.clinicalSummary && (
+          {displayedSummary && (
             <div className="rounded-xl border bg-card p-4">
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
-                <Sparkles size={9} /> Synthèse IA
+                <Sparkles size={9} /> {isStreaming ? "Génération en cours…" : "Synthèse IA — à vérifier"}
               </p>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{c.clinicalSummary}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                {displayedSummary}
+                {isStreaming && <span className="inline-block w-1.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />}
+              </p>
             </div>
           )}
         </div>
@@ -646,15 +909,22 @@ function RDVSection({ careCaseId, api }: { careCaseId: string; api: ReturnType<t
 // DOCUMENTS — branchés sur api.documents.list
 // ═════════════════════════════════════════════════════════════════════════════
 
-const DOC_TYPE_STYLE: Record<string, { label: string; color: string }> = {
-  LAB_RESULT:      { label: "Résultat labo",    color: "text-blue-700 bg-blue-50 border-blue-200" },
-  IMAGING:         { label: "Imagerie",          color: "text-purple-700 bg-purple-50 border-purple-200" },
-  PRESCRIPTION:    { label: "Ordonnance",        color: "text-green-700 bg-green-50 border-green-200" },
-  CLINICAL_REPORT: { label: "Compte-rendu",      color: "text-amber-700 bg-amber-50 border-amber-200" },
-  CARE_PLAN:       { label: "Plan de soin",      color: "text-teal-700 bg-teal-50 border-teal-200" },
-  CONSENT_FORM:    { label: "Consentement",      color: "text-gray-700 bg-gray-50 border-gray-200" },
-  OTHER:           { label: "Autre",             color: "text-gray-600 bg-gray-50 border-gray-200" },
+const DOC_TYPE_STYLE_PATIENT: Record<string, { label: string; color: string }> = {
+  PRESCRIPTION:         { label: "Ordonnance",        color: "text-purple-700 bg-purple-50 border-purple-200" },
+  BIOLOGICAL_REPORT:    { label: "Bilan biologique",  color: "text-teal-700 bg-teal-50 border-teal-200" },
+  CONSULTATION_REPORT:  { label: "Compte rendu",      color: "text-blue-700 bg-blue-50 border-blue-200" },
+  HOSPITAL_REPORT:      { label: "Rapport hospitalier", color: "text-orange-700 bg-orange-50 border-orange-200" },
+  LETTER:               { label: "Courrier",          color: "text-slate-600 bg-slate-50 border-slate-200" },
+  IMAGING:              { label: "Imagerie",          color: "text-amber-700 bg-amber-50 border-amber-200" },
+  OTHER:                { label: "Autre",             color: "text-gray-600 bg-gray-50 border-gray-200" },
 };
+
+const SUGGESTED_TYPES = [
+  { label: "Ordonnance", type: "PRESCRIPTION" },
+  { label: "Compte rendu", type: "CONSULTATION_REPORT" },
+  { label: "Bilan biologique", type: "BIOLOGICAL_REPORT" },
+  { label: "Courrier", type: "LETTER" },
+];
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} o`;
@@ -662,7 +932,7 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-function DocumentsSection({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
+function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: string; api: ReturnType<typeof apiWithToken>; patientFirstName: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["documents", careCaseId],
     queryFn: () => api.documents.list(careCaseId),
@@ -674,35 +944,96 @@ function DocumentsSection({ careCaseId, api }: { careCaseId: string; api: Return
         Documents {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}
       </h2>
       {isLoading ? <LoadingCards /> : !(data?.length) ? (
-        <EmptyView icon={<FileText size={20} />} msg="Aucun document." />
+        /* ── Empty state contexte 2 : dossier patient vide ── */
+        <div className="flex flex-col items-center justify-center py-14 text-center">
+          <div className="w-11 h-11 rounded-xl bg-primary/5 flex items-center justify-center mb-4">
+            <FileText size={20} className="text-primary/40" />
+          </div>
+          <p className="text-sm font-semibold text-foreground">
+            Aucun document dans ce dossier
+          </p>
+          <p className="text-xs text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
+            Ajoutez une ordonnance, un compte rendu ou un bilan pour le partager
+            avec l&apos;équipe de {patientFirstName}.
+          </p>
+          {/* Chips types suggérés */}
+          <div className="flex flex-wrap justify-center gap-1.5 mt-4">
+            {SUGGESTED_TYPES.map((t) => (
+              <button
+                key={t.type}
+                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted hover:border-primary/30 text-muted-foreground hover:text-foreground transition-all"
+                onClick={() => toast.info("Import de documents bientôt disponible")}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <Button
+            size="sm"
+            className="text-xs gap-1.5 h-8 mt-4"
+            onClick={() => toast.info("Import de documents bientôt disponible")}
+          >
+            <FileText size={12} /> Ajouter un document
+          </Button>
+        </div>
       ) : (
         <div className="space-y-2">
           {data.map((doc) => {
-            const style = DOC_TYPE_STYLE[doc.documentType] ?? DOC_TYPE_STYLE.OTHER;
+            const style = DOC_TYPE_STYLE_PATIENT[doc.documentType] ?? DOC_TYPE_STYLE_PATIENT.OTHER;
             return (
-              <div key={doc.id} className="rounded-xl border p-3 hover:bg-accent/30 transition-colors">
+              <div key={doc.id} className="rounded-xl border bg-card p-3 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    {/* Badges */}
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${style.color}`}>
                         {style.label}
                       </span>
+                      {doc.isSharedWithTeam && (
+                        <span className="text-[10px] text-primary/70 flex items-center gap-0.5">
+                          <Users size={9} /> Partagé
+                        </span>
+                      )}
+                      {doc.summaryAi && (
+                        <span
+                          className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-help"
+                          title="Synthèse automatique extractive. Validation humaine requise avant tout usage."
+                        >
+                          <Sparkles size={9} /> Brouillon IA — à vérifier
+                        </span>
+                      )}
                       <span className="text-[10px] text-muted-foreground">{formatBytes(doc.sizeBytes)}</span>
                     </div>
+                    {/* Titre */}
                     <p className="text-xs font-medium truncate">{doc.title}</p>
+                    {/* Métadonnées */}
                     <p className="text-[11px] text-muted-foreground mt-0.5">
                       {doc.uploadedBy.firstName} {doc.uploadedBy.lastName} · {daysAgo(doc.createdAt)}
                     </p>
-                    {doc.summaryAi && (
-                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2 italic">
-                        <Sparkles size={10} className="inline mr-1 opacity-50" />{doc.summaryAi}
-                      </p>
-                    )}
                   </div>
-                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer"
-                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors">
-                    <FileText size={16} />
-                  </a>
+                  {/* Actions */}
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                      title="Voir le document"
+                      onClick={() => {
+                        if (doc.fileUrl) {
+                          window.open(doc.fileUrl, "_blank");
+                        } else {
+                          toast.info("Document non téléchargé");
+                        }
+                      }}
+                    >
+                      <FileText size={14} />
+                    </button>
+                    <button
+                      className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                      title="Partager avec l'équipe"
+                      onClick={() => toast.info("Partage bientôt disponible")}
+                    >
+                      <Users size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -1200,6 +1531,8 @@ function PilotageIASection({ careCaseId, careCase, api }: {
   careCaseId: string; careCase: CareCaseDetail; api: ReturnType<typeof apiWithToken>;
 }) {
   const qc = useQueryClient();
+  const { accessToken } = useAuthStore();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   // Gap analysis
   const { data: gapData, isLoading: gapsLoading, refetch: refetchGaps } = useQuery({
@@ -1207,18 +1540,46 @@ function PilotageIASection({ careCaseId, careCase, api }: {
     queryFn: () => api.intelligence.careGaps(careCaseId),
   });
 
-  // AI Summary
-  const summarize = useMutation({
-    mutationFn: () => api.intelligence.summarize(careCaseId, true),
-    onSuccess: (result: SummaryResult) => {
-      qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
-      setSummaryData(result);
-      toast.success("Résumé IA généré");
-    },
-    onError: () => toast.error("Erreur lors de la génération du résumé"),
-  });
-
+  // AI Summary — streaming SSE
+  const [streamText, setStreamText] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
   const [summaryData, setSummaryData] = useState<SummaryResult | null>(null);
+
+  const handleStreamSummary = useCallback(() => {
+    if (!accessToken) return;
+    setIsStreaming(true);
+    setStreamText("");
+    setSummaryData(null);
+
+    const es = new EventSource(
+      `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(accessToken)}`
+    );
+
+    es.onmessage = (e) => {
+      if (e.data === "[DONE]") {
+        es.close();
+        setIsStreaming(false);
+        qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        toast.success("Résumé IA généré");
+        return;
+      }
+      try {
+        const { text, error } = JSON.parse(e.data);
+        if (error) {
+          toast.error(error);
+          es.close();
+          setIsStreaming(false);
+          return;
+        }
+        if (text) setStreamText((prev) => prev + text);
+      } catch { /* ignore */ }
+    };
+
+    es.onerror = () => {
+      es.close();
+      setIsStreaming(false);
+    };
+  }, [accessToken, careCaseId, qc, API_URL]);
 
   const gaps = gapData?.gaps ?? [];
   const summary = gapData?.summary ?? { total: 0, critical: 0, high: 0, warning: 0, info: 0 };
@@ -1241,8 +1602,8 @@ function PilotageIASection({ careCaseId, careCase, api }: {
             <Crosshair size={11} /> {gapsLoading ? "Analyse…" : "Relancer l'analyse"}
           </Button>
           <Button size="sm" className="text-xs h-7 gap-1.5"
-            onClick={() => summarize.mutate()} disabled={summarize.isPending}>
-            <Sparkles size={11} /> {summarize.isPending ? "Génération…" : "Générer résumé IA"}
+            onClick={handleStreamSummary} disabled={isStreaming}>
+            <Sparkles size={11} /> {isStreaming ? "Génération…" : "Générer résumé IA"}
           </Button>
         </div>
       </div>
@@ -1310,68 +1671,30 @@ function PilotageIASection({ careCaseId, careCase, api }: {
         )}
       </div>
 
-      {/* ── Résumé IA structuré ── */}
-      {(summaryData || careCase.clinicalSummary) && (
+      {/* ── Résumé IA — streaming ou existant ── */}
+      {(isStreaming || streamText || careCase.clinicalSummary) ? (
         <div className="rounded-lg border bg-card overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-              <Sparkles size={12} /> Résumé IA
-              {summaryData && <span className="font-normal normal-case ml-1">· généré {new Date(summaryData.generatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>}
+              <Sparkles size={12} /> {isStreaming ? "Génération en cours…" : "Synthèse IA — à vérifier"}
             </p>
           </div>
-
-          {summaryData ? (
-            <div className="divide-y divide-border/30">
-              <SummaryBlock title="Vue d'ensemble" content={summaryData.summary.overview} />
-              <SummaryBlock title="Évolution récente" content={summaryData.summary.recentEvolution} />
-              <SummaryBlock title="Évaluation de l'équipe" content={summaryData.summary.careTeamAssessment} />
-              {summaryData.summary.keyFindings.length > 0 && (
-                <div className="px-4 py-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Points clés</p>
-                  <ul className="space-y-1.5">
-                    {summaryData.summary.keyFindings.map((f, i) => (
-                      <li key={i} className="text-sm leading-relaxed flex items-start gap-2">
-                        <span className="text-primary shrink-0 mt-1">•</span>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {summaryData.summary.recommendations.length > 0 && (
-                <div className="px-4 py-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Recommandations</p>
-                  <ul className="space-y-1.5">
-                    {summaryData.summary.recommendations.map((r, i) => (
-                      <li key={i} className="text-sm leading-relaxed flex items-start gap-2">
-                        <CheckCircle2 size={12} className="text-green-500 shrink-0 mt-1" />
-                        <span>{r}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <SummaryBlock title="Évaluation des risques" content={summaryData.summary.riskAssessment} />
-            </div>
-          ) : careCase.clinicalSummary ? (
-            <div className="px-4 py-4">
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{careCase.clinicalSummary}</p>
-              <p className="text-[10px] text-muted-foreground/50 mt-3">Cliquez sur « Générer résumé IA » pour obtenir une analyse structurée complète.</p>
-            </div>
-          ) : null}
+          <div className="px-4 py-4">
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+              {streamText || careCase.clinicalSummary}
+              {isStreaming && <span className="inline-block w-1.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />}
+            </p>
+          </div>
         </div>
-      )}
-
-      {/* CTA si pas encore de résumé */}
-      {!summaryData && !careCase.clinicalSummary && (
+      ) : (
         <div className="rounded-lg border border-dashed bg-muted/10 px-6 py-10 text-center">
           <Sparkles size={24} className="text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm font-medium text-muted-foreground">Aucun résumé IA disponible</p>
           <p className="text-xs text-muted-foreground/60 mt-1 max-w-sm mx-auto leading-relaxed">
             Générez un résumé clinique intelligent pour obtenir une synthèse structurée du parcours, les points clés et les recommandations.
           </p>
-          <Button size="sm" className="mt-4 text-xs gap-1.5" onClick={() => summarize.mutate()} disabled={summarize.isPending}>
-            <Sparkles size={12} /> {summarize.isPending ? "Génération…" : "Générer le résumé IA"}
+          <Button size="sm" className="mt-4 text-xs gap-1.5" onClick={handleStreamSummary} disabled={isStreaming}>
+            <Sparkles size={12} /> {isStreaming ? "Génération…" : "Générer le résumé IA"}
           </Button>
         </div>
       )}
@@ -1516,6 +1839,74 @@ function DetailSkeleton() {
         <div className="flex-1 p-6 space-y-5">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
         <div className="w-72 bg-white p-4 space-y-4">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 rounded" />)}</div>
       </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SUIVI — Observations + Dashboard + Formulaire de saisie
+// ═════════════════════════════════════════════════════════════════════════════
+
+function SuiviSection({ careCaseId }: { careCaseId: string }) {
+  const { accessToken } = useAuthStore();
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+
+  const { data: latestData, isLoading: loadingLatest } = useQuery({
+    queryKey: ["observations-latest", careCaseId],
+    queryFn: () => observationsApi.latest(accessToken!, careCaseId),
+  });
+
+  const { data: alertsData } = useQuery({
+    queryKey: ["alerts", careCaseId],
+    queryFn: () => apiWithToken(accessToken!).alerts.list(careCaseId),
+  });
+
+  const mutation = useMutation({
+    mutationFn: (observations: ObservationInput[]) =>
+      observationsApi.create(accessToken!, careCaseId, observations),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["observations-latest", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["alerts", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+      setShowForm(false);
+      if (data.summary.alertsTriggered > 0) {
+        toast.warning(`${data.summary.alertsTriggered} alerte(s) déclenchée(s)`);
+      } else {
+        toast.success(`${data.summary.observationsCreated} observation(s) enregistrée(s)`);
+      }
+    },
+    onError: () => toast.error("Erreur lors de l'enregistrement"),
+  });
+
+  if (loadingLatest) {
+    return <div className="p-6 space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>;
+  }
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-jakarta)" }}>Suivi clinique</h2>
+          <p className="text-xs text-muted-foreground">{latestData?.total ?? 0} paramètres enregistrés</p>
+        </div>
+        <Button size="sm" onClick={() => setShowForm(!showForm)}>
+          {showForm ? "Fermer" : "Nouvelle saisie"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <ObservationForm
+          professionalRole="medecin-generaliste"
+          careCaseId={careCaseId}
+          onSubmit={(obs) => mutation.mutate(obs)}
+        />
+      )}
+
+      <ObservationDashboard
+        latestByDomain={latestData?.latest ?? {}}
+        alerts={(alertsData ?? []).map((a: any) => ({ title: a.title, severity: a.severity, status: a.status }))}
+      />
     </div>
   );
 }

@@ -1,0 +1,304 @@
+{
+  "id": "etiopathogenie-tca",
+  "title": "Comprendre les mécanismes : étiopathogénie des TCA",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026 — Modules 1 et 2",
+    "DU TCA — Étiopathogénie (Clarke)",
+    "DU TCA — Génétique et imagerie (Ayrolles)",
+    "DU TCA — Microbiote et TCA (Hanachi)",
+    "DU TCA — Neuro-endocrinologie et TCA",
+    "DU TCA — Approche nutritionnelle dans l'étiopathogénie",
+    "DU TCA — Psychopathologie (Delorme, Nicolas)"
+  ],
+  "root": "modele-general",
+  "nodes": {
+    "modele-general": {
+      "type": "action",
+      "text": "Modèle étiopathogénique des TCA",
+      "info": "Les TCA reposent sur un modèle multifactoriel : facteurs de vulnérabilité, facteurs déclencheurs et facteurs de maintien. C'est plus complexe qu'un événement de vie.",
+      "sections": [
+        {
+          "title": "Modèle bio-psycho-social",
+          "items": [
+            "Vulnérabilité génétique aux TCA",
+            "Facteurs psychologiques individuels",
+            "Facteurs environnementaux et socioculturels",
+            "Impact des TCA sur le développement et le fonctionnement cérébral"
+          ]
+        }
+      ],
+      "next": "facteurs-type"
+    },
+
+    "facteurs-type": {
+      "type": "question",
+      "text": "Quel aspect de l'étiopathogénie explorer ?",
+      "options": [
+        { "label": "Facteurs de vulnérabilité / prédisposition", "next": "vulnerabilite" },
+        { "label": "Facteurs déclencheurs", "next": "declencheurs" },
+        { "label": "Facteurs de maintien", "next": "maintien" },
+        { "label": "Bases neurobiologiques", "next": "neurobiologie" }
+      ]
+    },
+
+    "vulnerabilite": {
+      "type": "action",
+      "text": "Facteurs de vulnérabilité",
+      "sections": [
+        {
+          "title": "Génétiques",
+          "items": [
+            "Héritabilité estimée : 50-80% pour l'AN, 55-83% pour la BN",
+            "Vulnérabilité génétique partagée entre TCA et autres troubles psychiatriques",
+            "Gènes candidats : récepteurs sérotonine, dopamine, BDNF, COMT, récepteur estrogène, opioïdes",
+            "Études GWAS (genome-wide) : corrélations génétiques avec traits métaboliques et psychiatriques",
+            "Interaction gène-environnement +++"
+          ]
+        },
+        {
+          "title": "Psychologiques",
+          "items": [
+            "Perfectionnisme",
+            "Faible estime de soi",
+            "Rigidité cognitive",
+            "Difficultés de régulation émotionnelle",
+            "Traits obsessionnels",
+            "Insatisfaction corporelle"
+          ]
+        },
+        {
+          "title": "Environnementaux",
+          "items": [
+            "ATCD familiaux de TCA ou troubles psychiatriques",
+            "Modèles familiaux autour de l'alimentation et du poids",
+            "Pression socioculturelle sur la minceur",
+            "Exposition aux réseaux sociaux",
+            "Sport à risque (catégorie de poids, esthétique, endurance)"
+          ]
+        }
+      ]
+    },
+
+    "declencheurs": {
+      "type": "action",
+      "text": "Facteurs déclencheurs",
+      "sections": [
+        {
+          "title": "Événements de vie",
+          "items": [
+            "Puberté et changements corporels",
+            "Régime amaigrissant (facteur déclencheur le plus fréquent)",
+            "Événements stressants : séparation, deuil, déménagement",
+            "Traumatisme : maltraitance, harcèlement, agression sexuelle",
+            "Changements scolaires/professionnels",
+            "Maladie chronique (diabète, maladie inflammatoire)"
+          ]
+        },
+        {
+          "title": "Contextes spécifiques",
+          "items": [
+            "Annonce d'un diagnostic de maladie chronique (trauma de l'annonce)",
+            "Processus : déni → révolte → négociation → réflexion → acceptation",
+            "Impact sur l'estime de soi et l'image du corps",
+            "Tranche d'âge à risque : 10-24 ans +++"
+          ]
+        }
+      ]
+    },
+
+    "maintien": {
+      "type": "action",
+      "text": "Facteurs de maintien",
+      "info": "Comprendre les facteurs de maintien est essentiel pour la PEC : ce sont les cibles thérapeutiques.",
+      "sections": [
+        {
+          "title": "Biologiques",
+          "items": [
+            "Effets de la dénutrition sur le cerveau (ralentissement cognitif, rigidité, anhédonie)",
+            "Dysrégulation des systèmes de faim/satiété (leptine, ghréline)",
+            "Dysbiose du microbiote intestinal",
+            "Effets renforçants de la restriction (sentiment de contrôle, sécrétion endorphines)",
+            "Hyperactivité physique compulsive"
+          ]
+        },
+        {
+          "title": "Psychologiques",
+          "items": [
+            "Renforcement négatif : la restriction réduit l'anxiété",
+            "Croyances dysfonctionnelles sur le poids et l'alimentation",
+            "Cercle vicieux restriction → crises → culpabilité → restriction",
+            "Évitement émotionnel par le comportement alimentaire",
+            "Le déni comme facteur de maintien"
+          ]
+        },
+        {
+          "title": "Environnementaux",
+          "items": [
+            "Renforcement social de la minceur",
+            "Dynamiques familiales réorganisées autour du symptôme",
+            "Isolement social maintenant le trouble",
+            "Accès aux moyens de purge, de restriction, d'hyperactivité"
+          ]
+        }
+      ]
+    },
+
+    "neurobiologie": {
+      "type": "question",
+      "text": "Bases neurobiologiques — Explorer quel aspect ?",
+      "options": [
+        { "label": "Neurotransmetteurs (sérotonine, dopamine)", "next": "neurotransmetteurs" },
+        { "label": "Neuro-endocrinologie", "next": "neuro-endocrino" },
+        { "label": "Microbiote intestinal", "next": "microbiote" },
+        { "label": "Neuro-imagerie", "next": "neuroimagerie" }
+      ]
+    },
+
+    "neurotransmetteurs": {
+      "type": "action",
+      "text": "Neurotransmetteurs et TCA",
+      "sections": [
+        {
+          "title": "Sérotonine",
+          "items": [
+            "Rôle dans la régulation de l'humeur et du comportement alimentaire",
+            "Dysrégulation sérotoninergique dans l'AN et la BN",
+            "Les ISRS ciblent ce système (efficacité dans la BN, pas dans l'AN en phase aiguë)",
+            "La dénutrition elle-même perturbe le métabolisme de la sérotonine (tryptophane)"
+          ]
+        },
+        {
+          "title": "Dopamine",
+          "items": [
+            "Système de la récompense",
+            "Modification de la réponse hédonique à l'alimentation dans l'AN",
+            "Rôle dans les crises boulimiques (recherche de récompense)",
+            "Gènes candidats : transporteurs et récepteurs dopaminergiques"
+          ]
+        },
+        {
+          "title": "Noradrénaline",
+          "items": [
+            "Rôle dans la régulation de l'appétit et du stress",
+            "Dysrégulation associée aux conduites boulimiques"
+          ]
+        }
+      ]
+    },
+
+    "neuro-endocrino": {
+      "type": "action",
+      "text": "Neuro-endocrinologie des TCA",
+      "sections": [
+        {
+          "title": "Axe hypothalamo-hypophyso-gonadique",
+          "items": [
+            "Perturbation de la GnRH → hypogonadisme → aménorrhée",
+            "Bilan énergétique négatif + stress → inhibition de l'axe",
+            "Conséquences : infertilité, retard pubertaire, ostéoporose"
+          ]
+        },
+        {
+          "title": "Leptine et ghréline",
+          "items": [
+            "Leptine basse dans l'AN (masse grasse diminuée) → signal de famine",
+            "Ghréline élevée dans l'AN (hormone de la faim) mais résistance à son effet orexigène",
+            "Rôle dans l'hyperactivité physique de l'AN"
+          ]
+        },
+        {
+          "title": "Axe corticotrope (HPA)",
+          "items": [
+            "Hypercorticisme fonctionnel dans l'AN",
+            "Effet catabolique → perte musculaire, osseuse",
+            "Contribution aux troubles du sommeil et de l'humeur"
+          ]
+        },
+        {
+          "title": "Axe thyréotrope",
+          "items": [
+            "Syndrome de basse T3 (adaptation à la dénutrition)",
+            "Baisse du métabolisme basal",
+            "Se normalise avec la renutrition"
+          ]
+        }
+      ]
+    },
+
+    "microbiote": {
+      "type": "action",
+      "text": "Microbiote intestinal et TCA",
+      "info": "Source : Pre M. Hanachi, DU TCA FFAB 2025-2026",
+      "sections": [
+        {
+          "title": "Dysbiose dans les TCA",
+          "items": [
+            "Modification de la composition du microbiote dans l'AN et la BN",
+            "Dysbiose = déséquilibre du microbiote avec conséquences néfastes pour l'hôte",
+            "Rapport firmicutes/bactéroidetes modifié",
+            "La dénutrition modifie le microbiote, le microbiote modifie le métabolisme"
+          ]
+        },
+        {
+          "title": "Rôle du microbiote",
+          "items": [
+            "Régulation de l'appétit et de la satiété (production de peptides)",
+            "Régulation de l'inflammation",
+            "Interaction avec l'axe intestin-cerveau",
+            "Influence sur l'humeur et le comportement (sérotonine intestinale)"
+          ]
+        },
+        {
+          "title": "Construction du microbiote chez l'enfant",
+          "items": [
+            "Environnement, nutrition, génétique",
+            "Vulnérabilité du microbiote en développement",
+            "Impact potentiel des TCA précoces sur le développement du microbiote"
+          ]
+        },
+        {
+          "title": "Implications thérapeutiques",
+          "items": [
+            "La renutrition modifie positivement le microbiote",
+            "Recherche en cours sur les probiotiques comme adjuvants",
+            "Pas de recommandation de probiotiques spécifiques à ce jour"
+          ]
+        }
+      ]
+    },
+
+    "neuroimagerie": {
+      "type": "action",
+      "text": "Neuro-imagerie et TCA",
+      "sections": [
+        {
+          "title": "Apports de l'imagerie",
+          "items": [
+            "Identification de structures cérébrales impliquées dans les TCA",
+            "Impact des TCA sur le développement cérébral (ado +++)",
+            "Modification de la réponse cérébrale aux stimuli alimentaires",
+            "Perturbation des circuits de la récompense et du contrôle"
+          ]
+        },
+        {
+          "title": "Résultats principaux",
+          "items": [
+            "AN : atrophie de la substance grise (partiellement réversible avec la renutrition)",
+            "AN : hyperactivité du cortex préfrontal (contrôle excessif)",
+            "BN : hypoactivité des circuits de contrôle (impulsivité)",
+            "Modifications des circuits sérotoninergiques et dopaminergiques visibles en imagerie"
+          ]
+        },
+        {
+          "title": "En pratique",
+          "items": [
+            "L'imagerie n'est pas un outil diagnostique en routine",
+            "IRM cérébrale : indication si diagnostic différentiel (tumeur hypothalamique, etc.)",
+            "Intérêt en recherche pour comprendre les mécanismes et identifier des cibles thérapeutiques"
+          ]
+        }
+      ]
+    }
+  }
+}

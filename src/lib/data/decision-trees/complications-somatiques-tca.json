@@ -1,0 +1,305 @@
+{
+  "id": "complications-somatiques-tca",
+  "title": "Dépistage et prise en charge des complications somatiques des TCA",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010/2019",
+    "DU TCA FFAB 2025-2026 — Modules 3 et 5",
+    "Cours DIU TCA Ado",
+    "DU TCA Complications osseuses 2024"
+  ],
+  "root": "type-complication",
+  "nodes": {
+    "type-complication": {
+      "type": "question",
+      "text": "Quel type de complication recherchez-vous ?",
+      "options": [
+        { "label": "Complications à court terme (urgences)", "next": "court-terme" },
+        { "label": "Complications à long terme", "next": "long-terme" },
+        { "label": "Complications de la boulimie / purge", "next": "complications-purge" }
+      ]
+    },
+
+    "court-terme": {
+      "type": "question",
+      "text": "Complications à court terme de l'anorexie mentale",
+      "options": [
+        { "label": "Conduites purgatives (hypokaliémie, déshydratation)", "next": "complications-purge" },
+        { "label": "Hypoglycémie", "next": "hypoglycemie" },
+        { "label": "Potomanie / intoxication à l'eau", "next": "potomanie" },
+        { "label": "Syndrome de renutrition inappropriée (SRI)", "next": "sri" }
+      ]
+    },
+
+    "hypoglycemie": {
+      "type": "result",
+      "text": "Hypoglycémie symptomatique",
+      "severity": "high",
+      "info": "Critère d'hospitalisation HAS : < 0,6 g/L symptomatique ou < 0,3 g/L asymptomatique.",
+      "actions": [
+        "Resucrage immédiat (per os ou IV selon conscience)",
+        "Surveillance glycémique rapprochée",
+        "Rechercher insuffisance hépatique associée (cytolyse > 10xN)",
+        "Hospitalisation si critères atteints"
+      ]
+    },
+
+    "potomanie": {
+      "type": "result",
+      "text": "Potomanie / Intoxication à l'eau",
+      "severity": "high",
+      "info": "Hyponatrémie de dilution. Risque de convulsions si Na+ < 125 mmol/L.",
+      "actions": [
+        "Ionogramme en urgence",
+        "Si Na+ < 125 mmol/L → hospitalisation, restriction hydrique",
+        "Correction lente de la natrémie (risque de myélinolyse centropontine si correction trop rapide)",
+        "Rechercher la motivation : remplissage avant pesée, tentative de coupe-faim"
+      ]
+    },
+
+    "sri": {
+      "type": "action",
+      "text": "Syndrome de Renutrition Inappropriée (SRI)",
+      "info": "Complication potentiellement mortelle survenant lors de la reprise alimentaire après une période de dénutrition sévère. Risque maximal dans les 72 premières heures.",
+      "sections": [
+        {
+          "title": "Facteurs de risque",
+          "items": [
+            "IMC < 16 kg/m²",
+            "Perte de poids > 15% en 3-6 mois",
+            "Jeûne prolongé (> 10 jours)",
+            "Hypokaliémie, hypophosphorémie ou hypomagnésémie pré-existantes"
+          ]
+        },
+        {
+          "title": "Signes cliniques du SRI",
+          "items": [
+            "Tachycardie, insuffisance cardiaque",
+            "Œdèmes",
+            "Confusion, convulsions",
+            "Défaillance multiviscérale"
+          ]
+        },
+        {
+          "title": "Biologie",
+          "items": [
+            "Hypophosphorémie +++ (signe le plus précoce et le plus spécifique)",
+            "Hypokaliémie",
+            "Hypomagnésémie",
+            "Hyperglycémie, rétention hydrosodée"
+          ]
+        }
+      ],
+      "next": "sri-prevention"
+    },
+
+    "sri-prevention": {
+      "type": "result",
+      "text": "Prévention et PEC du SRI",
+      "severity": "critical",
+      "actions": [
+        "Vitamine B1 (thiamine) AVANT toute renutrition +++",
+        "Renutrition TRÈS progressive : débuter à 10-20 kcal/kg/jour",
+        "Augmentation progressive sur 5-7 jours",
+        "Supplémentation systématique en phosphore dès J1",
+        "Supplémentation potassium et magnésium selon biologie",
+        "Surveillance phosphorémie QUOTIDIENNE les 5 premiers jours",
+        "Surveillance ionogramme, magnésémie, ECG quotidiens",
+        "Surveillance poids, œdèmes, fréquence cardiaque",
+        "Si défaillance d'organe → réanimation"
+      ]
+    },
+
+    "complications-purge": {
+      "type": "action",
+      "text": "Complications des conduites purgatives",
+      "sections": [
+        {
+          "title": "Appareil digestif",
+          "items": [
+            "Hypertrophie parotidienne",
+            "Douleurs pharyngées, érythème/ulcérations du pharynx",
+            "Œsophagite, gastrite",
+            "RGO, ulcère œsophagien",
+            "Douleurs abdominales, troubles du transit",
+            "Rare : syndrome de Mallory-Weiss, achalasie",
+            "Exceptionnel : rupture œsophagienne (urgence vitale)"
+          ]
+        },
+        {
+          "title": "Métabolique",
+          "items": [
+            "Hypokaliémie +++ (vomissements, laxatifs, diurétiques)",
+            "Alcalose métabolique (vomissements)",
+            "Acidose métabolique (laxatifs)",
+            "Déshydratation",
+            "Hyperamylasémie avec lipasémie normale"
+          ]
+        },
+        {
+          "title": "Dentaire",
+          "items": [
+            "Érosion de l'émail dentaire (face linguale +++)",
+            "Caries multiples",
+            "Hypersensibilité dentaire",
+            "⚠ Suivi dentaire régulier recommandé"
+          ]
+        },
+        {
+          "title": "Autres",
+          "items": [
+            "Signe de Russell (callosités dos des mains)",
+            "Pétéchies oculaires (vomissements violents)",
+            "Constipation et mélanose (laxatifs)",
+            "Insuffisance rénale (déshydratation chronique)"
+          ]
+        }
+      ],
+      "next": "bilan-purge"
+    },
+
+    "bilan-purge": {
+      "type": "result",
+      "text": "Bilan recommandé si conduites purgatives",
+      "severity": "moderate",
+      "actions": [
+        "Ionogramme sanguin (K+, Na+, Cl-, bicarbonates)",
+        "Créatinine, urée",
+        "ECG (rechercher QT long, onde U, troubles du rythme)",
+        "Examen bucco-dentaire",
+        "Surveillance régulière selon fréquence des purges"
+      ]
+    },
+
+    "long-terme": {
+      "type": "question",
+      "text": "Complications à long terme",
+      "options": [
+        { "label": "Osseuses (ostéopénie, ostéoporose)", "next": "complications-osseuses" },
+        { "label": "Croissance et puberté (enfant/ado)", "next": "complications-croissance" },
+        { "label": "Fertilité et grossesse", "next": "complications-fertilite" },
+        { "label": "Cardiaques", "next": "complications-cardiaques" }
+      ]
+    },
+
+    "complications-osseuses": {
+      "type": "action",
+      "text": "Complications osseuses des TCA",
+      "info": "Ostéopénie/ostéoporose fréquentes, chez la fille MAIS AUSSI le garçon. Début précoce (6 mois après début perte de poids/aménorrhée).",
+      "sections": [
+        {
+          "title": "Physiopathologie multifactorielle",
+          "items": [
+            "Dénutrition",
+            "Hyperactivité physique",
+            "Hypoestrogénie (F) ou hypotestostéronémie (M)",
+            "Hypercorticisme",
+            "Iatrogène",
+            "Dysfonctionnement axe thyréotrope (syndrome de basse T3)"
+          ]
+        },
+        {
+          "title": "Définition",
+          "items": [
+            "Adolescent : Z-score < -2",
+            "Adulte : T-score < -2,5 (ostéoporose)"
+          ]
+        },
+        {
+          "title": "Signes d'alerte",
+          "items": [
+            "ATCD de fracture par fragilité osseuse",
+            "Fracture de fatigue (même valeur que fracture de fragilité)",
+            "Facteurs de risque : durée d'évolution, IMC le plus bas"
+          ]
+        }
+      ],
+      "next": "bilan-osseux"
+    },
+
+    "bilan-osseux": {
+      "type": "result",
+      "text": "Bilan osseux recommandé",
+      "severity": "moderate",
+      "actions": [
+        "Ostéodensitométrie (DMO) : recommandée si AM > 6 mois d'évolution",
+        "Calcémie, phosphorémie, vitamine D, PTH",
+        "25-OH vitamine D",
+        "Le traitement principal est la RENUTRITION et la reprise pondérale",
+        "Supplémentation en vitamine D et calcium si carence",
+        "Pas de traitement par bisphosphonates en 1re intention chez l'adolescent",
+        "Réévaluation DMO à 1-2 ans"
+      ]
+    },
+
+    "complications-croissance": {
+      "type": "result",
+      "text": "Retentissement sur la croissance et la puberté",
+      "severity": "high",
+      "info": "Spécifique à l'enfant et l'adolescent. La taille adulte peut être réduite.",
+      "actions": [
+        "Surveillance des courbes de croissance staturale +++",
+        "Évaluation du stade pubertaire (Tanner)",
+        "Âge osseux si retard de croissance",
+        "Retard pubertaire : peut nécessiter un avis endocrinologique",
+        "Risque : arrêt de croissance, défaut d'acquisition de masse osseuse",
+        "Conséquences : taille adulte réduite, perturbation fonction gonadotrope",
+        "Le traitement = renutrition et restauration pondérale"
+      ]
+    },
+
+    "complications-fertilite": {
+      "type": "action",
+      "text": "TCA, fertilité et grossesse",
+      "info": "Sources : DU TCA — Dr Julia Clarke, CMME, GHU Paris",
+      "sections": [
+        {
+          "title": "Impact sur la fertilité",
+          "items": [
+            "Aménorrhée d'origine hypothalamique (hypogonadisme hypogonadotrope fonctionnel)",
+            "Perturbation de la GnRH par stress et bilan énergétique négatif",
+            "Faible taux de leptine (restriction calorique, faible masse grasse)",
+            "⚠ L'ovulation peut survenir malgré l'aménorrhée → risque de grossesse non planifiée",
+            "Risque de grossesse non planifiée 2x plus élevé chez les femmes avec ATCD d'AN"
+          ]
+        },
+        {
+          "title": "Grossesse et TCA",
+          "items": [
+            "Grossesse = période de vulnérabilité (changements hormonaux : leptine, cortisol)",
+            "Peut être période de rémission ou de rechute",
+            "Risques : RCIU, prématurité, complications obstétricales",
+            "Post-partum : risque de rechute +++",
+            "Idéal : stabilisation du TCA et suivi adapté AVANT la grossesse"
+          ]
+        },
+        {
+          "title": "Conduite à tenir",
+          "items": [
+            "Informer les patientes sur les risques",
+            "Rechercher l'aménorrhée, discuter contraception",
+            "En cas de projet de grossesse : stabilisation pondérale préalable",
+            "Suivi obstétrical rapproché pendant la grossesse",
+            "Suivi psychiatrique renforcé en post-partum"
+          ]
+        }
+      ]
+    },
+
+    "complications-cardiaques": {
+      "type": "result",
+      "text": "Complications cardiaques",
+      "severity": "high",
+      "actions": [
+        "Bradycardie sinusale (fréquente dans l'AN)",
+        "Allongement du QT (risque de torsade de pointe)",
+        "Troubles du rythme (hypokaliémie)",
+        "Hypotension artérielle",
+        "Insuffisance cardiaque (rare, contexte de SRI)",
+        "Épanchement péricardique (dénutrition sévère)",
+        "ECG systématique à l'évaluation initiale et en surveillance",
+        "Scope si IMC < 14 ou anomalie ionique"
+      ]
+    }
+  }
+}

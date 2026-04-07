@@ -1,0 +1,284 @@
+{
+  "id": "psychotherapies-tca",
+  "title": "Quelle psychothérapie proposer ?",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010/2019",
+    "DU TCA FFAB 2025-2026 — Module 7",
+    "DU TCA — TCC et TCA (Stordeur)",
+    "DU TCA — EMDR TCA",
+    "DU TCA — Mindfulness TCA",
+    "DU TCA — Les TIP dans les TCA",
+    "DU TCA — Psychothérapies psychodynamiques"
+  ],
+  "root": "choix-psychotherapie",
+  "nodes": {
+    "choix-psychotherapie": {
+      "type": "question",
+      "text": "Pour quel type de TCA et quel contexte ?",
+      "options": [
+        { "label": "Anorexie mentale — enfant/ado", "next": "psy-an-ado" },
+        { "label": "Anorexie mentale — adulte", "next": "psy-an-adulte" },
+        { "label": "Boulimie nerveuse", "next": "psy-bn" },
+        { "label": "Hyperphagie boulimique (BED)", "next": "psy-bed" }
+      ]
+    },
+
+    "choix-psychotherapie-suite": {
+      "type": "question",
+      "text": "Situations particulières",
+      "options": [
+        { "label": "ARFID", "next": "psy-arfid" },
+        { "label": "Comorbidité traumatique", "next": "psy-trauma" },
+        { "label": "Trouble de la personnalité borderline", "next": "psy-tp-borderline" },
+        { "label": "Approches complémentaires (mindfulness, remédiation cognitive)", "next": "psy-complementaires" }
+      ]
+    },
+
+    "psy-an-ado": {
+      "type": "action",
+      "text": "Psychothérapie — AN enfant/adolescent",
+      "sections": [
+        {
+          "title": "1re intention : Thérapie familiale +++",
+          "items": [
+            "Niveau de preuve le plus élevé chez l'enfant et l'adolescent",
+            "Approche Maudsley (FBT - Family-Based Treatment)",
+            "Les parents sont mobilisés comme ressource thérapeutique",
+            "Thérapie multifamiliale si accessible",
+            "L'investissement familial est central dans le soin"
+          ]
+        },
+        {
+          "title": "En complément ou alternative",
+          "items": [
+            "TCC individuelle adaptée aux TCA",
+            "TCC chez l'enfant : indications dans AN, BN, hyperphagie, ARFID",
+            "Psychothérapie de soutien",
+            "Travail motivationnel"
+          ]
+        },
+        {
+          "title": "Objectifs (HAS)",
+          "items": [
+            "Comprendre et coopérer à la réhabilitation physique et nutritionnelle",
+            "Comprendre et modifier les attitudes dysfonctionnelles liées au TCA",
+            "Améliorer le fonctionnement interpersonnel et social",
+            "Traiter les comorbidités psychologiques associées"
+          ]
+        }
+      ]
+    },
+
+    "psy-an-adulte": {
+      "type": "action",
+      "text": "Psychothérapie — AN adulte",
+      "info": "Aucune psychothérapie n'a montré de supériorité nette sur les autres dans l'AN adulte. Le choix dépend du patient, de la disponibilité et de l'expertise.",
+      "sections": [
+        {
+          "title": "Approches recommandées",
+          "items": [
+            "TCC adaptée aux TCA",
+            "Thérapie interpersonnelle (TIP)",
+            "Psychothérapie d'inspiration analytique / psychodynamique",
+            "Thérapie familiale (peut aussi être proposée chez l'adulte jeune)"
+          ]
+        },
+        {
+          "title": "Remédiation cognitive",
+          "items": [
+            "Approche complémentaire ciblant les dysfonctionnements cognitifs de l'AN",
+            "Rigidité cognitive, difficultés de cohérence centrale, perfectionnisme",
+            "Évaluation préalable recommandée (outils neuropsychologiques)"
+          ]
+        },
+        {
+          "title": "Objectifs des soins psychologiques (HAS)",
+          "items": [
+            "Aider à comprendre et coopérer à la réhabilitation nutritionnelle",
+            "Réduire le risque physique",
+            "Modifier les attitudes dysfonctionnelles",
+            "Encourager le gain de poids",
+            "Tendre vers un comportement alimentaire sain",
+            "Améliorer le fonctionnement interpersonnel"
+          ]
+        }
+      ]
+    },
+
+    "psy-bn": {
+      "type": "action",
+      "text": "Psychothérapie — Boulimie Nerveuse",
+      "sections": [
+        {
+          "title": "1re intention : TCC +++",
+          "items": [
+            "TCC individuelle adaptée aux TCA = traitement de référence",
+            "Travail sur le cycle restriction → crises → purge",
+            "Exposition et prévention de la réponse",
+            "Restructuration cognitive (croyances sur le poids, la forme)",
+            "Programme d'exposition aux aliments gâchettes"
+          ]
+        },
+        {
+          "title": "Alternatives",
+          "items": [
+            "TIP (thérapie interpersonnelle) : efficacité démontrée, alternative si TCC non accessible",
+            "Self-help guidé : peut être proposé avant ou en début de PEC",
+            "L'auto-support GUIDÉ par un professionnel est plus efficace que la version non accompagnée",
+            "Thérapie familiale si adolescent"
+          ]
+        },
+        {
+          "title": "Si motivation insuffisante",
+          "items": [
+            "Entretien motivationnel en 1er temps",
+            "Le patient doit être informé des modalités de mise en œuvre de son projet de soins"
+          ]
+        }
+      ]
+    },
+
+    "psy-bed": {
+      "type": "action",
+      "text": "Psychothérapie — Hyperphagie Boulimique (BED)",
+      "sections": [
+        {
+          "title": "Approches recommandées",
+          "items": [
+            "TCC individuelle adaptée aux TCA",
+            "Self-help guidé",
+            "TIP (thérapie interpersonnelle)",
+            "TCD (thérapie comportementale dialectique) : travail sur la régulation émotionnelle",
+            "Thérapie familiale chez l'enfant/adolescent",
+            "Psychoéducation de l'enfant et de sa famille"
+          ]
+        },
+        {
+          "title": "Points clés",
+          "items": [
+            "L'objectif premier = réduire les crises, PAS la perte de poids",
+            "Ne pas prescrire de régime restrictif",
+            "Travailler sur la régulation émotionnelle +++",
+            "Travailler sur l'image corporelle et l'estime de soi"
+          ]
+        }
+      ]
+    },
+
+    "psy-arfid": {
+      "type": "action",
+      "text": "Psychothérapie — ARFID",
+      "info": "Niveau de preuve encore limité. Approche pragmatique basée sur les case reports.",
+      "sections": [
+        {
+          "title": "Approches utilisées",
+          "items": [
+            "TCC individuelle et familiale",
+            "Exposition progressive aux aliments évités",
+            "Travail sur les facteurs de maintien du trouble",
+            "Gestion de l'anxiété",
+            "Travail sur la rigidité cognitive",
+            "Renforcement positif"
+          ]
+        },
+        {
+          "title": "Selon le mécanisme principal",
+          "items": [
+            "Sélectivité / néophobie → exposition progressive + orthophonie de l'oralité",
+            "Petit appétit / manque d'intérêt → structuration des repas + enrichissement",
+            "Phagophobie / peur de vomir → TCC anxiété + exposition"
+          ]
+        }
+      ]
+    },
+
+    "psy-trauma": {
+      "type": "action",
+      "text": "TCA et psychotraumatisme",
+      "info": "Rechercher systématiquement : maltraitance, harcèlement, traumatisme. Réévaluer régulièrement au cours du suivi.",
+      "sections": [
+        {
+          "title": "EMDR et TCA",
+          "items": [
+            "EMDR = Eye Movement Desensitization and Reprocessing",
+            "Indiquée si traumatisme identifié comme facteur déclencheur ou de maintien du TCA",
+            "Traitement du traumatisme en parallèle de la PEC du TCA",
+            "Nécessite un thérapeute formé à l'EMDR ET aux TCA"
+          ]
+        },
+        {
+          "title": "Approches complémentaires",
+          "items": [
+            "TCC centrée sur le trauma",
+            "Thérapie basée sur l'attachement",
+            "Le traumatisme peut avoir été le facteur déclencheur initial — explorer systématiquement"
+          ]
+        }
+      ]
+    },
+
+    "psy-tp-borderline": {
+      "type": "action",
+      "text": "TP borderline + TCA (BN/BED)",
+      "sections": [
+        {
+          "title": "Approche de choix : TCD (Thérapie Comportementale Dialectique)",
+          "items": [
+            "TCD adaptée aux TCA : travail sur la régulation émotionnelle",
+            "Compétences de tolérance à la détresse",
+            "Compétences de pleine conscience",
+            "Compétences d'efficacité interpersonnelle",
+            "Contrat TCD avec le patient"
+          ]
+        },
+        {
+          "title": "Points de vigilance",
+          "items": [
+            "PEC plus longue et complexe",
+            "Risque de rupture de soins élevé",
+            "Risque suicidaire +++ à surveiller",
+            "Alliance thérapeutique = enjeu central"
+          ]
+        }
+      ]
+    },
+
+    "psy-complementaires": {
+      "type": "action",
+      "text": "Approches complémentaires",
+      "sections": [
+        {
+          "title": "Mindfulness (pleine conscience)",
+          "items": [
+            "Approche complémentaire validée dans les TCA",
+            "Travail sur la conscience intéroceptive (sensations corporelles, faim, satiété)",
+            "Réduction de l'impulsivité alimentaire",
+            "Réduction de la rumination et de l'auto-critique",
+            "Peut être intégrée à la TCC (TCC basée sur la pleine conscience)"
+          ]
+        },
+        {
+          "title": "Remédiation cognitive (AN)",
+          "items": [
+            "Ciblage de la rigidité cognitive et du détail vs vue d'ensemble",
+            "Exercices cognitifs non liés à l'alimentation",
+            "Évaluation préalable : EAT, EDI, + bilan neuropsychologique",
+            "Peut faciliter l'engagement dans les autres thérapies"
+          ]
+        },
+        {
+          "title": "Autres médiations thérapeutiques",
+          "items": [
+            "Expression corporelle",
+            "Art-thérapie",
+            "Esthétique",
+            "Groupes de parole",
+            "Psychomotricité",
+            "Activité physique adaptée (APA) encadrée"
+          ]
+        }
+      ]
+    }
+  }
+}

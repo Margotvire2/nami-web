@@ -1,0 +1,321 @@
+{
+  "id": "recherche-pistes-tca",
+  "title": "Pistes de recherche et nouvelles approches thérapeutiques dans les TCA",
+  "version": "1.0",
+  "sources": [
+    "DU TCA FFAB 2025-2026 — Epidémiologie (Godart)",
+    "DU TCA — Physiopathologie et neuromodulation (Duriez 2023)",
+    "DU TCA — Génétique et imagerie (Ayrolles 2025)",
+    "DU TCA — Microbiote et TCA (Hanachi 2025)",
+    "DU TCA — Approche cognitive (Berthoz 2024)",
+    "WFSBP 2023",
+    "DU TCA — Mindfulness (Sala 2024)"
+  ],
+  "root": "axe-recherche",
+  "nodes": {
+    "axe-recherche": {
+      "type": "question",
+      "text": "Quel axe de recherche explorer ?",
+      "options": [
+        { "label": "Neuromodulation (rTMS, DBS, stimulation)", "next": "neuromodulation" },
+        { "label": "Génétique et génomique (GWAS, endophénotypes)", "next": "genetique" },
+        { "label": "Microbiote et axe intestin-cerveau", "next": "microbiote-recherche" },
+        { "label": "Remédiation cognitive et neurosciences cognitives", "next": "remediation" }
+      ]
+    },
+
+    "axe-recherche-2": {
+      "type": "question",
+      "text": "Autres axes de recherche",
+      "options": [
+        { "label": "Nouvelles molécules et psychopharmacologie", "next": "nouvelles-molecules" },
+        { "label": "Approches corporelles et e-santé", "next": "digital-corporel" },
+        { "label": "Recherche clinique : questions ouvertes", "next": "questions-ouvertes" }
+      ]
+    },
+
+    "neuromodulation": {
+      "type": "action",
+      "text": "Neuromodulation dans les TCA",
+      "info": "Source principale : Dr Philibert Duriez, DU TCA 2023 — Nouvelles perspectives étiopathogéniques et neuromodulation",
+      "sections": [
+        {
+          "title": "rTMS (Stimulation Magnétique Transcrânienne répétitive)",
+          "items": [
+            "Technique non invasive de stimulation cérébrale",
+            "Cible : cortex préfrontal dorsolatéral (DLPFC)",
+            "Essais dans l'AN : McClelland et al. (PLoS One, 2016) — RCT neuronavigated rTMS",
+            "Résultats préliminaires : réduction de l'anxiété alimentaire, amélioration de la flexibilité cognitive",
+            "Essais dans la BN : réduction des crises dans certaines études",
+            "Niveau de preuve : encore insuffisant pour recommandation clinique"
+          ]
+        },
+        {
+          "title": "DBS (Stimulation Cérébrale Profonde)",
+          "items": [
+            "Technique invasive (implantation d'électrodes)",
+            "Cibles : noyau accumbens, hypothalamus, capsule ventrale",
+            "Réservée aux formes sévères résistantes (AN chronique)",
+            "Case reports et petites séries seulement",
+            "Questions éthiques importantes (consentement chez patients dénutris)"
+          ]
+        },
+        {
+          "title": "Autres approches de neuromodulation",
+          "items": [
+            "tDCS (stimulation transcrânienne par courant continu) — plus accessible que la rTMS",
+            "Neurofeedback — apprentissage de l'autorégulation cérébrale",
+            "Stimulation du nerf vague — explorée dans la dépression résistante et les TCA"
+          ]
+        },
+        {
+          "title": "Perspectives",
+          "items": [
+            "La neuromodulation est une piste prometteuse pour les formes résistantes",
+            "Besoin d'essais contrôlés de grande taille",
+            "Identifier les meilleures cibles cérébrales par neuro-imagerie individuelle",
+            "Combiner neuromodulation + psychothérapie pour potentialiser les effets"
+          ]
+        }
+      ]
+    },
+
+    "genetique": {
+      "type": "action",
+      "text": "Recherche génétique et génomique dans les TCA",
+      "info": "Source : Dr Anaël Ayrolles, DU TCA FFAB 2025 — Génétique et imagerie",
+      "sections": [
+        {
+          "title": "Héritabilité",
+          "items": [
+            "AN : héritabilité estimée 50-80% (études de jumeaux)",
+            "BN : 55-83%",
+            "Part génétique significative mais polygénique et multifactorielle"
+          ]
+        },
+        {
+          "title": "Approche gène candidat (ancienne)",
+          "items": [
+            "Hypothèse a priori basée sur une fonction biologique",
+            "Gènes étudiés : récepteurs sérotonine (5-HT), dopamine, BDNF, COMT, récepteur estrogène, récepteurs opioïdes",
+            "Résultats souvent non répliqués — limites méthodologiques"
+          ]
+        },
+        {
+          "title": "GWAS (Genome-Wide Association Studies)",
+          "items": [
+            "Scanning de l'ensemble du génome SANS hypothèse a priori",
+            "Analyse des variants communs (SNP) avec faible taille d'effet",
+            "Nécessite de très larges échantillons",
+            "Résultats : variants associés à des récepteurs opioïdes et 5-HT, gènes de neurogénèse, récepteur tyrosine kinase (Baker 2017, Wang 2011, Duncan 2017)",
+            "Corrélations génétiques avec traits métaboliques (IMC, glycémie) ET psychiatriques (dépression, TOC, anxiété)"
+          ]
+        },
+        {
+          "title": "Endophénotypes",
+          "items": [
+            "Traits cognitifs (rigidité, faible cohérence centrale) retrouvés chez apparentés non atteints",
+            "Pourraient être des « marqueurs intermédiaires » entre gènes et phénotype clinique",
+            "Piste pour identifier des sous-groupes de patients et personnaliser les traitements"
+          ]
+        },
+        {
+          "title": "Perspectives",
+          "items": [
+            "Les TCA sont des troubles métabo-psychiatriques (corrélations génétiques avec métabolisme ET psychiatrie)",
+            "Vers la médecine de précision : identifier les profils génétiques pour adapter les traitements",
+            "Besoin de cohortes internationales encore plus larges",
+            "Score de risque polygénique : pas encore utilisable en clinique"
+          ]
+        }
+      ]
+    },
+
+    "microbiote-recherche": {
+      "type": "action",
+      "text": "Microbiote et TCA : nouvelle voie diagnostique et thérapeutique ?",
+      "info": "Source : Pre Mouna Hanachi, DU TCA FFAB 2025 — Microbiote intestinal et TCA",
+      "sections": [
+        {
+          "title": "Constats actuels",
+          "items": [
+            "Dysbiose documentée dans l'AN et la BN",
+            "La dénutrition modifie le microbiote, et le microbiote modifie le métabolisme → cercle vicieux",
+            "Le microbiote influence l'humeur et le comportement via l'axe intestin-cerveau",
+            "Production de peptides mimant les hormones de la faim/satiété"
+          ]
+        },
+        {
+          "title": "Pistes thérapeutiques explorées",
+          "items": [
+            "Probiotiques comme adjuvants à la renutrition — études en cours",
+            "Transplantation de microbiote fécal (TMF) — études sur souris (Lu et al., 2018)",
+            "Prébiotiques et alimentation adaptée au microbiote",
+            "Pas de recommandation spécifique à ce jour"
+          ]
+        },
+        {
+          "title": "Pistes diagnostiques",
+          "items": [
+            "Le profil du microbiote pourrait devenir un biomarqueur de sévérité ou de réponse au traitement",
+            "Différences de composition entre AN restrictive et AN binge-purge",
+            "Suivi de la restauration du microbiote pendant la renutrition"
+          ]
+        },
+        {
+          "title": "Questions ouvertes",
+          "items": [
+            "La dysbiose est-elle cause ou conséquence du TCA ?",
+            "Peut-on prédire la réponse au traitement par le profil du microbiote ?",
+            "Quelles souches probiotiques seraient les plus pertinentes ?",
+            "Impact du microbiote sur la prise de poids et la composition corporelle pendant la renutrition"
+          ]
+        }
+      ]
+    },
+
+    "remediation": {
+      "type": "action",
+      "text": "Remédiation cognitive et neurosciences cognitives",
+      "info": "Source : Berthoz 2024, Tchanturia 2017, Leppanen 2018",
+      "sections": [
+        {
+          "title": "CRT (Cognitive Remediation Therapy)",
+          "items": [
+            "Cible les processus cognitifs, PAS le contenu alimentaire",
+            "Exercices de flexibilité cognitive (set shifting)",
+            "Exercices de cohérence centrale (« big picture thinking »)",
+            "Exercices de planification, organisation, résolution de problèmes",
+            "Efficacité démontrée sur critères cliniques ET cognitifs (Tchanturia 2017, Leppanen 2018)"
+          ]
+        },
+        {
+          "title": "Évolutions de la CRT",
+          "items": [
+            "CRT-O : adaptation pour l'obésité",
+            "CREST (Cognitive Remediation and Emotion Skills Training) : CRT + travail sur les émotions",
+            "Intégration de la CRT en complément de la TCC ou de la thérapie familiale",
+            "Adaptation pour les enfants et adolescents"
+          ]
+        },
+        {
+          "title": "Neurosciences de la décision alimentaire",
+          "items": [
+            "Études en neuro-imagerie fonctionnelle : hyperactivité préfrontale (contrôle excessif) dans l'AN",
+            "Hypoactivité des circuits de récompense face aux stimuli alimentaires",
+            "Biais attentionnels vers les stimuli corporels et alimentaires",
+            "Ces données orientent les cibles thérapeutiques"
+          ]
+        }
+      ]
+    },
+
+    "nouvelles-molecules": {
+      "type": "action",
+      "text": "Nouvelles molécules et psychopharmacologie",
+      "info": "Sources : WFSBP 2023, Duriez 2023, Pharmaco TCA 2023",
+      "sections": [
+        {
+          "title": "Molécules en cours d'évaluation dans l'AN",
+          "items": [
+            "Olanzapine à faible dose : résultats modestes sur l'anxiété pré-prandiale et le poids — pas de recommandation forte",
+            "Dronabinol (cannabinoïde) : études préliminaires sur la prise de poids — résultats mitigés",
+            "Ocytocine intranasale : études pilotes sur la cognition sociale et la rigidité — prometteur mais précoce",
+            "Lisdexamfétamine : approuvé dans le BED (pas dans l'AN ni la BN)"
+          ]
+        },
+        {
+          "title": "Pistes émergentes (préclinique / très précoce)",
+          "items": [
+            "Psychédéliques (psilocybine) : essais phase 2 dans l'AN résistante — modification de la rigidité cognitive",
+            "Kétamine : études dans la dépression résistante associée aux TCA",
+            "Anti-ghréline : cibler la résistance à la ghréline dans l'AN",
+            "Agonistes GLP-1 : potentiel dans le BED (mais risque d'aggravation de l'AN)"
+          ]
+        },
+        {
+          "title": "Limites actuelles",
+          "items": [
+            "Aucune nouvelle molécule n'est recommandée en routine en 2025",
+            "Les essais sont souvent de petite taille et non répliqués",
+            "La pharmacologie seule ne suffit pas — toujours en complément de la psychothérapie et de la renutrition",
+            "Le ratio bénéfice/risque doit être particulièrement pesé chez des patients dénutris"
+          ]
+        }
+      ]
+    },
+
+    "digital-corporel": {
+      "type": "action",
+      "text": "Approches corporelles innovantes et e-santé",
+      "sections": [
+        {
+          "title": "Réalité virtuelle (RV)",
+          "items": [
+            "Exposition virtuelle au corps : traitement de la dysmorphophobie",
+            "Exposition aux situations alimentaires anxiogènes en environnement contrôlé",
+            "Études pilotes dans l'AN et la BN — résultats prometteurs sur l'image corporelle",
+            "Potentiel en recherche clinique (Affaire à suivre — DU TCA FFAB)"
+          ]
+        },
+        {
+          "title": "Applications numériques et e-santé",
+          "items": [
+            "Self-help guidé par application (TCC-based)",
+            "Monitoring alimentaire et émotionnel par smartphone",
+            "Téléconsultations (accès aux soins en zones sous-dotées)",
+            "Diabetes Body Project : intervention virtuelle spécifique DT1 + TCA",
+            "⚠ Nécessité de validation clinique — beaucoup d'apps non validées sur le marché"
+          ]
+        },
+        {
+          "title": "Activité physique adaptée (APA) — nouvelles approches",
+          "items": [
+            "Recherche préclinique : quel modèle pour comprendre l'exercice problématique dans les TCA ?",
+            "APA encadrée : pas interdire le sport mais le réintroduire progressivement et autrement",
+            "Yoga thérapeutique : amélioration de la conscience corporelle et réduction de l'anxiété",
+            "Auto-observation de l'activité physique (fiches, capteurs)"
+          ]
+        }
+      ]
+    },
+
+    "questions-ouvertes": {
+      "type": "action",
+      "text": "Questions ouvertes et priorités de recherche",
+      "sections": [
+        {
+          "title": "Questions non résolues (PNDS AMP 2022)",
+          "items": [
+            "Quelle limite basse de FC chez l'enfant pour l'hospitalisation ? (40 vs 50/min — pas de consensus)",
+            "Renutrition « slow » vs « higher calorie refeeding » : quelle est la meilleure stratégie ?",
+            "Quel est le meilleur objectif pondéral ? (PMBS — méthodes de calcul variables)"
+          ]
+        },
+        {
+          "title": "Grandes questions de recherche",
+          "items": [
+            "Pourquoi certains patients guérissent et d'autres chronicisent ? Facteurs prédictifs de réponse au traitement",
+            "Les TCA sont-ils des troubles métabo-psychiatriques ? (corrélations GWAS avec métabolisme)",
+            "Le microbiote peut-il être une cible thérapeutique ?",
+            "Comment prédire et prévenir la rechute ?",
+            "Comment adapter les soins aux formes masculines et transidentitaires ?",
+            "La neuromodulation peut-elle aider les formes résistantes ?",
+            "Quels biomarqueurs pour le suivi (microbiote, neuro-imagerie, génétique) ?",
+            "Comment améliorer l'accès aux soins (e-santé, formation des MG, maillage territorial) ?"
+          ]
+        },
+        {
+          "title": "Priorités pour la pratique clinique",
+          "items": [
+            "Mieux former les professionnels de 1er recours au repérage",
+            "Développer les centres spécialisés (141 structures en France — insuffisant)",
+            "Réduire le délai entre les 1ers symptômes et la 1re consultation spécialisée",
+            "Intégrer les patients experts et les pairs aidants dans le parcours de soins",
+            "Développer l'ETP dans les TCA (seulement 2 programmes validés en France en 2020)"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,442 @@
+{
+  "id": "pec-initiale-tca",
+  "title": "Prise en charge initiale selon le type de TCA",
+  "version": "1.0",
+  "sources": [
+    "HAS 2010 — Anorexie mentale : prise en charge",
+    "HAS 2019 — Boulimie et hyperphagie boulimique",
+    "PNDS AMP 2022",
+    "DU TCA FFAB 2025-2026",
+    "Cours DU ARFID 2026 — Dr Ayrolles"
+  ],
+  "root": "type-tca",
+  "nodes": {
+    "type-tca": {
+      "type": "question",
+      "text": "Quel type de TCA a été diagnostiqué ?",
+      "options": [
+        { "label": "Anorexie mentale (AN)", "next": "an-age" },
+        { "label": "Boulimie nerveuse (BN)", "next": "bn-evaluation" },
+        { "label": "Hyperphagie boulimique (BED)", "next": "bed-evaluation" },
+        { "label": "ARFID", "next": "arfid-evaluation" }
+      ]
+    },
+
+    "an-age": {
+      "type": "question",
+      "text": "Quelle est la tranche d'âge du patient ?",
+      "options": [
+        { "label": "Enfant < 10 ans (AMP)", "next": "an-enfant" },
+        { "label": "Adolescent 10-18 ans", "next": "an-ado" },
+        { "label": "Adulte > 18 ans", "next": "an-adulte" }
+      ]
+    },
+
+    "an-enfant": {
+      "type": "action",
+      "text": "PEC initiale — Anorexie Mentale à début Précoce (AMP)",
+      "info": "La PEC ambulatoire doit être privilégiée mais une hospitalisation peut être nécessaire. Un diagnostic et une PEC précoces améliorent le pronostic.",
+      "actions": [
+        "Évaluation pluridisciplinaire : pédiatrique (gastro + endocrino), pédopsychiatrique, diététique, +/- orthophonie, +/- psychomotricité",
+        "Reporter poids, taille, IMC sur les courbes de croissance",
+        "Calculer le Poids Minimum de Bonne Santé (PMBS) : couloir d'IMC antérieur à la maladie",
+        "Rechercher comorbidités : anxiété, dépression (⚠ pas d'ISRS chez enfant dénutri), mérycisme",
+        "Rechercher usage problématique de l'activité physique"
+      ],
+      "next": "an-enfant-pec"
+    },
+
+    "an-enfant-pec": {
+      "type": "action",
+      "text": "Parcours de soins — AMP",
+      "sections": [
+        {
+          "title": "Objectifs",
+          "items": [
+            "Arrêt de la perte de poids puis reprise pondérale",
+            "Objectif : poids correspondant au couloir d'IMC antérieur au diagnostic (+/- 1 couloir)",
+            "Enfants antérieurement en surpoids : renutrition jusqu'au 75e percentile",
+            "Enfants de faible corpulence : renutrition jusqu'au 25e percentile"
+          ]
+        },
+        {
+          "title": "Modalités",
+          "items": [
+            "Privilégier l'ambulatoire si possible",
+            "Si hospitalisation temps plein nécessaire : viser durée la plus courte possible",
+            "Relais en HDJ recommandé",
+            "Thérapie familiale recommandée +++",
+            "Psychothérapie individuelle adaptée à l'âge"
+          ]
+        },
+        {
+          "title": "Suivi",
+          "items": [
+            "Réévaluer si pas d'amélioration après 1-2 mois de PEC ambulatoire",
+            "Courbes de croissance à chaque consultation",
+            "Suivi au long cours (rechute possible, évolution vers autre TCA)"
+          ]
+        }
+      ],
+      "next": "an-réévaluation"
+    },
+
+    "an-ado": {
+      "type": "action",
+      "text": "PEC initiale — Anorexie Mentale de l'adolescent",
+      "actions": [
+        "Évaluation initiale complète : examen clinique, courbes de croissance, constantes",
+        "Bilan paraclinique : ionogramme, NFS, bilan hépatique, glycémie, phosphorémie, ECG",
+        "Évaluation psychiatrique : risque suicidaire, comorbidités (dépression, anxiété, TOC, TSA, TDAH)",
+        "Évaluation diététique",
+        "Calculer le PMBS (couloir d'IMC antérieur)",
+        "Évaluer le stade pubertaire (Tanner)"
+      ],
+      "next": "an-ado-pec"
+    },
+
+    "an-ado-pec": {
+      "type": "action",
+      "text": "Parcours de soins — AN adolescent",
+      "sections": [
+        {
+          "title": "Objectifs thérapeutiques",
+          "items": [
+            "Arrêt de la perte de poids, reprise pondérale (objectif = poids avant début des troubles)",
+            "Arrêt des vomissements et prises de laxatifs si présents",
+            "Reprise d'une alimentation diversifiée",
+            "Réduction des apports hydriques excessifs si présents",
+            "Modération de l'activité physique + aménagements scolaires"
+          ]
+        },
+        {
+          "title": "Psychothérapie (1re intention)",
+          "items": [
+            "Thérapie familiale recommandée +++ (niveau de preuve le plus élevé chez l'adolescent)",
+            "TCC individuelle adaptée aux TCA",
+            "Travail motivationnel si patient peu coopérant"
+          ]
+        },
+        {
+          "title": "Traitement médicamenteux",
+          "items": [
+            "Pas de traitement neuroleptique ou ISRS en 1re intention pour l'AN",
+            "Traitement des comorbidités si nécessaire (après renutrition)",
+            "⚠ Déconseillé d'introduire un antidépresseur chez un patient dénutri"
+          ]
+        },
+        {
+          "title": "Coordination",
+          "items": [
+            "Médecin coordinateur (psychiatre ou pédiatre référent)",
+            "Suivi somatique par médecin traitant",
+            "Suivi diététique",
+            "Psychothérapie individuelle et familiale",
+            "Information et accompagnement de l'entourage +++"
+          ]
+        }
+      ],
+      "next": "an-réévaluation"
+    },
+
+    "an-adulte": {
+      "type": "action",
+      "text": "PEC initiale — Anorexie Mentale de l'adulte",
+      "actions": [
+        "Évaluation initiale HAS 2010 : examen complet, dentaire, gynécologique",
+        "Bilan paraclinique : ionogramme, NFS, bilan hépatique, glycémie, phosphorémie, calcémie, ECG, ostéodensitométrie",
+        "Évaluation psychiatrique : risque suicidaire, comorbidités",
+        "Évaluation du retentissement sur le fonctionnement global",
+        "Calculer l'IMC, rechercher signes de gravité"
+      ],
+      "next": "an-adulte-pec"
+    },
+
+    "an-adulte-pec": {
+      "type": "action",
+      "text": "Parcours de soins — AN adulte",
+      "sections": [
+        {
+          "title": "Objectifs thérapeutiques",
+          "items": [
+            "Restauration pondérale progressive",
+            "Normalisation du comportement alimentaire",
+            "Traitement des complications somatiques",
+            "Prise en charge des comorbidités psychiatriques"
+          ]
+        },
+        {
+          "title": "Psychothérapie (1re intention)",
+          "items": [
+            "TCC adaptée aux TCA",
+            "Thérapie interpersonnelle (TIP)",
+            "Psychothérapie d'inspiration analytique",
+            "Travail motivationnel si patient peu coopérant"
+          ]
+        },
+        {
+          "title": "Traitement médicamenteux",
+          "items": [
+            "Pas de neuroleptique ni ISRS en 1re intention pour l'AN",
+            "Traitement des comorbidités après renutrition suffisante",
+            "Supplémentation vitaminique et en micronutriments si nécessaire"
+          ]
+        },
+        {
+          "title": "Niveaux de soins",
+          "items": [
+            "Ambulatoire : 1re intention si critères de gravité absents",
+            "Hôpital de jour : si ambulatoire insuffisant",
+            "Hospitalisation temps plein : si critères d'hospitalisation (cf. arbre repérage)",
+            "Post-hospitalisation : suivi ambulatoire au long cours (30-50% rechute dans l'année)"
+          ]
+        }
+      ],
+      "next": "an-réévaluation"
+    },
+
+    "an-réévaluation": {
+      "type": "question",
+      "text": "Réévaluation après 1-2 mois de PEC ambulatoire",
+      "info": "Si pas d'amélioration clinique (absence de prise de poids), intensifier la PEC.",
+      "options": [
+        { "label": "Amélioration (prise de poids, amélioration clinique)", "next": "suivi-long-cours" },
+        { "label": "Stagnation ou dégradation", "next": "intensification-an" }
+      ]
+    },
+
+    "intensification-an": {
+      "type": "result",
+      "text": "Intensification de la prise en charge",
+      "severity": "high",
+      "actions": [
+        "Réévaluer avec le patient et sa famille",
+        "Discuter passage en hôpital de jour",
+        "Discuter hospitalisation temps plein si nécessaire",
+        "Réévaluer les critères d'hospitalisation (cf. arbre repérage)",
+        "Nutrition entérale à discuter en équipe pluridisciplinaire si dénutrition sévère avec stagnation prolongée"
+      ]
+    },
+
+    "bn-evaluation": {
+      "type": "action",
+      "text": "Évaluation initiale — Boulimie Nerveuse",
+      "info": "HAS 2019",
+      "actions": [
+        "Examen clinique complet, dentaire, gynécologique",
+        "Courbes poids taille, IMC",
+        "ECG, ionogramme sanguin, bilan métabolique",
+        "Examen psychiatrique : risque suicidaire +++, comorbidités",
+        "Retentissement des troubles sur le fonctionnement global",
+        "Détection précoce des complications et prévention",
+        "Rechercher un « état de mal boulimique » (urgence)"
+      ],
+      "next": "bn-pec"
+    },
+
+    "bn-pec": {
+      "type": "action",
+      "text": "PEC — Boulimie Nerveuse",
+      "info": "Le patient doit être informé des modalités de son projet de soins individualisé avant l'initiation.",
+      "sections": [
+        {
+          "title": "Psychothérapie (1re intention)",
+          "items": [
+            "TCC individuelle adaptée aux TCA — 1re intention +++",
+            "Self-help guidé (autosupport accompagné par un professionnel) : peut être proposé avant ou en début de PEC",
+            "TIP (thérapie interpersonnelle) en alternative",
+            "Thérapie familiale chez l'adolescent",
+            "Travail motivationnel si patient pas prêt à s'engager"
+          ]
+        },
+        {
+          "title": "Traitement médicamenteux (2e intention)",
+          "items": [
+            "ISRS (fluoxétine) : 2e ligne chez l'adulte, si accès impossible à une psychothérapie structurée",
+            "Toujours EN ASSOCIATION avec PEC psychologique et pluriprofessionnelle",
+            "⚠ Prendre médicaments à distance des conduites de purge pour garantir absorption",
+            "Topiramate : NON recommandé (balance bénéfice/risque défavorable, risque de détournement)"
+          ]
+        },
+        {
+          "title": "PEC diététique",
+          "items": [
+            "Carnet alimentaire avec émotions et heures",
+            "Identifier les aliments « gâchettes »",
+            "Programme d'exposition progressive (TCC)",
+            "Colonnes de Beck",
+            "Restructuration du comportement alimentaire"
+          ]
+        },
+        {
+          "title": "Surveillance",
+          "items": [
+            "Ionogramme régulier (risque hypokaliémie)",
+            "Suivi dentaire",
+            "Suivi gynécologique",
+            "Évaluation régulière du risque suicidaire"
+          ]
+        }
+      ],
+      "next": "bn-réévaluation"
+    },
+
+    "bn-réévaluation": {
+      "type": "question",
+      "text": "Réévaluation de la PEC",
+      "options": [
+        { "label": "Amélioration (diminution des crises, stabilisation)", "next": "suivi-long-cours" },
+        { "label": "Pas d'amélioration", "next": "intensification-bn" },
+        { "label": "État de mal boulimique", "next": "urgence-bn" }
+      ]
+    },
+
+    "intensification-bn": {
+      "type": "result",
+      "text": "Intensification PEC boulimie",
+      "severity": "high",
+      "actions": [
+        "Associer ISRS si non encore prescrit",
+        "Intensifier la psychothérapie",
+        "Discuter hôpital de jour ou hospitalisation",
+        "Réévaluer le diagnostic (forme mixte AN-BN ?)"
+      ]
+    },
+
+    "urgence-bn": {
+      "type": "result",
+      "text": "État de mal boulimique — URGENCE",
+      "severity": "critical",
+      "info": "Incapacité à poursuivre les activités habituelles du fait de la grande fréquence des crises.",
+      "actions": [
+        "Hospitalisation en urgence",
+        "Bilan ionogramme en urgence (hypokaliémie)",
+        "ECG",
+        "Si IMC ≤ 12 : repos au lit, réchauffement, supplémentation phosphore",
+        "Évaluation du risque suicidaire",
+        "Prévention du syndrome de renutrition si dénutrition associée"
+      ]
+    },
+
+    "bed-evaluation": {
+      "type": "action",
+      "text": "Évaluation initiale — Hyperphagie Boulimique (BED)",
+      "info": "HAS 2019",
+      "actions": [
+        "Examen clinique : poids, taille, IMC",
+        "Bilan métabolique (surpoids/obésité) : glycémie, bilan lipidique, bilan hépatique",
+        "Rechercher complications du surpoids : HTA, diabète, dyslipidémie, SAOS",
+        "Examen psychiatrique : dépression, anxiété, risque suicidaire",
+        "Évaluation de la fréquence et sévérité des crises"
+      ],
+      "next": "bed-pec"
+    },
+
+    "bed-pec": {
+      "type": "action",
+      "text": "PEC — Hyperphagie Boulimique",
+      "sections": [
+        {
+          "title": "Psychothérapie (1re intention)",
+          "items": [
+            "TCC individuelle adaptée aux TCA — 1re intention",
+            "Self-help guidé",
+            "TIP en alternative",
+            "Thérapie comportementale dialectique (TCD)",
+            "Thérapie familiale chez l'enfant/adolescent"
+          ]
+        },
+        {
+          "title": "PEC diététique",
+          "items": [
+            "⚠ NE PAS prescrire de régime restrictif (risque d'aggraver le TCA)",
+            "Psychoéducation alimentaire",
+            "Restructuration du comportement alimentaire",
+            "Travail sur la régulation émotionnelle liée à l'alimentation"
+          ]
+        },
+        {
+          "title": "Suivi médical",
+          "items": [
+            "Suivi des complications du surpoids/obésité",
+            "Suivi psychiatrique des comorbidités (dépression +++)",
+            "Suivi diététique régulier"
+          ]
+        }
+      ],
+      "next": "suivi-long-cours"
+    },
+
+    "arfid-evaluation": {
+      "type": "action",
+      "text": "Évaluation initiale — ARFID",
+      "info": "Pas de dysmorphophobie ni de stratégie de compensation. Le diagnostic repose sur le retentissement.",
+      "actions": [
+        "Évaluation pluridisciplinaire : pédiatrique, pédopsychiatrique, diététique, +/- orthophonie, +/- psychomotricité",
+        "Identifier le mécanisme principal : sélectivité/néophobie, petit appétit/manque d'intérêt, phobie (phagophobie, peur de vomir)",
+        "Courbes de croissance (enfant/ado)",
+        "Bilan nutritionnel et carences éventuelles",
+        "Rechercher comorbidités : TSA, anxiété, TDAH"
+      ],
+      "next": "arfid-pec"
+    },
+
+    "arfid-pec": {
+      "type": "action",
+      "text": "PEC — ARFID",
+      "info": "Aucune thérapeutique médicamenteuse ni TCC ne peut être recommandée avec un fort niveau de preuve pour le moment (Couturier et al., 2020).",
+      "sections": [
+        {
+          "title": "Approches thérapeutiques",
+          "items": [
+            "Psychoéducation de l'enfant et de sa famille",
+            "TCC individuelle / familiale : travail sur facteurs de maintien, gestion de l'anxiété, travail sur la rigidité",
+            "Exposition progressive aux aliments évités",
+            "Renforcement positif",
+            "Instaurer des règles souples, alimentation ludique"
+          ]
+        },
+        {
+          "title": "Rééducation",
+          "items": [
+            "Orthophonie de l'oralité (sélectivité, néophobie)",
+            "Suivi diététique : enrichissement des apports alimentaires",
+            "Supplémentation vitaminique si carences"
+          ]
+        },
+        {
+          "title": "Si TSA associé",
+          "items": [
+            "Prendre en charge la rigidité cognitive",
+            "Prendre en charge les particularités sensorielles",
+            "Adapter les approches thérapeutiques au profil neurodéveloppemental"
+          ]
+        },
+        {
+          "title": "Suivi",
+          "items": [
+            "Médecin traitant / pédiatre : suivi croissance, supplémentation",
+            "Sécurité nutritionnelle et croissance toujours prioritaires",
+            "Traitement des causes médicales et nutritionnelles indispensable"
+          ]
+        }
+      ],
+      "next": "suivi-long-cours"
+    },
+
+    "suivi-long-cours": {
+      "type": "result",
+      "text": "Suivi au long cours",
+      "severity": "moderate",
+      "info": "30 à 50% de rechute dans l'année suivant l'hospitalisation. Le suivi doit être maintenu au moins 1 an.",
+      "actions": [
+        "Consultations régulières avec l'équipe référente",
+        "Maintien de la rémission, prévention de la rechute",
+        "Stabilisation du poids et des acquis",
+        "Poursuite de la psychothérapie",
+        "Suivi somatique par le médecin traitant",
+        "Si rechute : réévaluer et intensifier la PEC"
+      ]
+    }
+  }
+}

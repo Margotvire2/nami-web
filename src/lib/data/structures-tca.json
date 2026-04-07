@@ -1,0 +1,594 @@
+{
+  "source": "Annuaire FFAB — Structures TCA France",
+  "total": 141,
+  "regions": {
+    "Auvergne-Rhône-Alpes": [
+      {
+        "ville": "Bourgoin-Jallieu",
+        "structure": "Centre Hospitalier Pierre Oudot"
+      },
+      {
+        "ville": "Bron",
+        "structure": "Clinique Saint Vincent de Paul"
+      },
+      {
+        "ville": "Bron",
+        "structure": "Groupement Hospitalier Est – Hôpital Neurologique"
+      },
+      {
+        "ville": "Chambéry",
+        "structure": "Centre Hospitalier Métropole Savoie"
+      },
+      {
+        "ville": "Clermont-Ferrand",
+        "structure": "Centre référent TCA Auvergne"
+      },
+      {
+        "ville": "Grenoble",
+        "structure": "CHU Grenoble Alpes"
+      },
+      {
+        "ville": "La Tronche",
+        "structure": "Clinique du Grésivaudan"
+      },
+      {
+        "ville": "Lyon",
+        "structure": "Centre ambulatoire AddiPsy"
+      },
+      {
+        "ville": "Saint-Priest-en-Jarez",
+        "structure": "Centre Hospitalier Universitaire de Saint-Étienne"
+      },
+      {
+        "ville": "Saint-Étienne",
+        "structure": "CHU de Saint-Étienne"
+      },
+      {
+        "ville": "Saint-Étienne",
+        "structure": "Unité TCA CHU de Saint-Étienne"
+      },
+      {
+        "ville": "Valence",
+        "structure": "Centre Hospitalier Valence"
+      },
+      {
+        "ville": "Ville-la-Grand",
+        "structure": "Clinique des Vallées"
+      },
+      {
+        "ville": "Villeurbanne",
+        "structure": "Médipôle Hôpital Mutualiste - Service de Pédiatrie"
+      }
+    ],
+    "Bourgogne-Franche-Comté": [
+      {
+        "ville": "Besançon",
+        "structure": "CHRU de Besançon"
+      },
+      {
+        "ville": "Dijon",
+        "structure": "CHU Dijon (adultes)"
+      },
+      {
+        "ville": "Dijon",
+        "structure": "CHU Dijon (enfants, ados)"
+      },
+      {
+        "ville": "Dijon",
+        "structure": "CMPP Paul Picardet"
+      },
+      {
+        "ville": "Messigny-et-Vantoux",
+        "structure": "Jouvence Nutrition"
+      }
+    ],
+    "Bretagne": [
+      {
+        "ville": "Bohars",
+        "structure": "Hôpital de Bohars"
+      },
+      {
+        "ville": "Brest",
+        "structure": "Service de Pédiatrie du CHRU de Brest"
+      },
+      {
+        "ville": "Bruz",
+        "structure": "Clinique du Moulin"
+      },
+      {
+        "ville": "Quimper",
+        "structure": "CHIC Quimper"
+      },
+      {
+        "ville": "Quimper",
+        "structure": "Clinique de l'Odet – intersecteur d'addictologie de l'EPSM Quimper"
+      },
+      {
+        "ville": "Rennes",
+        "structure": "CHU Rennes"
+      },
+      {
+        "ville": "Rennes",
+        "structure": "CHU hôpital sud"
+      },
+      {
+        "ville": "Rennes",
+        "structure": "Centre Hospitalier Guillaume Régnier"
+      },
+      {
+        "ville": "Rennes",
+        "structure": "Centre Médical et Pédagogique Rennes Beaulieu"
+      },
+      {
+        "ville": "Rennes",
+        "structure": "Clinique Saint-Yves – centre de réadaptation digestive et nutritionnelle"
+      },
+      {
+        "ville": "Roscoff",
+        "structure": "Fondation Ildys site de Perharidy"
+      },
+      {
+        "ville": "Vannes",
+        "structure": "Centre Hospitalier Bretagne Atlantique"
+      }
+    ],
+    "Centre-Val de Loire": [
+      {
+        "ville": "Bourges",
+        "structure": "Centre Hospitalier Jacques Cœur"
+      },
+      {
+        "ville": "Morancez",
+        "structure": "CH Henri Ey – unité de psychologie médicale"
+      },
+      {
+        "ville": "Saint-Cyr-sur-Loire",
+        "structure": "CHU de Tours - Unité pour Adolescents"
+      },
+      {
+        "ville": "Tours",
+        "structure": "CHRU de Tours – Hôpital Bretonneau"
+      },
+      {
+        "ville": "Tours",
+        "structure": "Hôpital Clocheville – CHRU de Tours"
+      }
+    ],
+    "Grand Est": [
+      {
+        "ville": "Colmar",
+        "structure": "Hôpitaux Civils de Colmar"
+      },
+      {
+        "ville": "Reims",
+        "structure": "CHU de Reims – Hôpital Robert Debré – endocrinologie diabétologie nutrition"
+      },
+      {
+        "ville": "Reims",
+        "structure": "CHU de Reims – service de psychothérapie de l'enfant et de l'adolescent – Maison d'Adolescents"
+      },
+      {
+        "ville": "Strasbourg",
+        "structure": "CHRU Strasbourg"
+      },
+      {
+        "ville": "Strasbourg",
+        "structure": "Hôpitaux Universitaires de Strasbourg – médecine interne, endocrinologie et nutrition"
+      },
+      {
+        "ville": "Sélestat",
+        "structure": "Groupe Hospitalier Sélestat-Obernai"
+      },
+      {
+        "ville": "Vandœuvre-lès-Nancy",
+        "structure": "CHRU de Nancy-Brabois"
+      }
+    ],
+    "Hauts-de-France": [
+      {
+        "ville": "Amiens",
+        "structure": "Clinique du Campus"
+      },
+      {
+        "ville": "Amiens",
+        "structure": "EPSM de la Somme – Hôpital Philippe Pinel"
+      },
+      {
+        "ville": "Arras",
+        "structure": "Centre Hospitalier d'Arras"
+      },
+      {
+        "ville": "Avesnes-sur-Helpe",
+        "structure": "Centre Hospitalier du Pays d'Avesnes"
+      },
+      {
+        "ville": "Boulogne-sur-Mer",
+        "structure": "Centre hospitalier Boulogne-sur-Mer"
+      },
+      {
+        "ville": "Béthune",
+        "structure": "Centre Hospitalier de Béthune – unité de nutrition"
+      },
+      {
+        "ville": "Hénin-Beaumont",
+        "structure": "Centre Hospitalier Hénin-Beaumont"
+      },
+      {
+        "ville": "Lille",
+        "structure": "CHU Lille"
+      },
+      {
+        "ville": "Lille",
+        "structure": "Hôpital Saint Vincent de Paul GHICL Lille"
+      },
+      {
+        "ville": "Lille",
+        "structure": "Service d’Addictologie du CHU de Lille – Hôpital Fontan 2"
+      },
+      {
+        "ville": "Loos",
+        "structure": "Clinique Lautréamont"
+      },
+      {
+        "ville": "Villeneuve-d'Ascq",
+        "structure": "Clinique des 4 Cantons"
+      }
+    ],
+    "Normandie": [
+      {
+        "ville": "Avranches",
+        "structure": "Centre Hospitalier de l'Estran – CMP Avranches"
+      },
+      {
+        "ville": "Caen",
+        "structure": "CHU de Caen Normandie"
+      },
+      {
+        "ville": "Dieppe",
+        "structure": "CH de Dieppe"
+      },
+      {
+        "ville": "Granville",
+        "structure": "Centre Hospitalier de l'Estran – CMP de Granville"
+      },
+      {
+        "ville": "Le Havre",
+        "structure": "Hôpital Jacques Monod"
+      },
+      {
+        "ville": "Montivilliers",
+        "structure": "Groupe hospitalier Le Havre"
+      },
+      {
+        "ville": "Rouen",
+        "structure": "CHU de Rouen – Pavillon Robert Debré Hôpital Charles Nicolle"
+      },
+      {
+        "ville": "Évreux",
+        "structure": "Nouvel Hôpital de Navarre"
+      }
+    ],
+    "Nouvelle-Aquitaine": [
+      {
+        "ville": "Aire-sur-l'Adour",
+        "structure": "Clinique Jean Sarrailh"
+      },
+      {
+        "ville": "Bayonne",
+        "structure": "CMPP Bayonne – Association Les PEP 64"
+      },
+      {
+        "ville": "Bayonne",
+        "structure": "Clinique Château Caradoc – HDJ Dabanta"
+      },
+      {
+        "ville": "Bayonne",
+        "structure": "Unité infanto-juvénile, Clinique du Château Caradoc"
+      },
+      {
+        "ville": "Bordeaux",
+        "structure": "CHU de Bordeaux"
+      },
+      {
+        "ville": "Bordeaux",
+        "structure": "Centre Abadie HDJ UTCA CHU de Bordeaux"
+      },
+      {
+        "ville": "Bordeaux",
+        "structure": "Centre Abadie UTCA"
+      },
+      {
+        "ville": "Bordeaux",
+        "structure": "Pôle Aquitain de l'Adolescent"
+      },
+      {
+        "ville": "Cenon",
+        "structure": "Centre de Psychiatrie Ambulatoire de Cenon (CPAC)"
+      },
+      {
+        "ville": "Jurançon",
+        "structure": "Le Mont Vert"
+      },
+      {
+        "ville": "Limoges",
+        "structure": "CHU de Limoges"
+      },
+      {
+        "ville": "Limoges",
+        "structure": "Centre Hospitalier Esquirol"
+      },
+      {
+        "ville": "Pau",
+        "structure": "Maison des Adolescents Béarn et Soule"
+      },
+      {
+        "ville": "Pessac",
+        "structure": "CHU Bordeaux Hôpital Haut-Lévêque"
+      },
+      {
+        "ville": "Poitiers",
+        "structure": "Centre Hospitalier Henri Laborit"
+      },
+      {
+        "ville": "Pons",
+        "structure": "Établissement Thérapeutique pour Adolescents à Pons – Association Rénovation"
+      },
+      {
+        "ville": "Talence",
+        "structure": "Clinique Béthanie"
+      }
+    ],
+    "Occitanie": [
+      {
+        "ville": "Auch",
+        "structure": "Centre hospitalier du Gers"
+      },
+      {
+        "ville": "Cabestany",
+        "structure": "HTP Pôle Pédiatrique de Cerdagne"
+      },
+      {
+        "ville": "Castelmaurou",
+        "structure": "Clinique Castelviel"
+      },
+      {
+        "ville": "Montpellier",
+        "structure": "CHU Lapeyronie"
+      },
+      {
+        "ville": "Montpellier",
+        "structure": "CHU Saint-Eloi"
+      },
+      {
+        "ville": "Montpellier",
+        "structure": "Département Diabétologie Endocrinologie Nutrition - Hôpital Lapeyronie"
+      },
+      {
+        "ville": "Nîmes",
+        "structure": "CHU de Nîmes – pôle psychiatrie"
+      },
+      {
+        "ville": "Osséja",
+        "structure": "Pôle Pédiatrique de Cerdagne"
+      },
+      {
+        "ville": "Toulouse",
+        "structure": "Association Les Petits Pois"
+      },
+      {
+        "ville": "Toulouse",
+        "structure": "CATTP RECIFS – CH Marchant"
+      },
+      {
+        "ville": "Toulouse",
+        "structure": "Hôpital des enfants Toulouse"
+      },
+      {
+        "ville": "Toulouse",
+        "structure": "Service universitaire de psychiatrie de l'enfant et de l'adolescent (SUPEA)"
+      },
+      {
+        "ville": "Toulouse",
+        "structure": "Unités de Nutrition Hôpital Rangueil"
+      },
+      {
+        "ville": "Vérargues",
+        "structure": "Clinique Stella"
+      }
+    ],
+    "Pays de la Loire": [
+      {
+        "ville": "Angers",
+        "structure": "CHU Angers"
+      },
+      {
+        "ville": "Angers",
+        "structure": "Service de psychiatrie de l'enfant et de l'adolescent – CHU Angers"
+      },
+      {
+        "ville": "Cholet",
+        "structure": "Centre Hospitalier de Cholet"
+      },
+      {
+        "ville": "La Roche-sur-Yon",
+        "structure": "Centre Hospitalier Départemental Vendée"
+      },
+      {
+        "ville": "La Roche-sur-Yon",
+        "structure": "Maison départementale des adolescents"
+      },
+      {
+        "ville": "Le Mans",
+        "structure": "Centre Hospitalier Le Mans (provisoire)"
+      },
+      {
+        "ville": "Le Mans",
+        "structure": "Clinique Prémartine, intersecteur d'addictologie de l'EPSM de la Sarthe"
+      },
+      {
+        "ville": "Nantes",
+        "structure": "CHU Nantes"
+      },
+      {
+        "ville": "Nantes",
+        "structure": "CHU Nantes filière TCA"
+      },
+      {
+        "ville": "Nantes",
+        "structure": "CHU Nantes – Espace Barbara"
+      },
+      {
+        "ville": "Nantes",
+        "structure": "CHU Nantes – hôpital femme, enfant, adolescent"
+      },
+      {
+        "ville": "Nantes",
+        "structure": "CHU de Nantes – UPL HME"
+      },
+      {
+        "ville": "Nantes",
+        "structure": "Maison des Adolescents de Loire-Atlantique"
+      },
+      {
+        "ville": "Sablé-sur-Sarthe",
+        "structure": "Centre Soins Études Pierre Daguet 'La Martinière'"
+      },
+      {
+        "ville": "Saint-Herblain",
+        "structure": "CHU de Nantes – Service endocrinologie diabétologie nutrition"
+      }
+    ],
+    "Provence-Alpes-Côte d'Azur": [
+      {
+        "ville": "Aubagne",
+        "structure": "Hôpital Privé la Casamance"
+      },
+      {
+        "ville": "Cannes",
+        "structure": "Centre Hospitalier de Cannes"
+      },
+      {
+        "ville": "Grasse",
+        "structure": "Centre Hospitalier de Grasse"
+      },
+      {
+        "ville": "Marseille",
+        "structure": "CHU Conception – service d'endocrinologie, maladies métaboliques et nutrition"
+      },
+      {
+        "ville": "Marseille",
+        "structure": "Hôpital Conception Pôle Psychiatrie Centre"
+      },
+      {
+        "ville": "Marseille",
+        "structure": "Hôpital Salvator, CHU Marseille"
+      },
+      {
+        "ville": "Nice",
+        "structure": "Centre Hospitalier Universitaire de Nice"
+      },
+      {
+        "ville": "Nice",
+        "structure": "Hôpitaux Pédiatriques de Nice CHU Lenval"
+      },
+      {
+        "ville": "Vence",
+        "structure": "Clinique médicale et pédagogique Les Cadrans Solaires"
+      }
+    ],
+    "Île-de-France": [
+      {
+        "ville": "Bondy",
+        "structure": "UFITAA"
+      },
+      {
+        "ville": "Boulogne-Billancourt",
+        "structure": "Hôpital Ambroise Paré APHP"
+      },
+      {
+        "ville": "Colombes",
+        "structure": "Hôpital Louis Mourier"
+      },
+      {
+        "ville": "Corbeil-Essonnes",
+        "structure": "Centre Hospitalier Sud-Francilien – unité de médecine de l'adolescent"
+      },
+      {
+        "ville": "Créteil",
+        "structure": "Centre Hospitalier Intercommunal de Créteil"
+      },
+      {
+        "ville": "Garches",
+        "structure": "Clinique Médicale du Château de Garches – Nightingale Hospitals Paris"
+      },
+      {
+        "ville": "Le Mesnil-Saint-Denis",
+        "structure": "Institut MGEN de La Verrière"
+      },
+      {
+        "ville": "Le Mesnil-Saint-Denis",
+        "structure": "Institut MGEN de La Verrière – pôle psychiatrie adulte"
+      },
+      {
+        "ville": "Le Vésinet",
+        "structure": "Clinique Villa des Pages"
+      },
+      {
+        "ville": "Paris",
+        "structure": "CMME, GHU Paris, Hôpital Sainte-Anne"
+      },
+      {
+        "ville": "Paris",
+        "structure": "CMP de Belleville"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Centre de santé Colliard – FSEF"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Clinique FSEF Paris 16e Édouard Rist"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Clinique Villa Montsouris"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Hôpital Robert Debré"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Institut Mutualiste Montsouris – département de psychiatrie de l'adolescent et de l'adulte jeune"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Maison de Solenn – Maison des Adolescents – Hôpital Cochin APHP"
+      },
+      {
+        "ville": "Paris",
+        "structure": "Établissement de santé mentale Paris-Ivry MGEN"
+      },
+      {
+        "ville": "Poissy",
+        "structure": "Centre Hospitalier Intercommunal de Poissy Saint-Germain-en-Laye"
+      },
+      {
+        "ville": "Seine-et-Marne",
+        "structure": "Clinique FSEF de Neufmoutiers-en-Brie"
+      },
+      {
+        "ville": "Varennes-Jarcy",
+        "structure": "Clinique FSEF de Varennes-Jarcy"
+      },
+      {
+        "ville": "Villejuif",
+        "structure": "Hôpital Paul Brousse"
+      },
+      {
+        "ville": "Villejuif",
+        "structure": "Hôpital Universitaire Paul Brousse"
+      }
+    ]
+  }
+}

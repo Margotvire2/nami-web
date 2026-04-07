@@ -1,0 +1,57 @@
+[
+  {
+    "id": "scoff-f",
+    "nom": "SCOFF-F",
+    "nom_complet": "Sick, Control, One stone, Fat, Food — version française",
+    "source": "Morgan et al., 1999. Traduit par Bydlowski et Chambry, 2000. Recommandé par la HAS.",
+    "type": "depistage",
+    "description": "Questionnaire de dépistage rapide des TCA en 5 items. Score ≥ 2 = suspicion de TCA.",
+    "seuil": 2,
+    "seuil_label": "≥ 2 réponses OUI = suspicion de TCA",
+    "items": [
+      { "lettre": "S", "question": "Vous faites-vous vomir parce que vous vous sentez mal d'avoir trop mangé ?", "mot_cle": "Sick" },
+      { "lettre": "C", "question": "Vous inquiétez-vous d'avoir perdu le contrôle de ce que vous mangez ?", "mot_cle": "Control" },
+      { "lettre": "O", "question": "Avez-vous récemment perdu plus de 6 kg en 3 mois ?", "mot_cle": "One stone" },
+      { "lettre": "F", "question": "Pensez-vous que vous êtes gros(se) alors que d'autres vous trouvent trop mince ?", "mot_cle": "Fat" },
+      { "lettre": "F", "question": "Diriez-vous que la nourriture domine votre vie ?", "mot_cle": "Food" }
+    ]
+  },
+  {
+    "id": "eat-26",
+    "nom": "EAT-26",
+    "nom_complet": "Eating Attitude Test — 26 items",
+    "source": "Garner et al., 1982",
+    "type": "evaluation",
+    "description": "Auto-questionnaire diagnostique et quantitatif évaluant le comportement alimentaire. Score ≥ 20 = résultat positif nécessitant une évaluation clinique.",
+    "seuil": 20,
+    "seuil_label": "≥ 20 = évaluation clinique recommandée",
+    "items": [
+      { "num": 1, "question": "J'ai terriblement peur d'être en surpoids", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 2, "question": "J'évite de manger quand j'ai faim", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 3, "question": "Je me trouve préoccupé(e) par la nourriture", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 4, "question": "J'ai eu des épisodes de « gavage » au cours desquels j'ai le sentiment de ne pas pouvoir m'arrêter de manger", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 5, "question": "Je coupe mes aliments en petits morceaux", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 6, "question": "Je suis attentif(ve) à la teneur en calories des aliments que je mange", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 7, "question": "J'évite les aliments riches en glucides (pain, riz, pommes de terre...)", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 8, "question": "Je sens que les autres aimeraient que je mange davantage", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 9, "question": "Je vomis après avoir mangé", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 10, "question": "Je me sens extrêmement coupable après avoir mangé", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 11, "question": "Je suis préoccupé(e) par le désir d'être plus mince", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 12, "question": "Je pense à brûler des calories lorsque je fais de l'exercice", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 13, "question": "Les autres pensent que je suis trop mince", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 14, "question": "Je suis préoccupé(e) par l'idée d'avoir de la graisse sur mon corps", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 15, "question": "Je mets plus de temps que les autres pour prendre mes repas", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 16, "question": "J'évite les aliments qui contiennent du sucre", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 17, "question": "Je mange des aliments de régime", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 18, "question": "Je sens que la nourriture contrôle ma vie", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 19, "question": "Je contrôle mon alimentation", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 20, "question": "Je sens que les autres me poussent à manger", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 21, "question": "Je passe trop de temps à penser à la nourriture", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 22, "question": "Je me sens mal à l'aise après avoir mangé des sucreries", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 23, "question": "Je suis actuellement au régime", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 24, "question": "J'aime avoir l'estomac vide", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" },
+      { "num": 25, "question": "J'aime essayer de nouveaux aliments riches", "scoring": "jamais=3, rarement=2, parfois=1, souvent/toujours=0" },
+      { "num": 26, "question": "J'ai envie de vomir après les repas", "scoring": "toujours=3, souvent=2, parfois=1, rarement/jamais=0" }
+    ]
+  }
+]

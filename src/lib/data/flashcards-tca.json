@@ -1,0 +1,45 @@
+[
+  { "recto": "Seuil IMC d'hospitalisation chez l'adulte ?", "verso": "IMC < 14 kg/m². IMC ≤ 12 → réanimation.", "categorie": "seuils" },
+  { "recto": "Seuil IMC d'hospitalisation à 13-14 ans ?", "verso": "< 12,7 kg/m²", "categorie": "seuils" },
+  { "recto": "Seuil IMC d'hospitalisation à 15-16 ans ?", "verso": "< 13,2 kg/m²", "categorie": "seuils" },
+  { "recto": "Seuil de kaliémie pour hospitalisation ?", "verso": "K+ < 3 mEq/L. ECG systématique.", "categorie": "seuils" },
+  { "recto": "Seuil de phosphorémie pour hospitalisation ?", "verso": "< 0,5 mmol/L. Marqueur précoce du SRI.", "categorie": "seuils" },
+  { "recto": "Seuil de FC pour hospitalisation (tous âges) ?", "verso": "< 40/min. Débat < 50/min pour enfant < 12 ans.", "categorie": "seuils" },
+  { "recto": "Perte de poids = critère d'hospitalisation enfant ?", "verso": "> 2 kg/semaine", "categorie": "seuils" },
+  { "recto": "Perte de poids = critère d'hospitalisation adulte ?", "verso": "> 20% du poids en 3 mois", "categorie": "seuils" },
+
+  { "recto": "Quel vitamine donner AVANT la renutrition ?", "verso": "Vitamine B1 (thiamine) — SYSTÉMATIQUEMENT avant toute renutrition pour prévenir le SRI.", "categorie": "renutrition" },
+  { "recto": "Kcal/kg/j si IMC < 12 avec foie perturbé ?", "verso": "< 30 kcal/kg/j, 30 ml/kg/j de liquides", "categorie": "renutrition" },
+  { "recto": "Kcal/kg/j si IMC 12-14 ?", "verso": "40-60 kcal/kg/j, régime hyposodé normoprotidique", "categorie": "renutrition" },
+  { "recto": "Kcal/kg/j si IMC 15-20 ?", "verso": "60-70 kcal/kg/j", "categorie": "renutrition" },
+  { "recto": "Objectif prise de poids en hospitalisation ?", "verso": "0,5 à 1 kg/semaine", "categorie": "renutrition" },
+  { "recto": "Surveillance SRI : quoi et combien de temps ?", "verso": "Phosphorémie QUOTIDIENNE les 5 premiers jours. Ionogramme + ECG quotidiens. Risque max dans les 72 premières heures.", "categorie": "renutrition" },
+  { "recto": "Formule du PMBS ?", "verso": "PMBS = IMC cible × taille actuelle². IMC cible = couloir d'IMC antérieur à la maladie.", "categorie": "renutrition" },
+
+  { "recto": "3 critères diagnostiques de l'AN (DSM-5) ?", "verso": "A. Restriction → poids bas\nB. Peur de grossir ou comportement interférant avec prise de poids\nC. Altération perception corporelle", "categorie": "diagnostic" },
+  { "recto": "Différence clé BN vs BED ?", "verso": "BN = crises + compensation (vomissements, laxatifs, sport)\nBED = crises SANS compensation", "categorie": "diagnostic" },
+  { "recto": "Différence clé AN vs ARFID ?", "verso": "AN = peur de grossir + image corporelle perturbée\nARFID = restriction SANS préoccupation image corporelle", "categorie": "diagnostic" },
+  { "recto": "SCOFF-F : seuil positif ?", "verso": "≥ 2 réponses OUI sur 5 questions = suspicion de TCA", "categorie": "diagnostic" },
+  { "recto": "Existe-t-il un marqueur biologique pour diagnostiquer un TCA ?", "verso": "NON. Le diagnostic est CLINIQUE (DSM-5). La biologie évalue la gravité et les complications, pas le diagnostic.", "categorie": "diagnostic" },
+  { "recto": "Triple A de l'anorexie mentale ?", "verso": "Anorexie + Amaigrissement + Aménorrhée. L'aménorrhée n'est plus un critère DSM-5 mais reste un signe d'alerte.", "categorie": "diagnostic" },
+
+  { "recto": "Traitement médicamenteux de 1re intention dans l'AN ?", "verso": "AUCUN. Pas de neuroleptique ni ISRS en 1re intention. Psychothérapie + renutrition.", "categorie": "traitement" },
+  { "recto": "Traitement de 1re intention dans la BN ?", "verso": "TCC individuelle adaptée aux TCA. Self-help guidé en alternative.", "categorie": "traitement" },
+  { "recto": "Quand prescrire un ISRS dans la BN ?", "verso": "2e intention : si accès impossible à une psychothérapie. Fluoxétine 60 mg. Toujours en association avec PEC psychologique.", "categorie": "traitement" },
+  { "recto": "Psychothérapie de 1re intention chez l'ado AN ?", "verso": "Thérapie familiale (FBT / Maudsley) — niveau de preuve le plus élevé.", "categorie": "traitement" },
+  { "recto": "Peut-on donner un antidépresseur à un patient dénutri ?", "verso": "NON — déconseillé d'introduire un ISRS chez un patient dénutri. Attendre la renutrition suffisante.", "categorie": "traitement" },
+  { "recto": "Topiramate dans la BN ?", "verso": "NON recommandé — balance bénéfice/risque défavorable, risque de détournement.", "categorie": "traitement" },
+
+  { "recto": "Prévalence AN chez la femme en Occident ?", "verso": "0,4% (varie selon les pays : 0,39% Portugal à 2,2% Finlande)", "categorie": "epidemio" },
+  { "recto": "Sex ratio AN ?", "verso": "1 homme / 10 femmes (stable)", "categorie": "epidemio" },
+  { "recto": "Mortalité AN à 10 ans ?", "verso": "~5% (Steinhausen 2002). Risque létal 0,5%/année d'évolution.", "categorie": "epidemio" },
+  { "recto": "Taux de rechute après hospitalisation ?", "verso": "30-50% dans l'année", "categorie": "epidemio" },
+  { "recto": "Prévalence BN vie entière ?", "verso": "1-3% femmes, 0,1-0,5% hommes", "categorie": "epidemio" },
+  { "recto": "TCA le plus fréquent en population générale ?", "verso": "BED (Hyperphagie Boulimique) : 3-5% vie entière", "categorie": "epidemio" },
+
+  { "recto": "Alcalose métabolique chez un patient TCA = ?", "verso": "Vomissements provoqués (perte d'acide chlorhydrique → alcalose hypochlorémique)", "categorie": "biologie" },
+  { "recto": "Acidose métabolique chez un patient TCA = ?", "verso": "Abus de laxatifs (perte de bicarbonates digestifs)", "categorie": "biologie" },
+  { "recto": "Syndrome de basse T3 : faut-il traiter ?", "verso": "NON — c'est une adaptation à la dénutrition, pas une hypothyroïdie vraie. Se normalise avec la renutrition.", "categorie": "biologie" },
+  { "recto": "Hyperamylasémie avec lipasémie normale = ?", "verso": "Amylase salivaire élevée (hypertrophie parotidienne due aux vomissements). Ce n'est PAS une pancréatite.", "categorie": "biologie" },
+  { "recto": "Faut-il doser la TSH systématiquement ?", "verso": "NON — sauf doute diagnostique persistant avec hyperthyroïdie (HAS 2010).", "categorie": "biologie" }
+]
