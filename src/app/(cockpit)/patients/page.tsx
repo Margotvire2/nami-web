@@ -183,7 +183,7 @@ export default function PatientsPage() {
         ) : allCases.length === 0 ? (
           <PatientsEmptyState
             onImport={() => setImportOpen(true)}
-            onCreateManual={() => toast.info("Création manuelle bientôt disponible")}
+            onCreateManual={() => setCreateOpen(true)}
           />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">

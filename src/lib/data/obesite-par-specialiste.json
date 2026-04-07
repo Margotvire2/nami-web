@@ -1,0 +1,601 @@
+{
+  "pathway": "obesity.pcr_complexe",
+  "icd11": "5B81",
+  "version": "2026-04-07",
+  "sources": ["PCR Obésité complexe (Arrêté 4 mars 2026)", "HAS 2022 (2e/3e niveaux)", "HAS Guide parcours 2024", "DU APNS Oppert/Ciangura/Pais 2025-26", "Protocole diététique 2026 (Margot Vire)", "AFERO-GCC 2025"],
+
+  "specialistes": {
+
+    "medecin_specialiste_obesite": {
+      "role": "COORDINATEUR du PCR — phénotypage, inclusion, programme personnalisé, bilans, sortie",
+      "quandIntervenir": "Toujours. C'est lui qui prescrit l'inclusion dans le PCR et coordonne le parcours.",
+      "qualifications": "DES endocrino/hépato-gastro/MG/pédiatrie/psychiatrie + DESC I ou FST nutrition ou DU obésité",
+
+      "evaluationMultidimensionnelle": {
+        "note": "Préalable à l'inclusion PCR — détermine le profil A/B/C/D",
+        "axes": [
+          {
+            "axe": "Phénotypage sévérité HAS",
+            "action": "Déterminer niveau 2 vs 3a vs 3b",
+            "criteres_niveau2": {
+              "imc": "35 ≤ IMC < 50",
+              "plusAuMoinsUn": [
+                "HTA résistante",
+                "DT2 difficile à contrôler",
+                "NASH/fibrose hépatique",
+                "SAHOS sévère",
+                "Syndrome obésité-hypoventilation (SOH)",
+                "Aggravation maladie chronique",
+                "Infertilité / SOPK",
+                "Impact marqué qualité de vie",
+                "Pathologie psychiatrique avec impact pondéral",
+                "Médicaments obésogènes",
+                "Accès de boulimie épisodiques → profil C",
+                "Obésité infantile + ≥2 rebonds",
+                "Échec niveau 1",
+                "Grossesse post-bariatrique"
+              ]
+            },
+            "criteres_niveau3a": "IMC 35-50 + risque majeur/handicap fonctionnel/périmètre marche 100-500m/BED/évolution non contrôlée",
+            "criteres_niveau3b": "IMC ≥ 50 ou retentissement terminal"
+          },
+          {
+            "axe": "Détermination profil PCR",
+            "action": "A (standard) / B (limitations APA) / C (TCA) / D (TCA + limitations)",
+            "criteres_B": "Périmètre de marche 100-500m, troubles musculosquelettiques limitants, douleurs, dyspnée",
+            "criteres_C": "SCOFF ≥2 → EDE-Q → diagnostic TCA (hyperphagie boulimique principalement)",
+            "criteres_D": "C + B"
+          }
+        ]
+      },
+
+      "bilanInitial": {
+        "clinique": [
+          { "examen": "Poids + taille + IMC", "alertes": [
+            { "seuil": "IMC 30-34.9", "action": "Obésité grade I → niveau 1 sauf comorbidité" },
+            { "seuil": "IMC 35-39.9", "action": "Grade II → éligible PCR si critère de complexité" },
+            { "seuil": "IMC 40-49.9", "action": "Grade III → éligible PCR" },
+            { "seuil": "IMC ≥ 50", "action": "Obésité massive → niveau 3b" }
+          ]},
+          { "examen": "Tour de taille", "alertes": [
+            { "seuil": "H > 94 cm / F > 80 cm", "action": "Risque métabolique augmenté" },
+            { "seuil": "H > 102 cm / F > 88 cm", "action": "Risque métabolique élevé" }
+          ]},
+          { "examen": "PA (2 mesures assis)", "alertes": [
+            { "seuil": "> 140/90", "action": "Suspecter HTA → MAPA/automesure → ORIENTER CARDIOLOGUE si confirmé" },
+            { "seuil": "> 180/110", "action": "HTA sévère → traitement immédiat" }
+          ]},
+          { "examen": "Périmètre de marche", "alertes": [
+            { "seuil": "100-500 m", "action": "Niveau 3a + profil B ou D" },
+            { "seuil": "< 100 m", "action": "Niveau 3b — exclusion PCR standard" }
+          ]},
+          { "examen": "Acanthosis nigricans", "action": "Signe d'insulinorésistance → bilan glycémique" },
+          { "examen": "Recherche signes IC", "action": "Dyspnée, œdèmes MI, turgescence jugulaire" }
+        ],
+        "biologique": [
+          { "examen": "Glycémie à jeun", "alertes": [
+            { "seuil": "1.10-1.25 g/L", "action": "Hyperglycémie modérée à jeun → HbA1c" },
+            { "seuil": "≥ 1.26 g/L (×2)", "action": "DIABÈTE TYPE 2 → ORIENTER ENDOCRINOLOGUE" }
+          ]},
+          { "examen": "HbA1c", "alertes": [
+            { "seuil": "5.7-6.4%", "action": "Prédiabète → mesures hygiéno-diététiques intensives" },
+            { "seuil": "≥ 6.5%", "action": "DT2 confirmé → ORIENTER ENDOCRINOLOGUE" },
+            { "seuil": "≥ 9%", "action": "DT2 déséquilibré → traitement urgent" }
+          ]},
+          { "examen": "Bilan lipidique (CT, LDL, HDL, TG)", "alertes": [
+            { "seuil": "LDL > 1.9 g/L", "action": "Dyslipidémie → évaluer risque CV global (SCORE2)" },
+            { "seuil": "TG > 5 g/L", "action": "Risque pancréatite → traitement urgent" }
+          ]},
+          { "examen": "ALAT / ASAT / GGT", "alertes": [
+            { "seuil": "ALAT > N", "action": "Stéatose probable → score FIB-4 → ORIENTER HÉPATO-GASTRO si FIB-4 > 1.3" },
+            { "seuil": "ALAT > 5N", "action": "NASH probable avec inflammation → ORIENTER HÉPATO-GASTRO" }
+          ]},
+          { "examen": "Créatinine + DFG", "alertes": [
+            { "seuil": "DFG < 60 mL/min", "action": "IRC → ORIENTER NÉPHROLOGUE" },
+            { "seuil": "DFG < 30 mL/min", "action": "IRC sévère → néphrologue urgent" }
+          ]},
+          { "examen": "Uricémie", "alertes": [
+            { "seuil": "> 420 µmol/L (H) / > 360 (F)", "action": "Hyperuricémie → risque goutte, adapter si chirurgie prévue" }
+          ]},
+          { "examen": "TSH", "alertes": [
+            { "seuil": "Anormale", "action": "Hypothyroïdie vraie ? → T4L → ORIENTER ENDOCRINOLOGUE" }
+          ]},
+          { "examen": "NFS", "alertes": [
+            { "seuil": "Hb < 12 (F) / < 13 (H) g/dL", "action": "Anémie → fer, B12, folates" },
+            { "seuil": "Polyglobulie", "action": "SAHOS ? Tabac ?" }
+          ]},
+          { "examen": "Ferritine + fer sérique", "alertes": [
+            { "seuil": "Ferritine < 30 µg/L", "action": "Carence martiale → supplémenter" },
+            { "seuil": "Ferritine > 300 (H) / > 200 (F)", "action": "Surcharge ? NASH ? Syndrome métabolique ?" }
+          ]},
+          { "examen": "Vitamine D (25-OH)", "alertes": [
+            { "seuil": "< 30 nmol/L", "action": "Carence (très fréquent obésité) → supplémenter" },
+            { "seuil": "< 75 nmol/L", "action": "Insuffisance → supplémenter" }
+          ]}
+        ],
+        "examensConditionnels": [
+          { "condition": "STOP-BANG ≥ 3", "examen": "Polygraphie ventilatoire nocturne", "orientation": "PNEUMOLOGUE si SAHOS confirmé" },
+          { "condition": "ALAT > N", "examen": "Score FIB-4 → si > 1.3 : élastographie hépatique", "orientation": "HÉPATO-GASTRO" },
+          { "condition": "PA > 140/90 × 2", "examen": "MAPA ou automesure 3 jours", "orientation": "CARDIOLOGUE" },
+          { "condition": "Glycémie ≥ 1.26", "examen": "HbA1c de confirmation", "orientation": "ENDOCRINOLOGUE-DIABÉTOLOGUE" },
+          { "condition": "Aménorrhée", "examen": "Bilan hormonal + écho pelvienne", "orientation": "GYNÉCOLOGUE" },
+          { "condition": "SCOFF ≥ 2", "examen": "EDE-Q + évaluation psy approfondie", "orientation": "PSYCHIATRE spécialisé TCA → profil C ou D" },
+          { "condition": "PHQ-9 ≥ 10", "examen": "Évaluation psychiatrique", "orientation": "PSYCHIATRE" },
+          { "condition": "Facteurs risque CV", "examen": "ECG + score SCORE2", "orientation": "CARDIOLOGUE si haut risque" }
+        ]
+      },
+
+      "traitementMedicamenteux": {
+        "molecules": [
+          { "dci": "Sémaglutide 2.4 mg SC/sem", "specialite": "Wegovy", "indication": "IMC ≥30 ou ≥27+comorbidité", "efficacite": "-15%", "vigilance": ["Nausées (titration lente)", "Apports protéiques suffisants (1.2-1.6 g/kg)", "Fractionner les repas", "Risque pancréatite (rare)", "Reprise à l'arrêt → traitement long terme"], "CI": "ATCD pancréatite, NEM2, grossesse" },
+          { "dci": "Tirzépatide SC/sem", "specialite": "Mounjaro", "indication": "Idem, supérieur au sémaglutide", "efficacite": "-22%", "vigilance": "Idem sémaglutide" },
+          { "dci": "Liraglutide 3 mg SC/j", "specialite": "Saxenda", "indication": "Si intolérance sémaglutide", "efficacite": "-9%" }
+        ],
+        "avantPrescription": ["Bilan rénal (ajustement dose)", "Bilan pancréatique (lipase)", "Bilan thyroïdien", "Information patient sur effets secondaires GI", "Programmer suivi diététique concomitant"],
+        "suivi": ["Poids /mois", "Tolérance GI", "Bilan bio /3 mois (glycémie, lipides, rénal)", "Évaluation sarcopénie (force musculaire, périmètre brachial)"]
+      },
+
+      "orientations": [
+        { "vers": "Endocrinologue-diabétologue", "si": "DT2, dysthyroïdie, SOPK" },
+        { "vers": "Pneumologue", "si": "STOP-BANG ≥3 + polygraphie positive" },
+        { "vers": "Hépato-gastro-entérologue", "si": "ALAT >N + FIB-4 >1.3, projet chirurgie bariatrique" },
+        { "vers": "Cardiologue", "si": "HTA confirmée, risque CV élevé, IC suspectée" },
+        { "vers": "Psychiatre", "si": "TCA (profil C/D), dépression, PTSD, addictions" },
+        { "vers": "Gynécologue", "si": "SOPK, infertilité, grossesse" },
+        { "vers": "Chirurgien bariatrique", "si": "Indication chirurgie (IMC ≥40 ou ≥35+comorbidité après échec 6-12 mois)" },
+        { "vers": "Rhumatologue", "si": "Gonarthrose invalidante, lombalgies chroniques" },
+        { "vers": "Hospitalisation", "si": "Complication aiguë, décompensation IC/IR/DT2" }
+      ],
+
+      "bilansReevaluation": {
+        "M6": "Poids, IMC, tour de taille, bilan bio complet, PHQ-9, évaluation APA, compétences ETP",
+        "M12": "Idem + décision prolongation ou passage suivi renforcé",
+        "M24": "Bilan final + préparation sortie + transition vers MT"
+      }
+    },
+
+    "infirmier": {
+      "role": "Coordination opérationnelle, suivi du parcours, ETP, traçabilité",
+      "quandIntervenir": "Tout au long du PCR — liaison entre le médecin spé et l'équipe",
+
+      "missions": [
+        "Accueil du patient dans le parcours — explication du dispositif",
+        "Coordination opérationnelle avec le médecin spécialiste",
+        "Suivi de la réalisation du programme personnalisé",
+        "Traçabilité de toutes les interventions",
+        "Éducation thérapeutique (ETP) — dispenser ou coordonner",
+        "Liaison avec le médecin traitant (comptes rendus, transmission sécurisée)",
+        "Repérage des signaux d'alerte → informer le médecin spé"
+      ],
+
+      "alertes": [
+        { "signal": "Patient ne se présente plus aux RDV", "action": "Relance → évaluer risque de rupture de parcours (principal risque PCR)" },
+        { "signal": "Patient exprime détresse psychologique", "action": "Informer psychologue + médecin spé → PHQ-9 item 9" },
+        { "signal": "Prise de poids rapide sous GLP-1 à l'arrêt", "action": "Informer médecin spé → réévaluer traitement" },
+        { "signal": "Nausées intolérables sous GLP-1", "action": "Informer médecin spé → ajustement dose/fractionnement" }
+      ],
+
+      "examens": [
+        { "examen": "Poids + IMC", "frequence": "À chaque contact", "transmission": "Médecin spé + MT" },
+        { "examen": "PA", "frequence": "À chaque contact si HTA", "transmission": "Médecin spé" }
+      ]
+    },
+
+    "dieteticien": {
+      "role": "PEC nutritionnelle — adaptée au profil PCR",
+      "quandIntervenir": "Toujours — équipe-socle obligatoire",
+
+      "parProfil": {
+        "A_B": {
+          "approche": "Rééquilibrage alimentaire comportemental",
+          "principes": [
+            "PAS de restriction calorique systématique (-500 kcal = OBSOLÈTE)",
+            "Travailler signaux faim/satiété",
+            "Modèle méditerranéen comme référence",
+            "Réduire ultra-transformés, augmenter densité nutritionnelle",
+            "Alimentation intuitive possible (pas de TCA)",
+            "Adapter au contexte socio-économique"
+          ]
+        },
+        "C_D": {
+          "approche": "TRAITER LE TCA AVANT L'OBÉSITÉ",
+          "regle": "PAS de restriction si TCA actif. Le TCA est la priorité.",
+          "principes": [
+            "Identifier le mécanisme : compulsion = restriction (volontaire ou involontaire) OU alimentation émotionnelle",
+            "Lever la restriction si présente",
+            "TCC pour gestion émotionnelle (avec psychologue)",
+            "Stabiliser le comportement alimentaire AVANT objectifs pondéraux",
+            "Alimentation intuitive SEULEMENT après guérison TCA"
+          ],
+          "sequence": ["1. Identifier TCA", "2. Traiter TCA", "3. Stabiliser comportement", "4. Rééducation sensations", "5. Puis objectifs pondéraux si indiqué"]
+        },
+        "sousGLP1": {
+          "principes": [
+            "Veiller apports suffisants malgré appétit réduit",
+            "Protéines 1.2-1.6 g/kg/j (prévention sarcopénie)",
+            "Fractionner les repas (petit appétit)",
+            "Surveiller carences (vitamines B, hydratation)",
+            "Accompagner modification des préférences alimentaires"
+          ]
+        }
+      },
+
+      "alertes": [
+        { "signal": "Patient qui ne mange quasi plus sous GLP-1", "severity": "HIGH", "action": "Informer médecin → risque dénutrition/sarcopénie" },
+        { "signal": "Apparition de crises compulsives", "severity": "HIGH", "action": "Restriction sous-jacente ? → adapter PEC, informer psy" },
+        { "signal": "Vomissements déclarés ou suspectés", "severity": "HIGH", "action": "→ bilan K+ urgent, orienter vers pathway TCA" }
+      ],
+
+      "orientations": [
+        { "vers": "Psychologue", "si": "Alimentation émotionnelle, restriction cognitive" },
+        { "vers": "Médecin spé", "si": "Perte de poids trop rapide (>1 kg/sem), symptômes nouveaux" },
+        { "vers": "Psychiatre", "si": "Suspicion TCA non diagnostiqué, aggravation comportementale" }
+      ]
+    },
+
+    "psychologue_clinicien": {
+      "role": "Accompagnement psychologique (tous profils) + PEC renforcée TCA (profils C/D)",
+      "quandIntervenir": "Toujours — équipe-socle obligatoire. Renforcé pour C/D.",
+
+      "evaluationInitiale": [
+        { "domaine": "Dépression", "outil": "PHQ-9", "seuils": { "warning": "≥10", "high": "≥15", "critical": "≥20 ou item 9 >0" }},
+        { "domaine": "Anxiété", "outil": "GAD-7", "seuils": { "warning": "≥10", "high": "≥15" }},
+        { "domaine": "TCA", "outils": ["SCOFF (≥2 → approfondir)", "EDE-Q (sévérité)"], "focus": "Hyperphagie boulimique, restriction, alimentation émotionnelle" },
+        { "domaine": "Image corporelle", "outil": "BSQ", "focus": "Insatisfaction, stigmatisation internalisée" },
+        { "domaine": "Traumatismes", "outil": "Entretien clinique + IES-R si besoin", "focus": "PTSD = critère de complexité PCR" },
+        { "domaine": "Addictions", "outil": "AUDIT-C", "seuils": { "warning": "≥4(H)/≥3(F)" }},
+        { "domaine": "Qualité de vie", "outil": "IWQOL-Lite (spécifique obésité)" }
+      ],
+
+      "approchesParProfil": {
+        "A_B": {
+          "approches": [
+            { "type": "Entretien motivationnel", "indication": "Motivation au changement, ambivalence", "evidence": "Grade B" },
+            { "type": "TCC", "indication": "Gestion émotionnelle, habitudes alimentaires", "evidence": "Grade A" },
+            { "type": "Pleine conscience / ACT", "indication": "Stress, image corporelle, alimentation consciente", "evidence": "Modéré" }
+          ],
+          "objectifs": ["Motivation durable", "Gestion des émotions sans passer par l'alimentation", "Acceptation corporelle", "Gestion de la stigmatisation"]
+        },
+        "C_D": {
+          "approches": [
+            { "type": "TCC-TCA", "indication": "1ère intention pour BED", "evidence": "Grade A", "focus": "Circuit stimuli → émotion → pensée → comportement alimentaire" },
+            { "type": "TIP (thérapie interpersonnelle)", "indication": "BED", "evidence": "Grade B" },
+            { "type": "Auto-support guidé TCC", "indication": "BED modéré", "evidence": "Grade B" }
+          ],
+          "regle": "Fréquence RENFORCÉE (PCR profils C/D)",
+          "objectifs": ["Arrêt des crises compulsives", "Gestion émotionnelle", "Puis image corporelle", "Puis seulement : lien avec le poids"]
+        }
+      },
+
+      "alertes": [
+        { "signal": "Idées suicidaires (PHQ-9 item 9 > 0)", "severity": "CRITICAL", "action": "INFORMER PSYCHIATRE IMMÉDIATEMENT" },
+        { "signal": "Automutilations", "severity": "HIGH", "action": "Informer psychiatre" },
+        { "signal": "Aggravation crises BED malgré TCC", "severity": "HIGH", "action": "Informer médecin spé → discuter fluoxétine/topiramate" },
+        { "signal": "Consommation alcool/substances en hausse", "severity": "HIGH", "action": "ORIENTER ADDICTOLOGUE" }
+      ],
+
+      "orientations": [
+        { "vers": "Psychiatre", "si": "Risque suicidaire, comorbidité psy nécessitant traitement, échec psychothérapie" },
+        { "vers": "Diététicien", "si": "Travail conjoint comportement alimentaire (toujours en tandem pour profil C/D)" },
+        { "vers": "Médecin spé", "si": "Aggravation clinique, apparition symptômes physiques" }
+      ]
+    },
+
+    "professionnel_apa": {
+      "role": "Activité physique adaptée — évaluation, programme, suivi",
+      "quandIntervenir": "Toujours — équipe-socle. Séances collectives pour profils B et D.",
+      "sousTypes": ["Masseur-kinésithérapeute", "Enseignant APA (licence STAPS)", "Psychomotricien", "Ergothérapeute"],
+
+      "evaluationInitiale": [
+        { "domaine": "Capacité effort", "outils": ["Test de marche 6 minutes", "Périmètre de marche"], "seuils": {
+          "normal": "> 500 m → profil A ou C",
+          "limitations": "100-500 m → profil B ou D",
+          "severe": "< 100 m → exclusion PCR (niveau 3b)"
+        }},
+        { "domaine": "Force musculaire", "outils": ["Handgrip (force préhension)", "Chair stand test (lever de chaise)"] },
+        { "domaine": "Équilibre", "outils": ["Test unipodal", "Timed up and go"] },
+        { "domaine": "Douleur", "outils": ["EVA douleur"], "focus": "Gonarthrose, lombalgies — adapter le programme" },
+        { "domaine": "Sédentarité", "outils": ["Questionnaire GPAQ ou Marshall"], "objectif": "Réduire le temps sédentaire" }
+      ],
+
+      "programme": {
+        "objectifHAS": "150 min/sem modérée ou 75 min intense + renforcement musculaire 2x/sem",
+        "progression": [
+          "Phase 1 (M1-M3) : Réduire sédentarité, marche quotidienne, exercices doux",
+          "Phase 2 (M3-M6) : Augmenter durée et intensité progressivement",
+          "Phase 3 (M6-M12) : Atteindre les recommandations HAS",
+          "Phase 4 (suivi) : Maintien autonome"
+        ],
+        "profilB_D": {
+          "seancesCollectives": "APA en groupe en début de séquence intensive",
+          "adaptation": "Exercices assis, aquatiques, portés, sans impact articulaire"
+        }
+      },
+
+      "alertes": [
+        { "signal": "Dyspnée anormale à l'effort", "severity": "HIGH", "action": "STOP exercice → informer médecin spé → bilan cardiorespiratoire" },
+        { "signal": "Douleur thoracique à l'effort", "severity": "CRITICAL", "action": "STOP → urgence cardiologique" },
+        { "signal": "Malaise / perte de connaissance", "severity": "CRITICAL", "action": "STOP → urgences" },
+        { "signal": "Exercice compulsif excessif", "severity": "WARNING", "action": "Possible composante TCA → informer psy + diét" }
+      ],
+
+      "vigilanceSarcopenie": {
+        "facteurs": ["Perte de poids rapide (sous GLP-1)", "Âge > 65 ans", "Inactivité prolongée"],
+        "signes": ["Fonte musculaire", "Fatigue inhabituelle", "Chutes"],
+        "prevention": "Renforcement musculaire ≥ 2x/sem + protéines 1.2-1.6 g/kg/j"
+      }
+    },
+
+    "endocrinologue_diabetologue": {
+      "role": "DT2, dysthyroïdie, SOPK, bilan hormonal, indication TMO",
+      "quandIntervenir": "Si DT2 confirmé, dysthyroïdie, SOPK, indication GLP-1",
+
+      "protocole_DT2": {
+        "diagnostic": "Glycémie ≥ 1.26 g/L (×2) ou HbA1c ≥ 6.5%",
+        "objectif": "HbA1c < 7% (individualisé selon profil)",
+        "stepwise": [
+          { "step": 1, "traitement": "Mesures hygiéno-diététiques + metformine", "seuil_passage": "HbA1c > 7% à 3 mois" },
+          { "step": 2, "traitement": "+ GLP-1 RA (sémaglutide/tirzépatide) → DOUBLE BÉNÉFICE poids + glycémie", "seuil_passage": "HbA1c > 7% à 6 mois" },
+          { "step": 3, "traitement": "+ insuline basale", "seuil_passage": "HbA1c > 8% malgré GLP-1" },
+          { "step": 4, "traitement": "Chirurgie métabolique si IMC ≥35 + DT2 non contrôlé", "condition": "Après échec médical bien conduit" }
+        ],
+        "suivi": ["HbA1c /3 mois", "Créatinine + DFG /6 mois", "Fond d'œil /an", "Microalbuminurie /an", "Pieds /an"],
+        "alertes": [
+          { "seuil": "HbA1c > 10%", "severity": "CRITICAL", "action": "DT2 très déséquilibré → traitement intensif" },
+          { "seuil": "Hypoglycémies répétées", "severity": "HIGH", "action": "Adapter traitement, éducation patient" },
+          { "seuil": "DFG < 30 mL/min", "severity": "HIGH", "action": "Adapter posologies (arrêt metformine), ORIENTER NÉPHROLOGUE" }
+        ]
+      },
+
+      "protocole_SOPK": {
+        "diagnostic": "Critères de Rotterdam (2/3) : hyperandrogénie + oligoovulation + ovaires polykystiques à l'écho",
+        "traitement": "Perte de poids 5-10% (améliore significativement fertilité) + metformine ± contraception adaptée",
+        "orientation": "GYNÉCOLOGUE si infertilité"
+      },
+
+      "bilanThyroidien": {
+        "note": "TSH anormale dans l'obésité ≠ toujours hypothyroïdie",
+        "piege": "TSH légèrement élevée (4-10) fréquente dans l'obésité = adaptation, pas nécessairement hypothyroïdie → T4L obligatoire avant traitement",
+        "traiter_si": "T4L basse confirmée → lévothyroxine"
+      }
+    },
+
+    "pneumologue": {
+      "role": "SAHOS — diagnostic, traitement PPC, suivi",
+      "quandIntervenir": "Si STOP-BANG ≥ 3 + polygraphie positive",
+
+      "diagnostic": {
+        "depistage": { "outil": "STOP-BANG", "seuil": "≥ 3 → polygraphie ventilatoire" },
+        "confirmation": { "examen": "Polygraphie ventilatoire nocturne (ou polysomnographie)", "critere": "IAH (index apnées-hypopnées)", "seuils": {
+          "leger": "5-14/h",
+          "modere": "15-29/h",
+          "severe": "≥ 30/h → critère de complexité PCR niveau 2"
+        }}
+      },
+
+      "traitement": [
+        { "type": "PPC (pression positive continue)", "indication": "IAH ≥ 15 ou ≥ 5 + symptômes", "objectif": "IAH résiduel < 5, observance ≥ 4h/nuit" },
+        { "type": "Orthèse d'avancée mandibulaire", "indication": "IAH modéré, refus/intolérance PPC" },
+        { "type": "Perte de poids", "indication": "Toujours — réduit l'IAH proportionnellement" }
+      ],
+
+      "suivi": {
+        "frequence": "M1, M3, M6 puis /6 mois",
+        "parametres": ["Observance PPC (≥4h/nuit)", "IAH résiduel", "Somnolence résiduelle (Epworth)", "PA (SAHOS = facteur HTA)"]
+      },
+
+      "alertes": [
+        { "seuil": "SOH (syndrome obésité-hypoventilation)", "severity": "CRITICAL", "action": "PaO2 basse diurne → VNI ± O2, hospitalisation si décompensation" },
+        { "seuil": "Non-observance PPC + somnolence", "severity": "HIGH", "action": "Risque accident → déclaration aptitude conduite" }
+      ],
+
+      "orientations": [
+        { "vers": "Cardiologue", "si": "HTA persistante malgré PPC + traitement" },
+        { "vers": "ORL", "si": "Obstruction anatomique, discussion chirurgicale" }
+      ]
+    },
+
+    "hepato_gastro_enterologue": {
+      "role": "NASH/stéatose, fibrose hépatique, préparation chirurgie bariatrique",
+      "quandIntervenir": "Si ALAT >N + FIB-4 >1.3, ou projet de chirurgie bariatrique",
+
+      "protocole_NASH": {
+        "diagnostic": {
+          "depistage": "ALAT > N → calculer FIB-4",
+          "FIB4": {
+            "formule": "Âge × ASAT / (Plaquettes × √ALAT)",
+            "seuils": {
+              "bas": "< 1.3 → faible risque fibrose → surveillance /an",
+              "intermediaire": "1.3-2.67 → élastographie hépatique (FibroScan)",
+              "eleve": "> 2.67 → fibrose avancée probable → biopsie à discuter"
+            }
+          },
+          "elastographie": {
+            "seuils": {
+              "normal": "< 7 kPa",
+              "fibrose_significative": "7-9 kPa",
+              "fibrose_avancee": "> 9 kPa → suivi rapproché",
+              "cirrhose": "> 14 kPa → dépistage CHC + varices"
+            }
+          }
+        },
+        "traitement": {
+          "seul_prouve": "Perte de poids ≥ 10% (améliore NASH et fibrose)",
+          "medicaments": "Pas de traitement médicamenteux validé en 2026 (GLP-1 en cours d'évaluation pour NASH)",
+          "suivi": "Bilan hépatique /6 mois, élastographie /an si fibrose"
+        },
+        "alertes": [
+          { "seuil": "Cirrhose confirmée", "severity": "HIGH", "action": "Dépistage CHC (écho + AFP /6 mois) + FOGD (varices)" },
+          { "seuil": "Décompensation (ascite, ictère, encéphalopathie)", "severity": "CRITICAL", "action": "Hospitalisation" }
+        ]
+      },
+
+      "chirurgieBariatrique": {
+        "role": "Fibroscopie pré-opératoire obligatoire, suivi post-op digestif",
+        "examenPreOp": "FOGD systématique → recherche HP (éradiquer si positif), hernie hiatale, ulcère",
+        "suiviPostOp": ["Dumping syndrome (éducation)", "RGO (fréquent post-sleeve)", "Lithiases biliaires (prévention ac. ursodésoxycholique 6 mois)"]
+      }
+    },
+
+    "cardiologue": {
+      "role": "HTA, risque CV, insuffisance cardiaque",
+      "quandIntervenir": "Si HTA confirmée (MAPA), risque CV élevé (SCORE2), IC suspectée",
+
+      "evaluation": [
+        { "examen": "ECG", "quand": "Systématique", "recherche": ["HVG (hypertrophie VG)", "Troubles du rythme", "Signes d'ischémie"] },
+        { "examen": "Score SCORE2", "quand": "Évaluation du risque CV global à 10 ans" },
+        { "examen": "Échographie cardiaque", "quand": "Si dyspnée, HTA ancienne, BNP élevé", "recherche": ["FEVG", "HVG concentrique", "Dysfonction diastolique"] },
+        { "examen": "BNP / NT-proBNP", "quand": "Si suspicion IC", "alertes": [
+          { "seuil": "BNP > 100 pg/mL", "severity": "WARNING", "action": "IC probable → ETT" },
+          { "seuil": "BNP > 400 pg/mL", "severity": "HIGH", "action": "IC confirmée → traitement" }
+        ]}
+      ],
+
+      "protocole_HTA": {
+        "confirmation": "MAPA ou automesure ≥ 135/85 mmHg",
+        "objectifs": {
+          "standard": "< 140/90 mmHg",
+          "si_DT2_ou_IRC": "< 130/80 mmHg",
+          "si_personne_agee": "< 150/90 (prudence hypotension orthostatique)"
+        },
+        "traitement_stepwise": [
+          "1. Mesures hygiéno-diététiques (perte de poids, sel < 6 g/j, APA)",
+          "2. Monothérapie (IEC/ARA2 si DT2 ou IRC, sinon thiazidique ou ICa)",
+          "3. Bithérapie",
+          "4. Trithérapie → si toujours non contrôlée = HTA résistante → critère PCR"
+        ]
+      },
+
+      "objectifs_lipidiques": {
+        "source": "ESC/EAS 2019 adapté",
+        "parRisque": {
+          "faible": "LDL < 1.16 g/L",
+          "modere": "LDL < 1 g/L",
+          "eleve": "LDL < 0.7 g/L + réduction ≥ 50%",
+          "tres_eleve": "LDL < 0.55 g/L + réduction ≥ 50%"
+        }
+      },
+
+      "alertes": [
+        { "signal": "PA > 180/110 au cabinet", "severity": "CRITICAL", "action": "HTA sévère → traitement immédiat" },
+        { "signal": "Dyspnée d'effort progressive", "severity": "HIGH", "action": "IC ? → BNP + ETT" },
+        { "signal": "Douleur thoracique d'effort", "severity": "CRITICAL", "action": "SCA ? → ECG + troponine → urgences" }
+      ]
+    },
+
+    "chirurgien_bariatrique": {
+      "role": "Évaluation chirurgicale, RCP, intervention, suivi post-op",
+      "quandIntervenir": "Si indication chirurgie (IMC ≥40 ou ≥35+comorbidité) après échec médical 6-12 mois",
+
+      "evaluationPreOp": {
+        "criteres_inclusion": [
+          "IMC ≥ 40 kg/m²",
+          "IMC ≥ 35 + comorbidité améliorable (DT2, HTA, SAHOS, NASH, arthrose)",
+          "Échec traitement médical bien conduit 6-12 mois",
+          "Patient bien informé + évaluation pluridisciplinaire",
+          "Risque opératoire acceptable"
+        ],
+        "criteres_exclusion": [
+          "Troubles psychiatriques sévères non stabilisés",
+          "TCA actif non traité (BED → traiter d'abord)",
+          "Dépendance alcool/substances active",
+          "Absence de suivi prévisible",
+          "Âge > 65 ans (relatif)"
+        ],
+        "bilanPreOp": [
+          "FOGD systématique (HP, hernie hiatale, ulcère)",
+          "Bilan nutritionnel complet (vitamines, minéraux)",
+          "Évaluation psychologique/psychiatrique",
+          "Bilan cardiaque si facteurs de risque",
+          "Bilan respiratoire si SAHOS",
+          "ETP pré-opératoire (6 mois minimum)",
+          "RCP pluridisciplinaire (décision collégiale)"
+        ],
+        "techniques": [
+          { "key": "sleeve", "label": "Gastrectomie longitudinale", "type": "Restrictive", "indication": "Technique la plus pratiquée en France" },
+          { "key": "bypass", "label": "Bypass gastrique Roux-en-Y", "type": "Mixte", "indication": "Meilleur contrôle DT2, RGO pré-existant" },
+          { "key": "oagb", "label": "Bypass en oméga", "type": "Mixte", "indication": "Alternative au Roux-en-Y" },
+          { "key": "revision", "label": "Chirurgie de révision", "indication": "Échec ou complication d'une première chirurgie" }
+        ]
+      },
+
+      "suiviPostOp": {
+        "calendrier": ["J+15", "M1", "M3", "M6", "M12", "puis annuel À VIE"],
+        "probleme_majeur": "Seulement 50% des opérés suivis à 2 ans (HAS 2024)",
+        "bilanAnnuel": ["NFS", "Ferritine+fer", "B12", "Folates", "Vit D+calcium", "PTH", "Zinc", "Cuivre", "B1", "Albumine+préalbumine", "Bilan hépatique", "Glycémie/HbA1c", "Bilan lipidique"],
+        "complications": [
+          { "complication": "Carences nutritionnelles", "frequence": "Très fréquent", "action": "Supplémentation systématique À VIE" },
+          { "complication": "Dumping syndrome", "frequence": "Fréquent (bypass)", "action": "Éducation diététique, fractionnement" },
+          { "complication": "Hypoglycémies réactionnelles", "frequence": "Modéré (bypass)", "action": "Adapter alimentation, discuter acarbose" },
+          { "complication": "Lithiases biliaires", "frequence": "Modéré", "action": "Ac. ursodésoxycholique 6 mois préventif" },
+          { "complication": "Alcoolisme de transfert", "frequence": "5-10% à 2-5 ans", "depistage": "AUDIT-C systématique → ORIENTER ADDICTOLOGUE" },
+          { "complication": "Reprise pondérale", "frequence": "20-30% à 5 ans", "action": "Reprise PEC niveau 2-3, TMO (GLP-1), chirurgie de révision" },
+          { "complication": "Dénutrition sévère", "frequence": "Rare mais grave", "action": "Hospitalisation, nutrition parentérale" },
+          { "complication": "Hernie interne", "frequence": "Rare (bypass)", "severity": "CRITICAL", "action": "Douleur abdominale aiguë → scanner urgent → chirurgie" }
+        ],
+        "alertes": [
+          { "signal": "Douleur abdominale aiguë post-bypass", "severity": "CRITICAL", "action": "Hernie interne ? → scanner EN URGENCE" },
+          { "signal": "Vomissements persistants post-op", "severity": "HIGH", "action": "Sténose ? Migration anneau ? → FOGD" },
+          { "signal": "Patient perdu de vue > 6 mois", "severity": "HIGH", "action": "RELANCE ACTIVE — risque de carence grave non dépistée" }
+        ]
+      }
+    },
+
+    "gynecologue": {
+      "role": "SOPK, infertilité, contraception, grossesse + obésité",
+      "quandIntervenir": "Si SOPK, infertilité, grossesse en cours ou planifiée",
+
+      "protocole_SOPK": {
+        "diagnostic": "Rotterdam 2/3 : hyperandrogénie clinique/biologique + oligoovulation + écho ovaires polykystiques",
+        "bilan": ["Testostérone totale", "DHEA-S", "17-OH-progestérone", "SHBG", "Échographie pelvienne"],
+        "traitement": "Perte de poids 5-10% améliore significativement fertilité + cycles",
+        "siInfertilite": "PEC obésité PRIORITAIRE avant AMP (assistance médicale à la procréation)"
+      },
+
+      "grossesse_et_obesite": {
+        "risques": ["Diabète gestationnel", "Pré-éclampsie", "Macrosomie", "Césarienne", "MFIU (mort fœtale)"],
+        "suivi": "Obstétrical RENFORCÉ → échographies supplémentaires, dépistage DG précoce",
+        "postBariatrique": {
+          "delai": "Attendre 12-18 mois post-op",
+          "risques": ["Carences (B12, fer, folates, D)", "Hernie interne", "RCIU"],
+          "suivi": "Nutritionnel mensuel + bilan bio trimestriel"
+        }
+      }
+    },
+
+    "addictologue": {
+      "role": "Alcool, substances, addictions comportementales",
+      "quandIntervenir": "Si AUDIT-C positif, substances, ou post-bariatrique (alcoolisme de transfert)",
+
+      "depistage": { "outil": "AUDIT-C", "seuils": { "warning": "≥4 (H) / ≥3 (F)" }},
+      "postBariatrique": {
+        "risque": "Alcoolisme de transfert — 5-10% des patients à 2-5 ans",
+        "mecanisme": "Absorption accélérée de l'alcool post-bypass + transfert addictif alimentaire → alcool",
+        "depistage": "AUDIT-C systématique à chaque bilan annuel post-op"
+      },
+      "alertes": [
+        { "signal": "Consommation alcool en hausse post-bariatrique", "severity": "HIGH", "action": "PEC addictologique + informer chirurgien + psychologue" }
+      ]
+    },
+
+    "medecin_traitant": {
+      "role": "Associé en CONTINU au PCR — pas dans l'équipe-socle mais INDISPENSABLE",
+      "quandIntervenir": "Toujours. Informé de l'inclusion, impliqué dans les décisions, reçoit les comptes rendus.",
+
+      "missions": [
+        "Repérage initial et adressage vers le médecin spé obésité",
+        "Suivi des comorbidités stables (HTA équilibrée, DT2 contrôlé)",
+        "Renouvellement traitements chroniques",
+        "Relais après sortie du PCR (suivi au long cours)",
+        "Premier recours en cas de problème intercurrent"
+      ],
+
+      "recoit": [
+        "Compte rendu d'inclusion dans le PCR",
+        "Comptes rendus de synthèse réguliers",
+        "Résultats des bilans 6/12/24 mois",
+        "Préparation de la sortie du PCR"
+      ]
+    }
+  }
+}

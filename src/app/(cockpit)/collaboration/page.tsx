@@ -34,6 +34,7 @@ import {
   Hash,
   Lock,
 } from "lucide-react";
+import { EmptyState } from "@/components/nami/EmptyState";
 
 // ─── Types d'espaces ────────────────────────────────────────────────────────
 
@@ -193,16 +194,14 @@ export default function CollaborationPage() {
               {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}
             </div>
           ) : convList.length === 0 ? (
-            <div className="px-3 py-10 text-center">
-              <MessageSquare size={24} className="text-muted-foreground/25 mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground font-medium">Rejoignez les espaces de coordination de votre spécialité</p>
-              <Button
-                size="sm"
-                className="text-xs gap-1.5 h-7 mt-3"
-                onClick={() => setCreateOpen(true)}
-              >
-                <Plus size={11} /> Créer un espace
-              </Button>
+            <div className="px-3 py-6">
+              <EmptyState
+                icon={Users}
+                title="Pas encore de réseau"
+                description="Invitez des confrères pour collaborer sur vos dossiers patients."
+                action={{ label: "Créer un espace", onClick: () => setCreateOpen(true) }}
+                variant="subtle"
+              />
             </div>
           ) : (
             <>
@@ -520,8 +519,9 @@ function MessageInput({
       <div className="flex items-center justify-between mt-1.5">
         <div className="flex items-center gap-1">
           <button
-            onClick={() => toast.info("Pièces jointes bientôt disponibles")}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
+            disabled
+            title="Pièces jointes — prochainement"
+            className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/40 cursor-not-allowed"
           >
             <Paperclip size={14} />
           </button>

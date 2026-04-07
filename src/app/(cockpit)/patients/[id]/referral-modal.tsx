@@ -123,6 +123,7 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
       setStep(3)
       qc.invalidateQueries({ queryKey: ["referrals"] })
       qc.invalidateQueries({ queryKey: ["care-case", careCaseId] })
+      qc.invalidateQueries({ queryKey: ["timeline", careCaseId] })
     },
     onError: (err: any) => {
       toast.error(err.message || "Erreur lors de l'envoi")

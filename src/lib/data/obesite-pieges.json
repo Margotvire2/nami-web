@@ -1,0 +1,72 @@
+{
+  "_meta": "Pièges diagnostiques obésité — ce que les soignants doivent savoir pour ne pas se tromper",
+  "version": "2026-04-07",
+  "source": "Expertise clinique Margot Vire + DU APNS Oppert 2025-26 + HAS",
+
+  "pieges": [
+    {
+      "piege": "Ne pas manger assez n'aide PAS à perdre du poids",
+      "explication": "La restriction calorique sévère entraîne une réduction globale de la dépense énergétique (adaptation métabolique). Le corps s'adapte : moins d'énergie entrante → moins de dépense. Si en plus la masse musculaire est insuffisante, le corps n'est pas suffisamment fonctionnel pour dépenser de l'énergie. C'est le piège du régime restrictif qui entretient l'obésité au lieu de la traiter.",
+      "concerne": ["Médecin généraliste", "Diététicien", "Endocrinologue", "Patient"],
+      "consequence_clinique": "NE PAS prescrire de restriction calorique sévère. Assurer des apports suffisants (jamais < 1200 kcal/j) + protéines (1.2-1.6 g/kg) + activité physique (renforcement musculaire) pour maintenir la masse musculaire et la dépense énergétique.",
+      "source": "DU APNS Oppert 2025-26, HAS R32-R34, protocole diététique validé Margot Vire"
+    },
+    {
+      "piege": "L'anorexie mentale EXISTE dans l'obésité",
+      "explication": "Un patient obèse peut souffrir d'anorexie mentale. L'IMC élevé ne protège pas du diagnostic. Un patient obèse qui restreint massivement ses apports, a une peur intense de prendre du poids, et une altération de la perception corporelle remplit les critères DSM-5 d'anorexie mentale — même à IMC > 30. C'est l'anorexie mentale atypique (DSM-5 : Autre trouble de l'alimentation spécifié, F50.8).",
+      "concerne": ["Tous les soignants"],
+      "consequence_clinique": "Ne JAMAIS féliciter une perte de poids rapide chez un patient obèse sans évaluer le comportement alimentaire. Dépister les TCA systématiquement (SCOFF). Un IMC > 30 n'exclut PAS l'anorexie mentale.",
+      "icd11": "6B8Y (Autre trouble de l'alimentation spécifié)",
+      "source": "DSM-5, pratique clinique Margot Vire"
+    },
+    {
+      "piege": "TSH modérément élevée dans l'obésité ≠ hypothyroïdie",
+      "explication": "La TSH est fréquemment entre 4 et 10 mUI/L dans l'obésité simple, sans hypothyroïdie vraie. C'est une adaptation métabolique. La T4L est normale. Traiter par lévothyroxine ne fait PAS perdre de poids et expose à des effets secondaires.",
+      "concerne": ["Médecin généraliste", "Endocrinologue"],
+      "consequence_clinique": "Toujours doser T4L avant de traiter. TSH 4-10 + T4L normale → PAS de traitement. Contrôle à 3 mois.",
+      "source": "DU APNS, pratique endocrinologique"
+    },
+    {
+      "piege": "Le yoyo pondéral est plus dangereux que l'obésité stable",
+      "explication": "Les cycles répétitifs de perte et reprise de poids (yoyo) entraînent : perte de masse maigre à chaque cycle, augmentation progressive du % de masse grasse, résistance accrue à la perte de poids, conséquences psychologiques (culpabilité, TCA), augmentation du risque cardiovasculaire par rapport à un poids stable même élevé.",
+      "concerne": ["Tous les soignants", "Patient"],
+      "consequence_clinique": "L'objectif n'est PAS la perte de poids à tout prix. Un poids stable avec amélioration des comorbidités est un meilleur objectif qu'un yoyo. Le maintien est plus important que la perte.",
+      "source": "DU APNS Oppert, Sacks NEJM 2009, Kushner Obesity 2020"
+    },
+    {
+      "piege": "L'obésité est une maladie chronique, pas un choix de vie",
+      "explication": "L'obésité est reconnue comme maladie chronique par l'OMS et la HAS. Elle a des déterminants biologiques (génétique, hormones, microbiote), environnementaux et psychologiques. La stigmatisation ('il suffit de manger moins') est contre-productive et aggrave la maladie.",
+      "concerne": ["Tous les soignants"],
+      "consequence_clinique": "Posture de non-jugement obligatoire. Ne pas dire 'obèse' mais 'personne vivant avec une obésité'. Environnement d'accueil adapté (mobilier, matériel).",
+      "source": "HAS Guide parcours 2024, OMS"
+    },
+    {
+      "piege": "Perte de poids ≠ seul critère de succès",
+      "explication": "HAS R29 : l'objectif ne se résume PAS à un objectif pondéral. Les vrais critères de succès sont : amélioration des comorbidités (HbA1c, PA, IAH), amélioration de la qualité de vie, amélioration de la mobilité, maintien de la masse musculaire, stabilisation du comportement alimentaire.",
+      "concerne": ["Tous les soignants", "Patient"],
+      "consequence_clinique": "Ne pas fixer un objectif de poids comme critère unique. Utiliser des critères composites : qualité de vie (IWQOL-Lite), HbA1c, PA, périmètre de marche, force musculaire.",
+      "source": "HAS 2022 R29-R31, Ryan Curr Obes Rep 2017"
+    },
+    {
+      "piege": "Les GLP-1 ne fonctionnent PAS seuls",
+      "explication": "Sémaglutide et tirzépatide réduisent l'appétit de 30-50% et permettent une perte de 15-22%. MAIS : reprise quasi systématique à l'arrêt. Et sans accompagnement diététique + APA, la perte est majoritairement musculaire → sarcopénie.",
+      "concerne": ["Médecin spé obésité", "Endocrinologue", "Diététicien", "APA"],
+      "consequence_clinique": "TOUJOURS associer GLP-1 + diététicien (protéines 1.2-1.6 g/kg, fractionnement) + APA (renforcement musculaire ≥2x/sem). Le GLP-1 sans accompagnement = sarcopénie.",
+      "source": "AFERO-GCC 2025, DU APNS Oppert, Martin Nature Med 2025"
+    },
+    {
+      "piege": "50% des patients post-bariatrique sont perdus de vue à 2 ans",
+      "explication": "La chirurgie bariatrique nécessite un suivi À VIE (carences, complications). Mais la moitié des patients ne sont plus suivis après 2 ans. C'est le plus gros échec du parcours bariatrique.",
+      "concerne": ["Chirurgien bariatrique", "Médecin traitant", "Infirmier coordinateur"],
+      "consequence_clinique": "RELANCE ACTIVE systématique des patients perdus de vue. Patient absent > 6 mois = ALERTE. C'est exactement le rôle de Nami : coordination et relance.",
+      "source": "HAS 2024"
+    },
+    {
+      "piege": "L'activité physique ne fait pas maigrir (mais c'est indispensable)",
+      "explication": "L'AP seule produit une perte de poids modeste (2-3 kg). MAIS elle réduit la graisse viscérale, améliore l'insulinorésistance, la PA, le profil lipidique, la santé mentale, et surtout MAINTIENT la masse musculaire pendant la perte de poids. C'est le meilleur prédicteur de maintien du poids à long terme.",
+      "concerne": ["Tous les soignants", "Patient"],
+      "consequence_clinique": "Ne PAS dire 'faites du sport pour maigrir'. Dire 'l'activité physique améliore votre santé indépendamment du poids'. Objectif : 150 min/sem modérée + renforcement 2x/sem.",
+      "source": "DU APNS Oppert, HAS Guide parcours 2024"
+    }
+  ]
+}

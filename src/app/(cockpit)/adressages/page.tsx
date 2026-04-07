@@ -2,14 +2,18 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/store";
 import { useOutgoingReferrals, useIncomingReferrals } from "@/hooks/useReferrals";
 import { REFERRAL_STATUS, REFERRAL_PRIORITY, getStatusMeta, getPriorityMeta } from "@/lib/referrals/model";
-import type { Referral, ReferralStatus } from "@/lib/api";
+import { referralsApi, type Referral, type ReferralStatus } from "@/lib/api";
 import {
   ArrowLeftRight, Plus, X, Check, Clock, Calendar,
   ChevronRight, Send, Loader2, AlertCircle,
 } from "lucide-react";
+import { EmptyState } from "@/components/nami/EmptyState";
+import { toast } from "sonner";
 import Link from "next/link";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -156,11 +160,11 @@ export default function AdressagesPage() {
         <div className="flex-1 overflow-y-auto bg-[#F0F2FA] p-4 space-y-2">
           <AnimatePresence>
             {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <ArrowLeftRight size={32} className="text-[#CBD5E1] mb-4" />
-                <p className="text-sm font-medium text-[#64748B] mb-1">Aucun adressage dans cette catégorie</p>
-                <p className="text-xs text-[#94A3B8] max-w-xs">Adressez un patient à un confrère pour démarrer la coordination pluridisciplinaire.</p>
-              </div>
+              <EmptyState
+                icon={Send}
+                title="Aucun adressage"
+                description="Orientez un patient vers un confrère en quelques clics."
+              />
             ) : (
               filtered.map((ref, i) => (
                 <motion.div key={ref.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.2 }}>
@@ -181,7 +185,7 @@ export default function AdressagesPage() {
       <AnimatePresence>
         {selected && (
           <motion.div initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 40, opacity: 0 }} transition={{ duration: 0.25 }} className="w-[420px] shrink-0 bg-white border-l border-[#E8ECF4] flex flex-col h-full overflow-hidden shadow-xl z-10">
-            <DetailPanel referral={selected} onClose={() => setSelectedId(null)} />
+            <DetailPanel referral={selected} direction={selected._direction} onClose={() => setSelectedId(null)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -244,7 +248,7 @@ function ReferralCard({ referral: r, direction, isSelected, onSelect }: {
         <span className="text-[#94A3B8]">{direction === "received" ? "De" : "Vers"} :</span>
         <span className="font-medium text-[#374151]">
           {direction === "received"
-            ? `${r.sender.firstName} ${r.sender.lastName}`
+            ? `${r.sender?.firstName ?? ""} ${r.sender?.lastName ?? ""}`.trim() || "Inconnu"
             : providerName(r)}
         </span>
         {providerSpecialty(r) && (
@@ -283,9 +287,40 @@ function stepIndex(status: ReferralStatus): number {
   return 0;
 }
 
-function DetailPanel({ referral: r, onClose }: { referral: Referral; onClose: () => void }) {
+function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; direction: "sent" | "received"; onClose: () => void }) {
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
   const currentStep = stepIndex(r.status);
   const statusMeta = getStatusMeta(r.status);
+
+  // Action states
+  const [acceptOpen, setAcceptOpen] = useState(false);
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [proposedDate, setProposedDate] = useState("");
+  const [responseNote, setResponseNote] = useState("");
+  const [declineReason, setDeclineReason] = useState("");
+
+  const isPending = r.status === "SENT" || r.status === "RECEIVED" || r.status === "UNDER_REVIEW" || r.status === "DRAFT";
+
+  const respondMutation = useMutation({
+    mutationFn: (body: { decision: "ACCEPTED" | "DECLINED"; responseNote?: string; proposedDate?: string }) =>
+      referralsApi.respond(accessToken!, r.id, body.decision, body.responseNote),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["referrals"] });
+      onClose();
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: () =>
+      referralsApi.updateStatus(accessToken!, r.id, "CANCELLED"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["referrals"] });
+      toast.success("Adressage annulé");
+      onClose();
+    },
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -353,25 +388,27 @@ function DetailPanel({ referral: r, onClose }: { referral: Referral; onClose: ()
         </div>
 
         {/* Sender */}
+        {r.sender && (
         <div className="bg-[#F8FAFC] rounded-xl p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-2">Envoyé par</p>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
-              {initials(`${r.sender.firstName} ${r.sender.lastName}`)}
+              {initials(`${r.sender.firstName ?? ""} ${r.sender.lastName ?? ""}`)}
             </div>
             <div>
               <p className="text-[14px] font-semibold text-[#0F172A]">{r.sender.firstName} {r.sender.lastName}</p>
             </div>
           </div>
         </div>
+        )}
 
         {/* Target provider */}
-        {r.targetProvider && (
+        {r.targetProvider?.person && (
           <div className="bg-[#F8FAFC] rounded-xl p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-2">Destinataire</p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #059669 0%, #10B981 100%)" }}>
-                {initials(`${r.targetProvider.person.firstName} ${r.targetProvider.person.lastName}`)}
+                {initials(`${r.targetProvider.person.firstName ?? ""} ${r.targetProvider.person.lastName ?? ""}`)}
               </div>
               <div>
                 <p className="text-[14px] font-semibold text-[#0F172A]">{r.targetProvider.person.firstName} {r.targetProvider.person.lastName}</p>
@@ -397,7 +434,129 @@ function DetailPanel({ referral: r, onClose }: { referral: Referral; onClose: ()
           {r.respondedAt && <p>Répondu : {new Date(r.respondedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>}
           {r.desiredAppointmentDate && <p>RDV souhaité : {new Date(r.desiredAppointmentDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>}
         </div>
+
+        {/* Modale inline — Accepter */}
+        {acceptOpen && (
+          <div className="rounded-xl border-2 border-green-200 bg-green-50/50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-green-800">Accepter cet adressage</p>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-[#374151]">Proposer un créneau (optionnel)</label>
+              <input
+                type="datetime-local"
+                value={proposedDate}
+                onChange={(e) => setProposedDate(e.target.value)}
+                className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-[#374151]">Note pour l&apos;émetteur (optionnel)</label>
+              <textarea
+                value={responseNote}
+                onChange={(e) => setResponseNote(e.target.value)}
+                rows={2}
+                placeholder="Ex: Disponible mardi prochain..."
+                className="w-full px-3 py-2 text-sm border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-300"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setAcceptOpen(false)} className="flex-1 py-2 text-xs border rounded-lg hover:bg-white transition">Annuler</button>
+              <button
+                onClick={() => {
+                  respondMutation.mutate({
+                    decision: "ACCEPTED",
+                    responseNote: responseNote || undefined,
+                    proposedDate: proposedDate ? new Date(proposedDate).toISOString() : undefined,
+                  });
+                  toast.success("Adressage accepté");
+                }}
+                disabled={respondMutation.isPending}
+                className="flex-1 py-2 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+              >
+                {respondMutation.isPending ? "..." : "Confirmer"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modale inline — Décliner */}
+        {declineOpen && (
+          <div className="rounded-xl border-2 border-red-200 bg-red-50/50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-red-800">Décliner cet adressage</p>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-[#374151]">Motif du refus *</label>
+              <textarea
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                rows={3}
+                placeholder="Indiquez pourquoi vous ne pouvez pas prendre en charge ce patient..."
+                className="w-full px-3 py-2 text-sm border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setDeclineOpen(false)} className="flex-1 py-2 text-xs border rounded-lg hover:bg-white transition">Annuler</button>
+              <button
+                onClick={() => {
+                  if (!declineReason.trim()) { toast.error("Motif obligatoire"); return; }
+                  respondMutation.mutate({ decision: "DECLINED", responseNote: declineReason });
+                  toast.success("Adressage décliné");
+                }}
+                disabled={respondMutation.isPending || !declineReason.trim()}
+                className="flex-1 py-2 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {respondMutation.isPending ? "..." : "Décliner"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation annulation */}
+        {cancelConfirm && (
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50/50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-amber-800">Annuler cet adressage ?</p>
+            <p className="text-xs text-amber-700">Cette action est irréversible. Le destinataire sera notifié.</p>
+            <div className="flex gap-2">
+              <button onClick={() => setCancelConfirm(false)} className="flex-1 py-2 text-xs border rounded-lg hover:bg-white transition">Non, garder</button>
+              <button
+                onClick={() => cancelMutation.mutate()}
+                disabled={cancelMutation.isPending}
+                className="flex-1 py-2 text-xs font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition disabled:opacity-50"
+              >
+                {cancelMutation.isPending ? "..." : "Oui, annuler"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Footer actions */}
+      {isPending && !acceptOpen && !declineOpen && !cancelConfirm && (
+        <div className="px-5 py-4 border-t border-[#E8ECF4] space-y-2 shrink-0">
+          {direction === "received" && (
+            <>
+              <button
+                onClick={() => setAcceptOpen(true)}
+                className="w-full py-2.5 rounded-lg bg-[#4F46E5] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#4338CA] transition"
+              >
+                <Check size={14} /> Accepter
+              </button>
+              <button
+                onClick={() => setDeclineOpen(true)}
+                className="w-full py-2 rounded-lg text-[13px] font-medium text-red-500 hover:bg-red-50 transition flex items-center justify-center gap-1.5"
+              >
+                <X size={14} /> Décliner
+              </button>
+            </>
+          )}
+          {direction === "sent" && (
+            <button
+              onClick={() => setCancelConfirm(true)}
+              className="w-full py-2 rounded-lg text-[13px] font-medium text-amber-600 border border-amber-200 hover:bg-amber-50 transition flex items-center justify-center gap-1.5"
+            >
+              <X size={14} /> Annuler cet adressage
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

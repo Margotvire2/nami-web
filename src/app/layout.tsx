@@ -16,8 +16,25 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Nami — Cockpit clinique",
-  description: "Plateforme d'orchestration des parcours de soins",
+  title: "Nami — Cockpit clinique de coordination des soins",
+  description:
+    "Nami organise le soin pour qu'il devienne coordonné, anticipable et actionnable. Coordination clinique pluridisciplinaire pour parcours complexes.",
+  openGraph: {
+    title: "Nami — Cockpit clinique de coordination des soins",
+    description:
+      "Nami organise le soin pour qu'il devienne coordonné, anticipable et actionnable. Coordination clinique pluridisciplinaire pour parcours complexes.",
+    type: "website",
+    siteName: "Nami",
+    locale: "fr_FR",
+    url: "https://nami-web-orpin.vercel.app",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nami — Cockpit clinique de coordination des soins",
+    description:
+      "Coordination clinique pluridisciplinaire pour parcours de soins complexes.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

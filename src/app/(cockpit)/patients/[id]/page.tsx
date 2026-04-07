@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, observationsApi, type ObservationInput } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric } from "@/lib/api";
 import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clinical-lifeline";
 import { PatientOverview } from "@/components/nami/patient-overview";
 import { ObservationForm } from "@/components/nami/observation-form";
+import { TrajectoryView } from "@/components/nami/TrajectoryView";
 import { ObservationDashboard } from "@/components/nami/observation-dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,11 +20,13 @@ import {
   ChevronLeft, Clock, Activity as ActivityIcon, FileText, Users, CheckSquare,
   CalendarDays, MessageSquare, BookOpen, Bell, Sparkles,
   ArrowLeftRight, CalendarPlus, CheckCircle2, AlertTriangle,
-  User, ChevronRight, Crosshair, Send, CornerDownRight,
+  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp,
 } from "lucide-react";
 
 import { useTimeline } from "@/hooks/useTimeline";
 import { ReferralModal } from "./referral-modal";
+import { QuickTaskModal } from "./QuickTaskModal";
+import { QuickMessageModal } from "./QuickMessageModal";
 import {
   type TimelineEvent,
   TIMELINE_CATEGORIES,
@@ -106,15 +109,16 @@ function daysAgo(d: string) {
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
-type Section = "overview" | "timeline" | "notes" | "journal" | "documents" | "suivi";
+type Section = "overview" | "suivi" | "trajectoire" | "timeline" | "notes" | "journal" | "documents";
 
 const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
-  { key: "overview",  label: "Vue d'ensemble",  icon: <ActivityIcon size={13} /> },
-  { key: "suivi",     label: "Suivi",            icon: <Crosshair size={13} /> },
-  { key: "timeline",  label: "Timeline",         icon: <Clock size={13} /> },
-  { key: "notes",     label: "Notes",             icon: <FileText size={13} /> },
-  { key: "journal",   label: "Journal patient",   icon: <BookOpen size={13} /> },
-  { key: "documents", label: "Documents",         icon: <FileText size={13} /> },
+  { key: "overview",     label: "Vue d'ensemble",  icon: <ActivityIcon size={13} /> },
+  { key: "suivi",        label: "Suivi",            icon: <Crosshair size={13} /> },
+  { key: "trajectoire",  label: "Trajectoire",      icon: <TrendingUp size={13} /> },
+  { key: "timeline",     label: "Timeline",         icon: <Clock size={13} /> },
+  { key: "notes",        label: "Notes",             icon: <FileText size={13} /> },
+  { key: "journal",      label: "Journal patient",   icon: <BookOpen size={13} /> },
+  { key: "documents",    label: "Documents",         icon: <FileText size={13} /> },
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -128,6 +132,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [section, setSection] = useState<Section>("overview");
   const [noteOpen, setNoteOpen] = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
 
   const { data: careCase, isLoading } = useQuery({
     queryKey: ["care-case", id],
@@ -139,15 +145,21 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} careCaseId={id} api={api} />
+      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setMessageModalOpen(true)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
       <ReferralModal
         open={referralOpen}
         onClose={() => setReferralOpen(false)}
         careCaseId={id}
         patientFirstName={careCase.patient?.firstName ?? "le patient"}
-        senderRoleType={careCase.leadProvider?.specialties?.[0]?.includes("Médecin") ? "PHYSICIAN" : "PROVIDER"}
+        senderRoleType="PROVIDER"
       />
+      {taskModalOpen && (
+        <QuickTaskModal careCaseId={id} patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`} onClose={() => setTaskModalOpen(false)} />
+      )}
+      {messageModalOpen && (
+        <QuickMessageModal careCaseId={id} patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`} onClose={() => setMessageModalOpen(false)} />
+      )}
 
       {/* ── Onglets (5 max) ── */}
       <nav className="bg-card border-b px-6 shrink-0 flex">
@@ -209,6 +221,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         ) : section === "suivi" ? (
           <div className="h-full overflow-y-auto">
             <SuiviSection careCaseId={id} />
+          </div>
+        ) : section === "trajectoire" ? (
+          <div className="h-full overflow-y-auto p-6">
+            <TrajectoireSection careCaseId={id} />
           </div>
         ) : null}
       </div>
@@ -432,8 +448,8 @@ function LatestMessageColumn({ careCaseId, api }: { careCaseId: string; api: Ret
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function PatientHeader({ careCase: c, onAddNote, onReferral, careCaseId, api }: {
-  careCase: CareCaseDetail; onAddNote: () => void; onReferral: () => void;
+function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, careCaseId, api }: {
+  careCase: CareCaseDetail; onAddNote: () => void; onReferral: () => void; onTask: () => void; onMessage: () => void;
   careCaseId: string; api: ReturnType<typeof apiWithToken>;
 }) {
   const qc = useQueryClient();
@@ -452,6 +468,8 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, careCaseId, api }: 
         es.close();
         setAiStreaming(false);
         qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
         toast.success("Résumé IA généré");
       }
     };
@@ -489,9 +507,9 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, careCaseId, api }: 
         </div>
         <div className="flex items-center gap-1.5 flex-wrap shrink-0">
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onAddNote}><FileText size={12} /> Note</Button>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={() => toast.info("Création de tâche bientôt disponible")}><CheckSquare size={12} /> Tâche</Button>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onTask}><CheckSquare size={12} /> Tâche</Button>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onReferral}><ArrowLeftRight size={12} /> Adresser</Button>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={() => toast.info("Envoi de message bientôt disponible")}><MessageSquare size={12} /> Message</Button>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onMessage}><MessageSquare size={12} /> Message</Button>
           <Link href="/agenda"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><CalendarPlus size={12} /> RDV</Button></Link>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"
             onClick={handleAiSummarize} disabled={aiStreaming}>
@@ -513,7 +531,7 @@ function NoteInline({ careCaseId, api, onClose }: {
   const create = useMutation({
     mutationFn: () => api.notes.create(careCaseId, { noteType: "EVOLUTION", body }),
     onSuccess: () => {
-      ["timeline", "notes", "care-case"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      ["timeline", "notes", "care-case"].forEach((k) => qc.invalidateQueries({ queryKey: [k, careCaseId] }));
       toast.success("Note ajoutée"); onClose();
     },
     onError: () => toast.error("Erreur"),
@@ -582,6 +600,8 @@ function ClinicalSummaryCard({ careCase: c, careCaseId }: {
         es.close();
         setIsStreaming(false);
         qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
         toast.success("Résumé IA généré");
         return;
       }
@@ -715,7 +735,7 @@ function PatientSignalsCard({ careCaseId, api }: { careCaseId: string; api: Retu
       sub="Signaux utiles du journal"
     >
       {isLoading ? <LoadingCards /> : entries.length === 0 ? (
-        <EmptyView icon={<BookOpen size={20} />} msg="Aucune entrée journal." />
+        <EmptyView icon={<BookOpen size={20} />} msg="Aucune entrée journal" desc="Les remontées du patient (repas, émotions, symptômes) apparaîtront ici." />
       ) : (
         <div className="grid grid-cols-2 gap-2">
           {entries.map((entry) => <JournalCard key={entry.id} entry={entry} />)}
@@ -738,7 +758,7 @@ function AppointmentsCard({ careCaseId, api }: { careCaseId: string; api: Return
   return (
     <BlockTitle title="Rendez-vous" icon={<CalendarDays size={13} />}>
       {isLoading ? <LoadingCards /> : (data ?? []).length === 0 ? (
-        <EmptyView icon={<CalendarDays size={20} />} msg="Aucun rendez-vous." />
+        <EmptyView icon={<CalendarDays size={20} />} msg="Aucun rendez-vous" desc="Les rendez-vous planifiés avec ce patient apparaîtront ici." />
       ) : (
         <>
           {upcoming.length > 0 && (
@@ -787,7 +807,7 @@ function NotesSection({ careCaseId, api }: { careCaseId: string; api: ReturnType
   return (
     <div className="p-6 max-w-3xl space-y-3">
       <h2 className="text-sm font-semibold">Notes cliniques {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}</h2>
-      {isLoading ? <LoadingCards /> : !data?.length ? <EmptyView icon={<FileText size={20} />} msg="Aucune note clinique." /> : (
+      {isLoading ? <LoadingCards /> : !data?.length ? <EmptyView icon={<FileText size={20} />} msg="Aucune note clinique" desc="Documentez les observations et décisions cliniques pour l'équipe." /> : (
         data.map((n) => (
           <div key={n.id} className="rounded-xl border bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] space-y-2">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
@@ -807,7 +827,7 @@ function EquipeSection({ careCaseId, api }: { careCaseId: string; api: ReturnTyp
   return (
     <div className="p-6 max-w-3xl space-y-3">
       <h2 className="text-sm font-semibold">Équipe de soin {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}</h2>
-      {isLoading ? <LoadingCards /> : !data?.length ? <EmptyView icon={<Users size={20} />} msg="Aucun membre d'équipe." /> : (
+      {isLoading ? <LoadingCards /> : !data?.length ? <EmptyView icon={<Users size={20} />} msg="Aucun membre d'équipe" desc="Adressez un confrère pour constituer l'équipe pluridisciplinaire." /> : (
         data.map((m) => (
           <div key={m.id} className="rounded-xl border bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -845,7 +865,7 @@ function TachesSection({ careCaseId, api }: { careCaseId: string; api: ReturnTyp
       <h2 className="text-sm font-semibold">Tâches & prochaines étapes {pending.length > 0 ? <span className="text-muted-foreground font-normal">({pending.length} en cours)</span> : ""}</h2>
       {isLoading ? <LoadingCards /> : (
         <>
-          {pending.length === 0 && done.length === 0 && <EmptyView icon={<CheckSquare size={20} />} msg="Aucune tâche." />}
+          {pending.length === 0 && done.length === 0 && <EmptyView icon={<CheckSquare size={20} />} msg="Aucune action en cours" desc="Planifiez les prochaines étapes du parcours de soin." />}
           {pending.map((t) => (
             <div key={t.id} className="rounded-xl border bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-start gap-3">
               <input type="checkbox" className="mt-0.5 accent-primary cursor-pointer shrink-0" onChange={() => toggle.mutate(t.id)} />
@@ -885,7 +905,7 @@ function RDVSection({ careCaseId, api }: { careCaseId: string; api: ReturnType<t
   return (
     <div className="p-6 max-w-3xl space-y-3">
       <h2 className="text-sm font-semibold">Rendez-vous {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}</h2>
-      {isLoading ? <LoadingCards /> : (data ?? []).length === 0 ? <EmptyView icon={<CalendarDays size={20} />} msg="Aucun rendez-vous." /> : (
+      {isLoading ? <LoadingCards /> : (data ?? []).length === 0 ? <EmptyView icon={<CalendarDays size={20} />} msg="Aucun rendez-vous" desc="Les rendez-vous planifiés avec ce patient apparaîtront ici." /> : (
         <>
           {upcoming.length > 0 && (
             <div className="space-y-1.5 mb-3">
@@ -962,7 +982,7 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
               <button
                 key={t.type}
                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted hover:border-primary/30 text-muted-foreground hover:text-foreground transition-all"
-                onClick={() => toast.info("Import de documents bientôt disponible")}
+                onClick={() => toast.info("Import de documents — prochainement")}
               >
                 {t.label}
               </button>
@@ -971,7 +991,7 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
           <Button
             size="sm"
             className="text-xs gap-1.5 h-8 mt-4"
-            onClick={() => toast.info("Import de documents bientôt disponible")}
+            onClick={() => toast.info("Import de documents — prochainement")}
           >
             <FileText size={12} /> Ajouter un document
           </Button>
@@ -1028,8 +1048,8 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
                     </button>
                     <button
                       className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-                      title="Partager avec l'équipe"
-                      onClick={() => toast.info("Partage bientôt disponible")}
+                      title="Partage — prochainement"
+                      disabled
                     >
                       <Users size={14} />
                     </button>
@@ -1053,7 +1073,7 @@ function JournalSection({ careCaseId, api }: { careCaseId: string; api: ReturnTy
   return (
     <div className="p-6 max-w-3xl space-y-3">
       <h2 className="text-sm font-semibold">Journal patient {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}</h2>
-      {isLoading ? <LoadingCards /> : !(data?.length) ? <EmptyView icon={<BookOpen size={20} />} msg="Aucune entrée journal." /> : (
+      {isLoading ? <LoadingCards /> : !(data?.length) ? <EmptyView icon={<BookOpen size={20} />} msg="Aucune entrée journal" desc="Les remontées du patient (repas, émotions, symptômes) apparaîtront ici." /> : (
         <div className="grid grid-cols-2 gap-2">
           {data.map((entry) => <JournalCard key={entry.id} entry={entry} />)}
         </div>
@@ -1139,6 +1159,7 @@ function MessagesSection({ careCaseId, api }: {
       setNewMessage("");
       setReplyTo(null);
       qc.invalidateQueries({ queryKey: ["messages", careCaseId] });
+      qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
     },
     onError: () => toast.error("Erreur d'envoi"),
   });
@@ -1364,7 +1385,7 @@ function NextStepsPanelRight({ careCaseId, api }: { careCaseId: string; api: Ret
   const { data } = useQuery({ queryKey: ["tasks", careCaseId], queryFn: () => api.tasks.list(careCaseId) });
   const toggle = useMutation({
     mutationFn: (taskId: string) => api.tasks.update(careCaseId, taskId, { status: "COMPLETED" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tasks", careCaseId] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks", careCaseId] }); qc.invalidateQueries({ queryKey: ["timeline", careCaseId] }); },
   });
   const pending = (data ?? []).filter((t) => t.status !== "COMPLETED" && t.status !== "CANCELLED");
   if (!pending.length) return null;
@@ -1464,7 +1485,7 @@ function AlertsPanelRight({ careCaseId, api }: { careCaseId: string; api: Return
   const { data } = useQuery({ queryKey: ["alerts", careCaseId], queryFn: () => api.alerts.list(careCaseId) });
   const ack = useMutation({
     mutationFn: (alertId: string) => api.alerts.update(careCaseId, alertId, { status: "ACKNOWLEDGED" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["alerts", careCaseId] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["alerts", careCaseId] }); qc.invalidateQueries({ queryKey: ["care-case", careCaseId] }); },
   });
   const open = (data ?? []).filter((a) => a.status === "OPEN");
   if (!open.length) return null;
@@ -1560,6 +1581,8 @@ function PilotageIASection({ careCaseId, careCase, api }: {
         es.close();
         setIsStreaming(false);
         qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
         toast.success("Résumé IA généré");
         return;
       }
@@ -1698,8 +1721,134 @@ function PilotageIASection({ careCaseId, careCase, api }: {
           </Button>
         </div>
       )}
+
+      {/* ── Suggestions d'adressage ── */}
+      <ReferralSuggestionsCard careCaseId={careCaseId} />
+
+      {/* ── Arbres décisionnels ── */}
+      <ClinicalRulesCard careCaseId={careCaseId} />
     </div>
   );
+}
+
+// ─── Suggestions d'adressage basées sur comorbidités ────────────────────────
+
+function ReferralSuggestionsCard({ careCaseId }: { careCaseId: string }) {
+  const { accessToken } = useAuthStore()
+  const { data } = useQuery({
+    queryKey: ["referral-suggestions", careCaseId],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/care-cases/${careCaseId}/referral-suggestions`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      )
+      if (!res.ok) return { suggestions: [] }
+      return res.json()
+    },
+    enabled: !!accessToken,
+  })
+  const suggestions = data?.suggestions ?? []
+  if (suggestions.length === 0) return null
+
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b bg-amber-50/50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 flex items-center gap-1.5">
+          <ArrowLeftRight size={12} /> Adressages suggérés ({suggestions.length})
+        </p>
+      </div>
+      <div className="divide-y">
+        {suggestions.map((s: any, i: number) => (
+          <div key={i} className="px-4 py-3 flex items-start gap-3">
+            <div className="size-2 rounded-full bg-amber-400 shrink-0 mt-1.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">{s.suggestedSpecialty}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Comorbidité : {s.comorbidity}</p>
+              {s.evidence && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.evidence}</p>}
+            </div>
+            {s.needsScreening && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold shrink-0">Dépistage</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Arbres décisionnels cliniques ──────────────────────────────────────────
+
+function ClinicalRulesCard({ careCaseId }: { careCaseId: string }) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const { data: pw } = useQuery({
+    queryKey: ["pathway", careCaseId],
+    queryFn: () => api.pathway.get(careCaseId),
+    enabled: !!accessToken,
+  })
+  const rules = pw?.rules ?? []
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  if (rules.length === 0) return null
+
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b bg-muted/20">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+          <FileText size={12} /> Protocoles décisionnels ({rules.length})
+        </p>
+      </div>
+      <div className="divide-y">
+        {rules.map((r: any) => {
+          const rule = r.ruleDefinition ?? r
+          const pred = typeof rule.predicate === "string" ? (() => { try { return JSON.parse(rule.predicate) } catch { return null } })() : rule.predicate
+          const isOpen = expandedId === rule.id
+          return (
+            <div key={rule.id}>
+              <button onClick={() => setExpandedId(isOpen ? null : rule.id)}
+                className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-muted/30 transition-colors">
+                <div>
+                  <p className="text-sm font-medium">{rule.label}</p>
+                  <p className="text-xs text-muted-foreground">{rule.scopeFamily}</p>
+                </div>
+                <span className="text-xs text-muted-foreground">{isOpen ? "▲" : "▼"}</span>
+              </button>
+              {isOpen && pred && (
+                <div className="px-4 pb-4 space-y-2">
+                  {pred.steps?.map((step: any, i: number) => (
+                    <div key={i} className="rounded-lg border p-3">
+                      <p className="text-xs font-semibold text-primary mb-1">Étape {step.step ?? i + 1}</p>
+                      <p className="text-sm">{step.q ?? step.question}</p>
+                      {step.yes && <p className="text-xs text-green-700 mt-1">Oui → {step.yes}</p>}
+                      {step.no && <p className="text-xs text-red-700 mt-1">Non → {step.no}</p>}
+                      {step.options?.map((opt: any, j: number) => (
+                        <div key={j} className="text-xs mt-1 pl-3 border-l-2 border-muted">
+                          <span className="font-medium">{opt.r ?? opt.label}</span> → <span className="text-muted-foreground">{opt.a ?? opt.action}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  {pred.cascade?.map((step: any, i: number) => (
+                    <div key={i} className="text-xs pl-3 border-l-2 border-primary/20 py-1">
+                      <span className="font-medium">{typeof step === "string" ? step : step.etape}</span>
+                      {typeof step !== "string" && step.detail && <span className="text-muted-foreground"> — {step.detail}</span>}
+                    </div>
+                  ))}
+                  {pred.complications?.map((c: any, i: number) => (
+                    <div key={i} className="rounded-lg border p-2.5 text-xs">
+                      <p className="font-medium">{c.type}</p>
+                      {c.prev && <p className="text-muted-foreground">Prévalence : {c.prev}</p>}
+                      {c.ttt && <p className="text-muted-foreground">Traitement : {c.ttt}</p>}
+                    </div>
+                  ))}
+                  {pred.refs && <p className="text-[10px] text-muted-foreground/50 mt-2">Réf : {Array.isArray(pred.refs) ? pred.refs.join(", ") : pred.refs}</p>}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 // ─── Widget adressages dans l'overview ───────────────────────────────────────
@@ -1814,11 +1963,14 @@ function SeeMore({ label }: { label: string }) {
   return <button className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors">{label} <ChevronRight size={11} /></button>;
 }
 
-function EmptyView({ icon, msg }: { icon: React.ReactNode; msg: string }) {
+function EmptyView({ icon, msg, desc }: { icon: React.ReactNode; msg: string; desc?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="text-muted-foreground/25 mb-3">{icon}</div>
-      <p className="text-sm text-muted-foreground">{msg}</p>
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-3">
+        <span className="text-muted-foreground">{icon}</span>
+      </div>
+      <p className="text-sm font-medium text-foreground">{msg}</p>
+      {desc && <p className="text-xs text-muted-foreground mt-1 max-w-xs">{desc}</p>}
     </div>
   );
 }
@@ -1844,6 +1996,123 @@ function DetailSkeleton() {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// TRAJECTOIRE — Courbes d'évolution clinique
+// ═════════════════════════════════════════════════════════════════════════════
+
+function TrajectoireSection({ careCaseId }: { careCaseId: string }) {
+  const { accessToken } = useAuthStore();
+
+  // Charger les métriques du pathway pour le sélecteur
+  const { data: pathwayData } = useQuery({
+    queryKey: ["pathway", careCaseId],
+    queryFn: () => apiWithToken(accessToken!).pathway.get(careCaseId),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-jakarta)" }}>
+          Trajectoire clinique
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Évolution des paramètres dans le temps
+        </p>
+      </div>
+      <TrajectoryView
+        careCaseId={careCaseId}
+        pathwayMetrics={pathwayData?.metrics}
+      />
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PATHWAY SELECTOR — Assigner un parcours au dossier
+// ═════════════════════════════════════════════════════════════════════════════
+
+function PathwaySelector({ careCaseId, onAssigned }: { careCaseId: string; onAssigned: () => void }) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const [open, setOpen] = useState(false)
+
+  const { data: allPathways = [] } = useQuery({
+    queryKey: ["all-pathways"],
+    queryFn: () => api.intelligence.pathways(),
+    enabled: !!accessToken && open,
+  })
+
+  const assignMut = useMutation({
+    mutationFn: (pathwayTemplateId: string) =>
+      api.careCases.update(careCaseId, { pathwayTemplateId } as any),
+    onSuccess: () => {
+      onAssigned()
+      setOpen(false)
+      toast.success("Parcours assigné")
+    },
+    onError: () => toast.error("Erreur lors de l'assignation"),
+  })
+
+  const grouped = (allPathways as any[]).reduce((acc: Record<string, any[]>, p: any) => {
+    const f = p.family ?? "other"
+    if (!acc[f]) acc[f] = []
+    acc[f].push(p)
+    return acc
+  }, {} as Record<string, any[]>)
+
+  const FAMILY_LABELS: Record<string, string> = {
+    tca: "Troubles du Comportement Alimentaire",
+    obesity: "Obésité",
+    metabolic: "Métabolique",
+  }
+
+  if (!open) {
+    return (
+      <div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center">
+        <Crosshair size={20} className="text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-sm font-medium text-muted-foreground">Aucun parcours de soins assigné</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">Assignez un parcours pour activer le suivi structuré (métriques, questionnaires, alertes).</p>
+        <Button size="sm" className="mt-3 text-xs gap-1.5" onClick={() => setOpen(true)}>
+          <Crosshair size={11} /> Choisir un parcours
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border bg-card p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <Crosshair size={14} className="text-primary" /> Choisir un parcours de soins
+        </h3>
+        <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">Annuler</button>
+      </div>
+      {Object.entries(grouped).map(([family, pathways]) => (
+        <div key={family}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{FAMILY_LABELS[family] ?? family}</p>
+          <div className="space-y-1.5">
+            {(pathways as any[]).map((p: any) => {
+              const bp = p.baselinePlan as any
+              return (
+                <button key={p.id} onClick={() => assignMut.mutate(p.id)} disabled={assignMut.isPending}
+                  className="w-full text-left rounded-lg border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all">
+                  <p className="text-sm font-medium">{p.label}</p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                    {bp?.duration && <span>{bp.duration}</span>}
+                    {bp?.phases && <span>· {bp.phases.length} phases</span>}
+                    {p.questionnaires?.length > 0 && <span>· {p.questionnaires.length} questionnaires</span>}
+                    {p.metrics?.length > 0 && <span>· {p.metrics.length} métriques</span>}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // SUIVI — Observations + Dashboard + Formulaire de saisie
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -1851,6 +2120,12 @@ function SuiviSection({ careCaseId }: { careCaseId: string }) {
   const { accessToken } = useAuthStore();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [quickMetric, setQuickMetric] = useState<string | null>(null);
+
+  const { data: pathwayData, isLoading: loadingPathway } = useQuery({
+    queryKey: ["pathway", careCaseId],
+    queryFn: () => apiWithToken(accessToken!).pathway.get(careCaseId),
+  });
 
   const { data: latestData, isLoading: loadingLatest } = useQuery({
     queryKey: ["observations-latest", careCaseId],
@@ -1867,11 +2142,13 @@ function SuiviSection({ careCaseId }: { careCaseId: string }) {
       observationsApi.create(accessToken!, careCaseId, observations),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["observations-latest", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["pathway", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["alerts", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["care-case", careCaseId] });
       setShowForm(false);
+      setQuickMetric(null);
       if (data.summary.alertsTriggered > 0) {
-        toast.warning(`${data.summary.alertsTriggered} alerte(s) déclenchée(s)`);
+        toast.warning(`${data.summary.alertsTriggered} indicateur(s) mis à jour`);
       } else {
         toast.success(`${data.summary.observationsCreated} observation(s) enregistrée(s)`);
       }
@@ -1879,22 +2156,75 @@ function SuiviSection({ careCaseId }: { careCaseId: string }) {
     onError: () => toast.error("Erreur lors de l'enregistrement"),
   });
 
-  if (loadingLatest) {
+  if (loadingPathway || loadingLatest) {
     return <div className="p-6 space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>;
   }
 
-  return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-jakarta)" }}>Suivi clinique</h2>
-          <p className="text-xs text-muted-foreground">{latestData?.total ?? 0} paramètres enregistrés</p>
-        </div>
-        <Button size="sm" onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Fermer" : "Nouvelle saisie"}
-        </Button>
-      </div>
+  const pw = pathwayData;
+  const STATUS_ICON: Record<string, { icon: string; color: string; bg: string }> = {
+    up_to_date: { icon: "✓", color: "text-green-700", bg: "bg-green-50 border-green-200" },
+    due_soon:   { icon: "◔", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
+    overdue:    { icon: "!", color: "text-red-700",   bg: "bg-red-50 border-red-200" },
+    never:      { icon: "—", color: "text-slate-400", bg: "bg-slate-50 border-slate-200" },
+  };
 
+  const DOMAIN_LABELS: Record<string, string> = {
+    anthropometry: "Anthropométrie", vital: "Vitaux", biology: "Biologie",
+    nutrition_behavior: "Comportement alimentaire", purging_behavior: "Conduites purgatives",
+    binge_behavior: "Accès hyperphagiques", psychological: "Psychique",
+    endocrinology: "Endocrinologie", growth: "Croissance", pediatric_context: "Contexte pédiatrique",
+    engagement: "Engagement",
+  };
+
+  // Grouper les métriques par domaine
+  const metricsByDomain = (pw?.metrics ?? []).reduce((acc, m) => {
+    const d = m.domain;
+    if (!acc[d]) acc[d] = [];
+    acc[d].push(m);
+    return acc;
+  }, {} as Record<string, typeof pw extends null ? never : NonNullable<typeof pw>["metrics"]>);
+
+  return (
+    <div className="p-6 space-y-5">
+      {/* En-tête pathway — sélecteur si aucun pathway */}
+      {!pw?.pathway && (
+        <PathwaySelector careCaseId={careCaseId} onAssigned={() => {
+          queryClient.invalidateQueries({ queryKey: ["pathway", careCaseId] });
+          queryClient.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        }} />
+      )}
+      {pw?.pathway && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <Crosshair size={14} className="text-primary" />
+                <h2 className="text-sm font-semibold">{pw.pathway.label}</h2>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {pw.summary.metricsUpToDate}/{pw.summary.metricsTotal} métriques à jour
+                {pw.summary.metricsOverdue > 0 && (
+                  <span className="text-amber-600 ml-2">{pw.summary.metricsOverdue} en retard</span>
+                )}
+                {pw.summary.rulesTriggered > 0 && (
+                  <span className="text-red-600 ml-2">{pw.summary.rulesTriggered} indicateur(s) actif(s)</span>
+                )}
+              </p>
+            </div>
+            <Button size="sm" onClick={() => setShowForm(!showForm)}>
+              {showForm ? "Fermer" : "Nouvelle saisie"}
+            </Button>
+          </div>
+
+          {/* Barre de progression */}
+          <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden flex">
+            <div className="h-full bg-green-500 transition-all" style={{ width: `${(pw.summary.metricsUpToDate / Math.max(pw.summary.metricsTotal, 1)) * 100}%` }} />
+            <div className="h-full bg-amber-400 transition-all" style={{ width: `${((pw.summary.metricsTotal - pw.summary.metricsUpToDate - pw.summary.metricsOverdue - pw.summary.metricsNever) / Math.max(pw.summary.metricsTotal, 1)) * 100}%` }} />
+          </div>
+        </div>
+      )}
+
+      {/* Formulaire d'observation */}
       {showForm && (
         <ObservationForm
           professionalRole="medecin-generaliste"
@@ -1903,10 +2233,166 @@ function SuiviSection({ careCaseId }: { careCaseId: string }) {
         />
       )}
 
+      {/* Saisie rapide pour une métrique spécifique */}
+      {quickMetric && !showForm && (
+        <QuickObservationEntry
+          metricKey={quickMetric}
+          metric={pw?.metrics.find((m) => m.metricKey === quickMetric) ?? null}
+          onSubmit={(obs) => mutation.mutate(obs)}
+          onClose={() => setQuickMetric(null)}
+          isPending={mutation.isPending}
+        />
+      )}
+
+      {/* Métriques par domaine */}
+      {pw?.pathway && Object.entries(metricsByDomain).length > 0 && (
+        <div className="space-y-4">
+          {Object.entries(metricsByDomain).map(([domain, metrics]) => (
+            <div key={domain}>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2">
+                {DOMAIN_LABELS[domain] ?? domain}
+              </p>
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                {metrics.map((m) => {
+                  const st = STATUS_ICON[m.status];
+                  return (
+                    <button
+                      key={m.metricKey}
+                      onClick={() => { setQuickMetric(m.metricKey); setShowForm(false); }}
+                      className={`text-left p-3 rounded-lg border transition-all hover:shadow-sm ${st.bg}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium truncate">{m.label}</span>
+                        <span className={`text-xs font-bold ${st.color}`}>{st.icon}</span>
+                      </div>
+                      <div className="mt-1">
+                        {m.lastValue !== null ? (
+                          <span className="text-sm font-semibold tabular-nums">
+                            {typeof m.lastValue === "number" ? m.lastValue.toFixed(m.unit === "kg" || m.unit === "kg/m²" ? 1 : 0) : String(m.lastValue)}
+                            {m.unit && <span className="text-xs font-normal text-muted-foreground ml-0.5">{m.unit}</span>}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Non mesuré</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-[10px] text-muted-foreground">
+                          {m.cadence === "daily" ? "Quotidien" : m.cadence === "weekly" ? "Hebdo" : m.cadence === "monthly" ? "Mensuel" : m.cadence === "quarterly" ? "Trimestriel" : m.cadence}
+                        </span>
+                        {m.lastDate && (
+                          <span className="text-[10px] text-muted-foreground">
+                            &middot; {new Date(m.lastDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                          </span>
+                        )}
+                        {m.required && <span className="text-[10px] text-primary font-medium ml-auto">requis</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Questionnaires */}
+      {pw?.questionnaires && pw.questionnaires.length > 0 && (
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Questionnaires recommandés</p>
+          <div className="space-y-1.5">
+            {pw.questionnaires.map((q) => (
+              <div key={q.key} className="flex items-center justify-between p-2.5 rounded-lg border bg-card">
+                <div>
+                  <p className="text-xs font-medium">{q.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{q.cadence === "initial" ? "Initial" : q.cadence === "monthly" ? "Mensuel" : q.cadence === "quarterly" ? "Trimestriel" : q.cadence}</p>
+                </div>
+                {q.required && <span className="text-[10px] text-primary font-medium">requis</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Règles actives */}
+      {pw?.rules && pw.rules.filter((r) => r.enabled).length > 0 && (
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Indicateurs de complétude actifs</p>
+          <div className="space-y-1.5">
+            {pw.rules.filter((r) => r.enabled).map((r) => (
+              <div key={r.key} className={`flex items-center justify-between p-2.5 rounded-lg border ${r.triggered ? "bg-amber-50 border-amber-200" : "bg-card"}`}>
+                <p className="text-xs font-medium">{r.label}</p>
+                <span className={`text-[10px] font-medium ${r.triggered ? "text-amber-700" : "text-green-600"}`}>
+                  {r.triggered ? "Déclenché" : "OK"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Dashboard observations brut (en-dessous, pour le détail) */}
       <ObservationDashboard
         latestByDomain={latestData?.latest ?? {}}
-        alerts={(alertsData ?? []).map((a: any) => ({ title: a.title, severity: a.severity, status: a.status }))}
+        alerts={(alertsData ?? []).map((a: Alert) => ({ title: a.title, severity: a.severity, status: a.status }))}
       />
+    </div>
+  );
+}
+
+// ── Saisie rapide d'une observation ──────────────────────────────────────────
+
+function QuickObservationEntry({ metricKey, metric, onSubmit, onClose, isPending }: {
+  metricKey: string;
+  metric: PathwayMetric | null;
+  onSubmit: (obs: ObservationInput[]) => void;
+  onClose: () => void;
+  isPending: boolean;
+}) {
+  const [value, setValue] = useState("");
+
+  const handleSubmit = () => {
+    if (!value.trim()) return;
+    const obs: ObservationInput = {
+      metricKey,
+      source: "PROVIDER_ENTRY" as const,
+    };
+    if (metric?.valueType === "numeric") {
+      obs.valueNumeric = parseFloat(value);
+    } else if (metric?.valueType === "boolean") {
+      obs.valueBoolean = value === "true" || value === "1" || value === "oui";
+    } else {
+      obs.valueText = value;
+    }
+    onSubmit([obs]);
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold">{metric?.label ?? metricKey}</p>
+          {metric?.unit && <p className="text-xs text-muted-foreground">Unité : {metric.unit}</p>}
+          {metric?.normalMin != null && metric?.normalMax != null && (
+            <p className="text-[10px] text-muted-foreground">Plage normale : {metric.normalMin} — {metric.normalMax} {metric.unit}</p>
+          )}
+        </div>
+        <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">Fermer</button>
+      </div>
+      <div className="flex gap-2">
+        <input
+          type={metric?.valueType === "numeric" ? "number" : "text"}
+          step={metric?.valueType === "numeric" ? "any" : undefined}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={metric?.valueType === "numeric" ? "Valeur" : "Saisir..."}
+          className="flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
+          autoFocus
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        />
+        <Button size="sm" onClick={handleSubmit} disabled={!value.trim() || isPending}>
+          {isPending ? "..." : "Enregistrer"}
+        </Button>
+      </div>
     </div>
   );
 }

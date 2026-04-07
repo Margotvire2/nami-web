@@ -16,6 +16,7 @@ export interface DashboardConsultation {
   time: string
   patient: string
   patientId: string
+  careCaseId: string | null
   initials: string
   type: ConsultationType
   typeLabel: string
@@ -84,6 +85,7 @@ function modeLabel(locationType: string): string {
 
 interface ApiAppointment {
   id: string
+  careCaseId: string | null
   startAt: string
   endAt: string
   status: string
@@ -126,6 +128,7 @@ function mapAppointments(dtos: ApiAppointment[]): DashboardConsultation[] {
       time: formatTime(dto.startAt),
       patient: `${dto.patient.firstName} ${dto.patient.lastName}`,
       patientId: dto.patient.id,
+      careCaseId: dto.careCaseId ?? null,
       initials: toInitials(dto.patient.firstName, dto.patient.lastName),
       type,
       typeLabel: dto.consultationType?.name ?? deriveTypeLabel(type),

@@ -368,6 +368,24 @@ export const intelligenceApi = {
   knowledgeSource: (token: string, id: string) =>
     request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}`, {}, token),
 
+  // Catalogues
+  questionnaires: (token: string, domain?: string) => {
+    const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
+    return request<any[]>(`/intelligence/questionnaires${qs}`, {}, token);
+  },
+  metrics: (token: string, domain?: string) => {
+    const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
+    return request<any[]>(`/intelligence/metrics${qs}`, {}, token);
+  },
+  pathways: (token: string, family?: string) => {
+    const qs = family ? `?family=${encodeURIComponent(family)}` : "";
+    return request<any[]>(`/intelligence/pathways${qs}`, {}, token);
+  },
+  conditionLinks: (token: string, fromCode?: string) => {
+    const qs = fromCode ? `?fromCode=${encodeURIComponent(fromCode)}` : "";
+    return request<any[]>(`/intelligence/condition-links${qs}`, {}, token);
+  },
+
   // HAS sync
   syncHAS: (token: string) =>
     request<{ triggered: boolean; message: string }>("/intelligence/ingest/has", {
@@ -569,7 +587,7 @@ export const appointmentsApi = {
   create: (token: string, data: {
     patientId: string; providerId: string; locationType: "IN_PERSON" | "VIDEO" | "PHONE";
     startAt: string; endAt: string; consultationTypeId?: string;
-    isFirstConsultation?: boolean; notes?: string; careCaseId?: string;
+    isFirstConsultation?: boolean; notes?: string; careCaseId?: string; locationId?: string;
   }) => request<Appointment>("/appointments", { method: "POST", body: JSON.stringify(data) }, token),
 
   patch: (token: string, id: string, data: { status?: string; notes?: string; startAt?: string; endAt?: string }) =>
@@ -891,9 +909,24 @@ export interface Document {
   uploadedBy: { id: string; firstName: string; lastName: string };
 }
 
+export interface CreateDocumentInput {
+  documentType: "BIOLOGICAL_REPORT" | "PRESCRIPTION" | "CONSULTATION_REPORT" | "HOSPITAL_REPORT" | "LETTER" | "IMAGING" | "OTHER";
+  title: string;
+  fileUrl: string;
+  fileKey: string;
+  mimeType: string;
+  sizeBytes: number;
+  isSharedWithTeam?: boolean;
+}
+
 export const documentsApi = {
   list: (token: string, careCaseId: string) =>
     request<Document[]>(`/care-cases/${careCaseId}/documents`, {}, token),
+  create: (token: string, careCaseId: string, data: CreateDocumentInput) =>
+    request<Document>(`/care-cases/${careCaseId}/documents`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
 };
 
 // ─── Bio Extraction ─────────────────────────────────────────────────────────
@@ -1363,6 +1396,113 @@ export const observationsApi = {
     ),
 };
 
+// ─── Pathway ────────────────────────────────────────────────────────────────
+
+export type MetricStatus = "up_to_date" | "due_soon" | "overdue" | "never";
+
+export interface PathwayMetric {
+  metricKey: string;
+  label: string;
+  unit: string | null;
+  domain: string;
+  valueType: string;
+  cadence: string;
+  required: boolean;
+  normalMin: number | null;
+  normalMax: number | null;
+  lastValue: number | string | boolean | null;
+  lastDate: string | null;
+  status: MetricStatus;
+}
+
+export interface PathwayQuestionnaire {
+  key: string;
+  label: string;
+  domain: string;
+  cadence: string;
+  required: boolean;
+}
+
+export interface PathwayRule {
+  key: string;
+  label: string;
+  severity: string;
+  enabled: boolean;
+  triggered: boolean;
+  lastTriggered: string | null;
+}
+
+export interface PathwayData {
+  pathway: {
+    id: string;
+    key: string;
+    label: string;
+    family: string;
+    baselinePlan: Record<string, unknown>;
+  } | null;
+  summary: {
+    metricsTotal: number;
+    metricsUpToDate: number;
+    metricsOverdue: number;
+    metricsNever: number;
+    rulesActive: number;
+    rulesTriggered: number;
+  };
+  metrics: PathwayMetric[];
+  questionnaires: PathwayQuestionnaire[];
+  rules: PathwayRule[];
+}
+
+export const pathwayApi = {
+  get: (token: string, careCaseId: string) =>
+    request<PathwayData>(`/care-cases/${careCaseId}/pathway`, {}, token),
+};
+
+// ─── Trajectory ─────────────────────────────────────────────────────────────
+
+export type TrendDirection = "improving" | "stable" | "worsening" | "insufficient_data";
+
+export interface TrajectoryDataPoint {
+  date: string;
+  value: number;
+  note?: string;
+}
+
+export interface TrajectorySeries {
+  metricKey: string;
+  label: string;
+  unit: string | null;
+  normalRange: { min: number | null; max: number | null };
+  alertRange: { low: number | null; high: number | null };
+  dataPoints: TrajectoryDataPoint[];
+  trend: TrendDirection;
+  lastValue: number | null;
+  delta: number | null;
+}
+
+export interface TrajectoryEvent {
+  type: string;
+  title: string;
+  date: string;
+}
+
+export interface TrajectoryData {
+  careCaseId: string;
+  period: string;
+  series: TrajectorySeries[];
+  events: TrajectoryEvent[];
+}
+
+export const trajectoryApi = {
+  get: (token: string, careCaseId: string, metrics?: string[], period?: string) => {
+    const qs = new URLSearchParams();
+    if (metrics?.length) qs.set("metrics", metrics.join(","));
+    if (period) qs.set("period", period);
+    const q = qs.toString();
+    return request<TrajectoryData>(`/care-cases/${careCaseId}/trajectory${q ? `?${q}` : ""}`, {}, token);
+  },
+};
+
 // Helper pour les requêtes avec token depuis le store
 export function apiWithToken(token: string) {
   return {
@@ -1424,14 +1564,26 @@ export function apiWithToken(token: string) {
     },
     documents: {
       list: (careCaseId: string) => documentsApi.list(token, careCaseId),
+      create: (careCaseId: string, data: CreateDocumentInput) => documentsApi.create(token, careCaseId, data),
       extractBio: (documentId: string) => bioExtractionApi.extract(token, documentId),
       validateBio: (documentId: string, data: BioValidateInput) => bioExtractionApi.validate(token, documentId, data),
+    },
+    pathway: {
+      get: (careCaseId: string) => pathwayApi.get(token, careCaseId),
+    },
+    trajectory: {
+      get: (careCaseId: string, metrics?: string[], period?: string) =>
+        trajectoryApi.get(token, careCaseId, metrics, period),
     },
     intelligence: {
       careGaps: (id: string) => intelligenceApi.careGaps(token, id),
       summarize: (id: string, persist?: boolean) => intelligenceApi.summarize(token, id, persist),
       knowledgeSources: (params?: { status?: string; sourceType?: string }) => intelligenceApi.knowledgeSources(token, params),
       knowledgeSource: (id: string) => intelligenceApi.knowledgeSource(token, id),
+      questionnaires: (domain?: string) => intelligenceApi.questionnaires(token, domain),
+      metrics: (domain?: string) => intelligenceApi.metrics(token, domain),
+      pathways: (family?: string) => intelligenceApi.pathways(token, family),
+      conditionLinks: (fromCode?: string) => intelligenceApi.conditionLinks(token, fromCode),
       syncHAS: () => intelligenceApi.syncHAS(token),
       refreshHASSource: (sourceId: string) => intelligenceApi.refreshHASSource(token, sourceId),
       reviewSource: (id: string) => intelligenceApi.reviewSource(token, id),
@@ -1517,5 +1669,26 @@ export function apiWithToken(token: string) {
       me: () => request<{ tier: string; subscriptionStart: string | null; subscriptionEnd: string | null; trialUsed: boolean }>("/subscriptions/me", {}, token),
       activate: (tier: string, trigger?: string) => request<{ success: boolean; message: string }>("/subscriptions/activate", { method: "POST", body: JSON.stringify({ tier, trigger }) }, token),
     },
+    tasksMine: {
+      list: (status?: string) => request<TaskWithContext[]>(status ? `/tasks/mine?status=${status}` : "/tasks/mine", {}, token),
+    },
+  };
+}
+
+export interface TaskWithContext {
+  id: string;
+  title: string;
+  taskType: string;
+  status: string;
+  priority: string;
+  description: string | null;
+  dueDate: string | null;
+  createdAt: string;
+  assignedTo: { id: string; firstName: string; lastName: string } | null;
+  createdBy: { id: string; firstName: string; lastName: string };
+  careCase: {
+    id: string;
+    caseTitle: string;
+    patient: { id: string; firstName: string; lastName: string };
   };
 }

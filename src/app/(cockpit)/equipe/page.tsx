@@ -326,7 +326,7 @@ function StructuresTab({
           size="sm"
           variant="outline"
           className="text-xs gap-1.5 h-8 mt-5"
-          onClick={() => toast.info("Création de structure bientôt disponible")}
+          disabled title="Prochainement"
         >
           <Building2 size={12} /> Rejoindre une structure
         </Button>
@@ -358,7 +358,7 @@ function StructuresTab({
               size="sm"
               variant="outline"
               className="text-xs h-7"
-              onClick={() => toast.info("Gestion de structure bientôt disponible")}
+              disabled title="Prochainement"
             >
               Gérer
             </Button>
@@ -370,7 +370,7 @@ function StructuresTab({
           size="sm"
           variant="outline"
           className="text-xs gap-1.5 h-8"
-          onClick={() => toast.info("Création de structure bientôt disponible")}
+          disabled title="Prochainement"
         >
           <Building2 size={12} /> Rejoindre une structure
         </Button>
@@ -537,7 +537,7 @@ function RPPSTab() {
                 <Button
                   size="sm"
                   className="text-xs h-7 gap-1"
-                  onClick={() => toast.info("Invitation bientôt disponible depuis l'annuaire RPPS")}
+                  disabled title="Invitation via RPPS — prochainement"
                 >
                   <UserPlus size={11} /> Inviter
                 </Button>

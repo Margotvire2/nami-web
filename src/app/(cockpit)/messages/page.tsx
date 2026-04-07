@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
-  MessageSquare, Send, ChevronRight, Clock, User,
+  MessageSquare, MessageCircle, Send, ChevronRight, Clock, User,
   FileText, CornerDownRight, ChevronLeft,
 } from "lucide-react";
+import { EmptyState } from "@/components/nami/EmptyState";
 
 // ═════════════════════════════════════════════════════════════════════════════
 // PAGE MESSAGES — fil de coordination clinique par care case
@@ -57,10 +58,12 @@ export default function MessagesPage() {
           {loadingCases ? (
             <div className="p-4 space-y-2">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
           ) : !(cases?.length) ? (
-            <div className="flex flex-col items-center justify-center h-48 text-center">
-              <MessageSquare size={24} className="text-muted-foreground/30 mb-3" />
-              <p className="text-sm text-muted-foreground">Aucun dossier.</p>
-            </div>
+            <EmptyState
+              icon={MessageCircle}
+              title="Aucune conversation"
+              description="Vos échanges professionnels entre soignants apparaîtront ici."
+              variant="subtle"
+            />
           ) : (
             <div className="divide-y">
               {cases.map((c) => (

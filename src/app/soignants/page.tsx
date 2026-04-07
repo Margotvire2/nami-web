@@ -8,7 +8,12 @@ import {
 export const metadata: Metadata = {
   title: "Soignants spécialisés — Nami",
   description:
-    "Trouvez un diététicien, psychologue ou médecin spécialisé dans votre pathologie. Compétences vérifiées par RPPS, formations et activité réelle.",
+    "Trouvez un professionnel de santé spécialisé en TCA, nutrition, obésité. Profils vérifiés RPPS, prise de rendez-vous en ligne.",
+  openGraph: {
+    title: "Soignants spécialisés — Nami",
+    description: "Trouvez un professionnel de santé spécialisé en TCA, nutrition, obésité. Profils vérifiés RPPS.",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
 }
 
 export const revalidate = 3600 // ISR — revalidate toutes les heures

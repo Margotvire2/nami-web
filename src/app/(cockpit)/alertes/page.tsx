@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ClipboardList, CheckCircle2, Clock, FileText, Info } from "lucide-react";
+import { ClipboardList, CheckCircle2, Clock, FileText, Info, Bell } from "lucide-react";
+import { EmptyState } from "@/components/nami/EmptyState";
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 // [LEGAL] Wording conforme : indicateurs de complétude, jamais "alerte clinique"
@@ -142,15 +143,11 @@ export default function AlertesPage() {
         {isLoading ? (
           <div className="p-6 space-y-2">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center">
-            <CheckCircle2 size={28} className="text-green-400 mb-3" />
-            <p className="text-sm font-medium text-green-600 mb-1">
-              Tous les éléments du dossier sont à jour
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Aucun élément de complétude ne nécessite votre attention.
-            </p>
-          </div>
+          <EmptyState
+            icon={Bell}
+            title="Aucune alerte active"
+            description="Bonne nouvelle — aucun signal d'alerte détecté sur vos patients."
+          />
         ) : (
           <div className="max-w-3xl mx-auto px-6 py-4 space-y-2">
             {filtered.map((alert) => (

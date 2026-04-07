@@ -1,780 +1,673 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type CreateLocationInput, type ConsultationLocation } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { apiWithToken, appointmentsApi, type ConsultationLocation } from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  MapPin,
-  Clock,
-  Stethoscope,
-  Settings2,
-  Plus,
-  Pencil,
-  Trash2,
-  Check,
-  Video,
-  Home,
-  Loader2,
-  CalendarOff,
-} from "lucide-react";
-import type { AgendaSettings } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
-const DAYS = [
-  { key: "MON", label: "Lun" },
-  { key: "TUE", label: "Mar" },
-  { key: "WED", label: "Mer" },
-  { key: "THU", label: "Jeu" },
-  { key: "FRI", label: "Ven" },
-  { key: "SAT", label: "Sam" },
-  { key: "SUN", label: "Dim" },
-];
-
-const LOCATION_COLORS = [
-  "#6B7FA3", "#7A9E7E", "#C4956A", "#B8A99A",
-  "#8B9BB4", "#C4A0B0", "#9B8EC4", "#8B9B6E",
-];
-
-const LOCATION_TYPE_LABEL: Record<string, { label: string; icon: typeof MapPin }> = {
-  PHYSICAL: { label: "Présentiel", icon: MapPin },
-  VIDEO: { label: "Visio", icon: Video },
-  HOME_VISIT: { label: "Domicile", icon: Home },
+/* ─── NAMI PALETTE ─── */
+const NAMI = {
+  bg: "#F6F5FB",
+  card: "#FFFFFF",
+  primary: "#5B4EC4",
+  primaryLight: "#EDE9FC",
+  primaryMid: "#8B7FD9",
+  text: "#2D2B3D",
+  textSoft: "#8A879C",
+  border: "#ECEAF5",
+  borderFocus: "#5B4EC4",
+  danger: "#C4574E",
+  dangerBg: "#FDF0EF",
+  success: "#4E9A7C",
+  successBg: "#EDF7F2",
 };
 
-const TABS = [
-  { key: "locations", label: "Cabinets", icon: MapPin },
-  { key: "types", label: "Consultations", icon: Stethoscope },
-  { key: "rules", label: "Règles", icon: Settings2 },
-  { key: "absences", label: "Absences", icon: CalendarOff },
-] as const;
+const CONSULT_COLORS = [
+  { name: "Ardoise", hex: "#6B7B8D" },
+  { name: "Sauge", hex: "#7D9E85" },
+  { name: "Terracotta", hex: "#C4836A" },
+  { name: "Sable", hex: "#C2AB7F" },
+  { name: "Lavande", hex: "#9A8DC4" },
+  { name: "Bleu gris", hex: "#7E95A9" },
+  { name: "Rose ancien", hex: "#B8868E" },
+  { name: "Olive", hex: "#8A9A6B" },
+  { name: "Prune", hex: "#8E6B8A" },
+  { name: "Océan", hex: "#6B8E9A" },
+];
 
-type Tab = (typeof TABS)[number]["key"];
+const WEEK_DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const LOCATION_TYPES = [
+  { id: "PHYSICAL", label: "Cabinet", icon: "🏥" },
+  { id: "HOSPITAL", label: "Hôpital", icon: "🏨" },
+  { id: "VIDEO", label: "Visio", icon: "💻" },
+  { id: "HOME_VISIT", label: "Domicile", icon: "🏠" },
+];
 
-// ─── Page ───────────────────────────────────────────────────────────────────
+/* ─── TYPES ─── */
+interface LocationDraft {
+  id?: string;
+  name: string;
+  type: string;
+  active: boolean;
+  address: string;
+  accessInfo: string;
+  onlineBooking: boolean;
+  acceptReferrals: boolean;
+  allowedConsultIds: string[];
+  schedule: Record<string, Array<{ start: string; end: string }>>;
+  color: string;
+}
 
-export default function ParametragePage() {
+interface ConsultDraft {
+  id?: string;
+  name: string;
+  duration: number;
+  price: number;
+  color: string;
+  format: string;
+  locationIds: string[];
+  minAdvance: number;
+  cancelDelay: number;
+}
+
+/* ─── PRIMITIVES ─── */
+
+function Toggle({ value, onChange, label, sub }: { value: boolean; onChange: (v: boolean) => void; label: string; sub?: string }) {
+  return (
+    <label style={S.toggleRow}>
+      <div style={{ flex: 1 }}>
+        <div style={S.toggleLabel}>{label}</div>
+        {sub && <div style={{ fontSize: 12, color: NAMI.textSoft, marginTop: 1 }}>{sub}</div>}
+      </div>
+      <div onClick={() => onChange(!value)} style={{ ...S.toggleTrack, background: value ? NAMI.primary : "#D5D3E0" }}>
+        <div style={{ ...S.toggleThumb, transform: value ? "translateX(18px)" : "translateX(0)" }} />
+      </div>
+    </label>
+  );
+}
+
+function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {CONSULT_COLORS.map((c) => (
+        <div key={c.hex} onClick={() => onChange(c.hex)} title={c.name}
+          style={{ width: 28, height: 28, borderRadius: "50%", background: c.hex, cursor: "pointer", border: value === c.hex ? `3px solid ${NAMI.text}` : "3px solid transparent", transition: "border 0.15s" }} />
+      ))}
+    </div>
+  );
+}
+
+function SectionHeader({ icon, title, sub }: { icon: string; title: string; sub?: string }) {
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: NAMI.text }}>{title}</span>
+      </div>
+      {sub && <div style={{ fontSize: 12, color: NAMI.textSoft, marginTop: 2, paddingLeft: 28 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function TimeSlotRow({ slot, onUpdate, onRemove }: { slot: { start: string; end: string }; onUpdate: (s: { start: string; end: string }) => void; onRemove: () => void }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+      <input type="time" value={slot.start} onChange={(e) => onUpdate({ ...slot, start: e.target.value })} style={S.timeInput} />
+      <span style={{ color: NAMI.textSoft, fontSize: 12 }}>→</span>
+      <input type="time" value={slot.end} onChange={(e) => onUpdate({ ...slot, end: e.target.value })} style={S.timeInput} />
+      <button onClick={onRemove} style={S.removeBtn}>✕</button>
+    </div>
+  );
+}
+
+/* ─── LOCATION CARD ─── */
+
+function LocationCard({ loc, consults, onUpdate, onRemove, isOpen, onToggle, saving }: {
+  loc: LocationDraft; consults: ConsultDraft[]; onUpdate: (l: LocationDraft) => void; onRemove: () => void; isOpen: boolean; onToggle: () => void; saving: boolean;
+}) {
+  const typeInfo = LOCATION_TYPES.find((t) => t.id === loc.type) || LOCATION_TYPES[0];
+  return (
+    <div style={S.card}>
+      <div style={S.cardHead} onClick={onToggle}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: NAMI.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>{typeInfo.icon}</div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: NAMI.text }}>{loc.name || "Nouveau lieu"}</div>
+            <div style={{ fontSize: 12, color: NAMI.textSoft }}>{typeInfo.label}{loc.address ? ` · ${loc.address.split(",")[0]}` : ""}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {loc.active !== false && <span style={{ fontSize: 11, fontWeight: 600, color: NAMI.success, background: NAMI.successBg, padding: "3px 8px", borderRadius: 6 }}>Actif</span>}
+          <svg width="16" height="16" viewBox="0 0 16 16" style={{ opacity: 0.3, transform: isOpen ? "rotate(180deg)" : "", transition: "transform 0.2s" }}>
+            <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+          </svg>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div style={S.cardBody}>
+          <div style={S.field}>
+            <label style={S.label}>Nom du lieu</label>
+            <input style={S.input} value={loc.name} onChange={(e) => onUpdate({ ...loc, name: e.target.value })} placeholder="Ex: Via Sana Paris 10" />
+          </div>
+          <div style={S.field}>
+            <label style={S.label}>Type</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {LOCATION_TYPES.map((t) => (
+                <button key={t.id} onClick={() => onUpdate({ ...loc, type: t.id })}
+                  style={{ ...S.chip, background: loc.type === t.id ? NAMI.primary : "#F3F2FA", color: loc.type === t.id ? "#fff" : NAMI.text }}>
+                  {t.icon} {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loc.type !== "VIDEO" && (
+            <>
+              <div style={S.field}>
+                <label style={S.label}>Adresse</label>
+                <input style={S.input} value={loc.address || ""} onChange={(v) => onUpdate({ ...loc, address: (v.target as HTMLInputElement).value })} placeholder="12 Rue de Rivoli, 75001 Paris" />
+              </div>
+              <div style={S.field}>
+                <label style={S.label}>Infos d&apos;accès</label>
+                <textarea style={{ ...S.input, minHeight: 56, resize: "vertical" as const, fontFamily: "inherit" }} value={loc.accessInfo || ""}
+                  onChange={(e) => onUpdate({ ...loc, accessInfo: e.target.value })} placeholder="Code porte, étage, interphone, parking…" />
+              </div>
+            </>
+          )}
+
+          <div style={S.field}>
+            <label style={S.label}>Plages d&apos;ouverture</label>
+            <div style={{ background: "#FAFAFD", borderRadius: 10, border: `1px solid ${NAMI.border}`, overflow: "hidden" }}>
+              {WEEK_DAYS.map((day, di) => {
+                const daySlots = (loc.schedule || {})[day] || [];
+                return (
+                  <div key={day} style={{ padding: "10px 14px", borderBottom: di < WEEK_DAYS.length - 1 ? `1px solid ${NAMI.border}` : "none" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: daySlots.length > 0 ? NAMI.text : NAMI.textSoft }}>{day}</span>
+                      <button style={{ ...S.linkBtn, fontSize: 11 }} onClick={() => {
+                        const ns = { ...(loc.schedule || {}) };
+                        ns[day] = [...(ns[day] || []), { start: "09:00", end: "13:00" }];
+                        onUpdate({ ...loc, schedule: ns });
+                      }}>+ Créneau</button>
+                    </div>
+                    {daySlots.length === 0 && <div style={{ fontSize: 12, color: NAMI.textSoft, opacity: 0.6, marginTop: 2 }}>Fermé</div>}
+                    {daySlots.map((slot, i) => (
+                      <TimeSlotRow key={i} slot={slot}
+                        onUpdate={(u) => { const ns = { ...loc.schedule }; ns[day] = [...ns[day]]; ns[day][i] = u; onUpdate({ ...loc, schedule: ns }); }}
+                        onRemove={() => { const ns = { ...loc.schedule }; ns[day] = ns[day].filter((_: unknown, j: number) => j !== i); onUpdate({ ...loc, schedule: ns }); }} />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={S.field}>
+            <label style={S.label}>Consultations autorisées ici</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {consults.map((c) => {
+                const selected = (loc.allowedConsultIds || []).includes(c.id ?? "");
+                return (
+                  <button key={c.id} onClick={() => {
+                    const ids = loc.allowedConsultIds || [];
+                    onUpdate({ ...loc, allowedConsultIds: selected ? ids.filter((x) => x !== c.id) : [...ids, c.id ?? ""] });
+                  }} style={{ ...S.chip, background: selected ? c.color : "#F3F2FA", color: selected ? "#fff" : NAMI.text, fontSize: 12 }}>
+                    {c.name || "Sans nom"}
+                  </button>
+                );
+              })}
+              {consults.length === 0 && <span style={{ fontSize: 12, color: NAMI.textSoft }}>Ajoutez d&apos;abord des consultations</span>}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, paddingTop: 4 }}>
+            <Toggle label="Prise de RDV en ligne" sub="Les patients peuvent réserver via l'annuaire" value={!!loc.onlineBooking} onChange={(v) => onUpdate({ ...loc, onlineBooking: v })} />
+            <Toggle label="Adressage de patients" sub="Accepter les patients adressés par des confrères" value={!!loc.acceptReferrals} onChange={(v) => onUpdate({ ...loc, acceptReferrals: v })} />
+            <Toggle label="Lieu actif" value={loc.active !== false} onChange={(v) => onUpdate({ ...loc, active: v })} />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8, gap: 8 }}>
+            <button onClick={onRemove} style={S.dangerBtn}>Supprimer ce lieu</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── CONSULTATION CARD ─── */
+
+function ConsultationCard({ consult, locations, onUpdate, onRemove, isOpen, onToggle }: {
+  consult: ConsultDraft; locations: LocationDraft[]; onUpdate: (c: ConsultDraft) => void; onRemove: () => void; isOpen: boolean; onToggle: () => void;
+}) {
+  return (
+    <div style={S.card}>
+      <div style={S.cardHead} onClick={onToggle}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 14, height: 14, borderRadius: "50%", background: consult.color || "#6B7B8D", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: NAMI.text }}>{consult.name || "Nouvelle consultation"}</div>
+            <div style={{ fontSize: 12, color: NAMI.textSoft }}>{consult.duration || 30} min · {consult.price || 0}€</div>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" style={{ opacity: 0.3, transform: isOpen ? "rotate(180deg)" : "", transition: "transform 0.2s" }}>
+          <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </svg>
+      </div>
+
+      {isOpen && (
+        <div style={S.cardBody}>
+          <div style={S.field}>
+            <label style={S.label}>Nom</label>
+            <input style={S.input} value={consult.name} onChange={(e) => onUpdate({ ...consult, name: e.target.value })} placeholder="Ex: Première consultation" />
+          </div>
+
+          <div style={S.field}>
+            <label style={S.label}>Format</label>
+            <div style={{ display: "flex", gap: 6 }}>
+              {["Cabinet", "Visio", "Les deux"].map((f) => (
+                <button key={f} onClick={() => onUpdate({ ...consult, format: f })}
+                  style={{ ...S.chip, background: consult.format === f ? NAMI.primary : "#F3F2FA", color: consult.format === f ? "#fff" : NAMI.text }}>
+                  {f === "Cabinet" ? "🏥" : f === "Visio" ? "💻" : "🔄"} {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ ...S.field, flex: 1 }}>
+              <label style={S.label}>Durée (min)</label>
+              <input type="number" style={S.input} value={consult.duration || ""} onChange={(e) => onUpdate({ ...consult, duration: parseInt(e.target.value) || 0 })} />
+            </div>
+            <div style={{ ...S.field, flex: 1 }}>
+              <label style={S.label}>Tarif (€)</label>
+              <input type="number" style={S.input} value={consult.price || ""} onChange={(e) => onUpdate({ ...consult, price: parseInt(e.target.value) || 0 })} />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ ...S.field, flex: 1 }}>
+              <label style={S.label}>Réservation min. (jours)</label>
+              <input type="number" style={S.input} value={consult.minAdvance ?? ""} onChange={(e) => onUpdate({ ...consult, minAdvance: parseInt(e.target.value) || 0 })} placeholder="1" />
+            </div>
+            <div style={{ ...S.field, flex: 1 }}>
+              <label style={S.label}>Délai annulation (h)</label>
+              <input type="number" style={S.input} value={consult.cancelDelay ?? ""} onChange={(e) => onUpdate({ ...consult, cancelDelay: parseInt(e.target.value) || 0 })} placeholder="24" />
+            </div>
+          </div>
+
+          <div style={S.field}>
+            <label style={S.label}>Couleur dans l&apos;agenda</label>
+            <ColorPicker value={consult.color || "#6B7B8D"} onChange={(c) => onUpdate({ ...consult, color: c })} />
+          </div>
+
+          <div style={S.field}>
+            <label style={S.label}>Lieux associés</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {locations.map((loc) => {
+                const sel = (consult.locationIds || []).includes(loc.id ?? "");
+                const typeInfo = LOCATION_TYPES.find((t) => t.id === loc.type);
+                return (
+                  <button key={loc.id} onClick={() => {
+                    const ids = consult.locationIds || [];
+                    onUpdate({ ...consult, locationIds: sel ? ids.filter((x) => x !== loc.id) : [...ids, loc.id ?? ""] });
+                  }} style={{ ...S.chip, background: sel ? NAMI.primary : "#F3F2FA", color: sel ? "#fff" : NAMI.text, fontSize: 12 }}>
+                    {typeInfo?.icon} {loc.name || "Sans nom"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8 }}>
+            <button onClick={onRemove} style={S.dangerBtn}>Supprimer</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── HELPERS: API ↔ Draft conversion ─── */
+
+function apiLocationToDraft(loc: ConsultationLocation): LocationDraft {
+  const l = loc as any;
+  return {
+    id: loc.id,
+    name: loc.name,
+    type: loc.locationType ?? "PHYSICAL",
+    active: loc.isActive !== false,
+    address: loc.address ?? "",
+    accessInfo: l.instructions ?? l.accessCode ?? "",
+    onlineBooking: l.allowsVideo ?? false,
+    acceptReferrals: false,
+    allowedConsultIds: l.allowedConsultTypes ?? [],
+    schedule: l.schedule ?? {},
+    color: loc.color ?? "#6B7B8D",
+  };
+}
+
+function apiConsultToDraft(c: any): ConsultDraft {
+  return {
+    id: c.id,
+    name: c.name,
+    duration: c.durationMinutes ?? 30,
+    price: c.price ?? 0,
+    color: c.color ?? "#6B7B8D",
+    format: c.consultationMode === "VIDEO" ? "Visio" : "Cabinet",
+    locationIds: [],
+    minAdvance: 1,
+    cancelDelay: 24,
+  };
+}
+
+/* ─── MAIN ─── */
+
+export default function ParametresAgenda() {
   const { accessToken } = useAuthStore();
   const api = apiWithToken(accessToken!);
   const qc = useQueryClient();
-  const [tab, setTab] = useState<Tab>("locations");
 
+  const [section, setSection] = useState("lieux");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [buffer, setBuffer] = useState(10);
+  const [smartCompact, setSmartCompact] = useState(true);
+
+  // Fetch from API
   const { data: settings, isLoading } = useQuery({
     queryKey: ["agenda-settings"],
     queryFn: () => api.agendaSettings.get(),
   });
 
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary" />
-      </div>
-    );
-  }
+  // Local state from API data
+  const [locations, setLocations] = useState<LocationDraft[]>([]);
+  const [consults, setConsults] = useState<ConsultDraft[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
-  return (
-    <div className="h-full flex flex-col overflow-hidden bg-muted/10">
-      {/* Header */}
-      <div className="border-b bg-card px-6 py-4 shrink-0">
-        <Link href="/agenda" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
-          <ArrowLeft size={12} /> Retour à l&apos;agenda
-        </Link>
-        <h1 className="text-base font-semibold flex items-center gap-2">
-          <Settings2 size={16} /> Paramétrage de l&apos;agenda
-        </h1>
-      </div>
+  useEffect(() => {
+    if (settings && !initialized) {
+      setLocations((settings.locations ?? []).map(apiLocationToDraft));
+      setConsults((settings.consultationTypes ?? []).map(apiConsultToDraft));
+      setBuffer(settings.buffer ?? 10);
+      setSmartCompact(settings.smartCompact ?? true);
+      setInitialized(true);
+    }
+  }, [settings, initialized]);
 
-      {/* Tabs */}
-      <div className="border-b bg-card px-6 flex gap-1 shrink-0">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 border-b-2 transition-colors ${
-              tab === t.key
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <t.icon size={13} /> {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-6 py-6">
-          {tab === "locations" && <LocationsTab api={api} locations={settings?.locations ?? []} consultationTypes={settings?.consultationTypes ?? []} qc={qc} />}
-          {tab === "types" && <TypesTab api={api} types={settings?.consultationTypes ?? []} locations={settings?.locations ?? []} qc={qc} />}
-          {tab === "rules" && <RulesTab api={api} settings={settings!} qc={qc} />}
-          {tab === "absences" && <AbsencesTab api={api} absences={settings?.absences ?? []} locations={settings?.locations ?? []} qc={qc} />}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Locations Tab ──────────────────────────────────────────────────────────
-
-function LocationsTab({ api, locations, consultationTypes, qc }: {
-  api: ReturnType<typeof apiWithToken>;
-  locations: ConsultationLocation[];
-  consultationTypes: Array<{ id: string; name: string; durationMinutes: number }>;
-  qc: ReturnType<typeof useQueryClient>;
-}) {
-  const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState<Partial<CreateLocationInput>>({});
-
-  function startNew() {
-    setEditing("new");
-    setForm({
-      name: "",
-      locationType: "PHYSICAL",
-      color: "#6B7FA3",
-      activeDays: ["MON", "TUE", "WED", "THU", "FRI"],
-      openTime: "09:00",
-      closeTime: "18:00",
-    });
-  }
-
-  function startEdit(loc: ConsultationLocation) {
-    setEditing(loc.id);
-    setForm({
-      name: loc.name,
-      address: loc.address ?? undefined,
-      postalCode: loc.postalCode ?? undefined,
-      city: loc.city ?? undefined,
-      accessCode: loc.accessCode ?? undefined,
-      instructions: loc.instructions ?? undefined,
-      locationType: loc.locationType as CreateLocationInput["locationType"],
-      color: loc.color ?? "#6B7FA3",
-      activeDays: (loc as any).activeDays ?? [],
-      openTime: (loc as any).openTime ?? "09:00",
-      closeTime: (loc as any).closeTime ?? "18:00",
-      lunchStart: (loc as any).lunchStart ?? null,
-      lunchEnd: (loc as any).lunchEnd ?? null,
-      allowedConsultTypes: (loc as any).allowedConsultTypes ?? [],
-      allowsVideo: (loc as any).allowsVideo ?? false,
-    });
-  }
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (editing === "new") {
-        return api.locations.create(form as CreateLocationInput);
+  // Save location mutation
+  const saveLocationMutation = useMutation({
+    mutationFn: async (loc: LocationDraft) => {
+      const payload = {
+        name: loc.name,
+        locationType: loc.type as "PHYSICAL" | "VIDEO" | "PHONE" | "HOME_VISIT",
+        color: loc.color,
+        address: loc.address || undefined,
+        instructions: loc.accessInfo || undefined,
+        isActive: loc.active,
+      };
+      if (loc.id && !loc.id.startsWith("new_")) {
+        return api.locations.update(loc.id, payload);
       } else {
-        return api.locations.update(editing!, form);
+        return api.locations.create(payload as any);
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agenda-settings"] });
       qc.invalidateQueries({ queryKey: ["locations"] });
-      setEditing(null);
-      toast.success(editing === "new" ? "Lieu ajouté" : "Lieu modifié");
+      toast.success("Lieu sauvegardé");
     },
     onError: () => toast.error("Erreur lors de la sauvegarde"),
   });
 
-  const deleteMutation = useMutation({
+  const deleteLocationMutation = useMutation({
     mutationFn: (id: string) => api.locations.remove(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agenda-settings"] });
       qc.invalidateQueries({ queryKey: ["locations"] });
-      toast.success("Lieu désactivé");
+      toast.success("Lieu supprimé");
     },
   });
 
-  function toggleDay(day: string) {
-    const current = form.activeDays ?? [];
-    setForm({
-      ...form,
-      activeDays: current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
-    });
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Mes lieux de consultation</h2>
-        {editing === null && (
-          <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={startNew}>
-            <Plus size={12} /> Ajouter un lieu
-          </Button>
-        )}
-      </div>
-
-      {/* Existing locations */}
-      {locations.map((loc) =>
-        editing === loc.id ? null : (
-          <div key={loc.id} className="rounded-xl border bg-card p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: loc.color ?? "#6B7FA3" }} />
-              <span className="text-sm font-medium">{loc.name}</span>
-              <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                {LOCATION_TYPE_LABEL[loc.locationType]?.label ?? loc.locationType}
-              </span>
-              <div className="ml-auto flex gap-1">
-                <button className="p-1 rounded hover:bg-muted" onClick={() => startEdit(loc)}>
-                  <Pencil size={12} className="text-muted-foreground" />
-                </button>
-                <button className="p-1 rounded hover:bg-muted" onClick={() => deleteMutation.mutate(loc.id)}>
-                  <Trash2 size={12} className="text-muted-foreground" />
-                </button>
-              </div>
-            </div>
-            {loc.address && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <MapPin size={10} /> {loc.address}{loc.city ? `, ${loc.city}` : ""}
-              </p>
-            )}
-            {(loc as any).activeDays?.length > 0 && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Clock size={10} />
-                {((loc as any).activeDays as string[]).map((d) => DAYS.find((dd) => dd.key === d)?.label).filter(Boolean).join(" · ")}
-                {" — "}{(loc as any).openTime ?? "09:00"} → {(loc as any).closeTime ?? "18:00"}
-              </div>
-            )}
-            {(loc as any).allowedConsultTypes?.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {((loc as any).allowedConsultTypes as string[]).map((ctId) => {
-                  const ct = consultationTypes.find((t) => t.id === ctId);
-                  return ct ? (
-                    <span key={ctId} className="text-[9px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{ct.name}</span>
-                  ) : null;
-                })}
-              </div>
-            )}
-            {((loc as any).allowedConsultTypes ?? []).length === 0 && (
-              <p className="text-[9px] text-amber-600 mt-1">⚠ Aucun type de consultation affecté</p>
-            )}
-          </div>
-        )
-      )}
-
-      {/* Form (new or edit) */}
-      {editing !== null && (
-        <div className="rounded-xl border bg-card p-5 space-y-4">
-          <h3 className="text-sm font-semibold">{editing === "new" ? "Nouveau lieu" : "Modifier le lieu"}</h3>
-
-          {/* Name + type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Nom</label>
-              <Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Cabinet Paris 10" className="h-8 text-xs mt-1" />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Type</label>
-              <div className="flex gap-1.5 mt-1">
-                {(["PHYSICAL", "VIDEO", "HOME_VISIT"] as const).map((t) => (
-                  <button key={t} onClick={() => setForm({ ...form, locationType: t })} className={`text-[10px] px-2 py-1 rounded border ${form.locationType === t ? "bg-primary text-white border-primary" : "border-border"}`}>
-                    {LOCATION_TYPE_LABEL[t]?.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Address */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="text-[11px] font-medium text-muted-foreground">Adresse</label>
-              <Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} className="h-8 text-xs mt-1" />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Ville</label>
-              <Input value={form.city ?? ""} onChange={(e) => setForm({ ...form, city: e.target.value })} className="h-8 text-xs mt-1" />
-            </div>
-          </div>
-
-          {/* Days */}
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Jours d&apos;ouverture</label>
-            <div className="flex gap-1.5 mt-1.5">
-              {DAYS.map((d) => (
-                <button key={d.key} onClick={() => toggleDay(d.key)} className={`w-8 h-8 rounded-lg text-[11px] font-medium ${(form.activeDays ?? []).includes(d.key) ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
-                  {d.label[0]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Hours */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Ouverture</label>
-              <Input type="time" value={form.openTime ?? "09:00"} onChange={(e) => setForm({ ...form, openTime: e.target.value })} className="h-8 text-xs mt-1" />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Fermeture</label>
-              <Input type="time" value={form.closeTime ?? "18:00"} onChange={(e) => setForm({ ...form, closeTime: e.target.value })} className="h-8 text-xs mt-1" />
-            </div>
-          </div>
-
-          {/* Allowed consultation types */}
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Types de consultation pratiqués dans ce lieu</label>
-            {consultationTypes.length === 0 ? (
-              <p className="text-[10px] text-muted-foreground mt-1.5">
-                Créez d&apos;abord vos types de consultation dans l&apos;onglet &quot;Consultations&quot;.
-              </p>
-            ) : (
-              <div className="space-y-1.5 mt-1.5">
-                {consultationTypes.map((ct) => {
-                  const checked = (form.allowedConsultTypes ?? []).includes(ct.id);
-                  return (
-                    <label key={ct.id} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => {
-                          const current = form.allowedConsultTypes ?? [];
-                          setForm({
-                            ...form,
-                            allowedConsultTypes: checked
-                              ? current.filter((id) => id !== ct.id)
-                              : [...current, ct.id],
-                          });
-                        }}
-                        className="rounded border-border"
-                      />
-                      <span className="text-xs">{ct.name}</span>
-                      <span className="text-[10px] text-muted-foreground">{ct.durationMinutes} min</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Color */}
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Couleur</label>
-            <div className="flex gap-2 mt-1.5">
-              {LOCATION_COLORS.map((c) => (
-                <button key={c} onClick={() => setForm({ ...form, color: c })} className={`w-7 h-7 rounded-full border-2 flex items-center justify-center ${form.color === c ? "border-foreground" : "border-transparent"}`} style={{ backgroundColor: c }}>
-                  {form.color === c && <Check size={12} className="text-white" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
-            <Button size="sm" className="text-xs" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !form.name?.trim()}>
-              {saveMutation.isPending ? <Loader2 size={12} className="animate-spin mr-1" /> : null}
-              Enregistrer
-            </Button>
-            <Button size="sm" variant="outline" className="text-xs" onClick={() => setEditing(null)}>
-              Annuler
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {locations.length === 0 && editing === null && (
-        <div className="text-center py-12 space-y-2">
-          <MapPin size={32} className="mx-auto text-muted-foreground/30" />
-          <p className="text-sm font-medium">Aucun lieu configuré</p>
-          <p className="text-xs text-muted-foreground">Ajoutez votre premier cabinet pour organiser votre agenda.</p>
-          <Button size="sm" className="text-xs gap-1.5 mt-2" onClick={startNew}>
-            <Plus size={12} /> Ajouter un lieu
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Types Tab ──────────────────────────────────────────────────────────────
-
-function TypesTab({ api, types, locations, qc }: {
-  api: ReturnType<typeof apiWithToken>;
-  types: Array<{ id: string; name: string; durationMinutes: number; code?: string | null; color?: string | null }>;
-  locations: ConsultationLocation[];
-  qc: ReturnType<typeof useQueryClient>;
-}) {
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState("");
-  const [duration, setDuration] = useState(45);
-
-  const createMutation = useMutation({
-    mutationFn: () =>
-      api.appointments.createConsultationType({ name, durationMinutes: duration, price: 0 }),
+  // Save consult type mutation
+  const saveConsultMutation = useMutation({
+    mutationFn: async (c: ConsultDraft) => {
+      const payload = {
+        name: c.name,
+        durationMinutes: c.duration,
+        price: c.price,
+        consultationMode: c.format === "Visio" ? "VIDEO" as const : "IN_PERSON" as const,
+        availablePublicly: true,
+      };
+      if (c.id && !c.id.startsWith("new_")) {
+        return api.appointments.patchConsultationType(c.id, payload);
+      } else {
+        return api.appointments.createConsultationType(payload);
+      }
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agenda-settings"] });
-      qc.invalidateQueries({ queryKey: ["consultation-types"] });
-      setAdding(false);
-      setName("");
-      toast.success("Type de consultation ajouté");
+      toast.success("Consultation sauvegardée");
     },
-    onError: () => toast.error("Erreur"),
+    onError: () => toast.error("Erreur lors de la sauvegarde"),
   });
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Types de consultation</h2>
-        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setAdding(true)}>
-          <Plus size={12} /> Ajouter un type
-        </Button>
-      </div>
-
-      {/* Existing types */}
-      <div className="space-y-2">
-        {types.map((t) => (
-          <div key={t.id} className="rounded-lg border bg-card p-3">
-            <div className="flex items-center gap-3">
-              <Stethoscope size={14} className="text-muted-foreground" />
-              <span className="text-sm font-medium flex-1">{t.name}</span>
-              <span className="text-xs text-muted-foreground">{t.durationMinutes} min</span>
-            </div>
-            {(() => {
-              const assignedLocs = locations.filter((l) => ((l as any).allowedConsultTypes ?? []).includes(t.id));
-              return assignedLocs.length > 0 ? (
-                <div className="flex flex-wrap gap-1 mt-1.5 ml-7">
-                  {assignedLocs.map((l) => (
-                    <span key={l.id} className="text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1" style={{ backgroundColor: `${l.color ?? "#6B7FA3"}15`, color: l.color ?? "#6B7FA3" }}>
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.color ?? "#6B7FA3" }} />
-                      {l.name}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[9px] text-amber-600 mt-1 ml-7">⚠ Non affecté à un cabinet</p>
-              );
-            })()}
-          </div>
-        ))}
-      </div>
-
-      {/* Add form */}
-      {adding && (
-        <div className="rounded-xl border bg-card p-4 space-y-3">
-          <h3 className="text-sm font-semibold">Nouveau type</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Nom</label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Consultation de crise" className="h-8 text-xs mt-1" />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Durée (min)</label>
-              <div className="flex gap-1.5 mt-1">
-                {[15, 30, 45, 60, 90].map((d) => (
-                  <button key={d} onClick={() => setDuration(d)} className={`text-[10px] px-2 py-1 rounded border ${duration === d ? "bg-primary text-white border-primary" : "border-border"}`}>
-                    {d}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" className="text-xs" onClick={() => createMutation.mutate()} disabled={!name.trim()}>
-              Enregistrer
-            </Button>
-            <Button size="sm" variant="outline" className="text-xs" onClick={() => setAdding(false)}>
-              Annuler
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Rules Tab ──────────────────────────────────────────────────────────────
-
-function RulesTab({ api, settings, qc }: {
-  api: ReturnType<typeof apiWithToken>;
-  settings: AgendaSettings;
-  qc: ReturnType<typeof useQueryClient>;
-}) {
-  const [buffer, setBuffer] = useState(settings.buffer ?? 0);
-  const [minNotice, setMinNotice] = useState(settings.minNotice ?? 24);
-  const [maxHorizon, setMaxHorizon] = useState(settings.maxHorizon ?? 90);
-  const [autoConfirm, setAutoConfirm] = useState(settings.autoConfirm);
-  const [smartCompact, setSmartCompact] = useState(settings.smartCompact ?? true);
-  const [cancelDelay, setCancelDelay] = useState(settings.cancelDelay ?? 24);
-
-  const mutation = useMutation({
+  const saveRulesMutation = useMutation({
     mutationFn: () => api.agendaSettings.update({
-      agendaBuffer: buffer || null,
-      agendaMinNotice: minNotice || null,
-      agendaMaxHorizon: maxHorizon || null,
-      agendaAutoConfirm: autoConfirm,
+      agendaBuffer: buffer,
       agendaSmartCompact: smartCompact,
-      agendaCancelDelay: cancelDelay || null,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agenda-settings"] });
-      toast.success("Règles enregistrées");
+      toast.success("Préférences sauvegardées");
     },
-    onError: () => toast.error("Erreur"),
   });
+
+  // Sync slots from location schedules → AvailabilitySlot
+  const syncSlotsMutation = useMutation({
+    mutationFn: async () => {
+      if (!accessToken) return;
+      const WEEKDAY_MAP: Record<string, number> = {
+        Lundi: 1, Mardi: 2, Mercredi: 3, Jeudi: 4,
+        Vendredi: 5, Samedi: 6, Dimanche: 0,
+      };
+      // Delete existing slots
+      const existing = await appointmentsApi.slots(accessToken);
+      for (const slot of existing) {
+        await appointmentsApi.deleteSlot(accessToken, slot.id);
+      }
+      // Recreate from all location schedules
+      for (const location of locations) {
+        for (const [day, slots] of Object.entries(location.schedule || {})) {
+          const weekday = WEEKDAY_MAP[day];
+          if (weekday === undefined) continue;
+          for (const slot of slots as Array<{ start: string; end: string }>) {
+            await appointmentsApi.createSlot(accessToken, {
+              weekday,
+              startTime: slot.start,
+              endTime: slot.end,
+              isActive: true,
+            });
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["availability-slots"] });
+      qc.invalidateQueries({ queryKey: ["agenda-settings"] });
+      toast.success("Plages horaires sauvegardées");
+    },
+    onError: () => toast.error("Erreur sauvegarde des plages"),
+  });
+
+  function addLocation() {
+    const id = "new_" + Date.now();
+    setLocations([...locations, { id, name: "", type: "PHYSICAL", active: true, address: "", accessInfo: "", onlineBooking: true, acceptReferrals: false, allowedConsultIds: [], schedule: {}, color: "#6B7B8D" }]);
+    setExpandedId(id);
+  }
+
+  function addConsult() {
+    const id = "new_" + Date.now();
+    setConsults([...consults, { id, name: "", duration: 30, price: 50, color: CONSULT_COLORS[(consults.length) % CONSULT_COLORS.length].hex, format: "Cabinet", locationIds: [], minAdvance: 1, cancelDelay: 24 }]);
+    setExpandedId(id);
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ ...S.page, alignItems: "center", justifyContent: "center", display: "flex" }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: NAMI.primary }} />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Buffer */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Temps de battement entre consultations</h3>
-        <p className="text-xs text-muted-foreground">Ce temps est automatiquement ajouté après chaque consultation.</p>
-        <div className="flex gap-1.5">
-          {[0, 5, 10, 15, 20].map((v) => (
-            <button key={v} onClick={() => setBuffer(v)} className={`text-xs px-3 py-1.5 rounded-lg border ${buffer === v ? "bg-primary text-white border-primary" : "border-border"}`}>
-              {v === 0 ? "Aucun" : `${v} min`}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Min notice */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Délai minimum avant rendez-vous</h3>
-        <div className="flex gap-1.5">
-          {[
-            { v: 0, l: "Le jour même" },
-            { v: 24, l: "24h" },
-            { v: 48, l: "48h" },
-            { v: 168, l: "1 semaine" },
-          ].map(({ v, l }) => (
-            <button key={v} onClick={() => setMinNotice(v)} className={`text-xs px-3 py-1.5 rounded-lg border ${minNotice === v ? "bg-primary text-white border-primary" : "border-border"}`}>
-              {l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Max horizon */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Horizon de réservation</h3>
-        <div className="flex gap-1.5">
-          {[
-            { v: 30, l: "1 mois" },
-            { v: 60, l: "2 mois" },
-            { v: 90, l: "3 mois" },
-            { v: 180, l: "6 mois" },
-          ].map(({ v, l }) => (
-            <button key={v} onClick={() => setMaxHorizon(v)} className={`text-xs px-3 py-1.5 rounded-lg border ${maxHorizon === v ? "bg-primary text-white border-primary" : "border-border"}`}>
-              {l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Auto confirm */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Confirmation automatique</h3>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setAutoConfirm(!autoConfirm)} className={`w-10 h-5 rounded-full transition-colors ${autoConfirm ? "bg-primary" : "bg-muted"}`}>
-            <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${autoConfirm ? "translate-x-5" : "translate-x-0.5"}`} />
-          </button>
-          <span className="text-xs text-muted-foreground">
-            {autoConfirm ? "Les demandes via l'annuaire sont confirmées automatiquement" : "Chaque demande nécessite votre validation manuelle"}
-          </span>
-        </div>
-      </div>
-
-      {/* Cancel delay */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Délai d&apos;annulation patient</h3>
-        <div className="flex gap-1.5">
-          {[
-            { v: 0, l: "Aucun" },
-            { v: 24, l: "24h" },
-            { v: 48, l: "48h" },
-            { v: 72, l: "72h" },
-          ].map(({ v, l }) => (
-            <button key={v} onClick={() => setCancelDelay(v)} className={`text-xs px-3 py-1.5 rounded-lg border ${cancelDelay === v ? "bg-primary text-white border-primary" : "border-border"}`}>
-              {l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Smart compact */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Smart compactage</h3>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setSmartCompact(!smartCompact)} className={`w-10 h-5 rounded-full transition-colors ${smartCompact ? "bg-primary" : "bg-muted"}`}>
-            <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${smartCompact ? "translate-x-5" : "translate-x-0.5"}`} />
-          </button>
-          <div>
-            <span className="text-xs text-foreground">
-              {smartCompact ? "Activé" : "Désactivé"}
-            </span>
-            <p className="text-[10px] text-muted-foreground">Propose en priorité les créneaux adjacents aux RDV existants pour éviter les trous.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Save */}
-      <Button size="sm" className="text-xs" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-        {mutation.isPending ? <Loader2 size={12} className="animate-spin mr-1" /> : null}
-        Enregistrer les règles
-      </Button>
-    </div>
-  );
-}
-
-// ─── Absences Tab ─────────────────────────────────────────────────────────
-
-function AbsencesTab({ api, absences, locations, qc }: {
-  api: ReturnType<typeof apiWithToken>;
-  absences: Array<{ id: string; label: string; startDate: string; endDate: string; allLocations: boolean; locationIds: string[] }>;
-  locations: ConsultationLocation[];
-  qc: ReturnType<typeof useQueryClient>;
-}) {
-  const [adding, setAdding] = useState(false);
-  const [label, setLabel] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [allLocs, setAllLocs] = useState(true);
-  const [selectedLocIds, setSelectedLocIds] = useState<string[]>([]);
-
-  const createMutation = useMutation({
-    mutationFn: () =>
-      api.absences.create({
-        label,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        allLocations: allLocs,
-        locationIds: allLocs ? [] : selectedLocIds,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["agenda-settings"] });
-      setAdding(false);
-      setLabel("");
-      setStartDate("");
-      setEndDate("");
-      toast.success("Absence ajoutée");
-    },
-    onError: () => toast.error("Erreur"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.absences.remove(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["agenda-settings"] });
-      toast.success("Absence supprimée");
-    },
-  });
-
-  const futureAbsences = absences.filter((a) => new Date(a.endDate) >= new Date());
-  const pastAbsences = absences.filter((a) => new Date(a.endDate) < new Date());
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Absences et blocages</h2>
-        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setAdding(true)}>
-          <Plus size={12} /> Bloquer une plage
-        </Button>
-      </div>
-
-      <p className="text-xs text-muted-foreground">
-        Les créneaux bloqués ne seront pas proposés aux patients dans l&apos;annuaire.
-      </p>
-
-      {/* Future absences */}
-      {futureAbsences.length > 0 && (
-        <div className="space-y-2">
-          {futureAbsences.map((a) => (
-            <div key={a.id} className="rounded-lg border bg-card p-3 flex items-center gap-3">
-              <CalendarOff size={14} className="text-muted-foreground shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{a.label}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(a.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                  {" → "}
-                  {new Date(a.endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
-                  {a.allLocations ? " · Tous les lieux" : ` · ${a.locationIds.length} lieu${a.locationIds.length !== 1 ? "x" : ""}`}
-                </p>
-              </div>
-              <button onClick={() => deleteMutation.mutate(a.id)} className="p-1 rounded hover:bg-muted">
-                <Trash2 size={12} className="text-muted-foreground" />
-              </button>
+    <div style={S.page}>
+      <div style={S.container}>
+        {/* HEADER */}
+        <div style={{ marginBottom: 24 }}>
+          <Link href="/agenda" style={{ fontSize: 12, color: NAMI.textSoft, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12 }}>
+            ← Retour à l&apos;agenda
+          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: `linear-gradient(135deg, ${NAMI.primary}, ${NAMI.primaryMid})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
             </div>
+            <h1 style={{ fontSize: 22, fontWeight: 600, color: NAMI.text, letterSpacing: "-0.5px" }}>Paramètres de l&apos;agenda</h1>
+          </div>
+          <p style={{ fontSize: 13, color: NAMI.textSoft, paddingLeft: 42 }}>Lieux, consultations et préférences</p>
+        </div>
+
+        {/* TABS */}
+        <div style={S.tabs}>
+          {[
+            { id: "lieux", label: "Lieux", icon: "📍" },
+            { id: "consultations", label: "Consultations", icon: "🩺" },
+            { id: "preferences", label: "Préférences", icon: "⚙️" },
+          ].map((tab) => (
+            <button key={tab.id} onClick={() => { setSection(tab.id); setExpandedId(null); }}
+              style={{ ...S.tab, background: section === tab.id ? NAMI.primary : "transparent", color: section === tab.id ? "#fff" : NAMI.textSoft, fontWeight: section === tab.id ? 600 : 400 }}>
+              <span style={{ fontSize: 13 }}>{tab.icon}</span> {tab.label}
+            </button>
           ))}
         </div>
-      )}
 
-      {/* Add form */}
-      {adding && (
-        <div className="rounded-xl border bg-card p-4 space-y-3">
-          <h3 className="text-sm font-semibold">Nouvelle absence</h3>
+        {/* ── LIEUX ── */}
+        {section === "lieux" && (
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Motif</label>
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ex: Vacances d'été, Formation…" className="h-8 text-xs mt-1" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Début</label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-8 text-xs mt-1" />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Fin</label>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-8 text-xs mt-1" />
-            </div>
-          </div>
-
-          {/* Location scope */}
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Lieux concernés</label>
-            <div className="space-y-1.5 mt-1.5">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={allLocs} onChange={() => setAllLocs(!allLocs)} className="rounded border-border" />
-                <span className="text-xs">Tous les lieux</span>
-              </label>
-              {!allLocs && locations.map((loc) => (
-                <label key={loc.id} className="flex items-center gap-2 cursor-pointer ml-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedLocIds.includes(loc.id)}
-                    onChange={() => {
-                      setSelectedLocIds((prev) =>
-                        prev.includes(loc.id) ? prev.filter((id) => id !== loc.id) : [...prev, loc.id]
-                      );
-                    }}
-                    className="rounded border-border"
-                  />
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: loc.color ?? "#6B7FA3" }} />
-                  <span className="text-xs">{loc.name}</span>
-                </label>
+            <SectionHeader icon="📍" title="Lieux de consultation" sub="Adresse, horaires, types autorisés et préférences par lieu" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+              {locations.map((loc) => (
+                <LocationCard key={loc.id} loc={loc} consults={consults}
+                  isOpen={expandedId === loc.id} onToggle={() => setExpandedId(expandedId === loc.id ? null : loc.id ?? null)}
+                  onUpdate={(u) => {
+                    const prev = locations.find((l) => l.id === u.id);
+                    setLocations(locations.map((l) => (l.id === u.id ? u : l)));
+                    saveLocationMutation.mutate(u);
+                    // Sync availability slots if schedule changed
+                    if (prev && JSON.stringify(u.schedule) !== JSON.stringify(prev.schedule)) {
+                      syncSlotsMutation.mutate();
+                    }
+                  }}
+                  onRemove={() => {
+                    if (loc.id && !loc.id.startsWith("new_")) deleteLocationMutation.mutate(loc.id);
+                    setLocations(locations.filter((l) => l.id !== loc.id));
+                  }}
+                  saving={saveLocationMutation.isPending} />
               ))}
+              <button onClick={addLocation} style={S.addBtn}>+ Ajouter un lieu</button>
             </div>
           </div>
+        )}
 
-          <div className="flex gap-2">
-            <Button size="sm" className="text-xs" onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !label.trim() || !startDate || !endDate}>
-              {createMutation.isPending ? <Loader2 size={12} className="animate-spin mr-1" /> : null}
-              Bloquer cette plage
-            </Button>
-            <Button size="sm" variant="outline" className="text-xs" onClick={() => setAdding(false)}>
-              Annuler
-            </Button>
+        {/* ── CONSULTATIONS ── */}
+        {section === "consultations" && (
+          <div>
+            <SectionHeader icon="🩺" title="Types de consultation" sub="Nom, format, durée, tarif, couleur et lieux associés" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+              {consults.map((c) => (
+                <ConsultationCard key={c.id} consult={c} locations={locations}
+                  isOpen={expandedId === c.id} onToggle={() => setExpandedId(expandedId === c.id ? null : c.id ?? null)}
+                  onUpdate={(u) => {
+                    setConsults(consults.map((x) => (x.id === u.id ? u : x)));
+                    saveConsultMutation.mutate(u);
+                  }}
+                  onRemove={() => setConsults(consults.filter((x) => x.id !== c.id))} />
+              ))}
+              <button onClick={addConsult} style={S.addBtn}>+ Ajouter un type de consultation</button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Empty state */}
-      {absences.length === 0 && !adding && (
-        <div className="text-center py-12 space-y-2">
-          <CalendarOff size={32} className="mx-auto text-muted-foreground/30" />
-          <p className="text-sm font-medium">Aucune absence planifiée</p>
-          <p className="text-xs text-muted-foreground">Bloquez des plages pour les vacances, formations ou indisponibilités.</p>
-        </div>
-      )}
+        {/* ── PREFERENCES ── */}
+        {section === "preferences" && (
+          <div>
+            <SectionHeader icon="⚙️" title="Préférences d&apos;agenda" sub="Compactage intelligent, buffer entre RDV" />
 
-      {/* Info */}
-      <p className="text-[10px] text-muted-foreground">
-        Vous pouvez aussi bloquer un créneau directement depuis la vue semaine de l&apos;agenda.
-      </p>
+            <div style={{ ...S.card, marginTop: 12 }}>
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 20 }}>
+
+                <div>
+                  <Toggle label="Compactage intelligent" sub="Propose en priorité les créneaux adjacents aux RDV existants" value={smartCompact} onChange={setSmartCompact} />
+                  {smartCompact && (
+                    <div style={{ background: NAMI.primaryLight, borderRadius: 10, padding: "10px 14px", marginTop: 10, fontSize: 12, color: NAMI.primary, lineHeight: 1.5 }}>
+                      Les patients verront d&apos;abord les créneaux juste avant ou après vos consultations existantes, puis les créneaux libres restants. Plus de trous dans la journée.
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label style={S.label}>Buffer entre les RDV (minutes)</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    {[0, 5, 10, 15, 20].map((v) => (
+                      <button key={v} onClick={() => setBuffer(v)}
+                        style={{ ...S.chip, minWidth: 44, justifyContent: "center", background: buffer === v ? NAMI.primary : "#F3F2FA", color: buffer === v ? "#fff" : NAMI.text }}>
+                        {v === 0 ? "0" : `${v}`}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: NAMI.textSoft, marginTop: 6 }}>Temps entre deux consultations pour notes, déplacement…</div>
+                </div>
+
+                <button onClick={() => saveRulesMutation.mutate()}
+                  style={{ ...S.chip, background: NAMI.primary, color: "#fff", alignSelf: "flex-start", padding: "10px 20px", fontSize: 14, fontWeight: 600 }}>
+                  {saveRulesMutation.isPending ? "Enregistrement…" : "Enregistrer les préférences"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+/* ─── STYLES ─── */
+
+const S: Record<string, React.CSSProperties> = {
+  page: { height: "100%", overflow: "auto", background: NAMI.bg, fontFamily: "'Plus Jakarta Sans', 'DM Sans', -apple-system, sans-serif", display: "flex", justifyContent: "center", padding: "28px 16px" },
+  container: { width: "100%", maxWidth: 520, paddingBottom: 80 },
+  tabs: { display: "flex", gap: 4, background: "#ECEAF5", borderRadius: 12, padding: 4, marginBottom: 20 },
+  tab: { flex: 1, padding: "9px 0", border: "none", borderRadius: 10, fontSize: 13, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 },
+  card: { background: NAMI.card, borderRadius: 14, overflow: "hidden", border: `1px solid ${NAMI.border}` },
+  cardHead: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", cursor: "pointer" },
+  cardBody: { padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 16, borderTop: `1px solid ${NAMI.border}`, paddingTop: 16 },
+  field: { display: "flex", flexDirection: "column", gap: 6 },
+  label: { fontSize: 11, fontWeight: 600, color: NAMI.textSoft, textTransform: "uppercase", letterSpacing: "0.6px" },
+  input: { width: "100%", padding: "9px 12px", border: `1.5px solid ${NAMI.border}`, borderRadius: 10, fontSize: 14, fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", color: NAMI.text, background: "#FAFAFD", transition: "border 0.15s, box-shadow 0.15s" },
+  chip: { padding: "7px 14px", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.15s", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 4 },
+  timeInput: { padding: "6px 8px", border: `1.5px solid ${NAMI.border}`, borderRadius: 8, fontSize: 13, fontFamily: "inherit", background: "#FAFAFD", width: 110 },
+  removeBtn: { width: 24, height: 24, border: "none", background: NAMI.dangerBg, color: NAMI.danger, borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 },
+  toggleRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", gap: 12 },
+  toggleLabel: { fontSize: 14, color: NAMI.text },
+  toggleTrack: { width: 42, height: 24, borderRadius: 12, padding: 3, cursor: "pointer", transition: "background 0.2s", flexShrink: 0 },
+  toggleThumb: { width: 18, height: 18, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.15)", transition: "transform 0.2s" },
+  linkBtn: { background: "none", border: "none", color: NAMI.primary, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
+  addBtn: { width: "100%", padding: "13px", border: `2px dashed ${NAMI.border}`, borderRadius: 14, background: "transparent", color: NAMI.primary, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" },
+  dangerBtn: { padding: "8px 16px", border: "none", background: NAMI.dangerBg, color: NAMI.danger, borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
+};

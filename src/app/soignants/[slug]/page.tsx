@@ -56,10 +56,13 @@ export async function generateMetadata({
   }
   const specialty = provider.specialties[0] ?? "Soignant"
   const pathology = provider.publicSpecialties[0] ?? ""
+  const title = `${provider.firstName} ${provider.lastName} — ${specialty}${pathology ? ` spécialisé(e) ${pathology}` : ""} | Nami`
+  const description = provider.publicBio?.slice(0, 160) ??
+    `${provider.firstName} ${provider.lastName}, ${specialty} sur Nami. Prenez rendez-vous en ligne.`
   return {
-    title: `${provider.firstName} ${provider.lastName} — ${specialty}${pathology ? ` spécialisé(e) ${pathology}` : ""} | Nami`,
-    description: provider.publicBio?.slice(0, 160) ??
-      `${provider.firstName} ${provider.lastName}, ${specialty} sur Nami. Compétences vérifiées.`,
+    title,
+    description,
+    openGraph: { title, description, images: [{ url: "/og-default.png", width: 1200, height: 630 }] },
   }
 }
 

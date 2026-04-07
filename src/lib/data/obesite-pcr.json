@@ -1,0 +1,397 @@
+{
+  "source": "Arrêté du 26 février 2026 — PCR Obésité complexe (JO 4 mars 2026)",
+  "complementSources": [
+    "HAS — Obésité adulte 2e/3e niveaux (2022)",
+    "HAS — Guide parcours surpoids et obésité adulte (2024)",
+    "HAS — Surpoids et obésité chez la femme (2025)",
+    "DU APNS — Oppert, Ciangura, Pais, Bel Lassen (2025-26)",
+    "Prise de position AFERO-GCC 2025"
+  ],
+  "generatedAt": "2026-04-07",
+
+  "cadre": {
+    "nom": "Parcours Coordonné Renforcé — Obésité complexe chez l'adulte",
+    "dateJO": "2026-03-04",
+    "reference": "Arrêté du 26 février 2026 — NOR SFHS2604251A",
+    "maxStructures": 269,
+    "teleprocedure": "2026-05-05",
+    "dureeTotaleMax": "30 mois",
+    "financeur": "Assurance Maladie (forfait)"
+  },
+
+  "criteresEntree": {
+    "age": "≥18 ans (ou 16-18 avec autorisation parentale)",
+    "prescripteur": "Médecin spécialiste de l'obésité rattaché à la structure",
+    "prealable": "Évaluation multidimensionnelle réalisée",
+    "exclusion": "Pas de PCR dans l'année précédente",
+
+    "niveau2": {
+      "imc": "35 ≤ IMC < 50",
+      "plusAuMoinsUn": [
+        { "critere": "Altérations cardio-métaboliques", "detail": "HTA résistante, DT2 difficile à contrôler, NASH/fibrose, SAHOS sévère, SOH", "declencheProtocole": ["sahos", "nash", "dt2", "cardiovasculaire"] },
+        { "critere": "Aggravation maladie chronique sans risque majeur", "declencheProtocole": [] },
+        { "critere": "Infertilité ou SOPK", "declencheProtocole": ["femme_sopk"] },
+        { "critere": "Impact marqué sur qualité de vie et état de santé", "declencheProtocole": [] },
+        { "critere": "Pathologie psychiatrique avec impact pondéral", "detail": "Troubles de l'humeur, anxieux, PTSD, addictions", "declencheProtocole": ["psychologique"] },
+        { "critere": "Traumatisme psychique ou douleurs chroniques", "detail": "Fibromyalgie, médicaments obésogènes", "declencheProtocole": [] },
+        { "critere": "Accès de boulimie épisodiques", "declencheProtocole": ["tca"] },
+        { "critere": "Obésité apparue dans l'enfance + ≥2 rebonds pondéraux", "declencheProtocole": [] },
+        { "critere": "Échec prise en charge niveau 1", "declencheProtocole": [] },
+        { "critere": "Grossesse après chirurgie bariatrique", "declencheProtocole": ["femme_grossesse_postbariat"] }
+      ]
+    },
+
+    "niveau3a": {
+      "imc": "35 ≤ IMC < 50 + critère de gravité accru",
+      "criteresInclusion": [
+        { "critere": "Aggravation maladie chronique avec risque MAJEUR ou handicap fonctionnel", "detail": "BPCO, neuromusculaires, inflammatoires, auto-immunes", "declencheProtocole": ["pneumologie", "rhumatologie"] },
+        { "critere": "Périmètre de marche 100-500m", "declencheProtocole": ["apa_limitations"] },
+        { "critere": "Hyperphagie boulimique", "declencheProtocole": ["tca"] },
+        { "critere": "Évolution pondérale non contrôlée malgré PEC spécialisée", "declencheProtocole": [] }
+      ],
+      "criteresExclusion": [
+        "Pathologie psychiatrique sévère (dépression sévère, personnalité, schizophrénie) → prise en charge psy prioritaire",
+        "Obésité secondaire hormonale (hypercorticisme, acromégalie, tumeur cérébrale) → endocrinologie",
+        "Échec PEC niveau 2 → réévaluation CSO"
+      ]
+    },
+
+    "niveau3b": {
+      "imc": "≥ 50",
+      "criteresExclusion": [
+        "Retentissement terminal (IC, IR dialysée, transplantés)",
+        "Périmètre marche <100m ou grabatisation",
+        "TSA, troubles cognitifs sévères",
+        "Obésité monogénique ou syndromique",
+        "Indication chirurgie bariatrique avec risque opératoire très élevé",
+        "Âge >65 ans ou <18 ans"
+      ],
+      "criteresInclusion": [
+        { "critere": "Échec de chirurgie bariatrique", "declencheProtocole": ["post_bariatrique"] }
+      ]
+    }
+  },
+
+  "profils": {
+    "A": {
+      "label": "Obésité complexe",
+      "forfait": 1126,
+      "forfaitDeploiement": 20,
+      "description": "Obésité complexe médicale sans TCA ni limitation APA",
+      "interventionsObligatoires": {
+        "medicale_clinique": { "qui": "Médecin spécialiste obésité", "cadence": "Selon besoin" },
+        "dietetique": { "qui": "Diététicien", "cadence": "Modulable" },
+        "psychologique": { "qui": "Psychologue clinicien", "cadence": "Modulable" },
+        "apa": { "qui": "Professionnel APA", "cadence": "Modulable" },
+        "autre": { "qui": "IDE, travailleur social...", "cadence": "Modulable" }
+      },
+      "interventionsRenforcees": null,
+      "seancesCollectives": null,
+      "coordination": "Clinique + experte"
+    },
+
+    "B": {
+      "label": "Obésité complexe + limitations APA",
+      "forfait": 1286,
+      "description": "Limitations à la pratique autonome de l'activité physique : troubles musculosquelettiques, douleurs, dyspnées, périmètre marche 100-500m",
+      "interventionsObligatoires": {
+        "medicale_clinique": { "qui": "Médecin spécialiste obésité" },
+        "dietetique": { "qui": "Diététicien" },
+        "psychologique": { "qui": "Psychologue clinicien" },
+        "apa": { "qui": "Professionnel APA" },
+        "autre": { "qui": "IDE, travailleur social..." }
+      },
+      "interventionsRenforcees": null,
+      "seancesCollectives": {
+        "type": "APA en groupe",
+        "quand": "En début de séquence intensive",
+        "objectif": "Réadaptation progressive à l'effort en milieu encadré"
+      },
+      "coordination": "Clinique + experte"
+    },
+
+    "C": {
+      "label": "Obésité complexe + TCA",
+      "forfait": 1609,
+      "description": "Troubles du comportement alimentaire associés (hyperphagie boulimique principalement = niveau 3a du phénotypage)",
+      "interventionsObligatoires": {
+        "medicale_clinique": { "qui": "Médecin spécialiste obésité" },
+        "dietetique": { "qui": "Diététicien" },
+        "psychologique": { "qui": "Psychologue clinicien" },
+        "apa": { "qui": "Professionnel APA" },
+        "autre": { "qui": "IDE, travailleur social..." }
+      },
+      "interventionsRenforcees": {
+        "psychologique": {
+          "qui": "Psychologue clinicien",
+          "frequence": "Renforcée",
+          "approches": ["TCC (Grade A)", "Pleine conscience", "Thérapie interpersonnelle"],
+          "lienPathwayTCA": "tca-pathway-enriched.json → reperage + evaluation + pec"
+        }
+      },
+      "seancesCollectives": null,
+      "coordination": "Clinique + experte"
+    },
+
+    "D": {
+      "label": "Obésité complexe + TCA + limitations APA",
+      "forfait": 1769,
+      "description": "TCA + limitations à la pratique autonome. Profil le plus complexe.",
+      "interventionsObligatoires": {
+        "medicale_clinique": { "qui": "Médecin spécialiste obésité" },
+        "dietetique": { "qui": "Diététicien" },
+        "psychologique": { "qui": "Psychologue clinicien" },
+        "apa": { "qui": "Professionnel APA" },
+        "autre": { "qui": "IDE, travailleur social..." }
+      },
+      "interventionsRenforcees": {
+        "psychologique": {
+          "qui": "Psychologue clinicien",
+          "frequence": "Renforcée",
+          "lienPathwayTCA": "tca-pathway-enriched.json"
+        }
+      },
+      "seancesCollectives": {
+        "type": "APA en groupe",
+        "quand": "En début de séquence intensive"
+      },
+      "coordination": "Clinique + experte"
+    }
+  },
+
+  "equipeSocle": {
+    "obligatoire": [
+      {
+        "role": "Médecin spécialiste de l'obésité — COORDINATEUR",
+        "qualifications": ["DES endocrino-diabéto-nutrition", "DES hépato-gastro", "DES médecine générale", "DES pédiatrie", "DES psychiatrie"],
+        "formationComplementaire": "DESC I ou FST nutrition appliquée ou DU/DIU obésité",
+        "missions": ["Prescription inclusion PCR", "Phénotypage sévérité", "Programme personnalisé", "Coordination experte", "Bilans 6/12/24 mois", "Préparation sortie"]
+      },
+      {
+        "role": "Infirmier diplômé d'État",
+        "missions": ["Coordination opérationnelle avec le médecin", "Suivi du parcours", "Traçabilité interventions"]
+      },
+      {
+        "role": "Diététicien",
+        "missions": ["Évaluation nutritionnelle", "PEC diététique personnalisée", "ETP nutrition"],
+        "protocoleClinique": {
+          "source": "HAS 2022 R32-R35",
+          "principes": ["-500 kcal/j max", "Jamais < 1200 kcal/j", "Pas de régime restrictif", "Modèle méditerranéen", "Travail signaux faim/satiété", "Composante émotionnelle"]
+        }
+      },
+      {
+        "role": "Psychologue clinicien",
+        "missions": ["Évaluation psychologique", "Accompagnement (tous profils)", "PEC renforcée TCA (profils C/D)"],
+        "protocoleClinique": {
+          "source": "HAS 2022 R39",
+          "champs": ["Troubles psychopathologiques", "Rapport à l'alimentation", "Rapport au corps", "Événements de vie", "Retentissement obésité"],
+          "approches": ["TCC (Grade A)", "Pleine conscience", "Entretien motivationnel", "TIP (BED)", "Psychodynamique"]
+        }
+      },
+      {
+        "role": "Professionnel APA",
+        "sousTypes": ["Masseur-kinésithérapeute", "Enseignant APA (licence STAPS APA-S)", "Psychomotricien", "Ergothérapeute"],
+        "missions": ["Évaluation capacité physique", "Programme APA individualisé", "Séances collectives (profils B/D)"],
+        "protocoleClinique": {
+          "objectif": "150 min/sem modérée + renforcement musculaire 2x/sem",
+          "progression": "Réduire sédentarité d'abord, puis augmenter progressivement",
+          "attention": "Sarcopénie chez >70 ans"
+        }
+      }
+    ],
+    "medecinTraitant": {
+      "role": "Associé en CONTINU au parcours (pas dans l'équipe-socle)",
+      "missions": ["Informé de l'inclusion", "Impliqué dans décisions cliniques", "Transmission régulière des informations", "Associé à la préparation de sortie"]
+    }
+  },
+
+  "sequences": {
+    "evaluationMultidimensionnelle": {
+      "label": "Évaluation multidimensionnelle",
+      "prealable": true,
+      "axes": [
+        {
+          "axe": "Clinique et biologique",
+          "acteur": "Médecin spécialiste",
+          "contenu": ["Examen clinique complet", "Phénotypage sévérité HAS", "Bilan biologique"],
+          "bilanBio": ["Glycémie à jeun", "HbA1c", "Bilan lipidique", "ASAT/ALAT/GGT", "Créatinine+DFG", "Uricémie", "TSH", "NFS", "Ferritine+fer", "Vitamine D", "Albumine"],
+          "examensConditionnel": {
+            "STOP_BANG_gte_3": "Polygraphie ventilatoire → si positif : protocole SAHOS",
+            "ALAT_elevees": "Échographie hépatique + FIB-4 → si positif : protocole NASH",
+            "glycemie_gte_126": "HGPO ou HbA1c confirmation → si positif : protocole DT2",
+            "PA_gte_140_90": "MAPA/automesure → si confirmé : protocole HTA"
+          }
+        },
+        {
+          "axe": "Nutritionnel",
+          "acteur": "Diététicien",
+          "contenu": ["Habitudes alimentaires", "Recherche TCA (SCOFF ≥2 → EDE-Q)", "Relation à l'alimentation", "Histoire pondérale + régimes antérieurs"]
+        },
+        {
+          "axe": "Psychologique et psychiatrique",
+          "acteur": "Psychologue clinicien",
+          "contenu": ["PHQ-9 (dépression)", "GAD-7 (anxiété)", "Image corporelle", "Traumatismes", "AUDIT-C (alcool)", "Addictions"],
+          "siTCA": "→ profil C ou D"
+        },
+        {
+          "axe": "Activité physique et fonctionnel",
+          "acteur": "Professionnel APA",
+          "contenu": ["Niveau AP actuel", "Sédentarité", "Périmètre de marche", "Limitations fonctionnelles", "Capacité d'effort"],
+          "siLimitations": "→ profil B ou D"
+        },
+        {
+          "axe": "Social et professionnel",
+          "acteur": "IDE / Travailleur social",
+          "contenu": ["EPICES (précarité ≥30)", "Situation familiale", "Conditions de travail", "Stigmatisation vécue"]
+        }
+      ],
+      "resultat": "Détermination du profil (A/B/C/D) + programme personnalisé de soins et ETP"
+    },
+
+    "pecInitialeIntensive": {
+      "label": "Prise en charge initiale intensive",
+      "dureeMoyenne": "12 mois",
+      "dureeMax": "18 mois",
+      "sousSequences": 2,
+      "interventionsMin": 10,
+      "bilans": {
+        "M6": ["Évolution poids", "Résultats santé", "Santé mentale", "Compétences ETP", "Sédentarité", "Habitudes alimentaires", "Attentes patient"],
+        "M12": "Idem + décision de prolongation ou passage en suivi renforcé"
+      },
+      "parProfil": {
+        "A": "Toutes interventions obligatoires, modulables selon besoin",
+        "B": "Idem + séances collectives APA en début de séquence",
+        "C": "Idem + psychologique renforcée (fréquence augmentée pour TCA)",
+        "D": "Idem + psychologique renforcée + APA collective"
+      }
+    },
+
+    "suiviRenforce": {
+      "label": "Suivi renforcé",
+      "dureeMax": "12 mois",
+      "objectif": "Consolidation des acquis, transition vers niveau 1",
+      "bilan": {
+        "M24": "Bilan final complet — clinique + éducatif + habitudes + attentes + situation pro/familiale"
+      },
+      "sortie": "Préparée par le médecin spé, en lien avec MT et filière obésité"
+    }
+  },
+
+  "protocolesComorbidites": {
+    "note": "S'activent UNIQUEMENT si détectés pendant l'évaluation multidimensionnelle. Ce sont les sous-protocoles déclenchés par les critères d'inclusion du PCR.",
+
+    "sahos": {
+      "declencheur": "STOP-BANG ≥3 + polygraphie positive",
+      "criterePCR": "SAHOS sévère = critère complexité niveau 2",
+      "acteurs": ["Pneumologue", "ORL"],
+      "traitement": ["PPC (≥4h/nuit)", "Orthèse mandibulaire (IAH modéré)", "Perte de poids"],
+      "suivi": ["Observance PPC", "IAH résiduel", "Somnolence résiduelle (Epworth)"]
+    },
+
+    "nash": {
+      "declencheur": "ALAT élevées + FIB-4 >1.3 + échographie",
+      "criterePCR": "NASH/fibrose = critère complexité niveau 2",
+      "acteurs": ["Hépato-gastro-entérologue"],
+      "traitement": "Perte de poids ≥10% (seul traitement prouvé 2026)",
+      "suivi": ["Élastographie annuelle si fibrose", "Bilan hépatique /6 mois"]
+    },
+
+    "dt2": {
+      "declencheur": "Glycémie ≥1.26 g/L ou HbA1c ≥6.5% (×2)",
+      "criterePCR": "DT2 difficile à contrôler = critère complexité niveau 2",
+      "acteurs": ["Endocrinologue-diabétologue", "IDE éducation"],
+      "traitementStepwise": [
+        "1. Mesures hygiéno-diététiques + metformine",
+        "2. + GLP-1 RA (sémaglutide/tirzépatide) → double bénéfice poids+glycémie",
+        "3. + insuline basale si échec",
+        "4. Chirurgie métabolique si IMC ≥35 + DT2 non contrôlé"
+      ],
+      "objectifHbA1c": "< 7% (individualisé)"
+    },
+
+    "cardiovasculaire": {
+      "declencheur": "HTA résistante, dyslipidémie sévère, antécédents CV",
+      "criterePCR": "HTA résistante = critère complexité niveau 2",
+      "acteurs": ["Cardiologue"],
+      "evaluation": ["Score SCORE2", "ECG", "Échographie cardiaque si symptômes"],
+      "objectifs": { "PA": "<140/90 (standard)", "LDL": "Selon SCORE2" }
+    },
+
+    "tca": {
+      "declencheur": "SCOFF ≥2 → EDE-Q → diagnostic",
+      "criterePCR": "TCA = profils C/D + niveau 3a",
+      "acteurs": ["Psychiatre spécialisé TCA", "Psychologue"],
+      "lienPathway": "→ tca-pathway-enriched.json (protocole complet TCA)",
+      "pointCle": "L'hyperphagie boulimique est la forme la plus fréquente dans l'obésité"
+    },
+
+    "femme_sopk": {
+      "declencheur": "Troubles du cycle + signes hyperandrogénie",
+      "criterePCR": "Infertilité/SOPK = critère complexité niveau 2",
+      "acteurs": ["Gynécologue", "Endocrinologue"],
+      "traitement": "Perte de poids 5-10% + metformine ± contraception adaptée"
+    },
+
+    "femme_grossesse_postbariat": {
+      "declencheur": "Grossesse après chirurgie bariatrique",
+      "criterePCR": "Critère complexité niveau 2",
+      "acteurs": ["Gynécologue-obstétricien", "Nutritionniste"],
+      "delai": "Attendre 12-18 mois post-op",
+      "suivi": "Mensuel nutritionnel + bilan bio trimestriel (B12, fer, folates, D)"
+    },
+
+    "post_bariatrique": {
+      "declencheur": "Échec chirurgie bariatrique",
+      "criterePCR": "Critère inclusion niveau 3b",
+      "acteurs": ["Chirurgien bariatrique", "Endocrinologue", "Diététicien", "Psychologue"],
+      "evaluation": ["Bilan nutritionnel complet", "Recherche complications", "Évaluation compliance"],
+      "options": ["Reprise PEC médicale niveau 2-3", "TMO (GLP-1)", "Chirurgie de révision"]
+    }
+  },
+
+  "medicaments": {
+    "note": "Utilisables dans tous les profils PCR, en complément des mesures hygiéno-diététiques",
+    "molecules": [
+      {
+        "dci": "Sémaglutide 2.4mg",
+        "specialite": "Wegovy",
+        "classe": "GLP-1 RA",
+        "efficacite": "-15%",
+        "statut2026": "Remboursé",
+        "voie": "SC hebdomadaire",
+        "alerteArret": "Reprise quasi systématique → maintien long terme"
+      },
+      {
+        "dci": "Tirzépatide",
+        "specialite": "Mounjaro",
+        "classe": "GLP-1 + GIP",
+        "efficacite": "-22%",
+        "statut2026": "Remboursé",
+        "voie": "SC hebdomadaire",
+        "superiorite": "Supérieur sémaglutide (SURMOUNT-5)"
+      },
+      {
+        "dci": "Liraglutide 3mg",
+        "specialite": "Saxenda",
+        "classe": "GLP-1 RA",
+        "efficacite": "-9%",
+        "note": "Remplacé progressivement par sémaglutide/tirzépatide"
+      }
+    ],
+    "prescripteur": "Médecin spécialiste de l'obésité",
+    "principes": ["En complément MHD, jamais seul", "Traitement au long cours", "Indications selon stades sévérité HAS (AFERO-GCC 2025)"]
+  },
+
+  "tracabilite": {
+    "source": "Arrêté PCR — Annexe 2.2",
+    "obligationsStructure": [
+      "Dossier patient actualisé (bilans initiaux, intermédiaires, finaux)",
+      "Traçabilité de chaque intervention par professionnel",
+      "Réévaluations systématiques à 6, 12, 24 mois",
+      "Comptes rendus de synthèse → médecin traitant (transmission sécurisée)",
+      "Rapport d'activité annuel → ARS",
+      "Attestation de service fait signée par le patient → téléservice facturation AM"
+    ],
+    "impactNami": "Chaque obligation correspond à une fonctionnalité Nami existante : CareCase (dossier), Activity (traçabilité), ClinicalNote (CR synthèse), Referral (transmission MT), Intelligence (bilans)"
+  }
+}

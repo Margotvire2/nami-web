@@ -433,7 +433,7 @@ export default function DocumentsPage() {
               variant="outline"
               className="text-xs gap-1.5 h-8"
               onClick={() =>
-                toast.info("Import de documents bientôt disponible")
+                toast.info("Import de documents — prochainement")
               }
             >
               <Upload size={12} /> Ajouter un document
@@ -468,7 +468,7 @@ export default function DocumentsPage() {
                 size="sm"
                 className="text-xs gap-1.5 h-8"
                 onClick={() =>
-                  toast.info("Import de documents bientôt disponible")
+                  toast.info("Import de documents — prochainement")
                 }
               >
                 <Upload size={12} /> Ajouter un document
@@ -595,10 +595,8 @@ export default function DocumentsPage() {
                       </button>
                       <button
                         className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-                        title="Partager avec l'équipe"
-                        onClick={() =>
-                          toast.info("Partage bientôt disponible")
-                        }
+                        title="Partage — prochainement"
+                        disabled
                       >
                         <Share2 size={14} />
                       </button>
