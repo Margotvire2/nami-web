@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { onboardingApi } from "@/lib/api";
 import { Sidebar } from "@/components/sidebar";
+import { RecordingProvider } from "@/contexts/RecordingContext";
+import { RecordingWidget } from "@/components/RecordingWidget";
 
 export default function CockpitLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -43,11 +45,14 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
   if (!accessToken || !onboardingChecked) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {children}
-      </main>
-    </div>
+    <RecordingProvider>
+      <div className="flex h-screen overflow-hidden bg-background">
+        <Sidebar />
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </main>
+      </div>
+      <RecordingWidget />
+    </RecordingProvider>
   );
 }

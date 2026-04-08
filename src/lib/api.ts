@@ -1557,7 +1557,7 @@ export const recordingsApi = {
     return res.json();
   },
 
-  analyze: (token: string, data: { transcription: string; careCaseId: string; appointmentId?: string }) =>
+  analyze: (token: string, data: { transcription: string; careCaseId: string; appointmentId?: string; consentConfirmed?: boolean }) =>
     request<RecordingAnalysisResult>("/recordings/analyze", {
       method: "POST",
       body: JSON.stringify(data),
@@ -1640,7 +1640,7 @@ export function apiWithToken(token: string) {
     },
     recordings: {
       upload: (audioBlob: Blob, duration?: number) => recordingsApi.upload(token, audioBlob, duration),
-      analyze: (data: { transcription: string; careCaseId: string; appointmentId?: string }) =>
+      analyze: (data: { transcription: string; careCaseId: string; appointmentId?: string; consentConfirmed?: boolean }) =>
         recordingsApi.analyze(token, data),
     },
     intelligence: {

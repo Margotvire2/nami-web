@@ -9,7 +9,7 @@ import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clini
 import { PatientOverview } from "@/components/nami/patient-overview";
 import { ObservationForm } from "@/components/nami/observation-form";
 import { TrajectoryView } from "@/components/nami/TrajectoryView";
-import { ConsultationRecorder } from "@/components/nami/ConsultationRecorder";
+import { useRecording } from "@/contexts/RecordingContext";
 import { PatientJournalView } from "./PatientJournalView";
 import { ClinicalTimeline } from "./ClinicalTimeline";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
@@ -138,7 +138,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
-  const [recorderOpen, setRecorderOpen] = useState(false);
+  const { startRecording } = useRecording();
 
   const { data: careCase, isLoading } = useQuery({
     queryKey: ["care-case", id],
@@ -150,7 +150,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setMessageModalOpen(true)} onRecord={() => setRecorderOpen(true)} careCaseId={id} api={api} />
+      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setMessageModalOpen(true)} onRecord={() => startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
       <ReferralModal
         open={referralOpen}
@@ -165,13 +165,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       {messageModalOpen && (
         <QuickMessageModal careCaseId={id} patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`} onClose={() => setMessageModalOpen(false)} />
       )}
-      {recorderOpen && (
-        <ConsultationRecorder
-          careCaseId={id}
-          patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`}
-          onClose={() => setRecorderOpen(false)}
-        />
-      )}
+      {/* Recording widget is now global — see RecordingWidget in cockpit layout */}
 
       {/* ── Onglets (5 max) ── */}
       <nav className="bg-card border-b px-6 shrink-0 flex">
@@ -192,9 +186,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       </nav>
 
       {/* ── Contenu ── */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         {section === "overview" ? (
-          <div className="h-full flex overflow-hidden">
+          <div className="h-full flex overflow-auto">
             {/* Colonne 1 — Résumé dossier */}
             <div className="flex-1 overflow-y-auto border-r p-5 space-y-5">
               <ClinicalSummaryCard careCase={careCase} careCaseId={id} api={api} />
