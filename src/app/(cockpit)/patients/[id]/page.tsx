@@ -9,6 +9,7 @@ import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clini
 import { PatientOverview } from "@/components/nami/patient-overview";
 import { ObservationForm } from "@/components/nami/observation-form";
 import { TrajectoryView } from "@/components/nami/TrajectoryView";
+import { ConsultationRecorder } from "@/components/nami/ConsultationRecorder";
 import { ObservationDashboard } from "@/components/nami/observation-dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +21,7 @@ import {
   ChevronLeft, Clock, Activity as ActivityIcon, FileText, Users, CheckSquare,
   CalendarDays, MessageSquare, BookOpen, Bell, Sparkles,
   ArrowLeftRight, CalendarPlus, CheckCircle2, AlertTriangle,
-  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp,
+  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic,
 } from "lucide-react";
 
 import { useTimeline } from "@/hooks/useTimeline";
@@ -134,6 +135,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [recorderOpen, setRecorderOpen] = useState(false);
 
   const { data: careCase, isLoading } = useQuery({
     queryKey: ["care-case", id],
@@ -145,7 +147,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setMessageModalOpen(true)} careCaseId={id} api={api} />
+      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setMessageModalOpen(true)} onRecord={() => setRecorderOpen(true)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
       <ReferralModal
         open={referralOpen}
@@ -159,6 +161,13 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       )}
       {messageModalOpen && (
         <QuickMessageModal careCaseId={id} patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`} onClose={() => setMessageModalOpen(false)} />
+      )}
+      {recorderOpen && (
+        <ConsultationRecorder
+          careCaseId={id}
+          patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`}
+          onClose={() => setRecorderOpen(false)}
+        />
       )}
 
       {/* ── Onglets (5 max) ── */}
@@ -448,8 +457,8 @@ function LatestMessageColumn({ careCaseId, api }: { careCaseId: string; api: Ret
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, careCaseId, api }: {
-  careCase: CareCaseDetail; onAddNote: () => void; onReferral: () => void; onTask: () => void; onMessage: () => void;
+function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, onRecord, careCaseId, api }: {
+  careCase: CareCaseDetail; onAddNote: () => void; onReferral: () => void; onTask: () => void; onMessage: () => void; onRecord: () => void;
   careCaseId: string; api: ReturnType<typeof apiWithToken>;
 }) {
   const qc = useQueryClient();
@@ -510,6 +519,7 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, 
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onTask}><CheckSquare size={12} /> Tâche</Button>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onReferral}><ArrowLeftRight size={12} /> Adresser</Button>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onMessage}><MessageSquare size={12} /> Message</Button>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5 text-red-600 border-red-200 hover:bg-red-50" onClick={onRecord}><Mic size={12} /> Enregistrer</Button>
           <Link href="/agenda"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><CalendarPlus size={12} /> RDV</Button></Link>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"
             onClick={handleAiSummarize} disabled={aiStreaming}>

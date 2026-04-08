@@ -1503,6 +1503,48 @@ export const trajectoryApi = {
   },
 };
 
+// ─── Recordings ─────────────────────────────────────────────────────────────
+
+export interface RecordingUploadResult {
+  transcription: string;
+  duration: number | null;
+}
+
+export interface RecordingAnalysisResult {
+  noteId: string;
+  taskIds: string[];
+  summary: string;
+  decisions: string[];
+  tasks: { title: string; priority: string; dueInDays: number }[];
+  keyPoints: string[];
+  followUpDate: string | null;
+}
+
+export const recordingsApi = {
+  upload: async (token: string, audioBlob: Blob, duration?: number): Promise<RecordingUploadResult> => {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.webm");
+    if (duration) formData.append("duration", String(duration));
+
+    const res = await fetch(`${API_URL}/recordings/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body.error || `Erreur ${res.status}`);
+    }
+    return res.json();
+  },
+
+  analyze: (token: string, data: { transcription: string; careCaseId: string; appointmentId?: string }) =>
+    request<RecordingAnalysisResult>("/recordings/analyze", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
+};
+
 // Helper pour les requêtes avec token depuis le store
 export function apiWithToken(token: string) {
   return {
@@ -1574,6 +1616,11 @@ export function apiWithToken(token: string) {
     trajectory: {
       get: (careCaseId: string, metrics?: string[], period?: string) =>
         trajectoryApi.get(token, careCaseId, metrics, period),
+    },
+    recordings: {
+      upload: (audioBlob: Blob, duration?: number) => recordingsApi.upload(token, audioBlob, duration),
+      analyze: (data: { transcription: string; careCaseId: string; appointmentId?: string }) =>
+        recordingsApi.analyze(token, data),
     },
     intelligence: {
       careGaps: (id: string) => intelligenceApi.careGaps(token, id),
