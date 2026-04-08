@@ -113,7 +113,7 @@ function daysAgo(d: string) {
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
-type Section = "overview" | "suivi" | "trajectoire" | "timeline" | "notes" | "journal" | "documents";
+type Section = "overview" | "suivi" | "trajectoire" | "timeline" | "notes" | "journal" | "documents" | "messages";
 
 const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
   { key: "overview",     label: "Vue d'ensemble",  icon: <ActivityIcon size={13} /> },
@@ -123,6 +123,7 @@ const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
   { key: "notes",        label: "Notes",             icon: <FileText size={13} /> },
   { key: "journal",      label: "Journal patient",   icon: <BookOpen size={13} /> },
   { key: "documents",    label: "Documents",         icon: <FileText size={13} /> },
+  { key: "messages",     label: "Messagerie",        icon: <MessageSquare size={13} /> },
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -150,7 +151,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setMessageModalOpen(true)} onRecord={() => startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)} careCaseId={id} api={api} />
+      <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setSection("messages")} onRecord={() => startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)} careCaseId={id} api={api} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
       <ReferralModal
         open={referralOpen}
@@ -205,7 +206,6 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               <UrgentTasksColumn careCaseId={id} api={api} />
               <UpcomingAppointmentsColumn careCaseId={id} api={api} />
-              <LatestMessageColumn careCaseId={id} api={api} />
             </div>
           </div>
         ) : section === "timeline" ? (
@@ -232,6 +232,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         ) : section === "trajectoire" ? (
           <div className="h-full overflow-y-auto p-6">
             <TrajectoireSection careCaseId={id} />
+          </div>
+        ) : section === "messages" ? (
+          <div className="h-full overflow-hidden flex flex-col">
+            <MessagesSection careCaseId={id} api={api} patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`} />
           </div>
         ) : null}
       </div>
@@ -1187,8 +1191,8 @@ function JournalCard({ entry }: { entry: JournalEntry }) {
 // MESSAGES — Chat intégré par care case
 // ═════════════════════════════════════════════════════════════════════════════
 
-function MessagesSection({ careCaseId, api }: {
-  careCaseId: string; api: ReturnType<typeof apiWithToken>;
+function MessagesSection({ careCaseId, api, patientName }: {
+  careCaseId: string; api: ReturnType<typeof apiWithToken>; patientName?: string;
 }) {
   const { user } = useAuthStore();
   const qc = useQueryClient();
@@ -1236,10 +1240,10 @@ function MessagesSection({ careCaseId, api }: {
       {/* Header */}
       <div className="px-6 py-3 border-b shrink-0">
         <h2 className="text-sm font-semibold flex items-center gap-2">
-          <MessageSquare size={14} /> Discussion de l'équipe
+          <MessageSquare size={14} /> Messagerie d&apos;équipe
         </h2>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          Fil de coordination partagé avec tous les professionnels du dossier
+          {patientName ? `Coordination · ${patientName}` : "Fil de coordination partagé avec l'équipe"}
         </p>
       </div>
 
