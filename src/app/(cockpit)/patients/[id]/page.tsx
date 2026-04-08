@@ -1015,10 +1015,12 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
         <h2 className="text-sm font-semibold">
           Documents {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}
         </h2>
-        <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7" onClick={() => triggerUpload("OTHER")} disabled={uploading}>
-          {uploading ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
-          {uploading ? "Upload…" : "Ajouter"}
-        </Button>
+        {data && data.length > 0 && (
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7" onClick={() => triggerUpload("OTHER")} disabled={uploading}>
+            {uploading ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
+            {uploading ? "Upload…" : "Ajouter"}
+          </Button>
+        )}
       </div>
       {/* header done above */}
       {isLoading ? <LoadingCards /> : !(data?.length) ? (
