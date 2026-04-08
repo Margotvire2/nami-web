@@ -12,6 +12,7 @@ import { TrajectoryView } from "@/components/nami/TrajectoryView";
 import { ConsultationRecorder } from "@/components/nami/ConsultationRecorder";
 import { PatientJournalView } from "./PatientJournalView";
 import { ClinicalTimeline } from "./ClinicalTimeline";
+import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { ObservationDashboard } from "@/components/nami/observation-dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +24,7 @@ import {
   ChevronLeft, Clock, Activity as ActivityIcon, FileText, Users, CheckSquare,
   CalendarDays, MessageSquare, BookOpen, Bell, Sparkles,
   ArrowLeftRight, CalendarPlus, CheckCircle2, AlertTriangle,
-  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic,
+  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2,
 } from "lucide-react";
 
 import { useTimeline } from "@/hooks/useTimeline";
@@ -214,7 +215,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
         ) : section === "timeline" ? (
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto p-6">
+            <ProtocolBanner careCaseId={id} />
             <ClinicalTimeline careCaseId={id} startDate={careCase.startDate} />
           </div>
         ) : section === "notes" ? (
@@ -1010,9 +1012,17 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
 
   return (
     <div className="p-6 max-w-3xl space-y-3">
-      <h2 className="text-sm font-semibold">
-        Documents {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}
-      </h2>
+      <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.png,.jpg,.jpeg,.docx" onChange={onFileSelected} />
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold">
+          Documents {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}
+        </h2>
+        <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7" onClick={() => triggerUpload("OTHER")} disabled={uploading}>
+          {uploading ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
+          {uploading ? "Upload…" : "Ajouter"}
+        </Button>
+      </div>
+      {/* header done above */}
       {isLoading ? <LoadingCards /> : !(data?.length) ? (
         /* ── Empty state contexte 2 : dossier patient vide ── */
         <div className="flex flex-col items-center justify-center py-14 text-center">
@@ -1085,14 +1095,8 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
                   <div className="flex items-center gap-0.5 shrink-0">
                     <button
                       className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-                      title="Voir le document"
-                      onClick={() => {
-                        if (doc.fileUrl) {
-                          window.open(doc.fileUrl, "_blank");
-                        } else {
-                          toast.info("Document non téléchargé");
-                        }
-                      }}
+                      title="Télécharger"
+                      onClick={() => handleDownload(doc.id)}
                     >
                       <FileText size={14} />
                     </button>
