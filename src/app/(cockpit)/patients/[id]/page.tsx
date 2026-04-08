@@ -10,6 +10,8 @@ import { PatientOverview } from "@/components/nami/patient-overview";
 import { ObservationForm } from "@/components/nami/observation-form";
 import { TrajectoryView } from "@/components/nami/TrajectoryView";
 import { ConsultationRecorder } from "@/components/nami/ConsultationRecorder";
+import { PatientJournalView } from "./PatientJournalView";
+import { ClinicalTimeline } from "./ClinicalTimeline";
 import { ObservationDashboard } from "@/components/nami/observation-dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -213,7 +215,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           </div>
         ) : section === "timeline" ? (
           <div className="h-full overflow-y-auto">
-            <TimelineTab careCaseId={id} careCase={careCase} />
+            <ClinicalTimeline careCaseId={id} startDate={careCase.startDate} />
           </div>
         ) : section === "notes" ? (
           <div className="h-full overflow-y-auto">
@@ -221,7 +223,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           </div>
         ) : section === "journal" ? (
           <div className="h-full overflow-y-auto">
-            <JournalSection careCaseId={id} api={api} />
+            <PatientJournalView careCaseId={id} pathwayName={careCase.caseTitle} currentPhase={careCase.careStage ?? undefined} />
           </div>
         ) : section === "documents" ? (
           <div className="h-full overflow-y-auto">

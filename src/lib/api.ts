@@ -755,7 +755,7 @@ export const locationsApi = {
 
 // ─── Journal Patient ─────────────────────────────────────────────────────────
 
-export type JournalEntryType = "MEAL" | "EMOTION" | "SYMPTOM" | "NOTE" | "PHYSICAL_ACTIVITY";
+export type JournalEntryType = "MEAL" | "EMOTION" | "SYMPTOM" | "NOTE" | "PHYSICAL_ACTIVITY" | "CRISIS_EVENT" | "POSITIVE_THOUGHT";
 
 export interface JournalEntry {
   id: string;
