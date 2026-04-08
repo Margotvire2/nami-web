@@ -927,6 +927,25 @@ export const documentsApi = {
       method: "POST",
       body: JSON.stringify(data),
     }, token),
+  upload: async (token: string, careCaseId: string, file: File, title: string, documentType: string): Promise<Document> => {
+    const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", title);
+    formData.append("documentType", documentType);
+    const res = await fetch(`${API}/care-cases/${careCaseId}/documents/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, (err as Record<string, string>).error || `Erreur ${res.status}`);
+    }
+    return res.json();
+  },
+  download: (token: string, careCaseId: string, docId: string) =>
+    request<{ url: string }>(`/care-cases/${careCaseId}/documents/${docId}/download`, {}, token),
 };
 
 // ─── Bio Extraction ─────────────────────────────────────────────────────────
@@ -1607,6 +1626,8 @@ export function apiWithToken(token: string) {
     documents: {
       list: (careCaseId: string) => documentsApi.list(token, careCaseId),
       create: (careCaseId: string, data: CreateDocumentInput) => documentsApi.create(token, careCaseId, data),
+      upload: (careCaseId: string, file: File, title: string, documentType: string) => documentsApi.upload(token, careCaseId, file, title, documentType),
+      download: (careCaseId: string, docId: string) => documentsApi.download(token, careCaseId, docId),
       extractBio: (documentId: string) => bioExtractionApi.extract(token, documentId),
       validateBio: (documentId: string, data: BioValidateInput) => bioExtractionApi.validate(token, documentId, data),
     },

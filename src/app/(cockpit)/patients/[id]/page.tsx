@@ -965,10 +965,48 @@ function formatBytes(bytes: number) {
 }
 
 function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: string; api: ReturnType<typeof apiWithToken>; patientFirstName: string }) {
+  const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadType, setUploadType] = useState("OTHER");
+  const [uploading, setUploading] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ["documents", careCaseId],
     queryFn: () => api.documents.list(careCaseId),
   });
+
+  async function handleUpload(file: File, docType: string) {
+    setUploading(true);
+    try {
+      await api.documents.upload(careCaseId, file, file.name, docType);
+      qc.invalidateQueries({ queryKey: ["documents", careCaseId] });
+      toast.success("Document ajouté ✨");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erreur lors de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function triggerUpload(docType: string) {
+    setUploadType(docType);
+    fileInputRef.current?.click();
+  }
+
+  function onFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handleUpload(file, uploadType);
+    e.target.value = "";
+  }
+
+  async function handleDownload(docId: string) {
+    try {
+      const { url } = await api.documents.download(careCaseId, docId);
+      window.open(url, "_blank");
+    } catch {
+      toast.error("Impossible de télécharger le document");
+    }
+  }
 
   return (
     <div className="p-6 max-w-3xl space-y-3">
@@ -994,7 +1032,7 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
               <button
                 key={t.type}
                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted hover:border-primary/30 text-muted-foreground hover:text-foreground transition-all"
-                onClick={() => toast.info("Import de documents — prochainement")}
+                onClick={() => triggerUpload(t.type)}
               >
                 {t.label}
               </button>
@@ -1003,7 +1041,7 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
           <Button
             size="sm"
             className="text-xs gap-1.5 h-8 mt-4"
-            onClick={() => toast.info("Import de documents — prochainement")}
+            onClick={() => triggerUpload("OTHER")}
           >
             <FileText size={12} /> Ajouter un document
           </Button>
