@@ -1,0 +1,90 @@
+# Nami — Documentation complète pour LLM
+# Version étendue de llms.txt avec détail des algorithmes et pathologies
+
+## Algorithmes décisionnels pédiatriques (42 arbres de décision)
+
+### Gastro-entérologie (10 algorithmes)
+1. RGO du nourrisson — 3 paliers (mesures diététiques → anti-acide → éviction PLV/FOGD). Source: HAS 2017, ESPGHAN 2018
+2. APLV — Formes IgE-médiée et non-IgE. Test d'éviction-réintroduction = gold standard. Source: ESPGHAN 2022, EAACI 2024
+3. Constipation — 95% fonctionnelle. Hirschsprung si retard méconium. Source: ESPGHAN/NASPGHAN 2014
+4. Maladie coeliaque — IgA anti-TG > 10×N = diagnostic sans biopsie. Source: ESPGHAN 2020
+5. Douleurs abdominales — Score d'Alvarado pour appendicite. Douleur fonctionnelle = Rome IV. Source: ESPGHAN 2022
+6. MICI (Crohn + RCH) — Calprotectine fécale = test de débrouillage. NEE = 1ère intention Crohn pédiatrique. Source: ECCO/ESPGHAN 2020
+7. Diarrhée chronique — IgA anti-TG systématique + courbe de croissance. Source: ESPGHAN
+8. Hémorragie digestive — Rectorragies nourrisson = APLV en 1er. Source: ESPGHAN/SFP
+9. Oesophagite à éosinophiles — ≥ 15 éosinophiles/HPF + biopsies étagées. Source: ESPGHAN 2022
+10. Vomissements chroniques — Matinaux = HTIC, cycliques = migraine. Source: NASPGHAN 2022
+
+### Pneumologie / ORL (6 algorithmes)
+11. Bronchiolite — Pas de bronchodilatateurs, pas de kiné systématique. Beyfortus depuis 2023. Source: HAS 2019/2023
+12. Asthme — < 6 ans test thérapeutique, ≥ 6 ans GINA paliers 1-5. Source: GINA 2024
+13. Toux — Corps étranger si brutale 6m-4a, coqueluche si quinteuse, mucoviscidose si chronique productive. Source: HAS 2021
+14. OMA — Amoxicilline 1ère intention, < 2 ans systématique, ≥ 2 ans surveillance 48h possible. Source: GPIP 2023
+15. Angine — TDR obligatoire ≥ 3 ans, pas < 3 ans (SGA exceptionnel). Source: HAS 2021
+16. Rhinite allergique — Corticoïde nasal = référence. ITA = seul traitement modificateur. Source: ARIA 2020
+
+### Neurodéveloppement (3 algorithmes)
+17. TSA — Pointing absent à 12 mois = signe le plus prédictif. PCO < 7 ans = accès direct. Source: HAS 2018/2020
+18. TDAH — Primo-prescription hospitalière obligatoire. Non médicamenteux d'abord. Source: HAS 2022
+19. Retard de langage — Audiogramme = 1er examen. Régression = urgence. Source: HAS 2020
+
+### Urgences (8 algorithmes)
+20. Fièvre — < 3 mois = urgence hospitalière. Purpura = C3G immédiat. Source: HAS 2023
+21. Convulsions — Fébrile simple = bénin (pas d'EEG). Glycémie = 1er geste si afébrile. Source: SFP 2021
+22. Déshydratation — SRO = traitement. Ondansétron réduit les hospitalisations. Source: ESPGHAN 2024
+23. Ictère néonatal — < H24 = pathologique. Selles décolorées = atrésie biliaire (chirurgie < J45). Source: SFN 2023
+24. TC léger — PECARN < 2 ans / ≥ 2 ans. VPN 99.98%. Source: PECARN 2009
+25. Infection urinaire — BU systématique si fièvre nourrisson. ECBU avant antibiotique. Source: HAS 2014
+26. Intoxications — Centre Antipoison 15/112. Pile bouton = extraction < 2h. Source: SFP 2023
+27. Purpura — Fébrile = méningococcémie → C3G immédiat. Afébrile = PTI ou Henoch-Schönlein. Source: HAS
+
+### Dermatologie (3 algorithmes)
+28. Éruptions fébriles — Vitropression d'abord. Kawasaki si > 5 jours. Varicelle : jamais d'ibuprofène. Source: SFD
+29. Eczéma/DA — Dermocorticoïdes = référence. Corticophobie = cause n°1 d'échec. Eczéma sévère < 6m = APLV. Source: SFD 2022
+30. Urticaire + Anaphylaxie — 80% virales chez l'enfant. Anaphylaxie = adrénaline IM. Source: EAACI 2021
+
+### Cardiologie (2 algorithmes)
+31. Souffle cardiaque — Diastolique = toujours pathologique. Pouls fémoraux = coarctation. Source: ESC 2021
+32. Syncope — ECG obligatoire pour toute syncope. Syncope à l'effort = red flag n°1. Source: ESC 2018
+
+### Neurologie (1 algorithme)
+33. Céphalées — Matinales + vomissements = HTIC → IRM urgente. Migraine enfant souvent bilatérale. Source: ICHD-3 2018
+
+### Hématologie (1 algorithme)
+34. Anémie — VGM + ferritine + CRP = trio de base. Carence fer = cause n°1 mondiale. Source: SFH
+
+### Néphrologie (1 algorithme)
+35. Syndrome néphrotique — 90% corticosensibles. BU par les parents = outil de suivi n°1. Source: KDIGO 2021
+
+### Nutrition / Endocrinologie (5 algorithmes)
+36. Obésité pédiatrique — Courbe IMC = outil n°1. Rebond d'adiposité < 6 ans = risque ×6. Source: HAS 2022
+37. Rachitisme — Supplémentation vitamine D obligatoire tous les nourrissons. Source: SFP 2022
+38. Puberté — Précoce garçon = 50% organique → IRM. Retard fille = Turner à évoquer. Source: SFE 2022
+39. Énurésie — < 5 ans = normal. Desmopressine si polyurie nocturne. Alarme si petite vessie. Source: ICCS 2021
+40. Allergies diversification — Introduction précoce 4-6 mois = protecteur (EAACI 2024). Ne pas retarder.
+
+### Psychiatrie adolescent (2 algorithmes)
+41. Dépression — Poser la question du suicide sauve des vies. Fluoxétine seul ISRS avec AMM < 18 ans. Source: HAS 2014
+42. TCA adolescent — SCOFF ≥ 2 = approfondir. SRI = risque vital à la renutrition. FBT = 1ère intention AN ado. Source: HAS 2019
+
+### Néonatologie (2 algorithmes)
+43. Salle de naissance — FiO2 21% si ≥ 35 SA. Clampage retardé 1-3 min. Apgar = rétrospectif pas décisionnel. Source: ILCOR 2020
+44. Examen néonatal — 8 systèmes. 10 urgences à ne jamais rater. Pouls fémoraux + SpO2 pré/post-ductale + réflexe rouge = dépistages critiques. Source: SFN 2023
+
+## Cas cliniques illustratifs
+
+### Cas Mael (nourrisson 4 mois, RGO résistant)
+Régurgitations + 15-20 biberons/jour de 40ml + frein de langue coupé inutilement.
+L'algorithme RGO de Nami aurait orienté vers :
+1. Red flag : > 10 bib/jour = refus par DOULEUR (pas du fractionnement)
+2. Palier 2 échoué → Palier 3 : suspecter APLV (pas le frein de langue)
+3. Constipation + fissures + RGO = APLV forme digestive basse
+Résultat : 3 mois de détour et 1 geste chirurgical inutile évités.
+
+### Cas patiente 18 ans obésité + brûlures gastriques
+IMC 39.8, ulcère gastrique.
+L'algorithme Nami croise :
+- Obésité grade II → bilan métabolique complet
+- Brûlures gastriques → H. pylori + AINS + vomissements provoqués (BN ?)
+- Femme 18 ans obèse → SOPK, TCA (SCOFF obligatoire)
+Point clé : les brûlures chez une jeune femme obèse = ne pas oublier la bulimie.

@@ -16,13 +16,29 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Nami — Cockpit clinique de coordination des soins",
+  title: {
+    default: "Nami — Coordination des parcours de soins complexes",
+    template: "%s | Nami",
+  },
   description:
-    "Nami organise le soin pour qu'il devienne coordonné, anticipable et actionnable. Coordination clinique pluridisciplinaire pour parcours complexes.",
+    "Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de 564 000+ professionnels en France.",
+  keywords: [
+    "coordination soins", "parcours de soins", "TCA", "anorexie", "boulimie",
+    "obésité", "pédiatrie", "nutrition", "diététicien", "psychologue",
+    "adressage médical", "pluridisciplinaire", "APLV", "TDAH", "TSA",
+    "annuaire santé", "professionnel de santé", "coordination clinique",
+  ],
+  authors: [{ name: "Nami", url: "https://nami-web-orpin.vercel.app" }],
+  creator: "Nami",
+  publisher: "Nami",
+  metadataBase: new URL("https://nami-web-orpin.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Nami — Cockpit clinique de coordination des soins",
+    title: "Nami — Coordination des parcours de soins complexes",
     description:
-      "Nami organise le soin pour qu'il devienne coordonné, anticipable et actionnable. Coordination clinique pluridisciplinaire pour parcours complexes.",
+      "Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire.",
     type: "website",
     siteName: "Nami",
     locale: "fr_FR",
@@ -31,9 +47,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nami — Cockpit clinique de coordination des soins",
+    title: "Nami — Coordination des parcours de soins complexes",
     description:
       "Coordination clinique pluridisciplinaire pour parcours de soins complexes.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

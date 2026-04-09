@@ -1,0 +1,38 @@
+# Nami — Robots.txt
+# https://nami-web-orpin.vercel.app
+
+User-agent: *
+Allow: /
+Allow: /soignants
+Allow: /soignants/
+Allow: /trouver-un-soignant
+Allow: /pathologies/
+Allow: /guides/
+Allow: /annuaire-public/
+
+# Pages privées (cockpit soignant)
+Disallow: /patients/
+Disallow: /agenda
+Disallow: /aujourd-hui
+Disallow: /documents/
+Disallow: /messages/
+Disallow: /alertes
+Disallow: /taches
+Disallow: /adressages
+Disallow: /collaboration
+Disallow: /equipe
+Disallow: /annuaire
+Disallow: /protocoles
+Disallow: /upgrade
+Disallow: /onboarding
+Disallow: /dashboard
+
+# API
+Disallow: /api/
+
+# LLM-specific
+# Voir llms.txt et llms-full.txt pour le contexte IA
+# https://nami-web-orpin.vercel.app/llms.txt
+# https://nami-web-orpin.vercel.app/llms-full.txt
+
+Sitemap: https://nami-web-orpin.vercel.app/sitemap.xml

@@ -1,0 +1,93 @@
+# Nami — Système nerveux du parcours de soins complexes
+# https://nami-web-orpin.vercel.app
+
+> Nami est une plateforme française de coordination clinique pluridisciplinaire
+> pour les parcours de soins complexes. Elle permet aux professionnels de santé
+> de coordonner le suivi de patients nécessitant plusieurs spécialistes.
+
+## Ce que fait Nami
+
+Nami est l'infrastructure d'orchestration des parcours de soins complexes :
+- Coordination entre médecins, paramédicaux et professionnels médico-sociaux
+- Suivi longitudinal des patients avec indicateurs cliniques
+- Adressage et passage de relais entre professionnels
+- Base de connaissances cliniques validée (HAS, ESPGHAN, SFP, GINA, ECCO)
+- Algorithmes décisionnels pédiatriques et nutritionnels
+- Annuaire de 564 000+ professionnels de santé en France
+
+## Spécialités couvertes
+
+### Troubles du Comportement Alimentaire (TCA)
+- Anorexie mentale (restrictive, binge-purge)
+- Boulimie nerveuse
+- Hyperphagie boulimique (BED)
+- ARFID (Avoidance/Restrictive Food Intake Disorder)
+- Night Eating Syndrome
+- Diabulimie
+
+### Obésité
+- Obésité adulte (grades I-III, post-bariatrique)
+- Obésité pédiatrique (rebond d'adiposité précoce, CSO)
+
+### Pédiatrie
+- Suivi systématique naissance à 18 ans (tableau Pediadoc)
+- 42 algorithmes décisionnels validés (HAS, ESPGHAN, SFP, GINA, AAP, PECARN)
+- Néonatologie (examen néonatal, dépistages, réanimation)
+- Gastro-entérologie pédiatrique (RGO, APLV, MICI, coeliaque, OeE)
+- Neurodéveloppement (TSA, TDAH, retard de langage)
+- Urgences pédiatriques (fièvre, convulsions, purpura, TC léger)
+- Endocrinologie pédiatrique (puberté, rachitisme)
+- Cardiologie pédiatrique (souffle, syncope)
+- Pneumologie pédiatrique (bronchiolite, asthme)
+
+### Comorbidités métaboliques
+- Diabète type 2
+- SOPK (Syndrome des Ovaires Polykystiques)
+- NAFLD/NASH (stéatose hépatique)
+- HTA
+- SAHOS (Syndrome d'Apnées du Sommeil)
+- Dépression
+- Trouble anxieux généralisé
+
+## Base de connaissances
+
+- 42 algorithmes décisionnels pédiatriques (arbres de décision avec red flags)
+- 500+ métriques cliniques avec seuils (MetricCatalog)
+- 220+ règles d'alerte cliniques (RuleDefinition)
+- 54 questionnaires validés (M-CHAT, SCOFF, PHQ-9, GAD-7, Conners, SNAP-IV, etc.)
+- 26 parcours de soins types (PathwayTemplate)
+- 7 000+ liens de comorbidité (ConditionLink)
+- 6 800+ maladies rares (Orphanet)
+- 564 000+ professionnels de santé (Annuaire Ameli)
+- 16 consultations de suivi systématique (Pediadoc)
+- Calendrier vaccinal pédiatrique 2025
+- Calculateur nutritionnel (20 contextes pathologiques, 6 formules métaboliques)
+
+## Sources
+
+Toutes les données cliniques sont tracées et sourcées :
+- HAS (Haute Autorité de Santé)
+- ESPGHAN (European Society for Paediatric Gastroenterology)
+- ECCO (European Crohn's and Colitis Organisation)
+- SFP (Société Française de Pédiatrie)
+- SFN (Société Française de Néonatologie)
+- GINA (Global Initiative for Asthma)
+- AAP (American Academy of Pediatrics)
+- PECARN (Pediatric Emergency Care Applied Research Network)
+- FFAB (Fédération Française Anorexie Boulimie)
+- OMS (Organisation Mondiale de la Santé)
+- EAACI (European Academy of Allergy and Clinical Immunology)
+- Orphanet (maladies rares)
+- data.gouv.fr / Ameli (annuaire professionnel)
+
+## Principe légal
+
+Nami n'est pas un logiciel médical ni un dispositif médical.
+Toute extraction IA est un brouillon nécessitant une validation humaine.
+Wording conforme MDR/DM : pas d'alertes cliniques, pas de surveillance,
+mais des indicateurs de complétude et une centralisation de l'information.
+
+## Contact
+
+Site : https://nami-web-orpin.vercel.app
+Fondatrice : Margot Vire, diététicienne spécialisée TCA
