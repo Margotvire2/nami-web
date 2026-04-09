@@ -427,7 +427,7 @@ export interface CareCase {
   riskLevel: "UNKNOWN" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   lastActivityAt: string | null;
   startDate: string;
-  patient: { id: string; firstName: string; lastName: string; email: string };
+  patient: { id: string; firstName: string; lastName: string; email: string; phone?: string; birthDate?: string | null; sex?: string | null };
   leadProvider: { person: { firstName: string; lastName: string } } | null;
   _count: { members: number; activities: number };
 }
@@ -437,6 +437,10 @@ export interface CareCaseDetail extends Omit<CareCase, "_count"> {
   clinicalSummary: string | null;
   careStage: string | null;
   nextStepSummary: string | null;
+  height: number | null;
+  napValue: number | null;
+  napDescription: string | null;
+  pathwayTemplateId: string | null;
   members: CareCaseMember[];
   _count: { members: number; activities: number; notes: number; documents: number; tasks: number; alerts: number };
 }

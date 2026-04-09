@@ -230,12 +230,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           <div className="h-full overflow-y-auto">
             <SuiviTabNew
               careCaseId={id}
-              pathwayKey={(careCase as unknown as Record<string, unknown>).pathwayKey as string ?? "default"}
+              pathwayKey={careCase.pathwayTemplateId ?? "default"}
               personId={careCase.patient.id}
-              patient={{ firstName: careCase.patient.firstName, lastName: careCase.patient.lastName, birthDate: (careCase.patient as unknown as Record<string, unknown>).birthDate as string | null ?? null, sex: (careCase.patient as unknown as Record<string, unknown>).sex as string | undefined }}
-              height={(careCase as unknown as Record<string, unknown>).height as number | null ?? null}
-              napValue={(careCase as unknown as Record<string, unknown>).napValue as number | null ?? null}
-              napDescription={(careCase as unknown as Record<string, unknown>).napDescription as string | null ?? null}
+              patient={{ firstName: careCase.patient.firstName, lastName: careCase.patient.lastName, birthDate: careCase.patient.birthDate ?? null, sex: careCase.patient.sex ?? undefined }}
+              height={careCase.height}
+              napValue={careCase.napValue}
+              napDescription={careCase.napDescription}
             />
           </div>
         ) : section === "trajectoire" ? (
@@ -509,12 +509,11 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-page-title">{c.patient.firstName} {c.patient.lastName}</h1>
-              {(() => {
-                const bd = (c.patient as unknown as Record<string, unknown>).birthDate as string | null
-                if (!bd) return null
-                const ageYears = Math.floor((Date.now() - new Date(bd).getTime()) / (365.25 * 24 * 3600000))
-                return <span className="text-xs text-muted-foreground">{ageYears} ans</span>
-              })()}
+              {c.patient.birthDate && (
+                <span className="text-xs text-muted-foreground">
+                  {Math.floor((Date.now() - new Date(c.patient.birthDate).getTime()) / (365.25 * 24 * 3600000))} ans
+                </span>
+              )}
               <span className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${RISK_BADGE[c.riskLevel]}`}>
                 {RISK_LABEL[c.riskLevel]}
               </span>
