@@ -1042,10 +1042,22 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
           Documents {data?.length ? <span className="text-muted-foreground font-normal">({data.length})</span> : ""}
         </h2>
         {data && data.length > 0 && (
-          <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7" onClick={() => triggerUpload("OTHER")} disabled={uploading}>
-            {uploading ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
-            {uploading ? "Upload…" : "Ajouter"}
-          </Button>
+          <div className="relative group">
+            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7" disabled={uploading}>
+              {uploading ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
+              {uploading ? "Upload…" : "Ajouter"}
+            </Button>
+            <div className="absolute right-0 top-full mt-1 bg-card border rounded-lg shadow-lg p-1.5 hidden group-hover:block z-50 min-w-[180px]">
+              {SUGGESTED_TYPES.map((t) => (
+                <button key={t.type} className="w-full text-left text-xs px-3 py-1.5 rounded-md hover:bg-muted transition-colors" onClick={() => triggerUpload(t.type)}>
+                  {t.label}
+                </button>
+              ))}
+              <button className="w-full text-left text-xs px-3 py-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground" onClick={() => triggerUpload("OTHER")}>
+                Autre
+              </button>
+            </div>
+          </div>
         )}
       </div>
       {/* header done above */}
