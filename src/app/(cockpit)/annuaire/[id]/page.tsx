@@ -196,24 +196,24 @@ export default function AnnuaireFichePage({ params }: { params: Promise<{ id: st
       {/* Actions */}
       <div className="rounded-xl border bg-card p-4 mt-4 shadow-sm flex flex-wrap gap-2">
         {e.phone && (
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" asChild>
-            <a href={`tel:${e.phone}`}>
+          <a href={`tel:${e.phone}`}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <Phone size={12} /> Appeler
-            </a>
-          </Button>
+            </Button>
+          </a>
         )}
         {fullAddress && (
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" asChild>
-            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`} target="_blank" rel="noopener noreferrer">
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <MapPin size={12} /> Voir sur la carte
-            </a>
-          </Button>
-        )}
-        <Button variant="outline" size="sm" className="gap-1.5 text-xs" asChild>
-          <a href={`https://annuaire.sante.fr`} target="_blank" rel="noopener noreferrer">
-            <Globe size={12} /> V\u00e9rifier sur l&apos;annuaire ANS
+            </Button>
           </a>
-        </Button>
+        )}
+        <a href="https://annuaire.sante.fr" target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Globe size={12} /> V\u00e9rifier sur l&apos;annuaire ANS
+          </Button>
+        </a>
       </div>
 
       {/* Nearby colleagues */}
