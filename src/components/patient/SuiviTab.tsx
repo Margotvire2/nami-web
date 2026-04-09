@@ -178,13 +178,13 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
       }
     },
     onSuccess: () => {
+      // Invalidate all relevant queries to refresh data
       qc.invalidateQueries({ queryKey: ["care-case"] })
       qc.invalidateQueries({ queryKey: ["observations-latest"] })
       qc.invalidateQueries({ queryKey: ["trajectory"] })
+      qc.invalidateQueries({ queryKey: ["care-cases"] })
       setEditDialog(false)
       toast.success("Données mises à jour")
-      // Force refresh to reflect birthDate/sex changes
-      window.location.reload()
     },
   })
 
