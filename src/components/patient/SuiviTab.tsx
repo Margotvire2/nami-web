@@ -158,7 +158,7 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
 
       // 2. Update person (birthDate, sex)
       if (personId && (editBirthDate || editSex)) {
-        await fetch(`${API}/persons/${personId}`, {
+        const personRes = await fetch(`${API}/persons/${personId}`, {
           method: "PATCH",
           headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -166,6 +166,9 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
             ...(editSex ? { sex: editSex } : {}),
           }),
         })
+        if (!personRes.ok) {
+          console.error("[SAVE] PATCH persons error:", personRes.status, await personRes.text())
+        }
       }
 
       // 3. Save weight if changed
