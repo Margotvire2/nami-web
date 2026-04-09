@@ -142,8 +142,10 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
 
       try {
         // Upload + transcribe
+        console.log("[RECORDING] Sending blob:", blob.size, "bytes, type:", blob.type, "chunks:", chunksRef.current.length);
         setState((s) => ({ ...s, status: "transcribing" }));
         const uploadResult = await api.recordings.upload(blob, duration);
+        console.log("[RECORDING] Upload result:", JSON.stringify(uploadResult).substring(0, 200));
 
         // Analyze
         setState((s) => ({ ...s, status: "analyzing" }));
