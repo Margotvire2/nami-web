@@ -1126,7 +1126,11 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
                     >
                       <FileText size={14} />
                     </button>
-                    {doc.documentType === "BIOLOGICAL_REPORT" && (
+                    {(doc.documentType === "BIOLOGICAL_REPORT" ||
+                      doc.title?.toLowerCase().includes("analyse") ||
+                      doc.title?.toLowerCase().includes("bilan") ||
+                      doc.title?.toLowerCase().includes("résultat") ||
+                      doc.title?.toLowerCase().includes("biolog")) && (
                       <button
                         className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
                         title="Analyser avec l'IA"
