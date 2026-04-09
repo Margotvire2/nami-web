@@ -112,6 +112,17 @@ function daysAgo(d: string) {
   return `il y a ${days}j`;
 }
 
+const STAGE_LABELS: Record<string, string> = {
+  evaluation: "Évaluation initiale", stabilization: "Stabilisation",
+  weight_recovery: "Reprise pondérale", restructuring: "Restructuration alimentaire",
+  consolidation: "Consolidation", autonomy: "Autonomie",
+  bilan_m0: "Bilan initial", intensive_m0_m6: "Phase intensive",
+  consolidation_m6_m12: "Consolidation", reinforced_m12_m18: "Suivi renforcé",
+  autonomous_m18_m24: "Suivi autonome", maintenance: "Maintien",
+  crisis_reduction: "Réduction des crises", food_structuring: "Structuration alimentaire",
+  emotional_work: "Travail émotionnel", relapse_prevention: "Prévention rechute",
+}
+
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
 type Section = "overview" | "suivi" | "trajectoire" | "timeline" | "notes" | "journal" | "documents" | "messages";
@@ -194,7 +205,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             {/* Colonne 1 — Résumé dossier */}
             <div className="flex-1 overflow-y-auto border-r p-5 space-y-5">
               <ClinicalSummaryCard careCase={careCase} careCaseId={id} api={api} />
-              <CompletenessIndicators careCaseId={id} api={api} />
+              {/* CompletenessIndicators supprimé — remplacé par alertes cliniques */}
               <CareTeamCompact careCaseId={id} api={api} careCase={careCase} />
             </div>
 
@@ -518,7 +529,7 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, 
                 {RISK_LABEL[c.riskLevel]}
               </span>
               <span className="text-xs border rounded px-1.5 py-0.5 text-muted-foreground">{c.caseType}</span>
-              {c.careStage && <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">{c.careStage}</span>}
+              {c.careStage && <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">{STAGE_LABELS[c.careStage] ?? c.careStage}</span>}
             </div>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               {c.leadProvider && (
@@ -1417,7 +1428,7 @@ function PilotagePanel({ careCaseId, careCase, api }: {
         <div className="rounded-xl border bg-muted/10 p-3.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-muted-foreground">Phase actuelle</span>
-            <span className="text-[11px] font-semibold">{careCase.careStage ?? "Non définie"}</span>
+            <span className="text-[11px] font-semibold">{careCase.careStage ? (STAGE_LABELS[careCase.careStage] ?? careCase.careStage) : "Non définie"}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-muted-foreground">Vigilance</span>
