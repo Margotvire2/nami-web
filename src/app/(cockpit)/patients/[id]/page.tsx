@@ -1299,6 +1299,8 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
                               toast.success(`${count} valeurs extraites ✨`)
                               qc.invalidateQueries({ queryKey: ["observations-latest"] })
                               qc.invalidateQueries({ queryKey: ["documents"] })
+                              qc.invalidateQueries({ queryKey: ["care-case"] })
+                              qc.invalidateQueries({ queryKey: ["observations-delta"] })
                             } else {
                               toast.error(`Erreur : ${data.error}`)
                             }
