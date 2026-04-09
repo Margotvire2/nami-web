@@ -1150,16 +1150,35 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
                           toast.info("Analyse en cours...")
                           try {
                             const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-                            const res = await fetch(`${API}/documents/${doc.id}/extract-bio`, {
+                            let res = await fetch(`${API}/care-cases/${careCaseId}/documents/${doc.id}/extract-bio`, {
                               method: "POST",
-                              headers: { Authorization: `Bearer ${accessToken}` },
+                              headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+                              body: JSON.stringify({}),
                             })
-                            if (!res.ok) throw new Error("Erreur extraction")
-                            const data = await res.json()
-                            const count = data.candidates?.length ?? data.extracted ?? 0
-                            toast.success(`${count} valeurs extraites ✨`)
-                            qc.invalidateQueries({ queryKey: ["observations-latest"] })
-                            qc.invalidateQueries({ queryKey: ["documents"] })
+                            let data = await res.json()
+
+                            // PDF protégé → demander le mot de passe
+                            if (data.needsPassword) {
+                              const pwd = prompt("Ce PDF est protégé. Entrez le mot de passe :")
+                              if (!pwd) return
+                              toast.info("Analyse avec mot de passe...")
+                              res = await fetch(`${API}/care-cases/${careCaseId}/documents/${doc.id}/extract-bio`, {
+                                method: "POST",
+                                headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+                                body: JSON.stringify({ pdfPassword: pwd }),
+                              })
+                              data = await res.json()
+                              if (data.needsPassword) { toast.error("Mot de passe incorrect"); return }
+                            }
+
+                            if (res.ok) {
+                              const count = data.candidates?.length ?? data.extracted ?? 0
+                              toast.success(`${count} valeurs extraites ✨`)
+                              qc.invalidateQueries({ queryKey: ["observations-latest"] })
+                              qc.invalidateQueries({ queryKey: ["documents"] })
+                            } else {
+                              toast.error(`Erreur : ${data.error}`)
+                            }
                           } catch { toast.error("Erreur d'analyse") }
                         }}
                       >
