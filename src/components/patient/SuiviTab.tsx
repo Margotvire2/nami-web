@@ -446,14 +446,32 @@ function DeltaCard({ obs, pathwayKey, sex, age, height }: {
 }
 
 function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayKey: string }) {
-  const bioKeys = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
-    ? ["potassium_mmol", "phosphore_mmol", "albumin_gl"]
+  // Priority keys per pathway (shown first)
+  const priorityKeys = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
+    ? ["potassium_mmol", "phosphorus_mmol", "albumin_g_l", "hemoglobin_g_dl", "calcium_mmol", "magnesium_mmol"]
     : pathwayKey.includes("obes")
-      ? ["hba1c_percent"]
-      : ["potassium_mmol", "albumin_gl"]
+      ? ["hba1c_percent", "fasting_glycemia_mmol", "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol"]
+      : []
 
-  const bioValues = bioKeys.map((k) => obs.get(k)).filter(Boolean)
-  if (bioValues.length === 0) {
+  // Collect ALL bio observations (known bio keys or bio_ prefix)
+  const BIO_KEYS = new Set([
+    "potassium_mmol", "phosphorus_mmol", "albumin_g_l", "hemoglobin_g_dl",
+    "sodium_mmol", "calcium_mmol", "magnesium_mmol", "iron_umol", "ferritin_ug_l",
+    "creatinine_umol", "asat_ui_l", "alat_ui_l", "crp_mg_l",
+    "tsh_mui_l", "vitamin_d_ng_ml", "vitamin_b12_pg_ml",
+    "hba1c_percent", "fasting_glycemia_mmol", "glycemia_mmol",
+    "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol",
+    "leucocytes_g_l", "platelets_g_l",
+  ])
+
+  const allBio: ObsRecord[] = []
+  obs.forEach((o, key) => {
+    if (BIO_KEYS.has(key) || key.startsWith("bio_")) {
+      allBio.push(o)
+    }
+  })
+
+  if (allBio.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-5">
         <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">🧪 Dernier bilan biologique</h3>
@@ -462,28 +480,43 @@ function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayK
     )
   }
 
-  const latestDate = bioValues.reduce((max, v) => v && v.effectiveAt > max ? v.effectiveAt : max, "")
+  // Sort: priority keys first, then alphabetical
+  const prioritySet = new Set(priorityKeys)
+  allBio.sort((a, b) => {
+    const aP = prioritySet.has(a.metricKey) ? 0 : 1
+    const bP = prioritySet.has(b.metricKey) ? 0 : 1
+    if (aP !== bP) return aP - bP
+    return (a.label ?? a.metricKey).localeCompare(b.label ?? b.metricKey)
+  })
+
+  const latestDate = allBio.reduce((max, v) => v.effectiveAt > max ? v.effectiveAt : max, "")
 
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold flex items-center gap-2">🧪 Dernier bilan biologique</h3>
-        <span className="text-[10px] text-muted-foreground">{latestDate ? format(parseISO(latestDate), "d MMMM yyyy", { locale: fr }) : ""}</span>
+        <span className="text-[10px] text-muted-foreground">
+          {latestDate ? format(parseISO(latestDate), "d MMMM yyyy", { locale: fr }) : ""}
+          {" · "}{allBio.length} valeurs
+        </span>
       </div>
-      <div className="space-y-2">
-        {bioValues.map((o) => {
+      <div className="grid md:grid-cols-2 gap-x-6 gap-y-1.5">
+        {allBio.map((o) => {
           const bv = numVal(o)
           if (bv == null) return null
-          const range = getMetricRange(o!.metricKey, pathwayKey, { sex: "FEMALE", age: 16 })
+          const range = getMetricRange(o.metricKey, pathwayKey, { sex: "FEMALE", age: 16 })
           const color = getValueColor(bv, range)
-          const rangeLabel = range.green ? `(${range.green.min}-${range.green.max})` : ""
+          const rangeLabel = range?.green ? `(${range.green.min}–${range.green.max})` : ""
           return (
-            <div key={o!.metricKey} className="flex items-center gap-3 text-sm">
-              <span className="text-muted-foreground w-28 truncate">{o!.label}</span>
-              <span className="font-semibold">{bv} {o!.unit ?? ""}</span>
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[color]}`}>
-                {color === "green" ? "Normal" : color === "orange" ? "Bas" : color === "red" ? "Critique" : "—"} {rangeLabel}
-              </span>
+            <div key={o.metricKey} className="flex items-center gap-2 text-sm py-0.5">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${color === "green" ? "bg-emerald-500" : color === "orange" ? "bg-amber-500" : color === "red" ? "bg-red-500" : "bg-gray-300"}`} />
+              <span className="text-muted-foreground truncate flex-1">{o.label}</span>
+              <span className="font-semibold whitespace-nowrap">{bv} {o.unit ?? ""}</span>
+              {color !== "gray" && (
+                <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${COLOR_MAP[color]}`}>
+                  {color === "green" ? "N" : color === "orange" ? "⚠" : "‼"} {rangeLabel}
+                </span>
+              )}
             </div>
           )
         })}

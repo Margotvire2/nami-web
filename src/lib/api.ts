@@ -1417,6 +1417,11 @@ export const observationsApi = {
     request<{ latest: Record<string, LatestObservation[]>; total: number }>(
       `/care-cases/${careCaseId}/observations/latest`, {}, token
     ),
+
+  delta: (token: string, careCaseId: string) =>
+    request<{ deltas: { metricKey: string; label: string; current: number | null; previous: number | null; delta: number | null; unit: string | null }[]; referenceDate: string | null; total: number }>(
+      `/care-cases/${careCaseId}/observations/delta`, {}, token
+    ),
 };
 
 // ─── Pathway ────────────────────────────────────────────────────────────────
