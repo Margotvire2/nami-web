@@ -74,8 +74,20 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
 
   const startRecording = useCallback(async (careCaseId: string, patientName: string) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 16000,
+        },
+      });
       streamRef.current = stream;
+
+      // Log device info
+      const audioTrack = stream.getAudioTracks()[0];
+      console.log("[RECORDING] Using device:", audioTrack.label, audioTrack.getSettings());
 
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus" : "audio/webm";
@@ -88,7 +100,7 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
-      // Detect silence — warn if mic captures nothing
+      // Silence detector (cleaned up on stop)
       const audioCtx = new AudioContext();
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
@@ -99,11 +111,21 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
         const data = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(data);
         const avg = data.reduce((a, b) => a + b, 0) / data.length;
-        if (avg < 2) silenceChecks++;
-        if (silenceChecks > 5) {
-          console.warn("[RECORDING] ⚠️ Silence detected — micro may not be working");
+        if (avg < 2) {
+          silenceChecks++;
+          if (silenceChecks > 5) {
+            console.warn("[RECORDING] ⚠️ Silence detected — micro may not be working");
+          }
+        } else {
+          silenceChecks = 0;
         }
       }, 1000);
+
+      // Cleanup silence detector when recording stops
+      mediaRecorder.addEventListener("stop", () => {
+        clearInterval(silenceInterval);
+        audioCtx.close();
+      });
 
       mediaRecorder.start(1000);
       mediaRecorderRef.current = mediaRecorder;
