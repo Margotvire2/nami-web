@@ -21,6 +21,7 @@ interface Certification {
 
 export interface OnboardingData {
   // Étape 1 — Identité
+  professionType:       string       // "medecin", "dieteticien", "psychologue", etc.
   specialties:          string[]
   subSpecialties:       string[]
   qualificationLevel:   string
@@ -69,6 +70,7 @@ interface OnboardingStore {
 }
 
 const initialData: Partial<OnboardingData> = {
+  professionType:       "",
   specialties:          [],
   subSpecialties:       [],
   qualificationLevel:   "GENERAL",
