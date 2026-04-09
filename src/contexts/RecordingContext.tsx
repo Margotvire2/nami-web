@@ -85,9 +85,25 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data);
-          console.log("[RECORDING] Chunk:", e.data.size, "bytes, total:", chunksRef.current.length);
         }
       };
+
+      // Detect silence — warn if mic captures nothing
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      let silenceChecks = 0;
+      const silenceInterval = setInterval(() => {
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        const avg = data.reduce((a, b) => a + b, 0) / data.length;
+        if (avg < 2) silenceChecks++;
+        if (silenceChecks > 5) {
+          console.warn("[RECORDING] ⚠️ Silence detected — micro may not be working");
+        }
+      }, 1000);
 
       mediaRecorder.start(1000);
       mediaRecorderRef.current = mediaRecorder;
