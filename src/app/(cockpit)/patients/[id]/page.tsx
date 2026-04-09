@@ -25,7 +25,7 @@ import {
   ChevronLeft, Clock, Activity as ActivityIcon, FileText, Users, CheckSquare,
   CalendarDays, MessageSquare, BookOpen, Bell, Sparkles,
   ArrowLeftRight, CalendarPlus, CheckCircle2, AlertTriangle,
-  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2,
+  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2, Trash2,
 } from "lucide-react";
 
 import { useTimeline } from "@/hooks/useTimeline";
@@ -990,6 +990,7 @@ function formatBytes(bytes: number) {
 }
 
 function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: string; api: ReturnType<typeof apiWithToken>; patientFirstName: string }) {
+  const { accessToken } = useAuthStore();
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadType, setUploadType] = useState("OTHER");
@@ -1125,12 +1126,47 @@ function DocumentsSection({ careCaseId, api, patientFirstName }: { careCaseId: s
                     >
                       <FileText size={14} />
                     </button>
+                    {doc.documentType === "BIOLOGICAL_REPORT" && (
+                      <button
+                        className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                        title="Analyser avec l'IA"
+                        onClick={async () => {
+                          toast.info("Analyse en cours...")
+                          try {
+                            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+                            const res = await fetch(`${API}/documents/${doc.id}/extract-bio`, {
+                              method: "POST",
+                              headers: { Authorization: `Bearer ${accessToken}` },
+                            })
+                            if (!res.ok) throw new Error("Erreur extraction")
+                            const data = await res.json()
+                            const count = data.candidates?.length ?? data.extracted ?? 0
+                            toast.success(`${count} valeurs extraites ✨`)
+                            qc.invalidateQueries({ queryKey: ["observations-latest"] })
+                            qc.invalidateQueries({ queryKey: ["documents"] })
+                          } catch { toast.error("Erreur d'analyse") }
+                        }}
+                      >
+                        <Sparkles size={14} />
+                      </button>
+                    )}
                     <button
-                      className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-                      title="Partage — prochainement"
-                      disabled
+                      className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Supprimer"
+                      onClick={async () => {
+                        if (!confirm("Supprimer ce document ?")) return
+                        try {
+                          const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+                          await fetch(`${API}/care-cases/${careCaseId}/documents/${doc.id}`, {
+                            method: "DELETE",
+                            headers: { Authorization: `Bearer ${accessToken}` },
+                          })
+                          qc.invalidateQueries({ queryKey: ["documents"] })
+                          toast.success("Document supprimé")
+                        } catch { toast.error("Erreur de suppression") }
+                      }}
                     >
-                      <Users size={14} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
