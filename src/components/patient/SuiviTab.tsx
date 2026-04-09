@@ -22,6 +22,7 @@ import {
 interface Props {
   careCaseId: string
   pathwayKey: string
+  personId?: string
   patient: { firstName: string; lastName: string; birthDate: string | null; sex?: string }
   height: number | null
   napValue: number | null
@@ -96,7 +97,7 @@ const QUESTIONNAIRE_LABELS: Record<string, { name: string; maxScore: number; cod
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, napDescription }: Props) {
+export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, napValue, napDescription }: Props) {
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const qc = useQueryClient()
@@ -109,6 +110,7 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
   const [editHeight, setEditHeight] = useState(String(height ?? ""))
   const [editNap, setEditNap] = useState(napValue ?? 1.4)
   const [editNapDesc, setEditNapDesc] = useState(napDescription ?? "")
+  const [editWeight, setEditWeight] = useState("")
 
   const age = calcAge(patient.birthDate)
   const sex = (patient.sex ?? "FEMALE") as "MALE" | "FEMALE"
@@ -145,30 +147,41 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
 
   const editMutation = useMutation({
     mutationFn: async () => {
-      // Update care case (height, NAP)
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+
+      // 1. Update care case (height, NAP)
       await api.careCases.update(careCaseId, {
         height: editHeight ? parseFloat(editHeight) : undefined,
         napValue: editNap,
         napDescription: editNapDesc || undefined,
       } as Record<string, unknown>)
-      // Update person (birthDate, sex) — via PATCH /persons
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      const personId = (patient as unknown as Record<string, unknown>).id as string | undefined
+
+      // 2. Update person (birthDate, sex)
       if (personId && (editBirthDate || editSex)) {
         await fetch(`${API}/persons/${personId}`, {
           method: "PATCH",
           headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            ...(editBirthDate ? { birthDate: new Date(editBirthDate).toISOString() } : {}),
+            ...(editBirthDate ? { birthDate: editBirthDate + "T00:00:00.000Z" } : {}),
             ...(editSex ? { sex: editSex } : {}),
           }),
         })
       }
+
+      // 3. Save weight if changed
+      const w = parseFloat(editWeight.replace(",", "."))
+      if (!isNaN(w) && w > 0) {
+        await api.observations.create(careCaseId, [{ metricKey: "weight_kg", valueNumeric: w, effectiveAt: new Date().toISOString() }])
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["care-case"] })
+      qc.invalidateQueries({ queryKey: ["observations-latest"] })
+      qc.invalidateQueries({ queryKey: ["trajectory"] })
       setEditDialog(false)
       toast.success("Données mises à jour")
+      // Force refresh to reflect birthDate/sex changes
+      window.location.reload()
     },
   })
 
@@ -362,6 +375,10 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">Taille (cm)</label>
               <Input type="number" value={editHeight} onChange={(e) => setEditHeight(e.target.value)} placeholder="165" className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Poids actuel (kg)</label>
+              <Input type="number" step="0.1" value={editWeight} onChange={(e) => setEditWeight(e.target.value)} placeholder={currentWeight ? String(currentWeight) : "42.0"} className="h-8 text-xs mt-1" />
             </div>
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">NAP — Niveau d&apos;activité physique</label>

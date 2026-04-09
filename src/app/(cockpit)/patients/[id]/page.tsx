@@ -231,6 +231,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <SuiviTabNew
               careCaseId={id}
               pathwayKey={(careCase as unknown as Record<string, unknown>).pathwayKey as string ?? "default"}
+              personId={careCase.patient.id}
               patient={{ firstName: careCase.patient.firstName, lastName: careCase.patient.lastName, birthDate: (careCase.patient as unknown as Record<string, unknown>).birthDate as string | null ?? null, sex: (careCase.patient as unknown as Record<string, unknown>).sex as string | undefined }}
               height={(careCase as unknown as Record<string, unknown>).height as number | null ?? null}
               napValue={(careCase as unknown as Record<string, unknown>).napValue as number | null ?? null}
