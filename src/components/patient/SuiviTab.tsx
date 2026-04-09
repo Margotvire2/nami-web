@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
 import { getMetricRange, getValueColor, getQuestionnaireScoring, calculateTDEE } from "@/lib/metricRanges"
+import { ALL_BIO_KEYS } from "@/lib/metricCatalog"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
@@ -453,20 +454,11 @@ function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayK
       ? ["hba1c_percent", "fasting_glycemia_mmol", "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol"]
       : []
 
-  // Collect ALL bio observations (known bio keys or bio_ prefix)
-  const BIO_KEYS = new Set([
-    "potassium_mmol", "phosphorus_mmol", "albumin_g_l", "hemoglobin_g_dl",
-    "sodium_mmol", "calcium_mmol", "magnesium_mmol", "iron_umol", "ferritin_ug_l",
-    "creatinine_umol", "asat_ui_l", "alat_ui_l", "crp_mg_l",
-    "tsh_mui_l", "vitamin_d_ng_ml", "vitamin_b12_pg_ml",
-    "hba1c_percent", "fasting_glycemia_mmol", "glycemia_mmol",
-    "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol",
-    "leucocytes_g_l", "platelets_g_l",
-  ])
+  // Collect ALL bio observations (from catalog or bio_ prefix)
 
   const allBio: ObsRecord[] = []
   obs.forEach((o, key) => {
-    if (BIO_KEYS.has(key) || key.startsWith("bio_")) {
+    if (ALL_BIO_KEYS.has(key) || key.startsWith("bio_")) {
       allBio.push(o)
     }
   })
