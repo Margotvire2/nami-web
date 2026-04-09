@@ -362,50 +362,50 @@ export const intelligenceApi = {
     if (params?.status) qs.set("status", params.status);
     if (params?.sourceType) qs.set("sourceType", params.sourceType);
     const q = qs.toString();
-    return request<KnowledgeSource[]>(`/intelligence/knowledge-sources${q ? `?${q}` : ""}`, {}, token);
+    return request<KnowledgeSource[]>(`/knowledge/knowledge-sources${q ? `?${q}` : ""}`, {}, token);
   },
 
   knowledgeSource: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}`, {}, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}`, {}, token),
 
   // Catalogues
   questionnaires: (token: string, domain?: string) => {
     const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
-    return request<any[]>(`/intelligence/questionnaires${qs}`, {}, token);
+    return request<any[]>(`/knowledge/questionnaires${qs}`, {}, token);
   },
   metrics: (token: string, domain?: string) => {
     const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
-    return request<any[]>(`/intelligence/metrics${qs}`, {}, token);
+    return request<any[]>(`/knowledge/metrics${qs}`, {}, token);
   },
   pathways: (token: string, family?: string) => {
     const qs = family ? `?family=${encodeURIComponent(family)}` : "";
-    return request<any[]>(`/intelligence/pathways${qs}`, {}, token);
+    return request<any[]>(`/knowledge/pathways${qs}`, {}, token);
   },
   conditionLinks: (token: string, fromCode?: string) => {
     const qs = fromCode ? `?fromCode=${encodeURIComponent(fromCode)}` : "";
-    return request<any[]>(`/intelligence/condition-links${qs}`, {}, token);
+    return request<any[]>(`/knowledge/condition-links${qs}`, {}, token);
   },
 
   // HAS sync
   syncHAS: (token: string) =>
-    request<{ triggered: boolean; message: string }>("/intelligence/ingest/has", {
+    request<{ triggered: boolean; message: string }>("/knowledge/ingest/has", {
       method: "POST",
     }, token),
 
   refreshHASSource: (token: string, sourceId: string) =>
-    request<{ success: boolean; message: string }>(`/intelligence/ingest/has/${sourceId}/refresh`, {
+    request<{ success: boolean; message: string }>(`/knowledge/ingest/has/${sourceId}/refresh`, {
       method: "POST",
     }, token),
 
   // Workflow
   reviewSource: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/review`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/review`, { method: "POST" }, token),
 
   validateSource: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/validate`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/validate`, { method: "POST" }, token),
 
   publishSource: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/publish`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/publish`, { method: "POST" }, token),
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1246,18 +1246,18 @@ export const knowledgeApi = {
     if (params?.status) qs.set("status", params.status);
     if (params?.sourceType) qs.set("sourceType", params.sourceType);
     const q = qs.toString();
-    return request<KnowledgeSource[]>(`/intelligence/knowledge-sources${q ? `?${q}` : ""}`, {}, token);
+    return request<KnowledgeSource[]>(`/knowledge/knowledge-sources${q ? `?${q}` : ""}`, {}, token);
   },
   get: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}`, {}, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}`, {}, token),
   review: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/review`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/review`, { method: "POST" }, token),
   validate: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/validate`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/validate`, { method: "POST" }, token),
   publish: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/publish`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/publish`, { method: "POST" }, token),
   deprecate: (token: string, id: string) =>
-    request<KnowledgeSource>(`/intelligence/knowledge-sources/${id}/deprecate`, { method: "POST" }, token),
+    request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/deprecate`, { method: "POST" }, token),
 };
 
 // ─── Colleagues ─────────────────────────────────────────────────────────────
