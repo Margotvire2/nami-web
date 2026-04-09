@@ -83,7 +83,10 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
 
       chunksRef.current = [];
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+          console.log("[RECORDING] Chunk:", e.data.size, "bytes, total:", chunksRef.current.length);
+        }
       };
 
       mediaRecorder.start(1000);
@@ -130,7 +133,9 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
     const duration = state.seconds;
 
     mediaRecorderRef.current.onstop = async () => {
+      console.log("[RECORDING] Stop. Chunks:", chunksRef.current.length, "Total:", chunksRef.current.reduce((s, c) => s + c.size, 0), "bytes");
       const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      console.log("[RECORDING] Blob size:", blob.size, "bytes");
       streamRef.current?.getTracks().forEach((t) => t.stop());
 
       const api = apiWithToken(accessToken);
