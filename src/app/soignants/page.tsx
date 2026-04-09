@@ -150,8 +150,31 @@ function ProviderCard({ provider }: { provider: PublicProvider }) {
 export default async function SoignantsPage() {
   const providers = await getProviders()
 
+  // JSON-LD — ItemList of Physicians (SEO listing)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Soignants spécialisés sur Nami",
+    description: "Professionnels de santé spécialisés en TCA, nutrition, obésité, pédiatrie. Profils vérifiés RPPS.",
+    numberOfItems: providers.length,
+    itemListElement: providers.slice(0, 30).map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Physician",
+        name: `${p.firstName} ${p.lastName}`,
+        medicalSpecialty: p.specialties[0] ?? "Professionnel de santé",
+        url: `https://nami-web-orpin.vercel.app/soignants/${p.slug}`,
+        ...(p.consultationCity ? { address: { "@type": "PostalAddress", addressLocality: p.consultationCity } } : {}),
+      },
+    })),
+  }
+
   return (
     <div className="min-h-screen bg-[#F0F2FA]">
+      {/* JSON-LD */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
       {/* Navbar */}
       <nav className="border-b bg-white">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">

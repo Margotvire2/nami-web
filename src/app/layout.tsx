@@ -64,9 +64,31 @@ export const metadata: Metadata = {
   },
 };
 
+const globalJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Nami",
+  url: "https://nami-web-orpin.vercel.app",
+  description: "Coordination des parcours de soins complexes entre professionnels de santé.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://nami-web-orpin.vercel.app/trouver-un-soignant?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Nami",
+    url: "https://nami-web-orpin.vercel.app",
+    logo: { "@type": "ImageObject", url: "https://nami-web-orpin.vercel.app/og-default.png" },
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${jakarta.variable} ${inter.variable} h-full`}>
+      <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }} />
+      </head>
       <body className="h-full bg-background font-sans antialiased">
         <Providers>{children}</Providers>
       </body>

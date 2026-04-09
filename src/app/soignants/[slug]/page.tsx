@@ -78,9 +78,29 @@ export default async function ProfilSoignantPage({
   if (!provider) notFound()
 
   const initials = `${provider.firstName[0] ?? ""}${provider.lastName[0] ?? ""}`.toUpperCase()
+  const specialty = provider.specialties[0] ?? "Professionnel de santé"
+  const city = provider.structures?.[0]?.city ?? provider.consultationCity ?? null
+
+  // Schema.org JSON-LD — Physician / MedicalBusiness
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Physician",
+    name: `${provider.firstName} ${provider.lastName}`,
+    medicalSpecialty: specialty,
+    description: provider.publicBio ?? `${provider.firstName} ${provider.lastName}, ${specialty} sur Nami.`,
+    url: `https://nami-web-orpin.vercel.app/soignants/${provider.slug}`,
+    ...(city ? { address: { "@type": "PostalAddress", addressLocality: city, addressCountry: "FR" } } : {}),
+    ...(provider.teleconsultAvailable ? { availableService: { "@type": "MedicalTherapy", name: "Téléconsultation" } } : {}),
+    ...(provider.badges.rppsVerified ? { identifier: { "@type": "PropertyValue", name: "RPPS", value: "Vérifié" } } : {}),
+    memberOf: { "@type": "Organization", name: "Nami", url: "https://nami-web-orpin.vercel.app" },
+    knowsAbout: provider.publicSpecialties.map((ps: string) => ({ "@type": "MedicalCondition", name: ps })),
+  }
 
   return (
     <div className="min-h-screen bg-[#F0F2FA]">
+      {/* JSON-LD */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
       {/* Navbar */}
       <nav className="border-b bg-white">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">

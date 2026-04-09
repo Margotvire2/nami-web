@@ -24,6 +24,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }))
 
+  // Annuaire public — pages spécialité × ville (long-tail SEO)
+  const specialties = [
+    "medecin-generaliste", "pediatre", "cardiologue", "psychiatre", "dieteticien",
+    "orthophoniste", "masseur-kinesitherapeute", "infirmier", "ophtalmologiste",
+    "gynecologiste", "dermatologue", "gastro-enterologue", "endocrinologue",
+    "pneumologue", "sage-femme", "psychologue",
+  ]
+  const cities = ["paris", "lyon", "marseille", "toulouse", "bordeaux", "lille", "nantes", "strasbourg", "montpellier", "nice"]
+
+  const annuairePages: MetadataRoute.Sitemap = [
+    { url: `${BASE}/annuaire-public`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.8 },
+    ...specialties.map((s) => ({
+      url: `${BASE}/annuaire-public/${s}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    })),
+    ...specialties.flatMap((s) =>
+      cities.map((c) => ({
+        url: `${BASE}/annuaire-public/${s}-${c}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      }))
+    ),
+  ]
+
   // Pages profils soignants publics
   let providerPages: MetadataRoute.Sitemap = []
   try {
@@ -43,5 +70,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Silent fail — sitemap still works without provider pages
   }
 
-  return [...staticPages, ...pathologyPages, ...providerPages]
+  return [...staticPages, ...pathologyPages, ...annuairePages, ...providerPages]
 }
