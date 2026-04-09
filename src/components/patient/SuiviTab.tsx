@@ -100,11 +100,15 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const qc = useQueryClient()
-  const [napDialog, setNapDialog] = useState(false)
+  const [editDialog, setEditDialog] = useState(false)
   const [weightDialog, setWeightDialog] = useState(false)
   const [newWeight, setNewWeight] = useState("")
-  const [newNap, setNewNap] = useState(napValue ?? 1.4)
-  const [newNapDesc, setNewNapDesc] = useState(napDescription ?? "")
+  // Edit patient data form
+  const [editBirthDate, setEditBirthDate] = useState(patient.birthDate ? patient.birthDate.split("T")[0] : "")
+  const [editSex, setEditSex] = useState(patient.sex ?? "FEMALE")
+  const [editHeight, setEditHeight] = useState(String(height ?? ""))
+  const [editNap, setEditNap] = useState(napValue ?? 1.4)
+  const [editNapDesc, setEditNapDesc] = useState(napDescription ?? "")
 
   const age = calcAge(patient.birthDate)
   const sex = (patient.sex ?? "FEMALE") as "MALE" | "FEMALE"
@@ -139,12 +143,32 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
     },
   })
 
-  const napMutation = useMutation({
-    mutationFn: () => api.careCases.update(careCaseId, { napValue: newNap, napDescription: newNapDesc } as Record<string, unknown>),
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      // Update care case (height, NAP)
+      await api.careCases.update(careCaseId, {
+        height: editHeight ? parseFloat(editHeight) : undefined,
+        napValue: editNap,
+        napDescription: editNapDesc || undefined,
+      } as Record<string, unknown>)
+      // Update person (birthDate, sex) — via PATCH /persons
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+      const personId = (patient as unknown as Record<string, unknown>).id as string | undefined
+      if (personId && (editBirthDate || editSex)) {
+        await fetch(`${API}/persons/${personId}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...(editBirthDate ? { birthDate: new Date(editBirthDate).toISOString() } : {}),
+            ...(editSex ? { sex: editSex } : {}),
+          }),
+        })
+      }
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["care-case"] })
-      setNapDialog(false)
-      toast.success("NAP mis à jour")
+      setEditDialog(false)
+      toast.success("Données mises à jour")
     },
   })
 
@@ -206,6 +230,7 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
       <div className="rounded-xl border bg-card p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold flex items-center gap-2">📊 Synthèse clinique</h3>
+          <Button size="sm" variant="outline" className="text-[10px] h-6 gap-1" onClick={() => setEditDialog(true)}><Pencil size={10} /> Modifier</Button>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-1.5 text-sm">
@@ -221,7 +246,7 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
             )}
             <p className="text-muted-foreground text-xs flex items-center gap-1">
               NAP : {napValue ?? "?"} — {napDescription ?? "Non renseigné"}
-              <button onClick={() => setNapDialog(true)} className="text-primary hover:underline ml-1"><Pencil size={10} /></button>
+              <button onClick={() => setEditDialog(true)} className="text-primary hover:underline ml-1"><Pencil size={10} /></button>
             </p>
             {tdee && <p className="text-xs text-muted-foreground">Besoins estimés : <span className="font-medium text-foreground">{tdee} kcal/jour</span></p>}
             {!tdee && <p className="text-[10px] text-amber-600 flex items-center gap-1"><AlertTriangle size={10} /> Données insuffisantes pour calculer les besoins</p>}
@@ -319,15 +344,38 @@ export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, na
         </DialogContent>
       </Dialog>
 
-      <Dialog open={napDialog} onOpenChange={setNapDialog}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Modifier le NAP</DialogTitle></DialogHeader>
-          <select className="w-full border rounded-md p-2 text-sm" value={newNap} onChange={(e) => setNewNap(parseFloat(e.target.value))}>
-            {NAP_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <Input placeholder="Description libre" value={newNapDesc} onChange={(e) => setNewNapDesc(e.target.value)} />
-          <Button onClick={() => napMutation.mutate()} disabled={napMutation.isPending}>
-            {napMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+      <Dialog open={editDialog} onOpenChange={setEditDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Données du patient</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Date de naissance</label>
+              <Input type="date" value={editBirthDate} onChange={(e) => setEditBirthDate(e.target.value)} className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Sexe</label>
+              <select className="w-full border rounded-md p-2 text-xs mt-1" value={editSex} onChange={(e) => setEditSex(e.target.value)}>
+                <option value="FEMALE">Féminin</option>
+                <option value="MALE">Masculin</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Taille (cm)</label>
+              <Input type="number" value={editHeight} onChange={(e) => setEditHeight(e.target.value)} placeholder="165" className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">NAP — Niveau d&apos;activité physique</label>
+              <select className="w-full border rounded-md p-2 text-xs mt-1" value={editNap} onChange={(e) => setEditNap(parseFloat(e.target.value))}>
+                {NAP_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Description activité</label>
+              <Input value={editNapDesc} onChange={(e) => setEditNapDesc(e.target.value)} placeholder="Lycéenne, transports en commun..." className="h-8 text-xs mt-1" />
+            </div>
+          </div>
+          <Button onClick={() => editMutation.mutate()} disabled={editMutation.isPending} className="mt-2">
+            {editMutation.isPending ? "Enregistrement…" : "Enregistrer"}
           </Button>
         </DialogContent>
       </Dialog>
