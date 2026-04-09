@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric, type DeltaObservation, type LatestObservation } from "@/lib/api";
+import { KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog";
 import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clinical-lifeline";
 import { PatientOverview } from "@/components/nami/patient-overview";
@@ -164,6 +165,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setSection("messages")} onRecord={() => startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)} careCaseId={id} api={api} />
+      <DeltaBanner careCaseId={id} />
       {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
       <ReferralModal
         open={referralOpen}
@@ -207,6 +209,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               <ClinicalSummaryCard careCase={careCase} careCaseId={id} api={api} />
               {/* CompletenessIndicators supprimé — remplacé par alertes cliniques */}
               <CareTeamCompact careCaseId={id} api={api} careCase={careCase} />
+              <LatestBioCard
+                careCaseId={id}
+                patientSex={careCase.patient.sex as "MALE" | "FEMALE" | undefined}
+                patientAge={careCase.patient.birthDate ? Math.floor((Date.now() - new Date(careCase.patient.birthDate).getTime()) / (365.25 * 24 * 3600000)) : undefined}
+              />
             </div>
 
             {/* Colonne 2 — Timeline clinique */}
@@ -474,6 +481,122 @@ function LatestMessageColumn({ careCaseId, api }: { careCaseId: string; api: Ret
         </div>
       )}
     </BlockTitle>
+  );
+}
+
+// ─── Latest Bio Card (overview column) ───────────────────────────────────────
+
+const INTERP_DOT: Record<string, string> = {
+  green: "bg-emerald-500", orange: "bg-amber-500", red: "bg-red-500", gray: "bg-gray-300",
+};
+const INTERP_BADGE: Record<string, string> = {
+  green: "text-emerald-600 bg-emerald-50", orange: "text-amber-600 bg-amber-50",
+  red: "text-red-600 bg-red-50", gray: "text-gray-400",
+};
+
+function LatestBioCard({ careCaseId, patientSex, patientAge }: {
+  careCaseId: string; patientSex?: "MALE" | "FEMALE"; patientAge?: number;
+}) {
+  const { accessToken } = useAuthStore();
+  const { data } = useQuery({
+    queryKey: ["observations-latest", careCaseId],
+    queryFn: () => observationsApi.latest(accessToken!, careCaseId),
+    enabled: !!accessToken,
+  });
+
+  const latest = data?.latest ?? {};
+  const allObs = Object.values(latest).flat();
+  if (allObs.length === 0) return null;
+
+  // Group by examType from catalog
+  const grouped: Record<string, (LatestObservation & { interp: ReturnType<typeof interpretValue> })[]> = {};
+  for (const o of allObs) {
+    const def = KEY_TO_METRIC[o.metricKey];
+    const numVal = typeof o.value === "number" ? o.value : null;
+    const interp = def && numVal != null
+      ? interpretValue(numVal, def, patientSex, patientAge)
+      : { color: "gray" as const, label: "—", rangeStr: "" };
+    const group = def ? (EXAM_TYPE_LABELS[def.examType]?.label ?? def.category) : "Autres";
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push({ ...o, interp });
+  }
+
+  return (
+    <div className="rounded-xl border bg-card p-4 space-y-3">
+      <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Derniers résultats</h3>
+      {Object.entries(grouped).map(([group, obs]) => (
+        <div key={group}>
+          <p className="text-[10px] font-semibold text-muted-foreground mb-1">{group}</p>
+          <div className="space-y-0.5">
+            {obs.map((o) => {
+              const def = KEY_TO_METRIC[o.metricKey];
+              return (
+                <div key={o.metricKey} className="flex items-center gap-2 text-sm py-0.5">
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${INTERP_DOT[o.interp.color]}`} />
+                  <span className="text-muted-foreground truncate flex-1 text-xs">{def?.label ?? o.label}</span>
+                  <span className="font-semibold whitespace-nowrap tabular-nums text-xs">
+                    {typeof o.value === "boolean" ? (o.value ? "Oui" : "Non") : o.value}
+                    {(o.unit || def?.unit) && (
+                      <span className="text-[10px] font-normal text-muted-foreground ml-0.5">{o.unit ?? def?.unit}</span>
+                    )}
+                  </span>
+                  {o.interp.rangeStr && (
+                    <span className="text-[9px] text-muted-foreground whitespace-nowrap">({o.interp.rangeStr})</span>
+                  )}
+                  {o.interp.label !== "—" && (
+                    <span className={`text-[9px] font-medium px-1 py-0.5 rounded whitespace-nowrap ${INTERP_BADGE[o.interp.color]}`}>
+                      {o.interp.label}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Delta Banner ────────────────────────────────────────────────────────────
+
+function DeltaBanner({ careCaseId }: { careCaseId: string }) {
+  const { accessToken } = useAuthStore();
+  const { data } = useQuery({
+    queryKey: ["observations-delta", careCaseId],
+    queryFn: () => observationsApi.delta(accessToken!, careCaseId),
+    enabled: !!accessToken,
+    staleTime: 60_000,
+  });
+
+  if (!data?.deltas?.length || !data.referenceDate) return null;
+
+  const refDate = new Date(data.referenceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+
+  return (
+    <div className="bg-muted/50 border-b px-8 py-2 flex items-center gap-2 text-xs text-muted-foreground">
+      <TrendingUp size={12} className="shrink-0" />
+      <span className="font-medium">Depuis le {refDate} :</span>
+      <div className="flex items-center gap-3 flex-wrap">
+        {data.deltas.slice(0, 6).map((d) => {
+          const sign = d.direction === "up" ? "+" : d.direction === "down" ? "" : "";
+          const arrow = d.direction === "up" ? "↑" : d.direction === "down" ? "↓" : "→";
+          const color = d.direction === "stable"
+            ? "text-muted-foreground"
+            : d.metricKey === "weight" || d.metricKey === "bmi"
+              ? d.direction === "up" ? "text-orange-600" : "text-emerald-600"
+              : d.metricKey === "eat26_score" || d.metricKey === "phq9_score"
+                ? d.direction === "down" ? "text-emerald-600" : "text-orange-600"
+                : "text-blue-600";
+
+          return (
+            <span key={d.metricKey} className={color}>
+              {d.label} {sign}{d.delta}{d.unit ? ` ${d.unit}` : ""} {arrow}
+            </span>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

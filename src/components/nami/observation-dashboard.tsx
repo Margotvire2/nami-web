@@ -1,10 +1,10 @@
 "use client"
 
-import { AlertTriangle, AlertCircle, CheckCircle2, TrendingDown, TrendingUp, Minus } from "lucide-react"
+import { AlertTriangle, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import telesurveillanceData from "@/lib/data/telesurveillance-tca.json"
+import { KEY_TO_METRIC, interpretValue } from "@/lib/metricCatalog"
 
 interface LatestObservation {
   metricKey: string
@@ -18,6 +18,8 @@ interface LatestObservation {
 interface ObservationDashboardProps {
   latestByDomain: Record<string, LatestObservation[]>
   alerts: { title: string; severity: string; status: string }[]
+  patientSex?: "MALE" | "FEMALE"
+  patientAge?: number
 }
 
 const domainLabels: Record<string, string> = {
@@ -49,47 +51,21 @@ const severityColors: Record<string, string> = {
   INFO: "border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
 }
 
-// Find alert thresholds for a given metric from telesurveillance data
-function findAlerts(metricKey: string): { condition: string; severity: string; message: string }[] {
-  const allAlerts: { condition: string; severity: string; message: string }[] = []
-  for (const pro of telesurveillanceData.professionals) {
-    for (const ds of pro.datasets) {
-      for (const field of ds.fields) {
-        if (field.id === metricKey && "alerts" in field && field.alerts) {
-          allAlerts.push(...(field.alerts as any[]))
-        }
-      }
-    }
-  }
-  return allAlerts
+const INTERP_DOT: Record<string, string> = {
+  green: "bg-emerald-500",
+  orange: "bg-amber-500",
+  red: "bg-red-500",
+  gray: "bg-gray-300",
 }
 
-function isAlertTriggered(metricKey: string, value: number | string | boolean): string | null {
-  const alerts = findAlerts(metricKey)
-  for (const alert of alerts) {
-    if (typeof value === "number") {
-      const match = alert.condition.match(/([<>]=?)\s*([\d.]+)/)
-      if (match) {
-        const op = match[1]
-        const threshold = parseFloat(match[2])
-        if (
-          (op === "<" && value < threshold) ||
-          (op === "<=" && value <= threshold) ||
-          (op === ">" && value > threshold) ||
-          (op === ">=" && value >= threshold)
-        ) {
-          return alert.severity
-        }
-      }
-    }
-    if (typeof value === "boolean" && alert.condition === "true" && value) {
-      return alert.severity
-    }
-  }
-  return null
+const INTERP_BADGE: Record<string, string> = {
+  green: "text-emerald-600 bg-emerald-50",
+  orange: "text-amber-600 bg-amber-50",
+  red: "text-red-600 bg-red-50",
+  gray: "text-gray-400",
 }
 
-export function ObservationDashboard({ latestByDomain, alerts }: ObservationDashboardProps) {
+export function ObservationDashboard({ latestByDomain, alerts, patientSex, patientAge }: ObservationDashboardProps) {
   const openAlerts = alerts.filter((a) => a.status === "OPEN")
 
   return (
@@ -135,36 +111,51 @@ export function ObservationDashboard({ latestByDomain, alerts }: ObservationDash
             <CardHeader className="border-b py-2">
               <CardTitle className="text-xs">{domainLabels[domain] || domain}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-2">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {latestByDomain[domain].map((obs) => {
-                  const alertSeverity = typeof obs.value === "number" || typeof obs.value === "boolean"
-                    ? isAlertTriggered(obs.metricKey, obs.value)
-                    : null
+            <CardContent className="pt-2 space-y-0.5">
+              {latestByDomain[domain].map((obs) => {
+                const def = KEY_TO_METRIC[obs.metricKey]
+                const numericValue = typeof obs.value === "number" ? obs.value : null
+                const interp = def && numericValue != null
+                  ? interpretValue(numericValue, def, patientSex, patientAge)
+                  : { color: "gray" as const, label: "—", rangeStr: "" }
 
-                  return (
-                    <div
-                      key={obs.metricKey}
-                      className={cn(
-                        "rounded-lg border p-2",
-                        alertSeverity === "critical" && "border-red-300 bg-red-50 dark:bg-red-950/20",
-                        alertSeverity === "high" && "border-orange-300 bg-orange-50 dark:bg-orange-950/20"
-                      )}
-                    >
-                      <p className="text-[10px] text-muted-foreground truncate">{obs.label}</p>
-                      <p className="text-lg font-semibold tabular-nums">
-                        {typeof obs.value === "boolean"
-                          ? obs.value ? "Oui" : "Non"
+                return (
+                  <div key={obs.metricKey} className="flex items-center gap-2 text-sm py-1 px-1 rounded hover:bg-muted/30 transition-colors">
+                    <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", INTERP_DOT[interp.color])} />
+                    <span className="text-muted-foreground truncate flex-1 text-xs">
+                      {def?.label ?? obs.label}
+                    </span>
+                    <span className="font-semibold whitespace-nowrap tabular-nums">
+                      {typeof obs.value === "boolean"
+                        ? obs.value ? "Oui" : "Non"
+                        : typeof obs.value === "number"
+                          ? obs.value % 1 === 0 ? obs.value : obs.value.toFixed(2)
                           : obs.value}
-                        {obs.unit && <span className="text-xs font-normal text-muted-foreground ml-0.5">{obs.unit}</span>}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground/60">
-                        {new Date(obs.effectiveAt).toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
+                      {(obs.unit || def?.unit) && (
+                        <span className="text-xs font-normal text-muted-foreground ml-0.5">
+                          {obs.unit ?? def?.unit ?? ""}
+                        </span>
+                      )}
+                    </span>
+                    {interp.rangeStr && (
+                      <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                        ({interp.rangeStr})
+                      </span>
+                    )}
+                    {interp.label !== "—" && (
+                      <span className={cn(
+                        "text-[9px] font-medium px-1 py-0.5 rounded whitespace-nowrap",
+                        INTERP_BADGE[interp.color]
+                      )}>
+                        {interp.label}
+                      </span>
+                    )}
+                    <span className="text-[9px] text-muted-foreground/50 whitespace-nowrap">
+                      {new Date(obs.effectiveAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
+                )
+              })}
             </CardContent>
           </Card>
         ))}

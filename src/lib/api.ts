@@ -1383,6 +1383,20 @@ export interface LatestObservation {
   source: string;
 }
 
+export interface DeltaObservation {
+  metricKey: string;
+  label: string;
+  unit: string | null;
+  domain: string;
+  current: number;
+  previous: number;
+  delta: number;
+  deltaPercent: number;
+  direction: "up" | "down" | "stable";
+  currentDate: string;
+  previousDate: string;
+}
+
 export const observationsApi = {
   create: (token: string, careCaseId: string, observations: ObservationInput[]) =>
     request<{
@@ -1419,7 +1433,7 @@ export const observationsApi = {
     ),
 
   delta: (token: string, careCaseId: string) =>
-    request<{ deltas: { metricKey: string; label: string; current: number | null; previous: number | null; delta: number | null; unit: string | null }[]; referenceDate: string | null; total: number }>(
+    request<{ deltas: DeltaObservation[]; referenceDate: string | null; total: number }>(
       `/care-cases/${careCaseId}/observations/delta`, {}, token
     ),
 };
