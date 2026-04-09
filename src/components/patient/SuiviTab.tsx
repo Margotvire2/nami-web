@@ -30,11 +30,21 @@ interface Props {
 }
 
 interface ObsRecord {
-  metricKey: string; label: string; valueNumeric: number | null;
+  metricKey: string; label: string;
+  value: number | string | boolean | null;
+  valueNumeric?: number | null;
   unit: string | null; effectiveAt: string; domain: string;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+
+function numVal(o: ObsRecord | undefined): number | null {
+  if (!o) return null
+  if (o.valueNumeric != null) return o.valueNumeric
+  if (typeof o.value === "number") return o.value
+  if (typeof o.value === "string") { const n = parseFloat(o.value); return isNaN(n) ? null : n }
+  return null
+}
 
 function calcAge(birthDate: string | null): number | null {
   if (!birthDate) return null
@@ -206,9 +216,9 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
     return map
   }, [latestObs])
 
-  const currentWeight = obs.get("weight_kg")?.valueNumeric ?? null
+  const currentWeight = numVal(obs.get("weight_kg"))
   const currentBMI = currentWeight && height ? currentWeight / ((height / 100) ** 2) : null
-  const currentFC = obs.get("heart_rate_bpm")?.valueNumeric ?? null
+  const currentFC = numVal(obs.get("heart_rate_bpm"))
 
   // Weight chart data
   const weightSeries = trajectoryData?.series?.find((s: { metricKey: string }) => s.metricKey === "weight_kg")
@@ -332,18 +342,19 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
           {qKeys.map((key) => {
             const o = obs.get(key)
             const cfg = QUESTIONNAIRE_LABELS[key]
-            if (!o?.valueNumeric || !cfg) return null
-            const scoring = getQuestionnaireScoring(cfg.code, o.valueNumeric)
+            const val = numVal(o)
+            if (val == null || !cfg) return null
+            const scoring = getQuestionnaireScoring(cfg.code, val)
             return (
               <div key={key} className="flex items-center gap-3 text-sm">
                 <span className="font-semibold w-16">{cfg.name}</span>
-                <span className="font-bold">{o.valueNumeric}/{cfg.maxScore}</span>
+                <span className="font-bold">{val}/{cfg.maxScore}</span>
                 {scoring && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${scoring.colorClass}`}>{scoring.label}</span>}
-                <span className="text-xs text-muted-foreground ml-auto">{format(parseISO(o.effectiveAt), "d MMM yyyy", { locale: fr })}</span>
+                <span className="text-xs text-muted-foreground ml-auto">{o?.effectiveAt ? format(parseISO(o.effectiveAt), "d MMM yyyy", { locale: fr }) : ""}</span>
               </div>
             )
           })}
-          {qKeys.every((k) => !obs.get(k)?.valueNumeric) && (
+          {qKeys.every((k) => numVal(obs.get(k)) == null) && (
             <p className="text-xs text-muted-foreground">Aucun questionnaire complété.</p>
           )}
         </div>
@@ -411,10 +422,11 @@ function DeltaCard({ obs, pathwayKey, sex, age, height }: {
   const keys = ["weight_kg", "heart_rate_bpm", "potassium_mmol", "phosphore_mmol", "phq9_score", "eat26_score"]
   const deltas = keys.map((k) => {
     const o = obs.get(k)
-    if (!o?.valueNumeric) return null
-    const range = getMetricRange(k, pathwayKey, { sex: sex as "MALE" | "FEMALE", age, height, currentWeight: o.valueNumeric })
-    const color = getValueColor(o.valueNumeric, range)
-    return { key: k, label: o.label, value: o.valueNumeric, unit: o.unit, color }
+    const v = numVal(o)
+    if (v == null) return null
+    const range = getMetricRange(k, pathwayKey, { sex: sex as "MALE" | "FEMALE", age, height, currentWeight: v })
+    const color = getValueColor(v, range)
+    return { key: k, label: o!.label, value: v, unit: o!.unit, color }
   }).filter(Boolean)
 
   if (deltas.length === 0) return null
@@ -460,14 +472,15 @@ function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayK
       </div>
       <div className="space-y-2">
         {bioValues.map((o) => {
-          if (!o?.valueNumeric) return null
-          const range = getMetricRange(o.metricKey, pathwayKey, { sex: "FEMALE", age: 16 })
-          const color = getValueColor(o.valueNumeric, range)
+          const bv = numVal(o)
+          if (bv == null) return null
+          const range = getMetricRange(o!.metricKey, pathwayKey, { sex: "FEMALE", age: 16 })
+          const color = getValueColor(bv, range)
           const rangeLabel = range.green ? `(${range.green.min}-${range.green.max})` : ""
           return (
-            <div key={o.metricKey} className="flex items-center gap-3 text-sm">
-              <span className="text-muted-foreground w-28 truncate">{o.label}</span>
-              <span className="font-semibold">{o.valueNumeric} {o.unit ?? ""}</span>
+            <div key={o!.metricKey} className="flex items-center gap-3 text-sm">
+              <span className="text-muted-foreground w-28 truncate">{o!.label}</span>
+              <span className="font-semibold">{bv} {o!.unit ?? ""}</span>
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[color]}`}>
                 {color === "green" ? "Normal" : color === "orange" ? "Bas" : color === "red" ? "Critique" : "—"} {rangeLabel}
               </span>
