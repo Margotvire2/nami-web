@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
 import { getMetricRange, getValueColor, getQuestionnaireScoring, calculateTDEE } from "@/lib/metricRanges"
-import { ALL_BIO_KEYS } from "@/lib/metricCatalog"
+import { ALL_BIO_KEYS, KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
@@ -284,7 +284,7 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
       </div>
 
       {/* ── SECTION 2 — Bilan biologique ── */}
-      <BioSection obs={obs} pathwayKey={pathwayKey} />
+      <BioSection obs={obs} pathwayKey={pathwayKey} sex={sex} age={age} />
 
       {/* ── SECTION 3 — Suivi pondéral ── */}
       <div className="rounded-xl border bg-card p-5">
@@ -446,7 +446,7 @@ function DeltaCard({ obs, pathwayKey, sex, age, height }: {
   )
 }
 
-function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayKey: string }) {
+function BioSection({ obs, pathwayKey, sex, age }: { obs: Map<string, ObsRecord>; pathwayKey: string; sex: "MALE" | "FEMALE"; age: number | null }) {
   // Priority keys per pathway (shown first)
   const priorityKeys = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
     ? ["potassium_mmol", "phosphorus_mmol", "albumin_g_l", "hemoglobin_g_dl", "calcium_mmol", "magnesium_mmol"]
@@ -492,27 +492,59 @@ function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayK
           {" · "}{allBio.length} valeurs
         </span>
       </div>
-      <div className="grid md:grid-cols-2 gap-x-6 gap-y-1.5">
-        {allBio.map((o) => {
-          const bv = numVal(o)
-          if (bv == null) return null
-          const range = getMetricRange(o.metricKey, pathwayKey, { sex: "FEMALE", age: 16 })
-          const color = getValueColor(bv, range)
-          const rangeLabel = range?.green ? `(${range.green.min}–${range.green.max})` : ""
+      {/* Group by examType */}
+      {(() => {
+        const grouped = new Map<string, ObsRecord[]>()
+        for (const o of allBio) {
+          const def = KEY_TO_METRIC[o.metricKey]
+          const group = def?.examType ?? "OTHER"
+          if (!grouped.has(group)) grouped.set(group, [])
+          grouped.get(group)!.push(o)
+        }
+        return Array.from(grouped).map(([examType, items]) => {
+          const meta = EXAM_TYPE_LABELS[examType] ?? { label: "Autres", icon: "📋" }
           return (
-            <div key={o.metricKey} className="flex items-center gap-2 text-sm py-0.5">
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${color === "green" ? "bg-emerald-500" : color === "orange" ? "bg-amber-500" : color === "red" ? "bg-red-500" : "bg-gray-300"}`} />
-              <span className="text-muted-foreground truncate flex-1">{o.label}</span>
-              <span className="font-semibold whitespace-nowrap">{bv} {o.unit ?? ""}</span>
-              {color !== "gray" && (
-                <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${COLOR_MAP[color]}`}>
-                  {color === "green" ? "N" : color === "orange" ? "⚠" : "‼"} {rangeLabel}
-                </span>
-              )}
+            <div key={examType} className="mb-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">
+                {meta.icon} {meta.label}
+              </p>
+              <div className="grid md:grid-cols-2 gap-x-6 gap-y-1">
+                {items.map((o) => {
+                  const bv = numVal(o)
+                  if (bv == null) return null
+                  const def = KEY_TO_METRIC[o.metricKey]
+                  const interp = def
+                    ? interpretValue(bv, def, sex, age ?? undefined)
+                    : { color: "gray" as const, label: "—", rangeStr: "" }
+                  return (
+                    <div key={o.metricKey} className="flex items-center gap-2 text-sm py-0.5">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        interp.color === "green" ? "bg-emerald-500" :
+                        interp.color === "orange" ? "bg-amber-500" :
+                        interp.color === "red" ? "bg-red-500" : "bg-gray-300"
+                      }`} />
+                      <span className="text-muted-foreground truncate flex-1">{def?.label ?? o.label}</span>
+                      <span className="font-semibold whitespace-nowrap">{bv} {o.unit ?? def?.unit ?? ""}</span>
+                      {interp.rangeStr && (
+                        <span className="text-[9px] text-muted-foreground whitespace-nowrap">({interp.rangeStr})</span>
+                      )}
+                      {interp.color !== "gray" && (
+                        <span className={`text-[9px] font-medium px-1 py-0.5 rounded whitespace-nowrap ${
+                          interp.color === "green" ? "text-emerald-600 bg-emerald-50" :
+                          interp.color === "orange" ? "text-amber-600 bg-amber-50" :
+                          interp.color === "red" ? "text-red-600 bg-red-50" : ""
+                        }`}>
+                          {interp.label}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )
-        })}
-      </div>
+        })
+      })()}
     </div>
   )
 }
