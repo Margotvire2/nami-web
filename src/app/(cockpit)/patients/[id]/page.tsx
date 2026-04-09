@@ -509,6 +509,12 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-page-title">{c.patient.firstName} {c.patient.lastName}</h1>
+              {(() => {
+                const bd = (c.patient as unknown as Record<string, unknown>).birthDate as string | null
+                if (!bd) return null
+                const ageYears = Math.floor((Date.now() - new Date(bd).getTime()) / (365.25 * 24 * 3600000))
+                return <span className="text-xs text-muted-foreground">{ageYears} ans</span>
+              })()}
               <span className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${RISK_BADGE[c.riskLevel]}`}>
                 {RISK_LABEL[c.riskLevel]}
               </span>
