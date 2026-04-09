@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+import { PATHOLOGIES } from "@/lib/data/pathologies"
 
 const BASE = "https://nami-web-orpin.vercel.app"
 
@@ -12,7 +13,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/signup`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/soignants`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/trouver-un-soignant`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${BASE}/pathologies`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
   ]
+
+  // Pages pathologies (SEO high-value)
+  const pathologyPages: MetadataRoute.Sitemap = PATHOLOGIES.map((p) => ({
+    url: `${BASE}/pathologies/${p.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.85,
+  }))
 
   // Pages profils soignants publics
   let providerPages: MetadataRoute.Sitemap = []
@@ -33,5 +43,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Silent fail — sitemap still works without provider pages
   }
 
-  return [...staticPages, ...providerPages]
+  return [...staticPages, ...pathologyPages, ...providerPages]
 }
