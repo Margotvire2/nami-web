@@ -1164,6 +1164,62 @@ export const providerDirectoryApi = {
   list: () => request<PublicProvider[]>("/providers"),
 };
 
+// ─── Annuaire Santé (Ameli + RPPS) ─────────────────────────────────────────
+
+export interface DirectoryEntry {
+  id: string;
+  type: "PS" | "CDS";
+  name: string;
+  lastName: string;
+  firstName: string | null;
+  specialty: string;
+  specialtyCode: string;
+  profession: string | null;
+  convention: string | null;
+  conventionCode: string | null;
+  option: string | null;
+  exerciseType: string | null;
+  carteVitale: boolean;
+  phone: string | null;
+  address: string;
+  postalCode: string;
+  city: string;
+  finess: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface DirectorySearchResult {
+  total: number;
+  count: number;
+  offset: number;
+  limit: number;
+  source: string;
+  results: DirectoryEntry[];
+}
+
+export interface DirectoryStats {
+  total: number;
+  byType: Record<string, number>;
+  topSpecialties: { label: string; count: number }[];
+  topCities: { city: string; count: number }[];
+}
+
+export const annuaireApi = {
+  search: (token: string, params: {
+    q?: string; specialty?: string; city?: string; postalCode?: string;
+    convention?: string; type?: string; limit?: number; offset?: number;
+  }) => {
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => { if (v != null && v !== "") qs.set(k, String(v)); });
+    return request<DirectorySearchResult>(`/annuaire/directory?${qs}`, {}, token);
+  },
+  get: (token: string, id: string) =>
+    request<DirectoryEntry>(`/annuaire/directory/${id}`, {}, token),
+  stats: (token: string) =>
+    request<DirectoryStats>(`/annuaire/directory/stats`, {}, token),
+};
+
 // ─── Knowledge Sources ──────────────────────────────────────────────────────
 
 export interface KnowledgeSource {
@@ -1698,6 +1754,11 @@ export function apiWithToken(token: string) {
     },
     colleagues: {
       list: () => colleaguesApi.list(token),
+    },
+    annuaire: {
+      search: (params: Parameters<typeof annuaireApi.search>[1]) => annuaireApi.search(token, params),
+      get: (id: string) => annuaireApi.get(token, id),
+      stats: () => annuaireApi.stats(token),
     },
     patients: {
       createWithCase: (data: CreatePatientWithCaseInput) => patientsApi.createWithCase(token, data),

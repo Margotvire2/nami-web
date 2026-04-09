@@ -44,6 +44,7 @@ const NAV_NETWORK = [
   { href: "/adressages",    label: "Adressages",    icon: ArrowLeftRight },
   { href: "/collaboration", label: "Réseau",        icon: Radio },
   { href: "/equipe",        label: "Équipe",        icon: UsersRound },
+  { href: "/annuaire",      label: "Annuaire",      icon: BookOpen },
 ];
 
 export function Sidebar() {
