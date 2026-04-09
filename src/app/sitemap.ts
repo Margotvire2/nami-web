@@ -70,5 +70,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Silent fail — sitemap still works without provider pages
   }
 
-  return [...staticPages, ...pathologyPages, ...annuairePages, ...providerPages]
+  // Blog articles
+  let blogPages: MetadataRoute.Sitemap = []
+  try {
+    const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+    const blogRes = await fetch(`${API}/blog/sitemap`, { next: { revalidate: 3600 } })
+    if (blogRes.ok) {
+      const blogArticles = await blogRes.json()
+      blogPages = (blogArticles as { slug: string; publishedAt: string }[]).map((a) => ({
+        url: `${BASE}/blog/${a.slug}`,
+        lastModified: a.publishedAt ?? now,
+        changeFrequency: "monthly" as const,
+        priority: 0.8,
+      }))
+      blogPages.unshift({
+        url: `${BASE}/blog`,
+        lastModified: now,
+        changeFrequency: "daily" as const,
+        priority: 0.85,
+      })
+    }
+  } catch {}
+
+  return [...staticPages, ...pathologyPages, ...blogPages, ...annuairePages, ...providerPages]
 }

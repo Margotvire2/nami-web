@@ -9,6 +9,7 @@ Allow: /trouver-un-soignant
 Allow: /pathologies/
 Allow: /guides/
 Allow: /annuaire-public/
+Allow: /blog/
 
 # Pages privées (cockpit soignant)
 Disallow: /patients/
