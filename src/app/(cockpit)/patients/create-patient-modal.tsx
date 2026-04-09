@@ -368,7 +368,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                   Il est valable 30 jours.
                 </p>
                 <div className="flex items-center gap-2 bg-card rounded-md p-2">
-                  <p className="text-[10px] text-muted-foreground flex-1 truncate font-mono">
+                  <p className="text-[10px] text-muted-foreground flex-1 break-all font-mono">
                     {result.invitation.inviteUrl}
                   </p>
                   <Button
