@@ -1,0 +1,412 @@
+"use client"
+
+import { useState, useMemo } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useAuthStore } from "@/lib/store"
+import { apiWithToken } from "@/lib/api"
+import { format, parseISO } from "date-fns"
+import { fr } from "date-fns/locale"
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceArea } from "recharts"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
+import { getMetricRange, getValueColor, getQuestionnaireScoring, calculateTDEE } from "@/lib/metricRanges"
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog"
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+interface Props {
+  careCaseId: string
+  pathwayKey: string
+  patient: { firstName: string; lastName: string; birthDate: string | null; sex?: string }
+  height: number | null
+  napValue: number | null
+  napDescription: string | null
+}
+
+interface ObsRecord {
+  metricKey: string; label: string; valueNumeric: number | null;
+  unit: string | null; effectiveAt: string; domain: string;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function calcAge(birthDate: string | null): number | null {
+  if (!birthDate) return null
+  return Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 3600000))
+}
+
+function getBMILabel(bmi: number, pw: string): { label: string; color: string } {
+  if (pw.includes("anorex") || pw.includes("tca")) {
+    if (bmi < 13) return { label: "Dénutrition extrême", color: "red" }
+    if (bmi < 15) return { label: "Dénutrition sévère", color: "red" }
+    if (bmi < 16) return { label: "Dénutrition modérée", color: "orange" }
+    if (bmi < 17.5) return { label: "Maigreur", color: "orange" }
+    if (bmi < 18.5) return { label: "Insuffisance pondérale", color: "yellow" }
+    return { label: "Poids normal", color: "green" }
+  }
+  if (pw.includes("obes")) {
+    if (bmi >= 40) return { label: "Obésité morbide", color: "red" }
+    if (bmi >= 35) return { label: "Obésité sévère", color: "red" }
+    if (bmi >= 30) return { label: "Obésité modérée", color: "orange" }
+    if (bmi >= 25) return { label: "Surpoids", color: "yellow" }
+    return { label: "Poids normal", color: "green" }
+  }
+  if (bmi < 18.5) return { label: "Insuffisance pondérale", color: "orange" }
+  if (bmi < 25) return { label: "Poids normal", color: "green" }
+  if (bmi < 30) return { label: "Surpoids", color: "yellow" }
+  return { label: "Obésité", color: "red" }
+}
+
+const COLOR_MAP: Record<string, string> = {
+  red: "text-red-600 bg-red-50 border-red-200",
+  orange: "text-orange-600 bg-orange-50 border-orange-200",
+  yellow: "text-amber-600 bg-amber-50 border-amber-200",
+  green: "text-emerald-600 bg-emerald-50 border-emerald-200",
+  gray: "text-gray-500 bg-gray-50 border-gray-200",
+}
+
+const NAP_OPTIONS = [
+  { value: 1.2, label: "1.2 — Alité / immobilisé" },
+  { value: 1.3, label: "1.3 — Sédentaire strict" },
+  { value: 1.4, label: "1.4 — Sédentaire avec activité légère" },
+  { value: 1.5, label: "1.5 — Activité légère (1-2x/sem)" },
+  { value: 1.6, label: "1.6 — Activité modérée (3-4x/sem)" },
+  { value: 1.7, label: "1.7 — Actif (5+/sem)" },
+  { value: 1.8, label: "1.8 — Très actif (sport quotidien)" },
+]
+
+const QUESTIONNAIRE_CONFIG: Record<string, string[]> = {
+  "tca.anorexia": ["eat26_score", "phq9_score", "gad7_score"],
+  "tca.bulimia": ["eat26_score", "phq9_score", "gad7_score"],
+  "tca": ["eat26_score", "phq9_score", "gad7_score"],
+  "obesity": ["phq9_score"],
+  default: ["phq9_score"],
+}
+
+const QUESTIONNAIRE_LABELS: Record<string, { name: string; maxScore: number; code: string }> = {
+  phq9_score: { name: "PHQ-9", maxScore: 27, code: "phq9" },
+  gad7_score: { name: "GAD-7", maxScore: 21, code: "gad7" },
+  eat26_score: { name: "EAT-26", maxScore: 78, code: "eat26" },
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
+
+export function SuiviTab({ careCaseId, pathwayKey, patient, height, napValue, napDescription }: Props) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const qc = useQueryClient()
+  const [napDialog, setNapDialog] = useState(false)
+  const [weightDialog, setWeightDialog] = useState(false)
+  const [newWeight, setNewWeight] = useState("")
+  const [newNap, setNewNap] = useState(napValue ?? 1.4)
+  const [newNapDesc, setNewNapDesc] = useState(napDescription ?? "")
+
+  const age = calcAge(patient.birthDate)
+  const sex = (patient.sex ?? "FEMALE") as "MALE" | "FEMALE"
+
+  // Fetch latest observations
+  const { data: latestObs, isLoading } = useQuery({
+    queryKey: ["observations-latest", careCaseId],
+    queryFn: () => api.observations.latest(careCaseId),
+    enabled: !!accessToken,
+  })
+
+  // Fetch trajectory for weight chart
+  const { data: trajectoryData } = useQuery({
+    queryKey: ["trajectory", careCaseId, ["weight_kg"], "90d"],
+    queryFn: () => api.trajectory.get(careCaseId, ["weight_kg", "heart_rate_bpm"], "90d"),
+    enabled: !!accessToken,
+  })
+
+  // Mutations
+  const weightMutation = useMutation({
+    mutationFn: () => {
+      const val = parseFloat(newWeight.replace(",", "."))
+      if (isNaN(val)) throw new Error("Poids invalide")
+      return api.observations.create(careCaseId, [{ metricKey: "weight_kg", valueNumeric: val, effectiveAt: new Date().toISOString() }])
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["observations-latest"] })
+      qc.invalidateQueries({ queryKey: ["trajectory"] })
+      setWeightDialog(false)
+      setNewWeight("")
+      toast.success("Pesée enregistrée")
+    },
+  })
+
+  const napMutation = useMutation({
+    mutationFn: () => api.careCases.update(careCaseId, { napValue: newNap, napDescription: newNapDesc } as Record<string, unknown>),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["care-case"] })
+      setNapDialog(false)
+      toast.success("NAP mis à jour")
+    },
+  })
+
+  // Derive key values
+  const obs = useMemo(() => {
+    const map = new Map<string, ObsRecord>()
+    if (latestObs) {
+      // Handle both array and { latest: Record<key, obs[]> } formats
+      const raw = latestObs as unknown
+      const entries: ObsRecord[] = Array.isArray(raw)
+        ? raw
+        : typeof raw === "object" && raw !== null && "latest" in (raw as Record<string, unknown>)
+          ? Object.values((raw as { latest: Record<string, ObsRecord[]> }).latest).flat()
+          : []
+      for (const o of entries) {
+        if (o.metricKey && !map.has(o.metricKey)) map.set(o.metricKey, o)
+      }
+    }
+    return map
+  }, [latestObs])
+
+  const currentWeight = obs.get("weight_kg")?.valueNumeric ?? null
+  const currentBMI = currentWeight && height ? currentWeight / ((height / 100) ** 2) : null
+  const currentFC = obs.get("heart_rate_bpm")?.valueNumeric ?? null
+
+  // Weight chart data
+  const weightSeries = trajectoryData?.series?.find((s: { metricKey: string }) => s.metricKey === "weight_kg")
+  const weightChartData = weightSeries?.dataPoints?.map((p: { date: string; value: number }) => ({
+    date: format(parseISO(p.date), "d/MM"),
+    poids: p.value,
+  })) ?? []
+
+  // Target weight for anorexia
+  const isAnorexia = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
+  const isObesity = pathwayKey.includes("obes")
+  const targetBMI = isAnorexia ? (age && age < 18 ? 17.5 : 18.5) : null
+  const targetWeight = targetBMI && height ? Math.round(targetBMI * (height / 100) ** 2 * 10) / 10 : null
+  const firstWeight = weightSeries?.dataPoints?.[0]?.value ?? currentWeight
+  const progression = targetWeight && firstWeight && currentWeight
+    ? Math.min(100, Math.max(0, Math.round(((currentWeight - firstWeight) / (targetWeight - firstWeight)) * 100)))
+    : null
+
+  // Besoins
+  const tdee = currentWeight && height && age && napValue
+    ? calculateTDEE(currentWeight, height, age, sex, napValue)
+    : null
+
+  // BMI label
+  const bmiInfo = currentBMI ? getBMILabel(currentBMI, pathwayKey) : null
+
+  // Questionnaires
+  const qKeys = QUESTIONNAIRE_CONFIG[pathwayKey] ?? QUESTIONNAIRE_CONFIG[pathwayKey.split(".").slice(0, 2).join(".")] ?? QUESTIONNAIRE_CONFIG[pathwayKey.split(".")[0]] ?? QUESTIONNAIRE_CONFIG.default
+
+  if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-32" /><Skeleton className="h-40" /><Skeleton className="h-32" /></div>
+
+  return (
+    <div className="p-6 max-w-4xl space-y-5">
+      {/* ── SECTION 1 — Synthèse rapide ── */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">📊 Synthèse clinique</h3>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-1.5 text-sm">
+            <p className="font-medium">
+              {patient.firstName} {patient.lastName}
+              <span className="text-muted-foreground font-normal"> · {age ? `${age} ans` : "Âge inconnu"} · {sex === "FEMALE" ? "F" : "M"} · {height ? `${height} cm` : "Taille ?"}</span>
+            </p>
+            {currentWeight && currentBMI && bmiInfo && (
+              <p>
+                Poids : <span className="font-semibold">{currentWeight} kg</span> · IMC : <span className="font-semibold">{currentBMI.toFixed(1)}</span>
+                <span className={`ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[bmiInfo.color]}`}>{bmiInfo.label}</span>
+              </p>
+            )}
+            <p className="text-muted-foreground text-xs flex items-center gap-1">
+              NAP : {napValue ?? "?"} — {napDescription ?? "Non renseigné"}
+              <button onClick={() => setNapDialog(true)} className="text-primary hover:underline ml-1"><Pencil size={10} /></button>
+            </p>
+            {tdee && <p className="text-xs text-muted-foreground">Besoins estimés : <span className="font-medium text-foreground">{tdee} kcal/jour</span></p>}
+            {!tdee && <p className="text-[10px] text-amber-600 flex items-center gap-1"><AlertTriangle size={10} /> Données insuffisantes pour calculer les besoins</p>}
+          </div>
+          {/* Delta */}
+          <DeltaCard obs={obs} pathwayKey={pathwayKey} sex={sex} age={age ?? 0} height={height ?? undefined} />
+        </div>
+      </div>
+
+      {/* ── SECTION 2 — Bilan biologique ── */}
+      <BioSection obs={obs} pathwayKey={pathwayKey} />
+
+      {/* ── SECTION 3 — Suivi pondéral ── */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2"><Scale size={14} /> Suivi pondéral</h3>
+          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setWeightDialog(true)}>Saisir une pesée</Button>
+        </div>
+
+        {currentWeight && currentBMI && (
+          <div className="space-y-2 text-sm mb-3">
+            <p>Poids actuel : <span className="font-semibold">{currentWeight} kg</span> ({obs.get("weight_kg")?.effectiveAt ? format(parseISO(obs.get("weight_kg")!.effectiveAt), "d MMM", { locale: fr }) : ""})</p>
+            {bmiInfo && <p>IMC : <span className="font-semibold">{currentBMI.toFixed(1)}</span> <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[bmiInfo.color]}`}>{bmiInfo.label}</span></p>}
+            {targetWeight && (
+              <>
+                <p className="text-xs text-muted-foreground">Objectif : IMC ≥ {targetBMI} → ~{targetWeight} kg</p>
+                {progression !== null && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${progression >= 80 ? "bg-emerald-500" : progression >= 40 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${progression}%` }} />
+                    </div>
+                    <span className="text-xs font-medium">{progression}%</span>
+                  </div>
+                )}
+              </>
+            )}
+            {currentFC && (
+              <p className="text-xs">FC repos : <span className="font-semibold">{currentFC} bpm</span>
+                {currentFC < 45 && <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-red-50 text-red-600 border-red-200">Bradycardie sévère</span>}
+                {currentFC >= 45 && currentFC < 55 && <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-orange-50 text-orange-600 border-orange-200">Limite basse</span>}
+                {currentFC >= 55 && currentFC < 100 && <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-600 border-emerald-200">Normal</span>}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Mini chart */}
+        {weightChartData.length >= 3 && (
+          <div className="h-[140px] mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={weightChartData}>
+                <XAxis dataKey="date" tick={{ fontSize: 9 }} />
+                <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 9 }} width={35} />
+                <Tooltip contentStyle={{ fontSize: 11 }} />
+                {targetWeight && <ReferenceArea y1={targetWeight} y2={targetWeight + 20} fill="#10B981" fillOpacity={0.08} />}
+                <Line type="monotone" dataKey="poids" stroke="#4F46E5" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 4 — Questionnaires ── */}
+      <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">📋 Questionnaires</h3>
+        <div className="space-y-3">
+          {qKeys.map((key) => {
+            const o = obs.get(key)
+            const cfg = QUESTIONNAIRE_LABELS[key]
+            if (!o?.valueNumeric || !cfg) return null
+            const scoring = getQuestionnaireScoring(cfg.code, o.valueNumeric)
+            return (
+              <div key={key} className="flex items-center gap-3 text-sm">
+                <span className="font-semibold w-16">{cfg.name}</span>
+                <span className="font-bold">{o.valueNumeric}/{cfg.maxScore}</span>
+                {scoring && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${scoring.colorClass}`}>{scoring.label}</span>}
+                <span className="text-xs text-muted-foreground ml-auto">{format(parseISO(o.effectiveAt), "d MMM yyyy", { locale: fr })}</span>
+              </div>
+            )
+          })}
+          {qKeys.every((k) => !obs.get(k)?.valueNumeric) && (
+            <p className="text-xs text-muted-foreground">Aucun questionnaire complété.</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Dialogs ── */}
+      <Dialog open={weightDialog} onOpenChange={setWeightDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Saisir une pesée</DialogTitle></DialogHeader>
+          <Input type="number" step="0.1" placeholder="Poids en kg" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} autoFocus />
+          <Button onClick={() => weightMutation.mutate()} disabled={!newWeight || weightMutation.isPending}>
+            {weightMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={napDialog} onOpenChange={setNapDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Modifier le NAP</DialogTitle></DialogHeader>
+          <select className="w-full border rounded-md p-2 text-sm" value={newNap} onChange={(e) => setNewNap(parseFloat(e.target.value))}>
+            {NAP_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <Input placeholder="Description libre" value={newNapDesc} onChange={(e) => setNewNapDesc(e.target.value)} />
+          <Button onClick={() => napMutation.mutate()} disabled={napMutation.isPending}>
+            {napMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ─── Sub-components ─────────────────────────────────────────────────────────
+
+function DeltaCard({ obs, pathwayKey, sex, age, height }: {
+  obs: Map<string, ObsRecord>; pathwayKey: string; sex: string; age: number; height?: number
+}) {
+  const keys = ["weight_kg", "heart_rate_bpm", "potassium_mmol", "phosphore_mmol", "phq9_score", "eat26_score"]
+  const deltas = keys.map((k) => {
+    const o = obs.get(k)
+    if (!o?.valueNumeric) return null
+    const range = getMetricRange(k, pathwayKey, { sex: sex as "MALE" | "FEMALE", age, height, currentWeight: o.valueNumeric })
+    const color = getValueColor(o.valueNumeric, range)
+    return { key: k, label: o.label, value: o.valueNumeric, unit: o.unit, color }
+  }).filter(Boolean)
+
+  if (deltas.length === 0) return null
+
+  return (
+    <div className="space-y-1">
+      <p className="text-[10px] font-medium text-muted-foreground">DERNIÈRES VALEURS</p>
+      {deltas.map((d) => d && (
+        <div key={d.key} className="flex items-center gap-2 text-xs">
+          <span className={`w-2 h-2 rounded-full ${d.color === "green" ? "bg-emerald-500" : d.color === "orange" ? "bg-amber-500" : d.color === "red" ? "bg-red-500" : "bg-gray-300"}`} />
+          <span className="text-muted-foreground w-24 truncate">{d.label}</span>
+          <span className="font-semibold">{d.value} {d.unit ?? ""}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function BioSection({ obs, pathwayKey }: { obs: Map<string, ObsRecord>; pathwayKey: string }) {
+  const bioKeys = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
+    ? ["potassium_mmol", "phosphore_mmol", "albumin_gl"]
+    : pathwayKey.includes("obes")
+      ? ["hba1c_percent"]
+      : ["potassium_mmol", "albumin_gl"]
+
+  const bioValues = bioKeys.map((k) => obs.get(k)).filter(Boolean)
+  if (bioValues.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">🧪 Dernier bilan biologique</h3>
+        <p className="text-xs text-muted-foreground">Aucun bilan biologique importé. Importez un PDF via l&apos;onglet Documents.</p>
+      </div>
+    )
+  }
+
+  const latestDate = bioValues.reduce((max, v) => v && v.effectiveAt > max ? v.effectiveAt : max, "")
+
+  return (
+    <div className="rounded-xl border bg-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">🧪 Dernier bilan biologique</h3>
+        <span className="text-[10px] text-muted-foreground">{latestDate ? format(parseISO(latestDate), "d MMMM yyyy", { locale: fr }) : ""}</span>
+      </div>
+      <div className="space-y-2">
+        {bioValues.map((o) => {
+          if (!o?.valueNumeric) return null
+          const range = getMetricRange(o.metricKey, pathwayKey, { sex: "FEMALE", age: 16 })
+          const color = getValueColor(o.valueNumeric, range)
+          const rangeLabel = range.green ? `(${range.green.min}-${range.green.max})` : ""
+          return (
+            <div key={o.metricKey} className="flex items-center gap-3 text-sm">
+              <span className="text-muted-foreground w-28 truncate">{o.label}</span>
+              <span className="font-semibold">{o.valueNumeric} {o.unit ?? ""}</span>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[color]}`}>
+                {color === "green" ? "Normal" : color === "orange" ? "Bas" : color === "red" ? "Critique" : "—"} {rangeLabel}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

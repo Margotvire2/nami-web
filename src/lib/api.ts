@@ -1638,6 +1638,11 @@ export function apiWithToken(token: string) {
       get: (careCaseId: string, metrics?: string[], period?: string) =>
         trajectoryApi.get(token, careCaseId, metrics, period),
     },
+    observations: {
+      create: (careCaseId: string, observations: ObservationInput[]) => observationsApi.create(token, careCaseId, observations),
+      list: (careCaseId: string, params?: { domain?: string; limit?: number }) => observationsApi.list(token, careCaseId, params),
+      latest: (careCaseId: string) => observationsApi.latest(token, careCaseId),
+    },
     recordings: {
       upload: (audioBlob: Blob, duration?: number) => recordingsApi.upload(token, audioBlob, duration),
       analyze: (data: { transcription: string; careCaseId: string; appointmentId?: string; consentConfirmed?: boolean }) =>
