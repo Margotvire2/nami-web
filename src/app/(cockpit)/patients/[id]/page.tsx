@@ -128,11 +128,12 @@ const STAGE_LABELS: Record<string, string> = {
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
-type Section = "overview" | "suivi" | "trajectoire" | "timeline" | "notes" | "journal" | "documents" | "messages";
+type Section = "overview" | "suivi" | "trajectoire" | "timeline" | "notes" | "journal" | "documents" | "messages" | "biologie";
 
 const NAV: { key: Section; label: string; icon: React.ReactNode }[] = [
   { key: "overview",     label: "Vue d'ensemble",  icon: <ActivityIcon size={13} /> },
   { key: "suivi",        label: "Suivi",            icon: <Crosshair size={13} /> },
+  { key: "biologie",     label: "Biologie",         icon: <ArrowLeftRight size={13} /> },
   { key: "trajectoire",  label: "Trajectoire",      icon: <TrendingUp size={13} /> },
   { key: "timeline",     label: "Timeline",         icon: <Clock size={13} /> },
   { key: "notes",        label: "Notes",             icon: <FileText size={13} /> },
@@ -257,6 +258,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               napValue={careCase.napValue}
               napDescription={careCase.napDescription}
             />
+          </div>
+        ) : section === "biologie" ? (
+          <div className="h-full overflow-y-auto p-6">
+            <LaboDeltaSection careCaseId={id} />
           </div>
         ) : section === "trajectoire" ? (
           <div className="h-full overflow-y-auto p-6">
@@ -2672,6 +2677,213 @@ function QuickObservationEntry({ metricKey, metric, onSubmit, onClose, isPending
 // ═════════════════════════════════════════════════════════════════════════════
 // QUESTIONNAIRES — section interactive avec scoring auto
 // ═════════════════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BIOLOGIE — Vue comparée N vs N-1
+// ═════════════════════════════════════════════════════════════════════════════
+
+const DOMAIN_LABELS: Record<string, string> = {
+  anthropometry: "Anthropométrie",
+  biology:       "Biologie",
+  clinical:      "Clinique",
+  questionnaire: "Questionnaires",
+  nutrition:     "Nutrition",
+  cardiac:       "Cardio",
+  respiratory:   "Respiratoire",
+};
+
+const METRIC_PREF: Record<string, "up_good" | "down_good" | "neutral"> = {
+  weight_kg: "neutral", bmi: "neutral", waist_cm: "down_good", hip_cm: "neutral",
+  fat_mass_pct: "down_good", muscle_mass_kg: "up_good",
+  phq9_score: "down_good", gad7_score: "down_good", eat26_score: "down_good", scoff_score: "down_good",
+  heart_rate: "neutral", blood_pressure_systolic: "down_good", blood_pressure_diastolic: "down_good",
+  hba1c: "down_good", glycemia: "down_good",
+  total_cholesterol: "down_good", ldl_cholesterol: "down_good", hdl_cholesterol: "up_good", triglycerides: "down_good",
+  potassium: "neutral", sodium: "neutral", albumin: "up_good", hemoglobin: "up_good",
+  ferritin: "up_good", vitamin_d: "up_good", tsh: "neutral", creatinine: "down_good",
+};
+
+function getDeltaStyle(d: DeltaObservation): { text: string; bg: string } {
+  if (d.direction === "stable") return { text: "text-gray-500", bg: "bg-gray-50 border-gray-100" };
+  const pref = METRIC_PREF[d.metricKey] ?? "neutral";
+  if (pref === "neutral") return { text: "text-blue-600", bg: "bg-blue-50/40 border-blue-100" };
+  const good = pref === "up_good" ? d.direction === "up" : d.direction === "down";
+  return good
+    ? { text: "text-emerald-600", bg: "bg-emerald-50/40 border-emerald-100" }
+    : { text: "text-red-500", bg: "bg-red-50/40 border-red-100" };
+}
+
+function MiniSparkline({ values, pref }: { values: number[]; pref: "up_good" | "down_good" | "neutral" }) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const w = 56, h = 20;
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / range) * h}`).join(" ");
+  const trend = values[values.length - 1] >= values[0] ? "up" : "down";
+  const color = pref === "neutral" ? "#2563EB"
+    : (pref === "up_good" ? (trend === "up" ? "#059669" : "#DC2626") : (trend === "down" ? "#059669" : "#DC2626"));
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0 opacity-75">
+      <polyline fill="none" stroke={color} strokeWidth="1.5" points={pts} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LaboDeltaSection({ careCaseId }: { careCaseId: string }) {
+  const { accessToken } = useAuthStore();
+  const [activeDomain, setActiveDomain] = useState("all");
+
+  const { data: deltaData, isLoading } = useQuery({
+    queryKey: ["observations-delta", careCaseId],
+    queryFn: () => observationsApi.delta(accessToken!, careCaseId),
+    enabled: !!accessToken,
+    staleTime: 60_000,
+  });
+
+  const { data: histData } = useQuery({
+    queryKey: ["observations-history", careCaseId],
+    queryFn: () => observationsApi.list(accessToken!, careCaseId, { limit: 300 }),
+    enabled: !!accessToken,
+    staleTime: 120_000,
+  });
+
+  const sparklines = useMemo<Record<string, number[]>>(() => {
+    if (!histData?.observations) return {};
+    const grouped: Record<string, { v: number; t: string }[]> = {};
+    for (const obs of histData.observations) {
+      if (obs.valueNumeric == null || !obs.metric?.key) continue;
+      if (!grouped[obs.metric.key]) grouped[obs.metric.key] = [];
+      grouped[obs.metric.key].push({ v: obs.valueNumeric, t: obs.effectiveAt });
+    }
+    const out: Record<string, number[]> = {};
+    for (const [k, arr] of Object.entries(grouped)) {
+      out[k] = arr.sort((a, b) => new Date(a.t).getTime() - new Date(b.t).getTime()).slice(-8).map((e) => e.v);
+    }
+    return out;
+  }, [histData]);
+
+  const deltas = deltaData?.deltas ?? [];
+  const refDate = deltaData?.referenceDate
+    ? new Date(deltaData.referenceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
+  const domains = useMemo(() => [...new Set(deltas.map((d) => d.domain))], [deltas]);
+
+  const byDomain = useMemo(() => {
+    const src = activeDomain === "all" ? deltas : deltas.filter((d) => d.domain === activeDomain);
+    return src.reduce<Record<string, DeltaObservation[]>>((acc, d) => {
+      (acc[d.domain] ||= []).push(d);
+      return acc;
+    }, {});
+  }, [deltas, activeDomain]);
+
+  if (isLoading) return (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => <div key={i} className="h-14 rounded-xl border bg-white animate-pulse" />)}
+    </div>
+  );
+
+  if (!deltas.length) return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <ArrowLeftRight size={28} className="text-muted-foreground/30 mb-3" />
+      <p className="text-sm font-medium text-muted-foreground">Aucune donnée comparative</p>
+      <p className="text-xs text-muted-foreground/60 mt-1 max-w-xs">
+        Enregistrez au moins 2 observations d&apos;une même métrique pour voir l&apos;évolution N vs N-1.
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-5 max-w-3xl">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            <ArrowLeftRight size={14} /> Biologie — N vs N-1
+          </h2>
+          {refDate && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Référence : {refDate} · {deltas.length} indicateur{deltas.length > 1 ? "s" : ""} comparé{deltas.length > 1 ? "s" : ""}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {domains.length > 1 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {["all", ...domains].map((dm) => (
+            <button
+              key={dm}
+              onClick={() => setActiveDomain(dm)}
+              className={`rounded-full px-3 py-1 text-xs font-medium border transition-all ${
+                activeDomain === dm
+                  ? "bg-[#4F46E5] text-white border-[#4F46E5]"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              {dm === "all" ? "Tout" : (DOMAIN_LABELS[dm] ?? dm)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {Object.entries(byDomain).map(([dm, rows]) => (
+        <div key={dm} className="rounded-xl border bg-white overflow-hidden shadow-sm">
+          {Object.keys(byDomain).length > 1 && (
+            <div className="px-4 py-2 bg-muted/30 border-b">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                {DOMAIN_LABELS[dm] ?? dm}
+              </p>
+            </div>
+          )}
+          <div className="divide-y">
+            {rows.map((d) => {
+              const pref = METRIC_PREF[d.metricKey] ?? "neutral";
+              const { text: deltaColor, bg } = getDeltaStyle(d);
+              const spark = sparklines[d.metricKey] ?? [];
+              const sign = d.delta > 0 ? "+" : "";
+              const arrow = d.direction === "up" ? "↑" : d.direction === "down" ? "↓" : "→";
+
+              return (
+                <div key={d.metricKey} className={`flex items-center gap-3 px-4 py-3 ${bg}`}>
+                  {/* Label + dates */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{d.label}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {new Date(d.previousDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                      {" → "}
+                      {new Date(d.currentDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+
+                  {/* Sparkline */}
+                  {spark.length >= 2 && <MiniSparkline values={spark} pref={pref} />}
+
+                  {/* N-1 */}
+                  <div className="text-right w-20 shrink-0">
+                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">Préc.</p>
+                    <p className="text-xs font-mono text-gray-500">{d.previous}{d.unit ? ` ${d.unit}` : ""}</p>
+                  </div>
+
+                  {/* N */}
+                  <div className="text-right w-20 shrink-0">
+                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">Actuel</p>
+                    <p className="text-sm font-bold font-mono text-gray-900">{d.current}{d.unit ? ` ${d.unit}` : ""}</p>
+                  </div>
+
+                  {/* Delta */}
+                  <div className={`text-right w-24 shrink-0 ${deltaColor}`}>
+                    <p className="text-sm font-bold font-mono">{sign}{d.delta}{d.unit ? ` ${d.unit}` : ""} {arrow}</p>
+                    <p className="text-[10px] font-mono opacity-75">{sign}{d.deltaPercent}%</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function QuestionnaireSection({
   questionnaires, careCaseId, latestByDomain, onSaved,

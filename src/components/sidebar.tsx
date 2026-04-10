@@ -18,6 +18,7 @@ import {
   UsersRound,
   BookOpen,
   CheckSquare,
+  Receipt,
 } from "lucide-react";
 
 /*
@@ -28,8 +29,9 @@ import {
 */
 
 const NAV_ACTIVITY = [
-  { href: "/aujourd-hui", label: "Aujourd'hui", icon: LayoutDashboard },
-  { href: "/agenda",      label: "Agenda",       icon: CalendarDays },
+  { href: "/aujourd-hui",  label: "Aujourd'hui",  icon: LayoutDashboard },
+  { href: "/agenda",       label: "Agenda",        icon: CalendarDays },
+  { href: "/facturation",  label: "Facturation",   icon: Receipt },
 ];
 
 const NAV_PATIENTS = [

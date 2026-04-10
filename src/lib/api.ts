@@ -1856,6 +1856,25 @@ export function apiWithToken(token: string) {
     tasksMine: {
       list: (status?: string) => request<TaskWithContext[]>(status ? `/tasks/mine?status=${status}` : "/tasks/mine", {}, token),
     },
+    billing: {
+      tariffs: (params?: { q?: string; category?: string; nomenclature?: string }) => {
+        const qs = new URLSearchParams(params as Record<string, string>).toString();
+        return request<BillingTariff[]>(`/billing/tariffs${qs ? `?${qs}` : ""}`, {}, token);
+      },
+      invoices: (params?: { patientId?: string; status?: string }) => {
+        const qs = new URLSearchParams(params as Record<string, string>).toString();
+        return request<Invoice[]>(`/billing/invoices${qs ? `?${qs}` : ""}`, {}, token);
+      },
+      invoice: (id: string) => request<Invoice>(`/billing/invoices/${id}`, {}, token),
+      create: (data: CreateInvoiceInput) =>
+        request<Invoice>("/billing/invoices", { method: "POST", body: JSON.stringify(data) }, token),
+      updateLines: (id: string, lines: InvoiceLineInput[]) =>
+        request<Invoice>(`/billing/invoices/${id}/lines`, { method: "PUT", body: JSON.stringify({ lines }) }, token),
+      finalize: (id: string) =>
+        request<Invoice>(`/billing/invoices/${id}/finalize`, { method: "POST" }, token),
+      cancel: (id: string) =>
+        request<{ message: string }>(`/billing/invoices/${id}`, { method: "DELETE" }, token),
+    },
   };
 }
 
@@ -1875,4 +1894,87 @@ export interface TaskWithContext {
     caseTitle: string;
     patient: { id: string; firstName: string; lastName: string };
   };
+}
+
+// ─── Billing ─────────────────────────────────────────────────────────────────
+
+export interface BillingTariff {
+  id: string;
+  code: string;
+  label: string;
+  nomenclature: "NGAP" | "CCAM";
+  category: "CONSULTATION" | "VISIT" | "TECHNICAL" | "MAJORATION" | "FORFAIT";
+  priceMetropole: number;
+  priceDom: number | null;
+  sector1Only: boolean;
+  specialties: string[];
+  cumulRules: string | null;
+  conditions: string | null;
+  sourceRef: string | null;
+  validFrom: string;
+  validTo: string | null;
+}
+
+export interface InvoiceLine {
+  id: string;
+  actCode: string;
+  actLabel: string;
+  nomenclature: "NGAP" | "CCAM";
+  category: string;
+  quantity: number;
+  coefficient: number;
+  unitPrice: number;
+  totalPrice: number;
+  baseRemb: number;
+  tauxRemb: number;
+  montantAMO: number;
+  depassement: number;
+  isExonerated: boolean;
+  lineOrder: number;
+  tariff: { code: string; label: string; cumulRules: string | null } | null;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string | null;
+  status: "DRAFT" | "READY" | "SIGNED" | "TRANSMITTED" | "ACKNOWLEDGED" | "PAID" | "REJECTED" | "CANCELLED";
+  careDate: string;
+  paymentMode: "TIERS_PAYANT_TOTAL" | "TIERS_PAYANT_PARTIEL" | "PAIEMENT_DIRECT";
+  isALD: boolean;
+  isMaternity: boolean;
+  sector: string | null;
+  totalHonoraires: number;
+  totalBase: number;
+  totalDepassement: number;
+  totalAMO: number;
+  totalPatient: number;
+  participationForfaitaire: number;
+  notes: string | null;
+  createdAt: string;
+  patient: { id: string; firstName: string; lastName: string };
+  careCase: { id: string; caseTitle: string } | null;
+  lines: InvoiceLine[];
+}
+
+export interface CreateInvoiceInput {
+  patientId: string;
+  careCaseId?: string;
+  careDate: string;
+  paymentMode?: "TIERS_PAYANT_TOTAL" | "TIERS_PAYANT_PARTIEL" | "PAIEMENT_DIRECT";
+  sector?: string;
+  isALD?: boolean;
+  aldNumber?: string;
+  isAccident?: boolean;
+  isMaternity?: boolean;
+  notes?: string;
+}
+
+export interface InvoiceLineInput {
+  actCode: string;
+  tariffId?: string;
+  quantity?: number;
+  coefficient?: number;
+  unitPrice: number;
+  depassement?: number;
+  isExonerated?: boolean;
 }
