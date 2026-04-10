@@ -1719,7 +1719,7 @@ export function apiWithToken(token: string) {
     },
     observations: {
       create: (careCaseId: string, observations: ObservationInput[]) => observationsApi.create(token, careCaseId, observations),
-      list: (careCaseId: string, params?: { domain?: string; limit?: number }) => observationsApi.list(token, careCaseId, params),
+      list: (careCaseId: string, params?: { metricKey?: string; domain?: string; from?: string; to?: string; limit?: number; offset?: number }) => observationsApi.list(token, careCaseId, params),
       latest: (careCaseId: string) => observationsApi.latest(token, careCaseId),
     },
     recordings: {

@@ -7,66 +7,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Stethoscope, ArrowLeftRight, Clock, ChevronRight, X,
-  MapPin, Video, Phone, Mail, Check, FileText, Users,
+  MapPin, Video, Phone, Mail, Check,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiWithToken, type ConnectionRequest, type AppointmentRequest } from "@/lib/api";
+import { apiWithToken, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral } from "@/lib/api";
 import { toast } from "sonner";
-import { UserPlus } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TYPES
+// ACTUALITÉS RÉSEAU — static (pas de backend pour l'instant)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-interface TodoItem {
-  id: string;
-  icon: typeof Clock;
-  iconBg: string;
-  title: string;
-  sub: string;
-  href: string;
-}
-
-interface NewsItem {
-  id: string;
-  emoji: string;
-  entity: string;
-  title: string;
-  meta: string;
-}
-
-interface MessageItem {
-  id: string;
-  initials: string;
-  name: string;
-  time: string;
-  message: string;
-  tag: string;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// STATIC DATA (todos, news, messages — à connecter plus tard)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const TODO_ITEMS: TodoItem[] = [
-  { id: "t1", icon: ArrowLeftRight, iconBg: "bg-amber-50 text-amber-600", title: "3 adressages sans réponse", sub: "Le plus ancien : il y a 4 jours", href: "/adressages" },
-  { id: "t2", icon: Clock, iconBg: "bg-orange-50 text-orange-600", title: "Emma Rousseau", sub: "Aucun contact depuis 3 semaines", href: "/patients" },
-  { id: "t3", icon: FileText, iconBg: "bg-blue-50 text-blue-600", title: "Résultats labo · Théo Dufresne", sub: "Reçus hier, non consultés", href: "/documents" },
-  { id: "t4", icon: Users, iconBg: "bg-violet-50 text-violet-600", title: "Réunion équipe Pédiatrie HAP", sub: "Demain · 8h00", href: "/equipe" },
-];
-
-const NEWS_ITEMS: NewsItem[] = [
+const NEWS_ITEMS = [
   { id: "n1", emoji: "🏥", entity: "CHU Necker", title: "Nouvelle procédure HAD pour TCA", meta: "Publiée hier · 2 min de lecture" },
   { id: "n2", emoji: "📍", entity: "CPTS Paris 14", title: "Réunion plénière — 28 avril", meta: "Inscription ouverte" },
   { id: "n3", emoji: "🔬", entity: "Réseau Obésité IDF", title: "Webinaire chirurgie bariatrique", meta: "Jeudi 17 avril · 18h00" },
 ];
 
-const MESSAGE_ITEMS: MessageItem[] = [
-  { id: "m1", initials: "KB", name: "Dr Benali", time: "il y a 3h", message: "Pouvez-vous prendre Emma Rousseau en urgence cette semaine ?", tag: "Emma Rousseau" },
-  { id: "m2", initials: "MV", name: "Margot Vire", time: "il y a 2h", message: "Bonne nouvelle pour Lucas — il m'a dit qu'il cuisinait à nouveau régulièrement", tag: "Lucas Bernier" },
-];
+const PENDING_REFERRAL_STATUSES = ["SENT", "RECEIVED", "UNDER_REVIEW"];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -85,12 +44,6 @@ function avatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-function timeGap(a: string, b: string): number {
-  const [ah, am] = a.split(":").map(Number);
-  const [bh, bm] = b.split(":").map(Number);
-  return (bh * 60 + bm) - (ah * 60 + am);
-}
-
 function formatGap(mins: number): string {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
@@ -104,10 +57,22 @@ function formatGap(mins: number): string {
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const user = useAuthStore((s) => s.user);
+  const { user, accessToken } = useAuthStore();
 
-  // ── Lire les RDV depuis l'API ──
+  // ── RDV du jour ──
   const { consultations, nextConsultation: nextConsult, totalToday, isLoading, isError, refetch } = useDashboard();
+
+  // ── Adressages envoyés en attente ──
+  const api = apiWithToken(accessToken!);
+  const { data: outgoingReferrals = [] } = useQuery({
+    queryKey: ["referrals-outgoing-pending"],
+    queryFn: () => api.referrals.outgoing(),
+    enabled: !!accessToken,
+    refetchInterval: 60_000,
+  });
+  const pendingOutgoing = (outgoingReferrals as Referral[]).filter((r) =>
+    PENDING_REFERRAL_STATUSES.includes(r.status)
+  );
 
   const selected = consultations.find((c: DashboardConsultation) => c.id === selectedId) ?? null;
 
@@ -121,9 +86,11 @@ export default function DashboardPage() {
             <Link href="/agenda" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[13px] font-medium hover:bg-indigo-100 transition-colors">
               <Stethoscope size={14} /> {totalToday} consultation{totalToday !== 1 ? "s" : ""} aujourd&apos;hui
             </Link>
-            <Link href="/adressages" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-[13px] font-medium hover:bg-amber-100 transition-colors">
-              <ArrowLeftRight size={14} /> 3 adressages en attente
-            </Link>
+            {pendingOutgoing.length > 0 && (
+              <Link href="/adressages" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-[13px] font-medium hover:bg-amber-100 transition-colors">
+                <ArrowLeftRight size={14} /> {pendingOutgoing.length} adressage{pendingOutgoing.length > 1 ? "s" : ""} en attente
+              </Link>
+            )}
             {nextConsult && (
               <button onClick={() => setSelectedId(nextConsult.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4F46E5] text-white text-[13px] font-medium hover:bg-[#4338CA] transition-colors">
                 <Clock size={14} /> Dans 15min · {nextConsult.patient} · {nextConsult.time}
@@ -252,31 +219,40 @@ export default function DashboardPage() {
 
             {/* ── Colonne droite ── */}
             <div className="w-full lg:flex-[40] min-w-0 space-y-5">
-              {/* À FAIRE */}
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
-                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-4" style={{ fontFamily: "var(--font-inter)" }}>À FAIRE</p>
-                  <div className="space-y-1">
-                    {TODO_ITEMS.map((item, i) => {
-                      const Icon = item.icon;
-                      return (
-                        <motion.div key={item.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 + i * 0.04, duration: 0.2 }}>
-                          <Link href={item.href}>
-                            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-all group cursor-pointer">
-                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", item.iconBg)}><Icon size={15} /></div>
+              {/* ADRESSAGES ENVOYÉS EN ATTENTE */}
+              {pendingOutgoing.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
+                  <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>MES ADRESSAGES EN ATTENTE</p>
+                        <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold flex items-center justify-center">{pendingOutgoing.length}</span>
+                      </div>
+                      <Link href="/adressages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir</Link>
+                    </div>
+                    <div className="space-y-2">
+                      {pendingOutgoing.slice(0, 3).map((ref) => {
+                        const daysAgoRef = Math.floor((Date.now() - new Date(ref.updatedAt).getTime()) / 86400000);
+                        const timeLabel = daysAgoRef === 0 ? "aujourd'hui" : daysAgoRef === 1 ? "hier" : `il y a ${daysAgoRef}j`;
+                        return (
+                          <Link key={ref.id} href="/adressages">
+                            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
+                              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                                <ArrowLeftRight size={14} className="text-amber-600" />
+                              </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-medium text-[#374151] truncate">{item.title}</p>
-                                <p className="text-[11px] text-[#94A3B8] truncate">{item.sub}</p>
+                                <p className="text-[13px] font-medium text-[#374151] truncate">{ref.careCase?.caseTitle ?? "Dossier"}</p>
+                                <p className="text-[11px] text-[#94A3B8] truncate">{ref.priority === "URGENT" ? "Urgent" : ref.priority === "EMERGENCY" ? "Urgence" : "Routine"} · sans réponse {timeLabel}</p>
                               </div>
                               <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                           </Link>
-                        </motion.div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
 
               {/* DEMANDES DE PATIENTS (ConnectionRequests) */}
               <IncomingRequestsSection />
@@ -311,32 +287,7 @@ export default function DashboardPage() {
               </motion.div>
 
               {/* MESSAGES */}
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.3 }}>
-                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>MESSAGES</p>
-                    <Link href="/messages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</Link>
-                  </div>
-                  <div className="space-y-3">
-                    {MESSAGE_ITEMS.map((item) => (
-                      <div key={item.id} className="flex gap-3 hover:bg-[#F8FAFC] -mx-2 px-2 py-2 rounded-lg transition-colors cursor-pointer group">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold text-white shrink-0 mt-0.5" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
-                          {item.initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-semibold text-[#0F172A]">{item.name}</span>
-                            <span className="text-[11px] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{item.time}</span>
-                          </div>
-                          <p className="text-[12px] text-[#475569] mt-0.5 truncate">{item.message}</p>
-                          <span className="inline-block mt-1 text-[10px] font-medium text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded-full">{item.tag}</span>
-                        </div>
-                        <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
+              <ProMessagesSection />
             </div>
           </div>
         </div>
@@ -723,6 +674,92 @@ function IncomingReferralsSection() {
                 </div>
               )}
             </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── MESSAGES PRO — dernières conversations ───────────────────────────────────
+
+function ProMessagesSection() {
+  const { accessToken, user } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+
+  const { data: conversations = [] } = useQuery({
+    queryKey: ["pro-conversations-dashboard"],
+    queryFn: () => api.proMessages.getConversations(),
+    enabled: !!accessToken,
+    refetchInterval: 30_000,
+  });
+
+  const sorted = (conversations as ProConversation[])
+    .filter((c) => c.lastMessage)
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3);
+
+  if (sorted.length === 0) return null;
+
+  const unreadTotal = (conversations as ProConversation[]).reduce((s, c) => s + (c.unreadCount ?? 0), 0);
+
+  function convName(conv: ProConversation): string {
+    if (conv.name) return conv.name;
+    if (conv.type === "DIRECT") {
+      const other = conv.members.find((m) => m.id !== user?.id);
+      return other ? `${other.firstName} ${other.lastName}` : "Conversation";
+    }
+    return "Groupe";
+  }
+
+  function convInitials(conv: ProConversation): string {
+    const name = convName(conv);
+    const parts = name.trim().split(" ");
+    return parts.length >= 2 ? `${parts[0][0]}${parts[1][0]}` : name.slice(0, 2).toUpperCase();
+  }
+
+  function relativeTime(dateStr: string): string {
+    const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60_000);
+    if (mins < 1) return "à l'instant";
+    if (mins < 60) return `il y a ${mins}min`;
+    const h = Math.floor(mins / 60);
+    if (h < 24) return `il y a ${h}h`;
+    const d = Math.floor(h / 24);
+    return d === 1 ? "hier" : `il y a ${d}j`;
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>MESSAGES</p>
+            {unreadTotal > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#4F46E5] text-white text-[10px] font-semibold flex items-center justify-center">{unreadTotal}</span>
+            )}
+          </div>
+          <Link href="/messages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</Link>
+        </div>
+        <div className="space-y-1">
+          {sorted.map((conv) => (
+            <Link key={conv.id} href="/messages">
+              <div className="flex gap-3 hover:bg-[#F8FAFC] -mx-2 px-2 py-2 rounded-lg transition-colors cursor-pointer group">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
+                  {convInitials(conv)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[13px] font-semibold text-[#0F172A] truncate">{convName(conv)}</span>
+                    <span className="text-[11px] text-[#94A3B8] shrink-0" style={{ fontFamily: "var(--font-inter)" }}>{relativeTime(conv.updatedAt)}</span>
+                  </div>
+                  <p className="text-[12px] text-[#475569] mt-0.5 truncate">{conv.lastMessage?.content ?? ""}</p>
+                  {conv.unreadCount > 0 && (
+                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded-full">{conv.unreadCount} non lu{conv.unreadCount > 1 ? "s" : ""}</span>
+                  )}
+                </div>
+                <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
           ))}
         </div>
       </div>
