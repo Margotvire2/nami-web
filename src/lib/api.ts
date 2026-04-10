@@ -1335,6 +1335,8 @@ export interface Invitation {
   createdAt: string;
   inviteUrl?: string;
   isExpired?: boolean;
+  existingAccount?: boolean;
+  inviteeRoleType?: string | null;
 }
 
 export interface CreateInvitationInput {
@@ -1358,6 +1360,12 @@ export const invitationsApi = {
       method: "POST",
     }, token),
 };
+
+export const authActivateApi = (email: string, password: string) =>
+  request<{ accessToken: string; refreshToken: string }>("/auth/activate", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
 
 // ─── Conditions (PatientCondition) ───────────────────────────────────────
 
