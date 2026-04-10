@@ -78,6 +78,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
   // Step 1 — Patient info
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [sex, setSex] = useState<"M" | "F" | "OTHER" | "">("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -99,6 +100,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
       api.patients.createWithCase({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
+        sex: sex || undefined,
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
         birthDate: birthDate || undefined,
@@ -132,6 +134,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
     setLinkCopied(false);
     setFirstName("");
     setLastName("");
+    setSex("");
     setEmail("");
     setPhone("");
     setBirthDate("");
@@ -234,6 +237,26 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                   placeholder="Nom"
                   className="h-9 text-xs mt-1"
                 />
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Sexe</label>
+              <div className="flex gap-2 mt-1.5">
+                {([["M", "Homme"], ["F", "Femme"], ["OTHER", "Autre"]] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setSex(val)}
+                    className={cn(
+                      "flex-1 text-xs font-medium py-1.5 rounded-lg border transition-all",
+                      sex === val
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
             <div>

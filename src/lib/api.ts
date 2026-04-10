@@ -655,6 +655,7 @@ export const appointmentsApi = {
 export interface CreatePatientWithCaseInput {
   firstName: string;
   lastName: string;
+  sex?: "M" | "F" | "OTHER";
   email?: string;
   phone?: string;
   birthDate?: string;
