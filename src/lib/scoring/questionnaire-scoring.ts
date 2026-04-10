@@ -109,8 +109,9 @@ export const EAT26: QuestionnaireDefinition = {
   scale: "likert4",
   scaleLabels: ["Jamais", "Rarement", "Parfois", "Souvent / Toujours"],
   bands: [
-    { label: "Normal",              min: 0,  max: 19, color: "green",  description: "Comportement alimentaire dans la norme" },
-    { label: "Dépistage positif",   min: 20, max: 78, color: "orange", description: "Score ≥ 20 — évaluation clinique recommandée" },
+    { label: "Normal",       min: 0,  max: 19, color: "green",  description: "Comportement alimentaire dans la norme" },
+    { label: "Élevé",        min: 20, max: 39, color: "orange", description: "Score ≥ 20 — comportements alimentaires problématiques, évaluation clinique recommandée" },
+    { label: "Très élevé",   min: 40, max: 78, color: "red",    description: "Score ≥ 40 — comportements alimentaires sévèrement perturbés" },
   ],
   items: [
     "J'ai terriblement peur d'être en surpoids",
