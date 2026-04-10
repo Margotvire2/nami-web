@@ -10,11 +10,15 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   Receipt, Plus, Loader2, CheckCircle2,
-  Clock, X, Search, FileText, User,
+  Clock, X, Search, FileText, User, BarChart2, FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PatientSelect } from "@/components/PatientSelect";
+import { BillingDashboard } from "@/components/billing/BillingDashboard";
 import { cn } from "@/lib/utils";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "https://nami-production-f268.up.railway.app";
 
 type Api = ReturnType<typeof apiWithToken>;
 
@@ -46,6 +50,7 @@ export default function FacturationPage() {
   const api = apiWithToken(accessToken);
   const qc = useQueryClient();
 
+  const [tab, setTab] = useState<"fse" | "dashboard">("fse");
   const [showNew, setShowNew] = useState(false);
   const [selected, setSelected] = useState<Invoice | null>(null);
 
@@ -55,20 +60,52 @@ export default function FacturationPage() {
   });
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* ── Liste ── */}
-      <div className="w-[340px] shrink-0 border-r border-[#E8ECF4] flex flex-col bg-white">
-        <div className="px-4 h-[56px] flex items-center justify-between shrink-0 border-b border-[#E8ECF4]">
-          <div className="flex items-center gap-2">
-            <Receipt size={16} className="text-[#4F46E5]" />
-            <span className="text-[14px] font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>
-              Facturation
-            </span>
-          </div>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* ── Barre d'onglets ── */}
+      <div className="shrink-0 flex items-center justify-between px-4 h-[56px] border-b border-[#E8ECF4] bg-white">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setTab("fse")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
+              tab === "fse"
+                ? "bg-[#EEF2FF] text-[#4F46E5]"
+                : "text-muted-foreground hover:text-[#0F172A] hover:bg-[#F8FAFF]"
+            )}
+          >
+            <Receipt size={13} /> Feuilles de soins
+          </button>
+          <button
+            onClick={() => setTab("dashboard")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
+              tab === "dashboard"
+                ? "bg-[#EEF2FF] text-[#4F46E5]"
+                : "text-muted-foreground hover:text-[#0F172A] hover:bg-[#F8FAFF]"
+            )}
+          >
+            <BarChart2 size={13} /> Dashboard
+          </button>
+        </div>
+        {tab === "fse" && (
           <Button size="sm" className="h-7 text-xs gap-1 px-2.5" onClick={() => { setShowNew(true); setSelected(null); }}>
             <Plus size={13} /> Nouvelle FSE
           </Button>
+        )}
+      </div>
+
+      {/* ── Dashboard ── */}
+      {tab === "dashboard" && (
+        <div className="flex-1 overflow-y-auto bg-[#F8FAFF] p-6">
+          <BillingDashboard />
         </div>
+      )}
+
+      {/* ── FSE : liste + détail ── */}
+      {tab === "fse" && (
+      <div className="flex flex-1 overflow-hidden">
+      {/* ── Liste ── */}
+      <div className="w-[340px] shrink-0 border-r border-[#E8ECF4] flex flex-col bg-white">
 
         <div className="flex-1 overflow-y-auto divide-y divide-[#F1F5F9]">
           {isLoading && (
@@ -151,6 +188,8 @@ export default function FacturationPage() {
           </div>
         )}
       </div>
+      </div>
+      )}
     </div>
   );
 }
@@ -166,7 +205,7 @@ function NewInvoiceForm({
   onCreated: (inv: Invoice) => void;
   onCancel: () => void;
 }) {
-  const [patientId, setPatientId] = useState("");
+  const [patient, setPatient] = useState<{ id: string; firstName: string; lastName: string; birthDate?: string | null; sex?: string | null } | null>(null);
   const [careDate, setCareDate] = useState(new Date().toISOString().slice(0, 10));
   const [paymentMode, setPaymentMode] = useState<CreateInvoiceInput["paymentMode"]>("PAIEMENT_DIRECT");
   const [isALD, setIsALD] = useState(false);
@@ -174,7 +213,7 @@ function NewInvoiceForm({
   const mutation = useMutation({
     mutationFn: () =>
       api.billing.create({
-        patientId,
+        patientId: patient!.id,
         careDate: new Date(careDate).toISOString(),
         paymentMode,
         isALD,
@@ -199,14 +238,10 @@ function NewInvoiceForm({
 
       <div className="space-y-4">
         <div>
-          <label className="text-[11px] font-medium text-muted-foreground">ID patient</label>
-          <Input
-            value={patientId}
-            onChange={(e) => setPatientId(e.target.value)}
-            placeholder="ID du patient"
-            className="h-9 text-xs mt-1"
-          />
-          <p className="text-[10px] text-muted-foreground mt-1">Copiez l&apos;ID depuis la fiche patient</p>
+          <label className="text-[11px] font-medium text-muted-foreground">Patient</label>
+          <div className="mt-1">
+            <PatientSelect value={patient} onChange={setPatient} />
+          </div>
         </div>
 
         <div>
@@ -248,7 +283,7 @@ function NewInvoiceForm({
       <Button
         className="w-full h-9 text-sm gap-2"
         onClick={() => mutation.mutate()}
-        disabled={mutation.isPending || !patientId.trim()}
+        disabled={mutation.isPending || !patient}
       >
         {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
         Créer la FSE
@@ -270,10 +305,33 @@ function InvoiceDetail({
   onUpdated: (inv: Invoice) => void;
   onCancelled: () => void;
 }) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [actSearch, setActSearch] = useState("");
   const [selectedLines, setSelectedLines] = useState<InvoiceLineInput[]>(
     invoice.lines.map((l) => ({ actCode: l.actCode, unitPrice: l.unitPrice, quantity: l.quantity }))
   );
+
+  async function downloadPDF() {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`${API}/billing/invoices/${invoice.id}/pdf`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) { toast.error("Erreur génération PDF"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `FSE-${invoice.invoiceNumber ?? invoice.id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erreur téléchargement PDF");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
 
   const { data: tariffs = [] } = useQuery({
     queryKey: ["billing-tariffs", actSearch],
@@ -354,6 +412,14 @@ function InvoiceDetail({
             </div>
           )}
         </div>
+        <button
+          onClick={downloadPDF}
+          disabled={pdfLoading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[11px] text-muted-foreground hover:bg-[#F8FAFF] hover:text-[#0F172A] transition-colors disabled:opacity-50 mt-3"
+        >
+          {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />}
+          Télécharger PDF
+        </button>
       </div>
 
       {/* Actes */}

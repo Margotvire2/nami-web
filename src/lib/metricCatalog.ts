@@ -113,6 +113,7 @@ export const METRIC_CATALOG: MetricDef[] = [
   { key: "inr_ratio", label: "INR", unit: "", examType: "BLOOD_HEMOSTASIS", category: "Hémostase", aliases: ["inr","i.n.r.","i.n.r"], ranges: [{min:0.8,max:1.2}], criticalHigh: 5 },
   { key: "aptt_ratio", label: "TCA Rapport", unit: "", examType: "BLOOD_HEMOSTASIS", category: "Hémostase", aliases: ["tca rapport","tca rapport patient/témoin","tca"], ranges: [{max:1.2}] },
   { key: "aptt_patient_sec", label: "TCA Patient", unit: "sec", examType: "BLOOD_HEMOSTASIS", category: "Hémostase", aliases: ["tca temps du patient","tca patient"], ranges: [{min:25,max:35}] },
+  { key: "tca_temps_du_t_moin", label: "TCA Témoin", unit: "sec", examType: "BLOOD_HEMOSTASIS", category: "Hémostase", aliases: ["tca témoin","tca temps du témoin"], ranges: [{min:28,max:38}] },
   { key: "fibrinogen_g_l", label: "Fibrinogène", unit: "g/L", examType: "BLOOD_HEMOSTASIS", category: "Hémostase", aliases: ["fibrinogène","fibrinogene"], ranges: [{min:2,max:4}], criticalLow: 1 },
   { key: "d_dimers_ug_l", label: "D-dimères", unit: "µg/L", examType: "BLOOD_HEMOSTASIS", category: "Hémostase", aliases: ["d-dimères","d-dimeres","d dimères"], ranges: [{max:500}] },
 
@@ -192,17 +193,24 @@ export const METRIC_CATALOG: MetricDef[] = [
   { key: "igm_total_g_l", label: "IgM totales", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Immunoglobulines", aliases: ["igm totales","igm","immunoglobulines m"], ranges: [{min:0.4,max:2.3}] },
   { key: "anti_ccp_ui_ml", label: "Anti-CCP", unit: "UI/mL", examType: "BLOOD_IMMUNOLOGY", category: "Auto-immunité", aliases: ["anti-ccp","anticorps anti-peptides cycliques citrullinés"], ranges: [{max:5}] },
   { key: "rheumatoid_factor_ui_ml", label: "Facteur rhumatoïde", unit: "UI/mL", examType: "BLOOD_IMMUNOLOGY", category: "Auto-immunité", aliases: ["facteur rhumatoïde","facteurs rhumatoïdes","fr","latex","waaler rose","igm anti-igg"], ranges: [{max:20}] },
+  { key: "facteurs_rhumato_des_igm_anti_igg_animales", label: "FR IgM", unit: "UI/mL", examType: "BLOOD_IMMUNOLOGY", category: "Auto-immunité", aliases: ["facteurs rhumatoïdes igm","fr igm anti-igg","facteurs rhumatoïdes des igm"], ranges: [{max:20}] },
   { key: "ana_titer", label: "AAN", unit: "", examType: "BLOOD_IMMUNOLOGY", category: "Auto-immunité", aliases: ["aan","anticorps anti-nucléaires","anticorps antinucléaires","ana"], ranges: [{max:80,label:"Négatif"}] },
   { key: "anca_titer", label: "ANCA", unit: "", examType: "BLOOD_IMMUNOLOGY", category: "Auto-immunité", aliases: ["anca","anticorps anti-cytoplasme des polynucléaires neutrophiles"], ranges: [{max:20,label:"Négatif"}] },
   { key: "complement_c3_g_l", label: "C3", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Complément", aliases: ["c3","complément c3"], ranges: [{min:0.9,max:1.8}] },
   { key: "complement_c4_g_l", label: "C4", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Complément", aliases: ["c4","complément c4"], ranges: [{min:0.1,max:0.4}] },
   // EPP
   { key: "albumin_electro_percent", label: "Albumine (EPP)", unit: "%", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["albumine %","albumine epp"], ranges: [{min:55.8,max:66.1}] },
+  { key: "electrophor_se_albumine", label: "Albumine EPP", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["albumine epp g/l","albumine electrophorèse g/l"], ranges: [{min:35,max:50}] },
   { key: "alpha1_globulin_percent", label: "Alpha-1 globulines", unit: "%", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["alpha 1 globulines","alpha1 globulines","α1 globulines"], ranges: [{min:2.9,max:4.9}] },
+  { key: "electrophor_se_alpha_1_globulines", label: "Alpha-1 globulines", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["alpha-1 globulines g/l"], ranges: [{min:1.3,max:3.9}] },
   { key: "alpha2_globulin_percent", label: "Alpha-2 globulines", unit: "%", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["alpha 2 globulines","alpha2 globulines","α2 globulines"], ranges: [{min:7.1,max:11.8}] },
+  { key: "electrophor_se_alpha_2_globulines", label: "Alpha-2 globulines", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["alpha-2 globulines g/l"], ranges: [{min:4.0,max:9.0}] },
   { key: "beta1_globulin_percent", label: "Bêta-1 globulines", unit: "%", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["bêta 1 globulines","beta 1 globulines","β1 globulines"], ranges: [{min:4.7,max:7.2}] },
+  { key: "electrophor_se_b_ta_1_globulines", label: "Bêta-1 globulines", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["bêta-1 globulines g/l","beta-1 globulines g/l"], ranges: [{min:2.5,max:5.5}] },
   { key: "beta2_globulin_percent", label: "Bêta-2 globulines", unit: "%", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["bêta 2 globulines","beta 2 globulines","β2 globulines"], ranges: [{min:3.2,max:6.5}] },
+  { key: "electrophor_se_b_ta_2_globulines", label: "Bêta-2 globulines", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["bêta-2 globulines g/l","beta-2 globulines g/l"], ranges: [{min:1.5,max:4.0}] },
   { key: "gamma_globulin_percent", label: "Gamma globulines", unit: "%", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["gamma globulines","γ globulines","gammaglobulines"], ranges: [{min:11.1,max:18.8}] },
+  { key: "electrophor_se_gamma_globulines", label: "Gamma globulines", unit: "g/L", examType: "BLOOD_IMMUNOLOGY", category: "Électrophorèse", aliases: ["gamma globulines g/l","gammaglobulines g/l"], ranges: [{min:6.0,max:16.0}] },
 
   // ══ MÉTABOLIQUE ══
   { key: "haptoglobin_g_l", label: "Haptoglobine", unit: "g/L", examType: "BLOOD_HEMOGLOBINOPATHY", category: "Hémolyse", aliases: ["haptoglobine"], ranges: [{min:0.3,max:2}] },
