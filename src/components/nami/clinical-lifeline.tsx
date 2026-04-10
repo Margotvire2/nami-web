@@ -2,10 +2,39 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Clock, AlertTriangle, Info } from "lucide-react";
+import { ChevronRight, Clock, AlertTriangle, Info, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { TimelineEvent, TimelineSummary } from "@/lib/timeline/model";
+import type { TimelineEvent, TimelineSummary, TimelineSeverity } from "@/lib/timeline/model";
 import { getRegistryEntry } from "@/lib/timeline/registry";
+
+// ─── Severity badges ─────────────────────────────────────────────────────────
+const SEVERITY_BADGE: Record<TimelineSeverity, { dot: string; badge: string; label: string; icon: React.ReactNode } | null> = {
+  critical: {
+    dot:   "bg-[#DC2626]",
+    badge: "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]",
+    label: "Critique",
+    icon:  <ShieldAlert size={10} strokeWidth={2} />,
+  },
+  high: {
+    dot:   "bg-[#EF4444]",
+    badge: "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]",
+    label: "Urgent",
+    icon:  <AlertTriangle size={10} strokeWidth={2} />,
+  },
+  medium: {
+    dot:   "bg-[#D97706]",
+    badge: "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]",
+    label: "À vérifier",
+    icon:  <AlertTriangle size={10} strokeWidth={2} />,
+  },
+  info: {
+    dot:   "bg-[#2563EB]",
+    badge: "bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]",
+    label: "Info",
+    icon:  <Info size={10} strokeWidth={2} />,
+  },
+  low: null, // pas de badge
+};
 
 // ─── Mapping émojis sémantiques ─────────────────────────────────────────────
 const EVENT_EMOJI: Record<string, string> = {
@@ -171,7 +200,9 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
                       "bg-white shadow-sm border border-[#E8ECF4] group-hover:shadow-md",
                     )}>
                       <span className={isCurrent ? "text-lg" : "text-sm"}>{emoji}</span>
-                      {event.severity === "high" && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#EF4444] rounded-full border-2 border-white" />}
+                      {SEVERITY_BADGE[event.severity]?.dot && (
+                        <span className={cn("absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", SEVERITY_BADGE[event.severity]!.dot)} />
+                      )}
                       {isCurrent && <span className="absolute inset-0 rounded-full animate-ping bg-[#C7D2FE] opacity-30" />}
                     </div>
                     <span className={cn("mt-2 text-[11px] whitespace-nowrap", isCurrent ? "text-[#4F46E5] font-semibold" : "text-[#94A3B8]")} style={{ fontFamily: "var(--font-inter)" }}>
@@ -224,9 +255,10 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
                 <div className="flex-1 min-w-0 pb-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[13px] font-semibold text-[#0F172A]">{event.title}</span>
-                    {event.severity === "high" && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEF2F2] text-[#DC2626] text-[11px] font-medium border border-[#FECACA]">
-                        <AlertTriangle size={10} strokeWidth={2} /> Urgent
+                    {SEVERITY_BADGE[event.severity] && (
+                      <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border", SEVERITY_BADGE[event.severity]!.badge)}>
+                        {SEVERITY_BADGE[event.severity]!.icon}
+                        {SEVERITY_BADGE[event.severity]!.label}
                       </span>
                     )}
                   </div>

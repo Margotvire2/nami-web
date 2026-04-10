@@ -469,6 +469,7 @@ export interface Activity {
   title: string;
   summary: string | null;
   occurredAt: string;
+  payload?: Record<string, unknown>;
   person: { id: string; firstName: string; lastName: string; roleType: string };
 }
 

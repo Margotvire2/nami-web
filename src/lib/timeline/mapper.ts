@@ -217,8 +217,16 @@ function resolveUnknownType(actType: string, source: string): TypeMapping {
 }
 
 function deriveSeverity(actType: string, activity: Activity): TimelineSeverity {
-  if (actType.includes("ALERT") || actType.includes("RISK_LEVEL") || actType.includes("INACTIVE"))
-    return "high";
+  // Pour ALERT_TRIGGERED : lire la sévérité réelle depuis payload
+  if (actType === "ALERT_TRIGGERED" || actType === "PATIENT_INACTIVE") {
+    const s = (activity.payload?.severity as string | undefined)?.toUpperCase();
+    if (s === "CRITICAL") return "critical";
+    if (s === "HIGH")     return "high";
+    if (s === "WARNING")  return "medium";
+    if (s === "INFO")     return "info";
+    return "high"; // fallback
+  }
+  if (actType.includes("RISK_LEVEL")) return "high";
   if (actType.includes("REFERRAL") || actType.includes("CARE_PLAN") || actType.includes("TEAM_MEMBER"))
     return "medium";
   return "low";

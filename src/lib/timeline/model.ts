@@ -46,7 +46,7 @@ export type TimelineSource =
   | "message"
   | "system";
 
-export type TimelineSeverity = "low" | "medium" | "high";
+export type TimelineSeverity = "info" | "low" | "medium" | "high" | "critical";
 export type TimelineStatus = "past" | "current" | "upcoming";
 
 // ─── Modèle canonique ────────────────────────────────────────────────────────
