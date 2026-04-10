@@ -157,8 +157,8 @@ export const SCOFF: QuestionnaireDefinition = {
   scale: "binary",
   scaleLabels: ["Non", "Oui"],
   bands: [
-    { label: "Absence de suspicion", min: 0, max: 1, color: "green",  description: "Pas de critère TCA identifié" },
-    { label: "Suspicion TCA",        min: 2, max: 5, color: "orange", description: "≥ 2 réponses OUI — évaluation approfondie recommandée" },
+    { label: "Dépistage négatif", min: 0, max: 1, color: "green",  description: "0 ou 1 réponse OUI — pas de critère TCA identifié" },
+    { label: "Dépistage positif", min: 2, max: 5, color: "orange", description: "≥ 2 réponses OUI — évaluation approfondie recommandée (HAS)" },
   ],
   items: [
     "Vous faites-vous vomir parce que vous vous sentez mal d'avoir trop mangé ?",
