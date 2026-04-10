@@ -16,6 +16,8 @@ import { ClinicalTimeline } from "./ClinicalTimeline";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { SuiviTab as SuiviTabNew } from "@/components/patient/SuiviTab";
 import { ObservationDashboard } from "@/components/nami/observation-dashboard";
+import { LikertQuestionnaire } from "@/components/nami/LikertQuestionnaire";
+import { QUESTIONNAIRE_CATALOG, getBand, BAND_COLORS } from "@/lib/scoring/questionnaire-scoring";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -2572,20 +2574,15 @@ function SuiviSection({ careCaseId }: { careCaseId: string }) {
 
       {/* Questionnaires */}
       {pw?.questionnaires && pw.questionnaires.length > 0 && (
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Questionnaires recommandés</p>
-          <div className="space-y-1.5">
-            {pw.questionnaires.map((q) => (
-              <div key={q.key} className="flex items-center justify-between p-2.5 rounded-lg border bg-card">
-                <div>
-                  <p className="text-xs font-medium">{q.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{q.cadence === "initial" ? "Initial" : q.cadence === "monthly" ? "Mensuel" : q.cadence === "quarterly" ? "Trimestriel" : q.cadence}</p>
-                </div>
-                {q.required && <span className="text-[10px] text-primary font-medium">requis</span>}
-              </div>
-            ))}
-          </div>
-        </div>
+        <QuestionnaireSection
+          questionnaires={pw.questionnaires}
+          careCaseId={careCaseId}
+          latestByDomain={latestData?.latest ?? {}}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ["observations-latest", careCaseId] });
+            queryClient.invalidateQueries({ queryKey: ["alerts", careCaseId] });
+          }}
+        />
       )}
 
       {/* Règles actives */}
@@ -2667,6 +2664,120 @@ function QuickObservationEntry({ metricKey, metric, onSubmit, onClose, isPending
         <Button size="sm" onClick={handleSubmit} disabled={!value.trim() || isPending}>
           {isPending ? "..." : "Enregistrer"}
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// QUESTIONNAIRES — section interactive avec scoring auto
+// ═════════════════════════════════════════════════════════════════════════════
+
+function QuestionnaireSection({
+  questionnaires, careCaseId, latestByDomain, onSaved,
+}: {
+  questionnaires: { key: string; label: string; cadence: string; required: boolean }[];
+  careCaseId: string;
+  latestByDomain: Record<string, LatestObservation[]>;
+  onSaved: () => void;
+}) {
+  const { accessToken } = useAuthStore();
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+
+  const saveMutation = useMutation({
+    mutationFn: ({ metricKey, score }: { metricKey: string; score: number }) =>
+      observationsApi.create(accessToken!, careCaseId, [{
+        metricKey,
+        valueNumeric: score,
+        unit: "score",
+        source: "PROVIDER_ENTRY" as const,
+      }]),
+    onSuccess: () => {
+      toast.success("Score enregistré");
+      setActiveKey(null);
+      onSaved();
+    },
+    onError: () => toast.error("Erreur lors de l'enregistrement"),
+  });
+
+  const cadenceLabel = (c: string) =>
+    c === "initial" ? "Initial" : c === "monthly" ? "Mensuel" : c === "quarterly" ? "Trimestriel" : c === "weekly" ? "Hebdo" : c;
+
+  // Dernier score connu pour un questionnaire
+  function getLastScore(metricKey: string): number | null {
+    for (const domain of Object.values(latestByDomain)) {
+      for (const obs of domain) {
+        if ((obs as any).metricKey === metricKey && (obs as any).valueNumeric != null)
+          return (obs as any).valueNumeric;
+      }
+    }
+    return null;
+  }
+
+  if (activeKey) {
+    const def = QUESTIONNAIRE_CATALOG[activeKey];
+    if (!def) {
+      setActiveKey(null);
+      return null;
+    }
+    return (
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-3">
+          {def.shortLabel}
+        </p>
+        <div className="rounded-xl border bg-card p-4">
+          <LikertQuestionnaire
+            def={def}
+            isSaving={saveMutation.isPending}
+            onCancel={() => setActiveKey(null)}
+            onSave={(score) => saveMutation.mutate({ metricKey: def.metricKey, score })}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2">
+        Questionnaires recommandés
+      </p>
+      <div className="space-y-1.5">
+        {questionnaires.map((q) => {
+          const def = QUESTIONNAIRE_CATALOG[q.key];
+          const lastScore = def ? getLastScore(def.metricKey) : null;
+          const band = def && lastScore !== null ? getBand(def, lastScore) : null;
+
+          return (
+            <div key={q.key} className="flex items-center justify-between p-2.5 rounded-lg border bg-card gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-xs font-medium">{q.label}</p>
+                  {q.required && <span className="text-[10px] text-primary font-medium">requis</span>}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <p className="text-[10px] text-muted-foreground">{cadenceLabel(q.cadence)}</p>
+                  {band && lastScore !== null && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${BAND_COLORS[band.color]}`}>
+                      {lastScore}/{def!.maxScore} — {band.label}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {def ? (
+                <Button
+                  size="sm" variant="outline"
+                  className="text-[10px] h-7 px-2 shrink-0"
+                  onClick={() => setActiveKey(q.key)}
+                >
+                  {lastScore !== null ? "Refaire" : "Remplir"}
+                </Button>
+              ) : (
+                <span className="text-[10px] text-muted-foreground shrink-0">Bientôt</span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
