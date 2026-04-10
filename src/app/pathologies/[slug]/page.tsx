@@ -40,7 +40,8 @@ export async function generateMetadata({
 async function getMarkdownContent(slug: string): Promise<string | null> {
   try {
     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-    const res = await fetch(`${API}/intelligence/pathology-content/${slug}`, {
+    // Charge l'article blog lié à cette pathologie (route publique)
+    const res = await fetch(`${API}/blog/by-pathology/${slug}`, {
       next: { revalidate: 86400 },
     })
     if (res.ok) {
@@ -48,8 +49,6 @@ async function getMarkdownContent(slug: string): Promise<string | null> {
       return data.content ?? null
     }
   } catch { /* fallback below */ }
-
-  // Fallback : contenu statique minimal
   return null
 }
 
