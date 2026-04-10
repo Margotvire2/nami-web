@@ -201,6 +201,14 @@ export const alertsApi = {
   list: (token: string, careCaseId: string) =>
     request<Alert[]>(`/care-cases/${careCaseId}/alerts`, {}, token),
 
+  listAll: (token: string, params?: { status?: string; severity?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set("status", params.status);
+    if (params?.severity) qs.set("severity", params.severity);
+    const q = qs.toString();
+    return request<Alert[]>(`/me/alerts${q ? `?${q}` : ""}`, {}, token);
+  },
+
   update: (token: string, careCaseId: string, alertId: string, data: { status: string }) =>
     request<Alert>(`/care-cases/${careCaseId}/alerts/${alertId}`, {
       method: "PATCH",
@@ -512,12 +520,20 @@ export interface CreateTaskInput {
 
 export interface Alert {
   id: string;
+  careCaseId: string;
   alertType: string;
   severity: "INFO" | "WARNING" | "HIGH" | "CRITICAL";
   title: string;
   description: string | null;
+  triggerSource: string;
   status: "OPEN" | "ACKNOWLEDGED" | "RESOLVED" | "DISMISSED";
   createdAt: string;
+  resolvedAt: string | null;
+  careCase?: {
+    id: string;
+    status: string;
+    patient: { id: string; firstName: string; lastName: string };
+  };
 }
 
 export interface Gap {
@@ -1664,6 +1680,7 @@ export function apiWithToken(token: string) {
     },
     alerts: {
       list: (id: string) => alertsApi.list(token, id),
+      listAll: (params?: { status?: string; severity?: string }) => alertsApi.listAll(token, params),
       update: (id: string, alertId: string, data: { status: string }) => alertsApi.update(token, id, alertId, data),
     },
     messages: {
