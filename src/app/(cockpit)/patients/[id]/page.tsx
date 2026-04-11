@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric, type DeltaObservation, type LatestObservation } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric, type DeltaObservation, type LatestObservation, type NoteAnalysis } from "@/lib/api";
 import { KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog";
 import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clinical-lifeline";
@@ -28,8 +28,9 @@ import {
   ChevronLeft, Clock, Activity as ActivityIcon, FileText, Users, CheckSquare,
   CalendarDays, MessageSquare, BookOpen, Bell, Sparkles,
   ArrowLeftRight, CalendarPlus, CheckCircle2, AlertTriangle,
-  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2, Trash2,
+  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2, Trash2, X, Zap,
 } from "lucide-react";
+import { type PathwaySuggestion } from "@/lib/api";
 
 import { useTimeline } from "@/hooks/useTimeline";
 import { track } from "@/lib/track";
@@ -153,6 +154,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const api = apiWithToken(accessToken!);
   const [section, setSection] = useState<Section>("overview");
   const [noteOpen, setNoteOpen] = useState(false);
+  const [analysisNote, setAnalysisNote] = useState<{ noteId: string; careCaseId: string } | null>(null);
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
@@ -174,7 +176,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
     <div className="h-full flex flex-col overflow-hidden">
       <PatientHeader careCase={careCase} onAddNote={() => setNoteOpen(true)} onReferral={() => setReferralOpen(true)} onTask={() => setTaskModalOpen(true)} onMessage={() => setSection("messages")} onRecord={() => startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)} careCaseId={id} api={api} />
       <DeltaBanner careCaseId={id} />
-      {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} />}
+      {noteOpen && <NoteInline careCaseId={id} api={api} onClose={() => setNoteOpen(false)} onCreated={(noteId) => setAnalysisNote({ noteId, careCaseId: id })} />}
+      {analysisNote && <NoteAnalysisBanner careCaseId={analysisNote.careCaseId} noteId={analysisNote.noteId} api={api} onDismiss={() => setAnalysisNote(null)} />}
       <ReferralModal
         open={referralOpen}
         onClose={() => setReferralOpen(false)}
@@ -695,17 +698,20 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, 
 
 // ─── Note inline ──────────────────────────────────────────────────────────────
 
-function NoteInline({ careCaseId, api, onClose }: {
+function NoteInline({ careCaseId, api, onClose, onCreated }: {
   careCaseId: string; api: ReturnType<typeof apiWithToken>; onClose: () => void;
+  onCreated?: (noteId: string) => void;
 }) {
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const create = useMutation({
     mutationFn: () => api.notes.create(careCaseId, { noteType: "EVOLUTION", body }),
-    onSuccess: () => {
+    onSuccess: (note) => {
       ["timeline", "notes", "care-case"].forEach((k) => qc.invalidateQueries({ queryKey: [k, careCaseId] }));
       track.noteCreated({ patientId: careCaseId, noteType: "EVOLUTION" });
-      toast.success("Note ajoutée"); onClose();
+      toast.success("Note ajoutée");
+      onClose();
+      onCreated?.(note.id);
     },
     onError: () => toast.error("Erreur"),
   });
@@ -720,6 +726,185 @@ function NoteInline({ careCaseId, api, onClose }: {
             {create.isPending ? "Enregistrement…" : "Enregistrer"}
           </Button>
           <Button size="sm" variant="ghost" className="text-xs h-7" onClick={onClose}>Annuler</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Note Analysis Banner — bannière de suggestion IA post-note ──────────────
+
+const PRIORITY_BADGE: Record<string, string> = {
+  HIGH: "bg-red-50 text-red-700 border-red-200",
+  MEDIUM: "bg-amber-50 text-amber-700 border-amber-200",
+  LOW: "bg-slate-50 text-slate-600 border-slate-200",
+};
+
+const FLAGGED_BADGE: Record<string, string> = {
+  MEDICATION: "bg-violet-50 text-violet-700 border-violet-200",
+  DATE: "bg-blue-50 text-blue-700 border-blue-200",
+  CONCERN: "bg-red-50 text-red-700 border-red-200",
+  INSTRUCTION: "bg-emerald-50 text-emerald-700 border-emerald-200",
+};
+
+const FLAGGED_LABEL: Record<string, string> = {
+  MEDICATION: "Médicament",
+  DATE: "Date",
+  CONCERN: "Préoccupation",
+  INSTRUCTION: "Instruction",
+};
+
+function NoteAnalysisBanner({ careCaseId, noteId, api, onDismiss }: {
+  careCaseId: string; noteId: string; api: ReturnType<typeof apiWithToken>; onDismiss: () => void;
+}) {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const { data } = useQuery<NoteAnalysis>({
+    queryKey: ["note-analysis", noteId],
+    queryFn: () => api.notes.analysis(careCaseId, noteId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (status === "DONE" || status === "ERROR") return false;
+      return 2000;
+    },
+  });
+
+  if (!data || data.status === "NONE") return null;
+
+  const totalItems = (data.suggestedTasks?.length ?? 0) + (data.flaggedItems?.length ?? 0);
+
+  if (data.status === "PENDING") {
+    return (
+      <div className="border-b bg-indigo-50/60 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-indigo-700">
+        <Loader2 size={12} className="animate-spin shrink-0" />
+        <span>Analyse IA de la note en cours…</span>
+        <button onClick={onDismiss} className="ml-auto text-indigo-400 hover:text-indigo-700"><X size={13} /></button>
+      </div>
+    );
+  }
+
+  if (data.status === "ERROR") {
+    return (
+      <div className="border-b bg-slate-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-slate-500">
+        <AlertTriangle size={12} className="shrink-0" />
+        <span>L'analyse IA n'a pas pu aboutir.</span>
+        <button onClick={onDismiss} className="ml-auto text-slate-400 hover:text-slate-600"><X size={13} /></button>
+      </div>
+    );
+  }
+
+  if (data.status === "DONE" && totalItems === 0) {
+    return (
+      <div className="border-b bg-slate-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-slate-500">
+        <CheckCircle2 size={12} className="shrink-0" />
+        <span>Analyse IA terminée — aucun élément à valider.</span>
+        <button onClick={onDismiss} className="ml-auto text-slate-400 hover:text-slate-600"><X size={13} /></button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="border-b bg-indigo-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs">
+        <Sparkles size={12} className="shrink-0 text-indigo-600" />
+        <span className="text-indigo-800 font-medium">
+          L'IA a détecté <strong>{totalItems}</strong> élément{totalItems > 1 ? "s" : ""} à valider
+        </span>
+        <span className="text-indigo-400 mx-1">—</span>
+        <span className="text-indigo-500">brouillon, validation humaine requise</span>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="ml-auto text-xs font-medium text-indigo-600 hover:underline"
+        >
+          Voir le détail →
+        </button>
+        <button onClick={onDismiss} className="text-indigo-400 hover:text-indigo-700 ml-1"><X size={13} /></button>
+      </div>
+      {modalOpen && (
+        <NoteAnalysisModal analysis={data} onClose={() => { setModalOpen(false); onDismiss(); }} />
+      )}
+    </>
+  );
+}
+
+function NoteAnalysisModal({ analysis, onClose }: { analysis: NoteAnalysis; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b flex items-center gap-2">
+          <Sparkles size={16} className="text-indigo-600" />
+          <h2 className="font-semibold text-sm text-foreground">Suggestions IA — à valider avant intégration</h2>
+          <button onClick={onClose} className="ml-auto text-muted-foreground hover:text-foreground"><X size={16} /></button>
+        </div>
+
+        <div className="px-6 py-4 space-y-5">
+          {/* Tâches suggérées */}
+          {analysis.suggestedTasks?.length > 0 && (
+            <section>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tâches à planifier</p>
+              <div className="space-y-2">
+                {analysis.suggestedTasks.map((t, i) => (
+                  <div key={i} className="border rounded-lg px-3 py-2.5 bg-white flex items-start gap-2">
+                    <span className={`text-[10px] font-semibold border rounded px-1.5 py-0.5 shrink-0 mt-0.5 ${PRIORITY_BADGE[t.priority] ?? PRIORITY_BADGE.LOW}`}>
+                      {t.priority}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">{t.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t.reason}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Métriques extraites */}
+          {analysis.extractedMetrics?.length > 0 && (
+            <section>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Métriques extraites</p>
+              <div className="grid grid-cols-2 gap-2">
+                {analysis.extractedMetrics.map((m, i) => (
+                  <div key={i} className="border rounded-lg px-3 py-2 bg-slate-50">
+                    <p className="text-[10px] text-muted-foreground uppercase">{m.key}</p>
+                    <p className="text-sm font-semibold">{m.value}{m.unit ? <span className="text-xs font-normal text-muted-foreground ml-1">{m.unit}</span> : null}</p>
+                    {m.date && <p className="text-[10px] text-muted-foreground">{m.date}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Items flaggés */}
+          {analysis.flaggedItems?.length > 0 && (
+            <section>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Éléments signalés</p>
+              <div className="space-y-1.5">
+                {analysis.flaggedItems.map((f, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className={`text-[10px] font-semibold border rounded px-1.5 py-0.5 shrink-0 mt-0.5 ${FLAGGED_BADGE[f.type] ?? ""}`}>
+                      {FLAGGED_LABEL[f.type] ?? f.type}
+                    </span>
+                    <div>
+                      <p className="text-xs font-medium">{f.label}</p>
+                      <p className="text-xs text-muted-foreground">{f.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t bg-amber-50/50 flex items-start gap-2">
+          <AlertTriangle size={13} className="text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-700">Ces éléments sont des suggestions IA non validées. Toute intégration dans le dossier requiert une validation par le soignant.</p>
+        </div>
+
+        <div className="px-6 py-3 flex justify-end">
+          <Button size="sm" onClick={onClose} className="text-xs">Fermer</Button>
         </div>
       </div>
     </div>
@@ -2028,8 +2213,19 @@ function PilotageIASection({ careCaseId, careCase, api }: {
 
 // ─── Suggestions d'adressage basées sur comorbidités ────────────────────────
 
+const LINK_TYPE_LABEL: Record<string, string> = {
+  TRIGGERS_SPECIALTY:   "Spécialité requise",
+  REQUIRES_COORDINATION:"Coordination nécessaire",
+  REQUIRES_SCREENING:   "Dépistage recommandé",
+  COMORBID_WITH:        "Comorbidité fréquente",
+  CAUSED_BY:            "Complication fréquente",
+};
+
 function ReferralSuggestionsCard({ careCaseId }: { careCaseId: string }) {
   const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const queryClient = useQueryClient()
+
   const { data } = useQuery({
     queryKey: ["referral-suggestions", careCaseId],
     queryFn: async () => {
@@ -2042,6 +2238,25 @@ function ReferralSuggestionsCard({ careCaseId }: { careCaseId: string }) {
     },
     enabled: !!accessToken,
   })
+
+  const createReferral = useMutation({
+    mutationFn: (s: any) =>
+      api.referrals.create({
+        careCaseId,
+        preferredSpecialty: s.suggestedSpecialty,
+        clinicalReason: s.evidence ?? `${s.comorbidity} — coordination recommandée`,
+        referralType: s.referralType ?? "REFERRAL",
+        priority: s.suggestedPriority ?? "ROUTINE",
+        patientConsent: true,
+      }),
+    onSuccess: () => {
+      toast.success("Adressage créé")
+      queryClient.invalidateQueries({ queryKey: ["referral-suggestions", careCaseId] })
+      queryClient.invalidateQueries({ queryKey: ["referrals", "outgoing", careCaseId] })
+    },
+    onError: () => toast.error("Erreur lors de la création"),
+  })
+
   const suggestions = data?.suggestions ?? []
   if (suggestions.length === 0) return null
 
@@ -2049,21 +2264,40 @@ function ReferralSuggestionsCard({ careCaseId }: { careCaseId: string }) {
     <div className="rounded-lg border bg-card overflow-hidden">
       <div className="px-4 py-3 border-b bg-amber-50/50">
         <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 flex items-center gap-1.5">
-          <ArrowLeftRight size={12} /> Adressages suggérés ({suggestions.length})
+          <ArrowLeftRight size={12} /> Coordinations suggérées ({suggestions.length})
         </p>
       </div>
       <div className="divide-y">
         {suggestions.map((s: any, i: number) => (
           <div key={i} className="px-4 py-3 flex items-start gap-3">
-            <div className="size-2 rounded-full bg-amber-400 shrink-0 mt-1.5" />
+            <div className="size-2 rounded-full bg-amber-400 shrink-0 mt-2" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{s.suggestedSpecialty}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Comorbidité : {s.comorbidity}</p>
-              {s.evidence && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{s.evidence}</p>}
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-semibold">{s.suggestedSpecialty}</p>
+                <span className="text-[10px] px-1.5 py-0 rounded border bg-muted text-muted-foreground">
+                  {LINK_TYPE_LABEL[s.linkType] ?? s.linkType}
+                </span>
+                {s.needsScreening && (
+                  <span className="text-[10px] px-1.5 py-0 rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-semibold">
+                    Dépistage
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">→ {s.comorbidity}</p>
+              {s.evidence && (
+                <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed line-clamp-2">{s.evidence}</p>
+              )}
             </div>
-            {s.needsScreening && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold shrink-0">Dépistage</span>
-            )}
+            <Button
+              size="sm"
+              variant="outline"
+              className="shrink-0 text-[11px] h-7 px-2.5 gap-1 hover:border-primary/40 hover:bg-primary/5"
+              onClick={() => createReferral.mutate(s)}
+              disabled={createReferral.isPending}
+            >
+              {createReferral.isPending ? <Loader2 size={10} className="animate-spin" /> : <ArrowLeftRight size={10} />}
+              Adresser
+            </Button>
           </div>
         ))}
       </div>
@@ -2322,18 +2556,26 @@ function TrajectoireSection({ careCaseId }: { careCaseId: string }) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// PATHWAY SELECTOR — Assigner un parcours au dossier
+// PATHWAY SELECTOR — Suggestion intelligente + liste complète
 // ═════════════════════════════════════════════════════════════════════════════
 
 function PathwaySelector({ careCaseId, onAssigned }: { careCaseId: string; onAssigned: () => void }) {
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
-  const [open, setOpen] = useState(false)
+  const [showAll, setShowAll] = useState(false)
 
+  // Suggestions scorées par le backend (famille + âge + conditionKeys)
+  const { data: suggestionsData, isLoading: loadingSuggestions } = useQuery({
+    queryKey: ["pathway-suggestions", careCaseId],
+    queryFn: () => api.pathway.suggestions(careCaseId),
+    enabled: !!accessToken,
+  })
+
+  // Liste complète (uniquement si l'utilisateur clique "Voir tous")
   const { data: allPathways = [] } = useQuery({
     queryKey: ["all-pathways"],
     queryFn: () => api.intelligence.pathways(),
-    enabled: !!accessToken && open,
+    enabled: !!accessToken && showAll,
   })
 
   const assignMut = useMutation({
@@ -2341,68 +2583,134 @@ function PathwaySelector({ careCaseId, onAssigned }: { careCaseId: string; onAss
       api.careCases.update(careCaseId, { pathwayTemplateId } as any),
     onSuccess: () => {
       onAssigned()
-      setOpen(false)
-      toast.success("Parcours assigné")
+      toast.success("Parcours activé")
     },
     onError: () => toast.error("Erreur lors de l'assignation"),
   })
 
-  const grouped = (allPathways as any[]).reduce((acc: Record<string, any[]>, p: any) => {
-    const f = p.family ?? "other"
-    if (!acc[f]) acc[f] = []
-    acc[f].push(p)
-    return acc
-  }, {} as Record<string, any[]>)
+  const suggestions = suggestionsData?.suggestions ?? []
+  const bestMatch = suggestions[0]
 
-  const FAMILY_LABELS: Record<string, string> = {
-    tca: "Troubles du Comportement Alimentaire",
-    obesity: "Obésité",
-    metabolic: "Métabolique",
-  }
-
-  if (!open) {
+  // ── Chargement
+  if (loadingSuggestions) {
     return (
-      <div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center">
-        <Crosshair size={20} className="text-muted-foreground/30 mx-auto mb-2" />
-        <p className="text-sm font-medium text-muted-foreground">Aucun parcours de soins assigné</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">Assignez un parcours pour activer le suivi structuré (métriques, questionnaires, alertes).</p>
-        <Button size="sm" className="mt-3 text-xs gap-1.5" onClick={() => setOpen(true)}>
-          <Crosshair size={11} /> Choisir un parcours
-        </Button>
+      <div className="rounded-xl border bg-muted/10 p-5 space-y-3">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-20 rounded-lg" />
+        <Skeleton className="h-16 rounded-lg" />
       </div>
     )
   }
 
-  return (
-    <div className="rounded-xl border bg-card p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold flex items-center gap-2">
-          <Crosshair size={14} className="text-primary" /> Choisir un parcours de soins
-        </h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">Annuler</button>
+  // ── Aucune suggestion pour cette famille
+  if (suggestions.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center">
+        <Crosshair size={20} className="text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-sm font-medium text-muted-foreground">Aucun parcours disponible</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">Aucun parcours actif ne correspond à ce type de dossier.</p>
       </div>
-      {Object.entries(grouped).map(([family, pathways]) => (
-        <div key={family}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{FAMILY_LABELS[family] ?? family}</p>
-          <div className="space-y-1.5">
-            {(pathways as any[]).map((p: any) => {
-              const bp = p.baselinePlan as any
-              return (
-                <button key={p.id} onClick={() => assignMut.mutate(p.id)} disabled={assignMut.isPending}
-                  className="w-full text-left rounded-lg border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all">
-                  <p className="text-sm font-medium">{p.label}</p>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                    {bp?.duration && <span>{bp.duration}</span>}
-                    {bp?.phases && <span>· {bp.phases.length} phases</span>}
-                    {p.questionnaires?.length > 0 && <span>· {p.questionnaires.length} questionnaires</span>}
-                    {p.metrics?.length > 0 && <span>· {p.metrics.length} métriques</span>}
-                  </div>
-                </button>
-              )
-            })}
+    )
+  }
+
+  // ── Suggestions scorées
+  return (
+    <div className="space-y-3">
+      {/* Meilleure correspondance */}
+      <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+            <Zap size={12} className="fill-primary" />
+            Correspondance recommandée
+          </div>
+          <div className="ml-auto text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+            Score {bestMatch.score}
           </div>
         </div>
-      ))}
+
+        <div>
+          <p className="text-sm font-semibold">{bestMatch.label}</p>
+          <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{bestMatch.key}</p>
+        </div>
+
+        {/* Raisons du match */}
+        <div className="flex flex-wrap gap-1.5">
+          {bestMatch.matchReasons.map((r, i) => (
+            <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+              r.startsWith("⚠️")
+                ? "bg-amber-50 text-amber-700 border-amber-200"
+                : "bg-primary/5 text-primary border-primary/15"
+            }`}>
+              {r}
+            </span>
+          ))}
+        </div>
+
+        {/* Stats du pathway */}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {bestMatch.phasesCount > 0 && <span>{bestMatch.phasesCount} phases</span>}
+          {bestMatch.metricsCount > 0 && <span>· {bestMatch.metricsCount} métriques</span>}
+          {bestMatch.questionnairesCount > 0 && <span>· {bestMatch.questionnairesCount} questionnaires</span>}
+          {bestMatch.rulesCount > 0 && <span>· {bestMatch.rulesCount} règles actives</span>}
+        </div>
+
+        <Button
+          size="sm"
+          className="w-full gap-1.5 text-xs"
+          onClick={() => assignMut.mutate(bestMatch.id)}
+          disabled={assignMut.isPending}
+        >
+          {assignMut.isPending ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
+          Activer ce parcours
+        </Button>
+      </div>
+
+      {/* Autres suggestions (si >1) */}
+      {suggestions.length > 1 && (
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">Autres correspondances</p>
+          {suggestions.slice(1).map((s: PathwaySuggestion) => (
+            <button
+              key={s.id}
+              onClick={() => assignMut.mutate(s.id)}
+              disabled={assignMut.isPending}
+              className="w-full text-left rounded-lg border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium">{s.label}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {s.matchReasons.map((r, i) => (
+                      <span key={i} className={`text-[10px] px-1.5 py-0 rounded border ${
+                        r.startsWith("⚠️") ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-muted text-muted-foreground border-border"
+                      }`}>{r}</span>
+                    ))}
+                  </div>
+                </div>
+                <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5">Score {s.score}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Voir tous les parcours */}
+      {!showAll ? (
+        <button onClick={() => setShowAll(true)} className="text-[11px] text-muted-foreground hover:text-foreground w-full text-center py-1">
+          Voir tous les parcours disponibles →
+        </button>
+      ) : (
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">Tous les parcours</p>
+          {(allPathways as any[]).map((p: any) => (
+            <button key={p.id} onClick={() => assignMut.mutate(p.id)} disabled={assignMut.isPending}
+              className="w-full text-left rounded-lg border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all">
+              <p className="text-sm font-medium">{p.label}</p>
+              <p className="text-[11px] text-muted-foreground font-mono">{p.key}</p>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

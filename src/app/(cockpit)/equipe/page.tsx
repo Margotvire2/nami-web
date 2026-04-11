@@ -5,10 +5,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import {
   apiWithToken,
+  annuaireApi,
   Colleague,
   ProviderStructure,
   Invitation,
   CreateInvitationInput,
+  type DirectoryEntry,
 } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -40,7 +42,6 @@ import {
   Link2,
   ExternalLink,
   Loader2,
-  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/track";
@@ -384,97 +385,25 @@ function StructuresTab({
 // TAB 3 — RECHERCHE RPPS
 // ═════════════════════════════════════════════════════════════════════════════
 
-interface RPPSResult {
-  id: string;
-  fullName: string;
-  firstName: string;
-  lastName: string;
-  rppsNumber: string;
-  specialty: string;
-  address: string;
-}
-
 function RPPSTab() {
+  const { accessToken } = useAuthStore();
   const [query, setQuery] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [results, setResults] = useState<RPPSResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
 
-  async function handleSearch() {
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["rpps-search", query, searchTrigger],
+    queryFn: () => annuaireApi.search(accessToken!, { q: query, limit: 20 }),
+    enabled: !!accessToken && searchTrigger > 0 && !!query.trim(),
+    staleTime: 60_000,
+  });
+
+  function handleSearch() {
     if (!query.trim()) return;
-    setLoading(true);
-    setError("");
-    setSearched(true);
-
-    try {
-      const params = new URLSearchParams({ _count: "15" });
-
-      // Split query into potential first/last name
-      const parts = query.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        params.set("family", parts.slice(-1)[0]);
-        params.set("given", parts.slice(0, -1).join(" "));
-      } else {
-        params.set("name", parts[0]);
-      }
-
-      const url = `https://gateway.api.esante.gouv.fr/fhir/v1/Practitioner?${params}`;
-      const resp = await fetch(url, {
-        headers: { Accept: "application/fhir+json" },
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-
-      const entries = data.entry ?? [];
-      const parsed: RPPSResult[] = entries.map((e: any) => {
-        const r = e.resource;
-        const nameObj = r.name?.[0] ?? {};
-        const firstName = nameObj.given?.join(" ") ?? "";
-        const lastName = nameObj.family ?? "";
-        const id = r.id ?? "";
-
-        // Extract RPPS from identifiers
-        const rpps = r.identifier?.find(
-          (i: any) => i.system === "urn:oid:1.2.250.1.71.4.2.1"
-        );
-        const rppsNumber = rpps?.value ?? "";
-
-        // Extract qualification
-        const qual = r.qualification?.[0]?.code?.coding?.[0]?.display ?? "";
-
-        // Extract address from extension or telecom
-        const addr = r.address?.[0];
-        const addressStr = addr
-          ? [addr.line?.join(" "), addr.postalCode, addr.city].filter(Boolean).join(", ")
-          : "";
-
-        return {
-          id,
-          fullName: `${firstName} ${lastName}`.trim(),
-          firstName,
-          lastName,
-          rppsNumber,
-          specialty: qual,
-          address: addressStr,
-        };
-      });
-
-      setResults(parsed);
-    } catch (err: any) {
-      if (err.name === "TimeoutError" || err.name === "AbortError") {
-        setError("Recherche indisponible momentanément. Réessayez dans quelques instants.");
-      } else {
-        setError("Erreur lors de la recherche. Vérifiez votre connexion.");
-      }
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    setSearchTrigger((s) => s + 1);
   }
+
+  const results: DirectoryEntry[] = data?.results ?? [];
+  const loading = isLoading || isFetching;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-4">
@@ -483,7 +412,7 @@ function RPPSTab() {
         <div className="relative flex-1">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Nom, prénom du professionnel…"
+            placeholder="Nom, prénom, spécialité, ville…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -497,16 +426,8 @@ function RPPSTab() {
       </div>
 
       <p className="text-[10px] text-muted-foreground mb-4">
-        Recherche dans l&apos;annuaire national des professionnels de santé (RPPS) — 900 000+ professionnels.
+        564 000+ professionnels de santé en France — Source Ameli (data.gouv.fr)
       </p>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 mb-4 flex items-start gap-3">
-          <AlertTriangle size={16} className="text-destructive shrink-0 mt-0.5" />
-          <p className="text-xs text-destructive">{error}</p>
-        </div>
-      )}
 
       {/* Results */}
       {loading ? (
@@ -518,27 +439,35 @@ function RPPSTab() {
           {results.map((r) => (
             <div key={r.id} className="rounded-xl border bg-card p-4 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted/40 flex items-center justify-center text-[11px] font-bold text-muted-foreground shrink-0">
-                  {initials(r.firstName || "?", r.lastName || "?")}
+                <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
+                  {r.type === "CDS" ? <Building2 size={14} /> : initials(r.firstName ?? "?", r.lastName ?? "?")}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{r.fullName || "Nom inconnu"}</p>
+                  <p className="text-sm font-medium truncate">{r.name}</p>
                   {r.specialty && (
                     <p className="text-[11px] text-muted-foreground">{r.specialty}</p>
                   )}
                   <div className="flex items-center gap-2 mt-0.5">
-                    {r.rppsNumber && (
-                      <span className="text-[10px] text-muted-foreground">RPPS {r.rppsNumber}</span>
+                    {r.city && (
+                      <span className="text-[10px] text-muted-foreground">{r.city}{r.postalCode ? ` (${r.postalCode.slice(0, 2)})` : ""}</span>
                     )}
-                    {r.address && (
-                      <span className="text-[10px] text-muted-foreground truncate">· {r.address}</span>
+                    {r.convention && (
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                        r.conventionCode === "1" ? "bg-emerald-50 text-emerald-700"
+                          : r.conventionCode === "2" ? "bg-amber-50 text-amber-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}>{r.convention}</span>
+                    )}
+                    {r.phone && (
+                      <span className="text-[10px] text-muted-foreground">· {r.phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5")}</span>
                     )}
                   </div>
                 </div>
                 <Button
                   size="sm"
-                  className="text-xs h-7 gap-1"
-                  disabled title="Invitation via RPPS — prochainement"
+                  variant="outline"
+                  className="text-xs h-7 gap-1 shrink-0"
+                  disabled title="Invitation — bientôt disponible"
                 >
                   <UserPlus size={11} /> Inviter
                 </Button>
@@ -546,26 +475,23 @@ function RPPSTab() {
             </div>
           ))}
         </div>
-      ) : searched && !error ? (
+      ) : searchTrigger > 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Search size={24} className="text-muted-foreground/25 mb-3" />
           <p className="text-sm text-muted-foreground font-medium">Aucun résultat</p>
           <p className="text-xs text-muted-foreground/60 mt-1">Essayez avec un nom différent.</p>
         </div>
-      ) : !searched ? (
+      ) : (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-4">
             <Globe size={24} className="text-primary/40" />
           </div>
-          <p className="text-sm font-semibold text-foreground">
-            Annuaire national RPPS
-          </p>
+          <p className="text-sm font-semibold text-foreground">Annuaire national des professionnels de santé</p>
           <p className="text-xs text-muted-foreground mt-1.5 max-w-sm leading-relaxed">
-            Recherchez n&apos;importe quel professionnel de santé français par nom
-            pour l&apos;inviter sur Nami.
+            Recherchez n&apos;importe quel professionnel de santé français par nom, spécialité ou ville.
           </p>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

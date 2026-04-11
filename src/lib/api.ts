@@ -165,6 +165,16 @@ export const teamApi = {
 
 // ─── Notes ────────────────────────────────────────────────────────────────────
 
+export interface NoteAnalysis {
+  id: string;
+  noteId: string;
+  status: "PENDING" | "DONE" | "ERROR" | "NONE";
+  suggestedTasks: { title: string; priority: "HIGH" | "MEDIUM" | "LOW"; reason: string }[];
+  extractedMetrics: { key: string; value: string; unit?: string; date?: string }[];
+  flaggedItems: { label: string; type: "DATE" | "MEDICATION" | "CONCERN" | "INSTRUCTION"; detail: string }[];
+  errorMessage?: string;
+}
+
 export const notesApi = {
   list: (token: string, careCaseId: string) =>
     request<ClinicalNote[]>(`/care-cases/${careCaseId}/notes`, {}, token),
@@ -174,6 +184,9 @@ export const notesApi = {
       method: "POST",
       body: JSON.stringify(data),
     }, token),
+
+  analysis: (token: string, careCaseId: string, noteId: string) =>
+    request<NoteAnalysis>(`/care-cases/${careCaseId}/notes/${noteId}/analysis`, {}, token),
 };
 
 // ─── Tasks ────────────────────────────────────────────────────────────────────
@@ -414,7 +427,22 @@ export const intelligenceApi = {
 
   publishSource: (token: string, id: string) =>
     request<KnowledgeSource>(`/knowledge/knowledge-sources/${id}/publish`, { method: "POST" }, token),
+
+  semanticSearch: (token: string, q: string, limit = 5) =>
+    request<{ query: string; results: SemanticSearchResult[] }>(
+      `/knowledge/semantic-search?q=${encodeURIComponent(q)}&limit=${limit}`,
+      {},
+      token
+    ),
 };
+
+export interface SemanticSearchResult {
+  id: string;
+  slug: string;
+  sectionTitle: string;
+  content: string;
+  score: number;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1171,6 +1199,50 @@ export interface PublicProvider {
   structures: { name: string; city: string; address: string }[];
 }
 
+export interface MatchedProvider {
+  id: string;
+  person: { id: string; firstName: string; lastName: string; photoUrl: string | null };
+  specialties: string[];
+  subSpecialties: string[];
+  publicSpecialties: string[];
+  publicBio: string | null;
+  languages: string[];
+  geographicZones: string[];
+  consultationCity: string | null;
+  consultationPostalCode: string | null;
+  consultationModes: string[];
+  acceptsNewPatients: boolean;
+  acceptsALD: boolean;
+  acceptsCMU: boolean;
+  acceptedPatientTypes: string[];
+  averageDelay: string | null;
+  teleconsultAvailable: boolean;
+  onlineBookingUrl: string | null;
+  qualificationLevel: string;
+  structures: { name: string; city: string; address: string }[];
+  consultationTypes: { name: string; durationMinutes: number; price: number | null; consultationMode: string }[];
+  criteriaMatch: number; // 0–100 — pertinence selon critères soignant
+}
+
+export interface ProviderMatchParams {
+  specialties?: string[];
+  pathologyKeywords?: string[];
+  zones?: string[];
+  languages?: string[];
+  consultationModes?: string[];
+  acceptsNewPatients?: boolean;
+  acceptsALD?: boolean;
+  acceptsCMU?: boolean;
+  patientTypes?: string[];
+  limit?: number;
+}
+
+export interface ProviderMatchResult {
+  total: number;
+  criteria: Pick<ProviderMatchParams, "specialties" | "pathologyKeywords" | "zones" | "languages" | "consultationModes">;
+  results: MatchedProvider[];
+}
+
 export const providerDirectoryApi = {
   search: (params?: { specialty?: string; accepting?: string }) => {
     const qs = new URLSearchParams();
@@ -1556,6 +1628,19 @@ export interface PathwayRule {
   lastTriggered: string | null;
 }
 
+export interface PathwaySuggestion {
+  id: string;
+  key: string;
+  label: string;
+  score: number;
+  matchReasons: string[];
+  metricsCount: number;
+  questionnairesCount: number;
+  rulesCount: number;
+  phasesCount: number;
+  baselinePlan: Record<string, unknown> | null;
+}
+
 export interface PathwayData {
   pathway: {
     id: string;
@@ -1636,10 +1721,13 @@ export interface RecordingUploadResult {
 
 export interface RecordingAnalysisResult {
   noteId: string;
-  taskIds: string[];
   summary: string;
+  motif: string;
+  examenClinique: string;
+  planDeSoins: string;
+  ordonnances: string[];
   decisions: string[];
-  tasks: { title: string; priority: string; dueInDays: number }[];
+  suggestedTasks: { title: string; priority: string; dueInDays: number }[];
   keyPoints: string[];
   followUpDate: string | null;
 }
@@ -1682,6 +1770,7 @@ export function apiWithToken(token: string) {
     notes: {
       list: (id: string) => notesApi.list(token, id),
       create: (id: string, data: CreateNoteInput) => notesApi.create(token, id, data),
+      analysis: (careCaseId: string, noteId: string) => notesApi.analysis(token, careCaseId, noteId),
     },
     tasks: {
       list: (id: string) => tasksApi.list(token, id),
@@ -1739,6 +1828,10 @@ export function apiWithToken(token: string) {
     },
     pathway: {
       get: (careCaseId: string) => pathwayApi.get(token, careCaseId),
+      suggestions: (careCaseId: string) =>
+        request<{ suggestions: PathwaySuggestion[]; alreadyAssigned: boolean; patientAgeYears: number | null }>(
+          `/care-cases/${careCaseId}/pathway-suggestions`, {}, token
+        ),
     },
     trajectory: {
       get: (careCaseId: string, metrics?: string[], period?: string) =>
@@ -1768,6 +1861,7 @@ export function apiWithToken(token: string) {
       reviewSource: (id: string) => intelligenceApi.reviewSource(token, id),
       validateSource: (id: string) => intelligenceApi.validateSource(token, id),
       publishSource: (id: string) => intelligenceApi.publishSource(token, id),
+      semanticSearch: (q: string, limit?: number) => intelligenceApi.semanticSearch(token, q, limit),
     },
     onboarding: {
       me: () => onboardingApi.me(token),
@@ -1781,6 +1875,10 @@ export function apiWithToken(token: string) {
     },
     colleagues: {
       list: () => colleaguesApi.list(token),
+    },
+    providers: {
+      match: (params: ProviderMatchParams) =>
+        request<ProviderMatchResult>("/providers/match", { method: "POST", body: JSON.stringify(params) }, token),
     },
     annuaire: {
       search: (params: Parameters<typeof annuaireApi.search>[1]) => annuaireApi.search(token, params),

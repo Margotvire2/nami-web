@@ -7,7 +7,7 @@ import { apiWithToken, type RecordingAnalysisResult } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  Mic, MicOff, Square, Pause, Play, Loader2, CheckCircle2,
+  Mic, Square, Pause, Play, Loader2, CheckCircle2,
   FileText, CheckSquare, X, Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,8 +34,9 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
   const [state, setState] = useState<RecorderState>("consent");
   const [consent, setConsent] = useState(false);
   const [seconds, setSeconds] = useState(0);
-  const [transcription, setTranscription] = useState("");
   const [result, setResult] = useState<RecordingAnalysisResult | null>(null);
+  const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
+  const [tasksCreated, setTasksCreated] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -124,6 +125,31 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
     });
   }, [stopTimer]);
 
+  // ── Création des tâches sélectionnées ──
+
+  const createTasksMutation = useMutation({
+    mutationFn: async () => {
+      if (!result) return;
+      const toCreate = result.suggestedTasks.filter((_, i) => selectedTasks.has(i));
+      for (const t of toCreate) {
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + (t.dueInDays || 7));
+        await api.tasks.create(careCaseId, {
+          taskType: "FOLLOW_UP",
+          title: t.title,
+          priority: (["LOW", "MEDIUM", "HIGH", "URGENT"].includes(t.priority) ? t.priority : "MEDIUM") as "LOW" | "MEDIUM" | "HIGH" | "URGENT",
+          dueDate: dueDate.toISOString(),
+        });
+      }
+    },
+    onSuccess: () => {
+      setTasksCreated(true);
+      qc.invalidateQueries({ queryKey: ["tasks", careCaseId] });
+      toast.success("Tâches créées");
+    },
+    onError: () => toast.error("Erreur lors de la création des tâches"),
+  });
+
   // ── Upload + Analyze pipeline ──
 
   const processMutation = useMutation({
@@ -135,7 +161,6 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
       // 2. Upload + transcribe
       setState("transcribing");
       const uploadResult = await api.recordings.upload(blob, seconds);
-      setTranscription(uploadResult.transcription);
 
       // 3. Analyze
       setState("analyzing");
@@ -150,11 +175,12 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
     onSuccess: (data) => {
       setResult(data);
       setState("done");
+      // Pré-sélectionner toutes les tâches proposées
+      setSelectedTasks(new Set(data.suggestedTasks.map((_, i) => i)));
       qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
       qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
-      qc.invalidateQueries({ queryKey: ["tasks", careCaseId] });
       qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
-      toast.success("Consultation analysée — note et tâches créées");
+      toast.success("Consultation analysée — note créée");
     },
     onError: (err: Error) => {
       toast.error(err.message || "Erreur lors du traitement");
@@ -320,70 +346,132 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
 
           {/* DONE */}
           {state === "done" && result && (
-            <div className="space-y-5">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
               <div className="flex items-center gap-2 text-green-600">
-                <CheckCircle2 size={20} />
-                <p className="text-sm font-semibold">Consultation analysée avec succès</p>
+                <CheckCircle2 size={18} />
+                <p className="text-sm font-semibold">Consultation analysée — note créée</p>
               </div>
 
-              {/* Summary */}
-              <div className="rounded-xl border bg-gray-50 p-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">Résumé IA</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{result.summary}</p>
-              </div>
-
-              {/* Key points */}
-              {result.keyPoints.length > 0 && (
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1.5">Points clés</p>
-                  <ul className="space-y-1">
-                    {result.keyPoints.map((p, i) => (
-                      <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                        <span className="text-indigo-500 mt-0.5">•</span> {p}
+              {/* Sections structurées */}
+              {result.motif && (
+                <Section label="Motif">{result.motif}</Section>
+              )}
+              {result.examenClinique && (
+                <Section label="Examen clinique">{result.examenClinique}</Section>
+              )}
+              {result.planDeSoins && (
+                <Section label="Plan de soins">{result.planDeSoins}</Section>
+              )}
+              {result.ordonnances?.length > 0 && (
+                <Section label="Ordonnances">
+                  <ul className="space-y-0.5">
+                    {result.ordonnances.map((o, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-gray-700">
+                        <span className="text-violet-500 mt-0.5">•</span>{o}
                       </li>
                     ))}
                   </ul>
+                </Section>
+              )}
+              {result.decisions?.length > 0 && (
+                <Section label="Décisions">
+                  <ul className="space-y-0.5">
+                    {result.decisions.map((d, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-gray-700">
+                        <span className="text-indigo-500 mt-0.5">•</span>{d}
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+              )}
+              {result.followUpDate && (
+                <div className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                  <span className="font-medium">Prochain RDV :</span>
+                  <span>{new Date(result.followUpDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</span>
                 </div>
               )}
 
-              {/* Tasks created */}
-              {result.tasks.length > 0 && (
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1.5">
-                    <CheckSquare size={11} className="inline mr-1" />
-                    {result.taskIds.length} tâche{result.taskIds.length > 1 ? "s" : ""} créée{result.taskIds.length > 1 ? "s" : ""}
-                  </p>
-                  <div className="space-y-1">
-                    {result.tasks.map((t, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs p-2 rounded-lg bg-white border">
-                        <span className="text-gray-700">{t.title}</span>
+              {/* Tâches proposées — validation humaine */}
+              {result.suggestedTasks?.length > 0 && !tasksCreated && (
+                <div className="border rounded-xl overflow-hidden">
+                  <div className="px-3 py-2 bg-slate-50 border-b flex items-center gap-1.5">
+                    <CheckSquare size={12} className="text-slate-500" />
+                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Tâches suggérées — sélectionnez celles à créer</p>
+                  </div>
+                  <div className="divide-y">
+                    {result.suggestedTasks.map((t, i) => (
+                      <label key={i} className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-slate-50">
+                        <input
+                          type="checkbox"
+                          checked={selectedTasks.has(i)}
+                          onChange={(e) => setSelectedTasks((prev) => {
+                            const next = new Set(prev);
+                            e.target.checked ? next.add(i) : next.delete(i);
+                            return next;
+                          })}
+                          className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+                        />
+                        <span className="flex-1 text-xs text-gray-700">{t.title}</span>
                         <span className={cn(
-                          "px-1.5 py-0.5 rounded text-[10px] font-medium",
-                          t.priority === "HIGH" ? "bg-red-50 text-red-600" :
-                          t.priority === "MEDIUM" ? "bg-amber-50 text-amber-600" :
-                          "bg-gray-50 text-gray-500"
+                          "text-[10px] font-semibold px-1.5 py-0.5 rounded border",
+                          t.priority === "HIGH" ? "bg-red-50 text-red-700 border-red-200" :
+                          t.priority === "MEDIUM" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                          "bg-slate-50 text-slate-600 border-slate-200"
                         )}>{t.priority}</span>
-                      </div>
+                      </label>
                     ))}
                   </div>
+                  <div className="px-3 py-2.5 bg-slate-50 border-t">
+                    <Button
+                      size="sm"
+                      className="w-full text-xs gap-1.5"
+                      disabled={selectedTasks.size === 0 || createTasksMutation.isPending}
+                      onClick={() => createTasksMutation.mutate()}
+                    >
+                      {createTasksMutation.isPending ? (
+                        <><Loader2 size={12} className="animate-spin" /> Création…</>
+                      ) : (
+                        <><CheckSquare size={12} /> Créer {selectedTasks.size} tâche{selectedTasks.size > 1 ? "s" : ""}</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {tasksCreated && (
+                <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                  <CheckCircle2 size={13} />
+                  <span>Tâches créées avec succès</span>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <Link href={`/patients/${careCaseId}`} className="flex-1">
                   <Button variant="outline" className="w-full gap-1.5 text-xs">
                     <FileText size={13} /> Voir la note
                   </Button>
                 </Link>
-                <Button onClick={onClose} className="flex-1 text-xs">
-                  Fermer
-                </Button>
+                <Button onClick={onClose} className="flex-1 text-xs">Fermer</Button>
               </div>
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Section helper ───────────────────────────────────────────────────────────
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border bg-gray-50 px-3 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">{label}</p>
+      {typeof children === "string" ? (
+        <p className="text-xs text-gray-700 leading-relaxed">{children}</p>
+      ) : (
+        children
+      )}
     </div>
   );
 }

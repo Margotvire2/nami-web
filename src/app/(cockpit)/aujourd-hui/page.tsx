@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
+import { KnowledgeSearch } from "@/components/nami/KnowledgeSearch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiWithToken, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral } from "@/lib/api";
 import { toast } from "sonner";
@@ -81,7 +82,10 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b border-[#E8ECF4] px-6 py-5 shrink-0">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Bonjour{user ? `, ${user.firstName}` : ""}</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Bonjour{user ? `, ${user.firstName}` : ""}</h1>
+            <KnowledgeSearch className="w-80 hidden sm:block" />
+          </div>
           <div className="flex items-center gap-2 mt-3 flex-wrap">
             <Link href="/agenda" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[13px] font-medium hover:bg-indigo-100 transition-colors">
               <Stethoscope size={14} /> {totalToday} consultation{totalToday !== 1 ? "s" : ""} aujourd&apos;hui
