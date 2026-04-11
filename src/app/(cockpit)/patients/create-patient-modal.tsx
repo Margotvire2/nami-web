@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/track";
 import {
   User,
   FileText,
@@ -113,6 +114,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
       setResult(data);
       setStep(2);
       qc.invalidateQueries({ queryKey: ["care-cases"] });
+      track.patientCreated({ method: "manual" });
       toast.success(`Dossier créé pour ${firstName} ${lastName}`);
     },
     onError: (err: any) => {

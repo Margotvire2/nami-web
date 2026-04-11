@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 
 import { useTimeline } from "@/hooks/useTimeline";
+import { track } from "@/lib/track";
 import { ReferralModal } from "./referral-modal";
 import { QuickTaskModal } from "./QuickTaskModal";
 import { QuickMessageModal } from "./QuickMessageModal";
@@ -161,6 +162,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
     queryKey: ["care-case", id],
     queryFn: () => api.careCases.get(id),
   });
+
+  useEffect(() => {
+    if (careCase) track.patientOpened({ patientId: careCase.patient.id });
+  }, [careCase]);
 
   if (isLoading) return <DetailSkeleton />;
   if (!careCase) return <div className="p-8 text-sm text-muted-foreground">Dossier introuvable.</div>;
@@ -699,6 +704,7 @@ function NoteInline({ careCaseId, api, onClose }: {
     mutationFn: () => api.notes.create(careCaseId, { noteType: "EVOLUTION", body }),
     onSuccess: () => {
       ["timeline", "notes", "care-case"].forEach((k) => qc.invalidateQueries({ queryKey: [k, careCaseId] }));
+      track.noteCreated({ patientId: careCaseId, noteType: "EVOLUTION" });
       toast.success("Note ajoutée"); onClose();
     },
     onError: () => toast.error("Erreur"),
@@ -762,6 +768,8 @@ function ClinicalSummaryCard({ careCase: c, careCaseId }: {
       `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(accessToken)}`
     );
 
+    const startedAt = Date.now();
+
     es.onmessage = (e) => {
       if (e.data === "[DONE]") {
         es.close();
@@ -769,12 +777,14 @@ function ClinicalSummaryCard({ careCase: c, careCaseId }: {
         qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
         qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
         qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
+        track.summaryGenerated({ patientId: careCaseId, duration_ms: Date.now() - startedAt });
         toast.success("Résumé IA généré");
         return;
       }
       try {
         const { text, error } = JSON.parse(e.data);
         if (error) {
+          track.summaryError({ patientId: careCaseId, error });
           toast.error(error);
           es.close();
           setIsStreaming(false);
@@ -787,7 +797,10 @@ function ClinicalSummaryCard({ careCase: c, careCaseId }: {
     es.onerror = () => {
       es.close();
       setIsStreaming(false);
-      if (!streamText) toast.error("Erreur de connexion au résumé IA");
+      if (!streamText) {
+        track.summaryError({ patientId: careCaseId, error: "connection_error" });
+        toast.error("Erreur de connexion au résumé IA");
+      }
     };
   }, [accessToken, careCaseId, qc, API_URL, streamText]);
 

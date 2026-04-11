@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Link from "next/link";
+import { track } from "@/lib/track";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function LoginPage() {
       const tokens = await authApi.login(email, password);
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
+      track.login({ method: "email" });
       router.push("/dashboard");
     } catch {
       toast.error("Email ou mot de passe incorrect");

@@ -3,9 +3,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "@/components/ui/sonner";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useNamiStore } from "@/lib/nami-store";
 import { getInitialData } from "@/lib/nami-store/initialData";
+import { PostHogProvider } from "@/components/posthog-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,9 +30,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster richColors position="top-right" />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <Suspense>
+        <PostHogProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </PostHogProvider>
+      </Suspense>
     </QueryClientProvider>
   );
 }

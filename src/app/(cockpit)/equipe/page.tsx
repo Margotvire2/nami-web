@@ -43,6 +43,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/track";
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -721,6 +722,7 @@ function InviteModal({
     mutationFn: (data: CreateInvitationInput) => api.invitations.create(data),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["invitations-mine"] });
+      track.invitationSent({ invitedRole: "PROVIDER" });
       if (method === "email") {
         toast.success("Invitation envoyée !");
         onOpenChange(false);

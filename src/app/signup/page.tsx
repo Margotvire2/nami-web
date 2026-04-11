@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import Link from "next/link";
+import { track } from "@/lib/track";
 
 const SPECIALTIES = [
   "Médecin généraliste",
@@ -70,6 +71,7 @@ export default function SignupPage() {
       });
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
+      track.signup({ roleType: form.roleType });
       router.push("/dashboard");
     } catch (err: any) {
       toast.error(err.message ?? "Erreur lors de la création du compte");
