@@ -21,8 +21,40 @@ export default function PathologiesPage() {
 
   const categoryOrder = ["tca", "metabolique", "psy", "cardio", "pediatrie"]
 
+  // JSON-LD — ItemList of MedicalCondition
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Fiches cliniques — Pathologies | Nami",
+    description: "Fiches cliniques complètes par pathologie : TCA, obésité, diabète, SOPK, NAFLD, dépression, anxiété. Critères diagnostiques, bilans, traitements. Sources HAS, FFAB, ESPGHAN.",
+    url: "https://nami-web-orpin.vercel.app/pathologies",
+    numberOfItems: PATHOLOGIES.length,
+    itemListElement: PATHOLOGIES.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "MedicalWebPage",
+        name: p.title,
+        description: p.description,
+        url: `https://nami-web-orpin.vercel.app/pathologies/${p.slug}`,
+        about: {
+          "@type": "MedicalCondition",
+          name: p.shortTitle,
+          ...(p.cim11 ? { code: { "@type": "MedicalCode", codeValue: p.cim11, codingSystem: "ICD-11" } } : {}),
+        },
+      },
+    })),
+    publisher: {
+      "@type": "Organization",
+      name: "Nami",
+      url: "https://nami-web-orpin.vercel.app",
+    },
+  }
+
   return (
     <div className="min-h-screen bg-[#F0F2FA]">
+      {/* JSON-LD */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Navbar */}
       <nav className="border-b bg-white">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
