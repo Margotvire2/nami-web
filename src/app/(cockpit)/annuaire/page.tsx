@@ -1,16 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { annuaireApi, type DirectoryEntry, type DirectorySearchResult } from "@/lib/api"
+import { annuaireApi, apiWithToken, type DirectoryEntry, type DirectorySearchResult, type CreateInvitationInput } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { toast } from "sonner"
 import Link from "next/link"
 import {
   Search, Phone, MapPin, CreditCard, Building2, User,
-  ChevronLeft, ChevronRight, Filter, X,
+  ChevronLeft, ChevronRight, Filter, X, UserPlus, Check, Loader2,
 } from "lucide-react"
 
 const SPECIALTIES = [
@@ -29,6 +39,8 @@ const CONVENTIONS = [
 
 export default function AnnuairePage() {
   const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const qc = useQueryClient()
   const [q, setQ] = useState("")
   const [specialty, setSpecialty] = useState("")
   const [city, setCity] = useState("")
@@ -37,6 +49,7 @@ export default function AnnuairePage() {
   const [offset, setOffset] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
   const [searchTrigger, setSearchTrigger] = useState(0)
+  const [inviteEntry, setInviteEntry] = useState<DirectoryEntry | null>(null)
   const limit = 20
 
   const hasSearch = q || specialty || city || postalCode || convention
@@ -168,7 +181,7 @@ export default function AnnuairePage() {
 
           <div className="space-y-2">
             {results.map((r) => (
-              <DirectoryCard key={r.id} entry={r} />
+              <DirectoryCard key={r.id} entry={r} onInvite={() => setInviteEntry(r)} />
             ))}
           </div>
 
@@ -217,24 +230,140 @@ export default function AnnuairePage() {
           </p>
         </div>
       )}
+
+      {/* Modal invitation depuis l'annuaire */}
+      <InviteFromDirectoryModal
+        entry={inviteEntry}
+        onClose={() => setInviteEntry(null)}
+        api={api}
+        qc={qc}
+      />
     </div>
+  )
+}
+
+// ─── Modal invitation ────────────────────────────────────────────────────────
+
+function InviteFromDirectoryModal({
+  entry,
+  onClose,
+  api,
+  qc,
+}: {
+  entry: DirectoryEntry | null
+  onClose: () => void
+  api: ReturnType<typeof apiWithToken>
+  qc: ReturnType<typeof useQueryClient>
+}) {
+  const [email, setEmail] = useState("")
+  const [message, setMessage] = useState("")
+  const [done, setDone] = useState(false)
+
+  const name = entry ? (entry.firstName ? `${entry.firstName} ${entry.lastName}` : entry.name) : ""
+
+  // Préremplir le message quand entry change
+  const open = !!entry
+  const defaultMessage = entry
+    ? `Bonjour${entry.firstName ? ` ${entry.firstName}` : ""},\n\nJe vous invite à rejoindre Nami pour faciliter notre coordination.\n\nÀ bientôt !`
+    : ""
+
+  function handleOpenChange(v: boolean) {
+    if (!v) { onClose(); setEmail(""); setMessage(""); setDone(false) }
+  }
+
+  const mutation = useMutation({
+    mutationFn: (data: CreateInvitationInput) => api.invitations.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invitations-mine"] })
+      setDone(true)
+      toast.success("Invitation envoyée !")
+    },
+    onError: () => toast.error("Erreur lors de l'envoi"),
+  })
+
+  function handleSend() {
+    if (!email.trim()) { toast.error("Email requis"); return }
+    mutation.mutate({ email: email.trim(), message: (message || defaultMessage) || undefined })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserPlus size={16} className="text-primary" />
+            Inviter sur Nami
+          </DialogTitle>
+          <DialogDescription>
+            {name} n&apos;est pas encore sur Nami. Envoyez-lui une invitation par email.
+          </DialogDescription>
+        </DialogHeader>
+
+        {done ? (
+          <div className="flex flex-col items-center justify-center py-6 gap-3">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
+              <Check size={22} className="text-emerald-600" />
+            </div>
+            <p className="text-sm font-medium">Invitation envoyée à {email}</p>
+            <p className="text-xs text-muted-foreground text-center">
+              {name} recevra un lien valable 7 jours pour rejoindre Nami.
+            </p>
+            <Button variant="outline" size="sm" onClick={onClose}>Fermer</Button>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4 py-2">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                  Email professionnel <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  type="email"
+                  placeholder="dr.nom@cabinet.fr"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                  Message (optionnel)
+                </label>
+                <Textarea
+                  rows={4}
+                  placeholder={defaultMessage}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="text-sm resize-none"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose}>Annuler</Button>
+              <Button onClick={handleSend} disabled={mutation.isPending} className="gap-2">
+                {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
+                Envoyer l&apos;invitation
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
 
 // ─── Card component ─────────────────────────────────────────────────────────
 
-function DirectoryCard({ entry }: { entry: DirectoryEntry }) {
+function DirectoryCard({ entry, onInvite }: { entry: DirectoryEntry; onInvite: () => void }) {
   const isCDS = entry.type === "CDS"
   const initials = isCDS
     ? "CDS"
     : `${(entry.firstName ?? "?")[0]}${entry.lastName[0]}`.toUpperCase()
 
   return (
-    <Link
-      href={`/annuaire/${entry.id}`}
-      className="block rounded-xl border bg-card p-4 hover:shadow-[0_2px_12px_rgba(79,70,229,0.08)] transition-all hover:border-primary/20"
-    >
-      <div className="flex items-center gap-3">
+    <div className="rounded-xl border bg-card hover:shadow-[0_2px_12px_rgba(79,70,229,0.08)] transition-all hover:border-primary/20">
+      <div className="flex items-center gap-3 p-4">
         {/* Avatar */}
         <div className={`w-11 h-11 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
           isCDS ? "bg-emerald-50 text-emerald-700" : "bg-primary/5 text-primary"
@@ -243,7 +372,7 @@ function DirectoryCard({ entry }: { entry: DirectoryEntry }) {
         </div>
 
         {/* Info */}
-        <div className="flex-1 min-w-0">
+        <Link href={`/annuaire/${entry.id}`} className="flex-1 min-w-0 hover:underline underline-offset-2">
           <p className="text-sm font-medium truncate">{entry.name}</p>
           <p className="text-[11px] text-muted-foreground">{entry.specialty}</p>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -272,16 +401,29 @@ function DirectoryCard({ entry }: { entry: DirectoryEntry }) {
               </span>
             )}
           </div>
-        </div>
+        </Link>
 
-        {/* Phone */}
-        {entry.phone && (
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
-            <Phone size={12} />
-            <span>{entry.phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5")}</span>
-          </div>
-        )}
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {entry.phone && (
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Phone size={12} />
+              {entry.phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5")}
+            </span>
+          )}
+          {!isCDS && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5 text-xs"
+              onClick={(e) => { e.preventDefault(); onInvite() }}
+            >
+              <UserPlus size={13} />
+              <span className="hidden sm:inline">Inviter</span>
+            </Button>
+          )}
+        </div>
       </div>
-    </Link>
+    </div>
   )
 }

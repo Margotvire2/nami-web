@@ -10,7 +10,7 @@ import { toast } from "sonner"
 import {
   X, Users, Search, ChevronRight, ChevronLeft,
   CheckCircle2, ArrowLeftRight,
-  Loader2, BadgeCheck, Video, MapPin,
+  Loader2, BadgeCheck, Video, MapPin, Sparkles,
 } from "lucide-react"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -58,7 +58,8 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
   const [urgency, setUrgency] = useState<Urgency>("ROUTINE")
   const [personalMessage, setPersonalMessage] = useState("")
   const [patientConsent, setPatientConsent] = useState(false)
-  const [createdId, setCreatedId] = useState<string | null>(null)
+  const [letterDraft, setLetterDraft] = useState<string | null>(null)
+  const [letterLoading, setLetterLoading] = useState(false)
 
   // Wording légal selon spécialité
   const isPhysician = senderRoleType === "PHYSICIAN"
@@ -118,8 +119,7 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
         patientConsent: true,
         referralType: isPhysician ? "REFERRAL" : "COORDINATION_REQUEST",
       }),
-    onSuccess: (result: any) => {
-      setCreatedId(result.id)
+    onSuccess: (_result: any) => {
       setStep(3)
       qc.invalidateQueries({ queryKey: ["referrals"] })
       qc.invalidateQueries({ queryKey: ["care-case", careCaseId] })
@@ -130,6 +130,34 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
     },
   })
 
+  async function generateLetter() {
+    if (!clinicalReason.trim()) {
+      toast.error("Renseignez d'abord le motif clinique")
+      return
+    }
+    setLetterLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/intelligence/referral-letter/${careCaseId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          clinicalReason,
+          urgency,
+          targetSpecialty: selectedProvider?.specialties?.[0],
+          targetProviderName: selectedProvider ? `${selectedProvider.firstName} ${selectedProvider.lastName}` : undefined,
+        }),
+      })
+      if (!res.ok) throw new Error("Erreur génération lettre")
+      const data = await res.json()
+      setLetterDraft(data.letter)
+      setClinicalReason(data.letter)
+    } catch {
+      toast.error("Impossible de générer la lettre IA")
+    } finally {
+      setLetterLoading(false)
+    }
+  }
+
   const handleClose = useCallback(() => {
     setStep(1)
     setSearchMode(null)
@@ -139,7 +167,7 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
     setUrgency("ROUTINE")
     setPersonalMessage("")
     setPatientConsent(false)
-    setCreatedId(null)
+    setLetterDraft(null)
     onClose()
   }, [onClose])
 
@@ -310,14 +338,33 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
 
               {/* Motif clinique */}
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
-                  Motif de la {actionLabel.toLowerCase()}
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-gray-600">
+                    Motif de la {actionLabel.toLowerCase()}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generateLetter}
+                    disabled={letterLoading}
+                    className="flex items-center gap-1 text-[10px] font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50 transition-colors"
+                  >
+                    {letterLoading
+                      ? <><Loader2 size={10} className="animate-spin" /> Génération…</>
+                      : <><Sparkles size={10} /> Générer la lettre IA</>
+                    }
+                  </button>
+                </div>
+                {letterDraft && (
+                  <div className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mb-1.5">
+                    <Sparkles size={9} /> Brouillon IA — à relire et modifier avant envoi
+                  </div>
+                )}
                 <Textarea
                   value={clinicalReason}
-                  onChange={(e) => setClinicalReason(e.target.value)}
-                  placeholder="Décrivez le motif clinique..."
-                  rows={3}
+                  onChange={(e) => { setClinicalReason(e.target.value); setLetterDraft(null) }}
+                  placeholder="Décrivez le motif clinique, ou générez une lettre d'adressage complète via l'IA…"
+                  rows={letterDraft ? 10 : 3}
+                  className="font-mono text-xs"
                 />
               </div>
 

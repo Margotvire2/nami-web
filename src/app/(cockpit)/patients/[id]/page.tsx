@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric, type DeltaObservation, type LatestObservation, type NoteAnalysis } from "@/lib/api";
+import { apiWithToken, CareCaseDetail, Gap, GapAnalysis, SummaryResult, Appointment, JournalEntry, Document, Message, Referral, Alert, observationsApi, type ObservationInput, type PathwayMetric, type DeltaObservation, type LatestObservation, type NoteAnalysis, type PatientCondition, type ConditionCatalogEntry, type CreateConditionInput } from "@/lib/api";
 import { KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog";
 import { getStatusMeta, getPriorityMeta } from "@/lib/referrals";
 import { ClinicalLifeline as NewClinicalLifeline } from "@/components/nami/clinical-lifeline";
@@ -19,6 +19,7 @@ import { ObservationDashboard } from "@/components/nami/observation-dashboard";
 import { LikertQuestionnaire } from "@/components/nami/LikertQuestionnaire";
 import { QUESTIONNAIRE_CATALOG, getBand, BAND_COLORS } from "@/lib/scoring/questionnaire-scoring";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -28,7 +29,7 @@ import {
   ChevronLeft, Clock, Activity as ActivityIcon, FileText, Users, CheckSquare,
   CalendarDays, MessageSquare, BookOpen, Bell, Sparkles,
   ArrowLeftRight, CalendarPlus, CheckCircle2, AlertTriangle,
-  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2, Trash2, X, Zap,
+  User, ChevronRight, Crosshair, Send, CornerDownRight, TrendingUp, Mic, Loader2, Trash2, X, Zap, Plus, Tag,
 } from "lucide-react";
 import { type PathwaySuggestion } from "@/lib/api";
 
@@ -218,6 +219,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             {/* Colonne 1 — Résumé dossier */}
             <div className="flex-1 overflow-y-auto border-r p-5 space-y-5">
               <ClinicalSummaryCard careCase={careCase} careCaseId={id} api={api} />
+              <ConditionsCard careCaseId={id} api={api} />
               {/* CompletenessIndicators supprimé — remplacé par alertes cliniques */}
               <CareTeamCompact careCaseId={id} api={api} careCase={careCase} />
               <LatestBioCard
@@ -2446,6 +2448,198 @@ function SummaryBlock({ title, content }: { title: string; content: string }) {
     <div className="px-4 py-3.5">
       <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">{title}</p>
       <p className="text-sm leading-relaxed whitespace-pre-line">{content}</p>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CONDITIONS CLINIQUES
+// ═════════════════════════════════════════════════════════════════════════════
+
+const CONDITION_TYPE_STYLE: Record<string, { badge: string; label: string }> = {
+  PRIMARY:     { badge: "bg-primary/10 text-primary border-primary/20",   label: "Principale" },
+  COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",   label: "Comorbidité" },
+  SUSPECTED:   { badge: "bg-amber-50 text-amber-700 border-amber-200",    label: "Suspectée" },
+};
+
+const SEVERITY_STYLE: Record<string, string> = {
+  mild:     "bg-green-50 text-green-700",
+  moderate: "bg-amber-50 text-amber-700",
+  severe:   "bg-red-50 text-red-700",
+};
+const CLIN_SEVERITY_LABEL: Record<string, string> = {
+  mild: "Légère", moderate: "Modérée", severe: "Sévère",
+};
+
+function ConditionsCard({ careCaseId, api }: { careCaseId: string; api: ReturnType<typeof apiWithToken> }) {
+  const qc = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<ConditionCatalogEntry | null>(null);
+  const [condType, setCondType] = useState<"PRIMARY" | "COMORBIDITY" | "SUSPECTED">("COMORBIDITY");
+  const [severity, setSeverity] = useState<"" | "mild" | "moderate" | "severe">("");
+
+  const { data: conditions = [], isLoading } = useQuery({
+    queryKey: ["conditions", careCaseId],
+    queryFn: () => api.conditions.list(careCaseId),
+  });
+
+  const { data: catalog = [] } = useQuery({
+    queryKey: ["conditions-catalog", careCaseId],
+    queryFn: () => api.conditions.catalog(careCaseId),
+    enabled: addOpen,
+  });
+
+  const addMut = useMutation({
+    mutationFn: (data: CreateConditionInput) => api.conditions.create(careCaseId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["conditions", careCaseId] });
+      setAddOpen(false);
+      setSearch(""); setSelected(null); setSeverity("");
+      toast.success("Condition ajoutée");
+    },
+    onError: () => toast.error("Erreur lors de l'ajout"),
+  });
+
+  const resolveMut = useMutation({
+    mutationFn: (conditionId: string) => api.conditions.resolve(careCaseId, conditionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["conditions", careCaseId] });
+      toast.success("Condition résolue");
+    },
+  });
+
+  const active = (conditions as PatientCondition[]).filter((c) => c.status === "active" || c.status === "suspected");
+  const filtered = (catalog as ConditionCatalogEntry[]).filter((e) =>
+    !search || e.label.toLowerCase().includes(search.toLowerCase()) || e.code.toLowerCase().includes(search.toLowerCase())
+  ).slice(0, 8);
+
+  const handleAdd = () => {
+    if (!selected) return;
+    addMut.mutate({
+      conditionCode: selected.code,
+      conditionLabel: selected.label,
+      conditionType: condType,
+      severity: severity || undefined,
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <Tag size={13} /> Conditions cliniques
+        </div>
+        <button
+          onClick={() => setAddOpen((o) => !o)}
+          className="flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 font-medium transition-colors"
+        >
+          <Plus size={12} /> Ajouter
+        </button>
+      </div>
+
+      {addOpen && (
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+          <div className="relative">
+            <Input
+              placeholder="Rechercher une condition (code ou libellé)…"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setSelected(null); }}
+              className="h-8 text-xs pr-7"
+              autoFocus
+            />
+            {search && (
+              <button onClick={() => { setSearch(""); setSelected(null); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {search && !selected && (
+            <div className="rounded-md border bg-card max-h-40 overflow-y-auto divide-y">
+              {filtered.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-3 py-2">Aucun résultat</p>
+              ) : filtered.map((e: ConditionCatalogEntry) => (
+                <button
+                  key={e.code}
+                  onClick={() => { setSelected(e); setCondType(e.type); setSearch(e.label); }}
+                  className="w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors flex items-center justify-between gap-2"
+                >
+                  <span className="text-xs font-medium">{e.label}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground shrink-0">{e.code}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selected && (
+            <div className="space-y-2">
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Type</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {(["PRIMARY", "COMORBIDITY", "SUSPECTED"] as const).map((t) => (
+                    <button key={t} onClick={() => setCondType(t)}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors ${condType === t ? CONDITION_TYPE_STYLE[t].badge : "border-border text-muted-foreground hover:border-primary/30"}`}>
+                      {CONDITION_TYPE_STYLE[t].label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Sévérité (optionnel)</p>
+                <div className="flex gap-1.5">
+                  {(["mild", "moderate", "severe"] as const).map((s) => (
+                    <button key={s} onClick={() => setSeverity(severity === s ? "" : s)}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors ${severity === s ? SEVERITY_STYLE[s] + " border-transparent" : "border-border text-muted-foreground hover:border-primary/30"}`}>
+                      {CLIN_SEVERITY_LABEL[s]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setAddOpen(false); setSearch(""); setSelected(null); }}>Annuler</Button>
+            <Button size="sm" className="h-7 text-xs" onClick={handleAdd} disabled={!selected || addMut.isPending}>
+              {addMut.isPending ? <Loader2 size={12} className="animate-spin" /> : "Ajouter"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="space-y-1.5">{[...Array(2)].map((_, i) => <Skeleton key={i} className="h-8 rounded-lg" />)}</div>
+      ) : active.length === 0 && !addOpen ? (
+        <p className="text-xs text-muted-foreground italic">Aucune condition documentée</p>
+      ) : (
+        <div className="space-y-1.5">
+          {active.map((c: PatientCondition) => (
+            <div key={c.id} className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 group">
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${CONDITION_TYPE_STYLE[c.conditionType]?.badge ?? "bg-muted text-muted-foreground"}`}>
+                {CONDITION_TYPE_STYLE[c.conditionType]?.label ?? c.conditionType}
+              </span>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium truncate block">{c.conditionLabel}</span>
+                <span className="text-[10px] font-mono text-muted-foreground">{c.conditionCode}</span>
+              </div>
+              {c.severity && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${SEVERITY_STYLE[c.severity]}`}>
+                  {CLIN_SEVERITY_LABEL[c.severity]}
+                </span>
+              )}
+              <button
+                onClick={() => resolveMut.mutate(c.id)}
+                disabled={resolveMut.isPending}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
+                title="Marquer comme résolue"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

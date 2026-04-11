@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
+import { getProMessagesSocket, disconnectProMessagesSocket } from "@/lib/socket";
 import { apiWithToken, type ProConversation, type ProMessage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,19 +81,19 @@ export default function CollaborationPage() {
   const [sidebarSearch, setSidebarSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch conversations — polling 10s
+  // Fetch conversations — pas de polling, mis à jour par socket
   const { data: conversations, isLoading: loadingConvs } = useQuery({
     queryKey: ["pro-conversations"],
     queryFn: () => api.proMessages.getConversations(),
-    refetchInterval: 10000,
+    staleTime: 30_000,
   });
 
-  // Fetch messages for active conversation — polling 10s
+  // Fetch messages for active conversation — pas de polling, mis à jour par socket
   const { data: messages, isLoading: loadingMsgs } = useQuery({
     queryKey: ["pro-messages", activeConvId],
     queryFn: () => api.proMessages.getMessages(activeConvId!),
     enabled: !!activeConvId,
-    refetchInterval: 10000,
+    staleTime: 30_000,
   });
 
   // Send message
@@ -103,6 +104,43 @@ export default function CollaborationPage() {
       qc.invalidateQueries({ queryKey: ["pro-conversations"] });
     },
   });
+
+  // Socket.io — connexion temps réel, remplace le polling 10s
+  useEffect(() => {
+    if (!accessToken) return;
+    const socket = getProMessagesSocket(accessToken);
+
+    const onNewMessage = () => {
+      qc.invalidateQueries({ queryKey: ["pro-messages", activeConvId] });
+      qc.invalidateQueries({ queryKey: ["pro-conversations"] });
+    };
+    const onConvUpdated = () => {
+      qc.invalidateQueries({ queryKey: ["pro-conversations"] });
+    };
+
+    socket.on("new_message", onNewMessage);
+    socket.on("conversation_updated", onConvUpdated);
+
+    return () => {
+      socket.off("new_message", onNewMessage);
+      socket.off("conversation_updated", onConvUpdated);
+    };
+  }, [accessToken, activeConvId, qc]);
+
+  // Rejoindre/quitter la room de la conversation active
+  useEffect(() => {
+    if (!accessToken || !activeConvId) return;
+    const socket = getProMessagesSocket(accessToken);
+    socket.emit("join_conversation", activeConvId);
+    return () => {
+      socket.emit("leave_conversation", activeConvId);
+    };
+  }, [accessToken, activeConvId]);
+
+  // Déconnexion socket au démontage de la page
+  useEffect(() => {
+    return () => { disconnectProMessagesSocket(); };
+  }, []);
 
   // Mark as read on conversation open
   useEffect(() => {

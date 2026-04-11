@@ -1,0 +1,56 @@
+name: CI — Frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (next lint)
+        run: npm run lint
+
+      - name: Typecheck (tsc --noEmit)
+        run: npx tsc --noEmit
+        env:
+          # Variables minimales pour que tsc résolve les types sans erreur de module
+          NEXT_PUBLIC_API_URL: "https://nami-production-f268.up.railway.app"
+
+  build:
+    name: Build (Next.js)
+    runs-on: ubuntu-latest
+    # Build de vérification — le deploy réel est géré par Vercel
+    needs: lint-typecheck
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: "https://nami-production-f268.up.railway.app"
+          # Sentry désactivé en CI (pas de DSN)
+          SENTRY_SUPPRESS_TURBOPACK_WARNING: "1"
