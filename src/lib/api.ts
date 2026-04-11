@@ -1758,6 +1758,97 @@ export const recordingsApi = {
 };
 
 // Helper pour les requêtes avec token depuis le store
+// ─── RCP ────────────────────────────────────────────────────────────────────
+
+export interface Rcp {
+  id: string;
+  careCaseId: string;
+  title: string;
+  rcpType: "ASYNC" | "SYNC";
+  urgency: "ROUTINE" | "URGENT" | "EMERGENCY";
+  status: "OPEN" | "IN_PROGRESS" | "PENDING_DECISION" | "CLOSED" | "CANCELLED";
+  context: string | null;
+  questions: string[];
+  participantIds: string[];
+  respondedIds: string[];
+  decision: string | null;
+  decisionType: "CONSENSUS" | "MAJORITY" | "INITIATOR_DECISION" | null;
+  aiSummary: string | null;
+  conclusionNoteId: string | null;
+  conversationId: string | null;
+  taskIds: string[];
+  openedAt: string;
+  deadline: string | null;
+  scheduledAt: string | null;
+  closedAt: string | null;
+  initiatorId: string;
+  initiator?: { firstName: string; lastName: string; roleType: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RcpSummary extends Rcp {
+  opinionsCount: number;
+  myOpinionGiven: boolean;
+  waitingForMyOpinion: boolean;
+}
+
+export interface RcpOpinion {
+  id: string;
+  body: string;
+  createdAt: string;
+  authorPersonId: string;
+  author: { firstName: string; lastName: string; roleType: string; providerProfile: { specialties: string[] } | null };
+}
+
+export interface RcpParticipant {
+  id: string;
+  firstName: string;
+  lastName: string;
+  roleType: string;
+  providerProfile: { specialties: string[] } | null;
+}
+
+export interface RcpObservation {
+  key: string;
+  label: string;
+  value: number | string | null;
+  unit: string | null;
+  date: string;
+}
+
+export interface RcpDetail extends RcpSummary {
+  opinions: RcpOpinion[];
+  alerts: { severity: string; title: string; description: string | null }[];
+  observations: RcpObservation[];
+  participants: RcpParticipant[];
+  canClose: boolean;
+}
+
+export interface CreateRcpInput {
+  title: string;
+  rcpType?: "ASYNC" | "SYNC";
+  urgency?: "ROUTINE" | "URGENT" | "EMERGENCY";
+  context?: string;
+  questions?: string[];
+  participantIds: string[];
+  deadline?: string;
+  scheduledAt?: string;
+  generateContext?: boolean;
+}
+
+export interface CloseRcpInput {
+  decision: string;
+  decisionType: "CONSENSUS" | "MAJORITY" | "INITIATOR_DECISION";
+  actions?: {
+    title: string;
+    description?: string;
+    assignedToPersonId?: string;
+    dueDate?: string;
+    priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  }[];
+}
+
 export function apiWithToken(token: string) {
   return {
     careCases: {
@@ -1953,6 +2044,20 @@ export function apiWithToken(token: string) {
     },
     tasksMine: {
       list: (status?: string) => request<TaskWithContext[]>(status ? `/tasks/mine?status=${status}` : "/tasks/mine", {}, token),
+    },
+    rcps: {
+      list:      (careCaseId: string) => request<RcpSummary[]>(`/care-cases/${careCaseId}/rcps`, {}, token),
+      create:    (careCaseId: string, data: CreateRcpInput) =>
+        request<Rcp>(`/care-cases/${careCaseId}/rcps`, { method: "POST", body: JSON.stringify(data) }, token),
+      get:       (rcpId: string) => request<RcpDetail>(`/rcps/${rcpId}`, {}, token),
+      opinion:   (rcpId: string, data: { content: string; position?: string }) =>
+        request<{ id: string }>(`/rcps/${rcpId}/opinions`, { method: "POST", body: JSON.stringify(data) }, token),
+      close:     (rcpId: string, data: CloseRcpInput) =>
+        request<{ rcp: Rcp; conclusionNote: { id: string }; tasksCreated: number }>(`/rcps/${rcpId}/close`, { method: "POST", body: JSON.stringify(data) }, token),
+      cancel:    (rcpId: string) => request<Rcp>(`/rcps/${rcpId}/cancel`, { method: "POST" }, token),
+      patch:     (rcpId: string, data: Partial<CreateRcpInput>) =>
+        request<Rcp>(`/rcps/${rcpId}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+      summarize: (rcpId: string) => request<{ aiSummary: string }>(`/rcps/${rcpId}/summarize`, { method: "POST" }, token),
     },
     billing: {
       tariffs: (params?: { q?: string; category?: string; nomenclature?: string }) => {
