@@ -39,7 +39,7 @@ export function PatientHeader({
     : null;
 
   return (
-    <div className="py-6">
+    <div className="py-6 px-6 sm:px-8">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">
