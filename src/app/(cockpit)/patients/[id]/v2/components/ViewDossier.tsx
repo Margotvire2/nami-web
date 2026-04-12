@@ -643,11 +643,17 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   }
 
   async function handleDownload(docId: string) {
+    // Ouvrir la fenêtre AVANT l'await — sinon bloqué par le popup blocker
+    const newWindow = window.open("about:blank", "_blank");
     try {
       const res = await api.get<{ url: string }>(`/care-cases/${careCaseId}/documents/${docId}/download`);
-      window.open(res.data.url, "_blank");
-    } catch {
-      toast.error("Impossible de télécharger le document");
+      const url = res.data?.url;
+      if (!url) throw new Error("URL manquante");
+      if (newWindow) newWindow.location.href = url;
+      else window.location.href = url;
+    } catch (err) {
+      newWindow?.close();
+      toast.error(err instanceof Error ? err.message : "Impossible de télécharger le document");
     }
   }
 
