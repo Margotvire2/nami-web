@@ -202,7 +202,7 @@ function CreateRcpModal({
               Participants * <span className="text-gray-400 font-normal">(membres de l&apos;équipe)</span>
             </label>
             <div className="space-y-2">
-              {members.filter((m) => m.status === "ACCEPTED").map((m) => {
+              {members.filter((m) => m.status !== "DECLINED").map((m) => {
                 const pid = m.person.id;
                 const selected = form.participantIds?.includes(pid);
                 return (

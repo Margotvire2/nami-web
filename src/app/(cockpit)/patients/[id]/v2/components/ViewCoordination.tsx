@@ -63,7 +63,7 @@ function MessagesPanel({ careCaseId }: { careCaseId: string }) {
 
   const sendMutation = useMutation({
     mutationFn: async (content: string) => {
-      const res = await api.post(`/care-cases/${careCaseId}/messages`, { content });
+      const res = await api.post(`/care-cases/${careCaseId}/messages`, { body: content });
       return res.data;
     },
     onSuccess: () => {
@@ -102,7 +102,7 @@ function MessagesPanel({ careCaseId }: { careCaseId: string }) {
                   <span className="text-sm font-medium text-gray-900">{m.sender?.firstName} {m.sender?.lastName}</span>
                   <span className="text-[10px] text-gray-400">{new Date(m.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
-                <p className="text-sm text-gray-700 mt-0.5">{m.content}</p>
+                <p className="text-sm text-gray-700 mt-0.5">{m.body}</p>
               </div>
             </div>
           ))
