@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import {
@@ -31,6 +31,7 @@ import {
   Loader2,
   Copy,
   ArrowRight,
+  Route,
 } from "lucide-react";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -44,6 +45,15 @@ const CASE_TYPES = [
   { value: "CHRONIC_PAIN", label: "Douleur chronique" },
   { value: "OTHER", label: "Autre" },
 ] as const;
+
+const CASETYPE_TO_FAMILY: Record<string, string> = {
+  TCA:          "tca",
+  OBESITY:      "obesity",
+  METABOLIC:    "dt2",
+  MENTAL_HEALTH: "sante_mentale",
+  PEDIATRIC:    "pediatrics",
+  CHRONIC_PAIN: "douleur",
+};
 
 const RISK_LEVELS = [
   { value: "UNKNOWN", label: "Non évalué" },
@@ -85,13 +95,25 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
   const [birthDate, setBirthDate] = useState("");
 
   // Step 2 — Case info
-  const [caseType, setCaseType] = useState<CreatePatientWithCaseInput["caseType"]>("TCA");
+  const [followUpMode, setFollowUpMode] = useState<"simple" | "structured">("simple");
+  const [caseType, setCaseType] = useState<CreatePatientWithCaseInput["caseType"]>("OTHER");
   const [caseTitle, setCaseTitle] = useState("");
   const [mainConcern, setMainConcern] = useState("");
   const [riskLevel, setRiskLevel] = useState<CreatePatientWithCaseInput["riskLevel"]>("UNKNOWN");
+  const [pathwayTemplateKey, setPathwayTemplateKey] = useState<string | undefined>(undefined);
+
+  // Charger les pathways disponibles pour le caseType sélectionné (mode structuré seulement)
+  const family = CASETYPE_TO_FAMILY[caseType];
+  const { data: pathways = [] } = useQuery<{ key: string; label: string; family: string }[]>({
+    queryKey: ["pathways-for-modal", family],
+    queryFn: () => api.intelligence.pathways(family),
+    enabled: followUpMode === "structured" && !!family && step === 1,
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Auto-generate case title
   function autoTitle() {
+    if (followUpMode === "simple") return `Suivi ${firstName} ${lastName}`;
     const typeLabel = CASE_TYPES.find((t) => t.value === caseType)?.label ?? caseType;
     return `Suivi ${typeLabel} — ${firstName} ${lastName}`;
   }
@@ -109,6 +131,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
         caseTitle: caseTitle.trim() || autoTitle(),
         mainConcern: mainConcern.trim() || undefined,
         riskLevel,
+        pathwayTemplateKey,
       }),
     onSuccess: (data) => {
       setResult(data);
@@ -140,10 +163,12 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
     setEmail("");
     setPhone("");
     setBirthDate("");
-    setCaseType("TCA");
+    setFollowUpMode("simple");
+    setCaseType("OTHER");
     setCaseTitle("");
     setMainConcern("");
     setRiskLevel("UNKNOWN");
+    setPathwayTemplateKey(undefined);
   }
 
   function handleCopyLink() {
@@ -303,27 +328,106 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
         {/* Step 2 — Dossier */}
         {step === 1 && (
           <div className="space-y-3">
+            {/* Mode de suivi */}
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">
-                Type de suivi
+                Mode de suivi
               </label>
-              <div className="grid grid-cols-3 gap-1.5 mt-1.5">
-                {CASE_TYPES.map((t) => (
-                  <button
-                    key={t.value}
-                    onClick={() => setCaseType(t.value)}
-                    className={cn(
-                      "text-xs font-medium px-2 py-1.5 rounded-lg transition-all border",
-                      caseType === t.value
-                        ? "border-primary bg-primary/5 text-primary"
-                        : "border-border text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-2 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => { setFollowUpMode("simple"); setCaseType("OTHER"); setPathwayTemplateKey(undefined); }}
+                  className={cn(
+                    "text-xs px-3 py-2.5 rounded-lg border transition-all text-left",
+                    followUpMode === "simple"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <p className="font-semibold text-[11px]">Suivi simple</p>
+                  <p className="text-[10px] opacity-70 mt-0.5">Consultations ponctuelles</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setFollowUpMode("structured"); if (caseType === "OTHER") setCaseType("TCA"); }}
+                  className={cn(
+                    "text-xs px-3 py-2.5 rounded-lg border transition-all text-left",
+                    followUpMode === "structured"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <p className="font-semibold text-[11px]">Parcours structuré</p>
+                  <p className="text-[10px] opacity-70 mt-0.5">Coordination multi-soignants</p>
+                </button>
               </div>
             </div>
+
+            {/* Pathologie — uniquement en mode structuré */}
+            {followUpMode === "structured" && (
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground">
+                  Pathologie / Spécialité
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 mt-1.5">
+                  {CASE_TYPES.filter((t) => t.value !== "OTHER").map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => { setCaseType(t.value); setPathwayTemplateKey(undefined); }}
+                      className={cn(
+                        "text-xs font-medium px-2 py-1.5 rounded-lg transition-all border",
+                        caseType === t.value
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border text-muted-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sélecteur de pathway — uniquement en mode structuré + famille connue */}
+            {followUpMode === "structured" && pathways.length > 0 && (
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Route size={10} />
+                  Parcours de soins
+                </label>
+                <div className="mt-1.5 space-y-1 max-h-32 overflow-y-auto pr-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setPathwayTemplateKey(undefined)}
+                    className={cn(
+                      "w-full text-left text-[11px] px-3 py-2 rounded-lg border transition-all",
+                      pathwayTemplateKey === undefined
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:bg-muted/40"
+                    )}
+                  >
+                    <span className="font-medium">Auto</span>
+                    <span className="text-[10px] ml-1.5 opacity-70">— sélection automatique</span>
+                  </button>
+                  {pathways.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => setPathwayTemplateKey(p.key)}
+                      className={cn(
+                        "w-full text-left text-[11px] px-3 py-2 rounded-lg border transition-all",
+                        pathwayTemplateKey === p.key
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border text-muted-foreground hover:bg-muted/40"
+                      )}
+                    >
+                      <span className="font-medium">{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">
                 Titre du dossier

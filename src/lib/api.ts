@@ -450,6 +450,9 @@ export const intelligenceApi = {
       token
     );
   },
+
+  knowledgeEntry: (token: string, id: string) =>
+    request<KnowledgeEntryDetail>(`/intelligence/knowledge/${id}`, {}, token),
 };
 
 export interface SemanticSearchResult {
@@ -462,7 +465,7 @@ export interface SemanticSearchResult {
 
 export interface KnowledgeSearchResult {
   id: string;
-  source: "FFAB" | "HAS" | "FICHE" | "ALGORITHME";
+  source: "FFAB" | "HAS" | "FICHE" | "FICHE_EXPERT" | "ORPHANET" | "PEDIADOC" | "ALGORITHME";
   category: string;
   subcategory: string | null;
   title: string;
@@ -473,6 +476,22 @@ export interface KnowledgeSearchResult {
   gradeEvidence: string | null;
   tags: string[];
   pathwayTypes: string[];
+}
+
+export interface KnowledgeEntryDetail {
+  id: string;
+  source: string;
+  category: string;
+  subcategory: string | null;
+  title: string;
+  content: string;
+  sourceUrl: string | null;
+  sourceRef: string | null;
+  publicationDate: string | null;
+  gradeEvidence: string | null;
+  tags: string[];
+  pathwayTypes: string[];
+  cim11Codes: string[];
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -723,6 +742,7 @@ export interface CreatePatientWithCaseInput {
   mainConcern?: string;
   riskLevel?: "UNKNOWN" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   inviteMessage?: string;
+  pathwayTemplateKey?: string;
 }
 
 export interface CreatePatientWithCaseResult {
@@ -1994,6 +2014,7 @@ export function apiWithToken(token: string) {
       validateSource: (id: string) => intelligenceApi.validateSource(token, id),
       publishSource: (id: string) => intelligenceApi.publishSource(token, id),
       semanticSearch: (q: string, limit?: number) => intelligenceApi.semanticSearch(token, q, limit),
+      knowledgeEntry: (id: string) => intelligenceApi.knowledgeEntry(token, id),
       knowledgeSearch: (q: string, opts?: { limit?: number; source?: string; category?: string }) =>
         intelligenceApi.knowledgeSearch(token, q, opts),
     },

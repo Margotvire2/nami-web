@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
 import { SuiviTab } from "@/components/patient/SuiviTab";
+import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
 
 interface Props {
   careCaseId: string;
@@ -51,7 +52,7 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
           napDescription={careCase.napDescription}
         />
       ) : activeTab === "bio" ? (
-        <BioPanel careCaseId={careCaseId} />
+        <BioPanel careCaseId={careCaseId} careCase={careCase} />
       ) : null}
       {activeTab === "journal" && <JournalPanel careCaseId={careCaseId} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
@@ -161,7 +162,8 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
 // Bio — N vs N-1
 // ══════════════════════════════════════════════════════
 
-function BioPanel({ careCaseId }: { careCaseId: string }) {
+function BioPanel({ careCaseId, careCase }: { careCaseId: string; careCase?: CareCaseDetail }) {
+  const profile: ClinicalProfile = getClinicalProfile(careCase);
   const { data: observations, isLoading } = useQuery({
     queryKey: ["observations-bio", careCaseId],
     queryFn: async () => {
