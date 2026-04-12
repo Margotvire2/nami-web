@@ -184,9 +184,10 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
     queryKey: ["care-case", id],
     queryFn: () => api.careCases.get(id),
     enabled: !!accessToken,
+    retry: 1,
   });
 
-  const { data: dashboard, isLoading: dashboardLoading } = usePatientDashboard(id);
+  const { data: dashboard } = usePatientDashboard(id);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -213,7 +214,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
     };
   }, [accessToken, id, qc, API_URL]);
 
-  if (!accessToken || careCaseLoading || dashboardLoading) {
+  if (!accessToken || careCaseLoading) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 size={20} className="animate-spin text-[#5B4EC4]" />
@@ -221,17 +222,28 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
     );
   }
 
-  if (!careCase || !dashboard) {
+  if (!careCase) {
     return (
       <div className="p-8 text-sm text-muted-foreground">Dossier introuvable.</div>
     );
   }
 
+  const dash = dashboard ?? {
+    patient: { id: "", firstName: careCase.patient.firstName, lastName: careCase.patient.lastName, age: null, sex: null },
+    pathway: null,
+    alerts: [],
+    screenings: [],
+    indicators: [],
+    questionnaires: [],
+    actions: { urgentTasks: [], upcomingAppointments: [], pendingReferrals: [], suggestedReferrals: [] },
+    recentActivity: [],
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
       <PatientHeader
-        dashboard={dashboard}
+        dashboard={dash}
         careCase={careCase}
         careCaseId={id}
         onAddNote={() => setNoteOpen(true)}
@@ -285,11 +297,11 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
           {activeTab === "globale" && (
-            <ViewGlobale dashboard={dashboard} careCaseId={id} />
+            <ViewGlobale dashboard={dash} careCaseId={id} />
           )}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} />}
           {activeTab === "coordination" && (
-            <ViewCoordination dashboard={dashboard} careCaseId={id} />
+            <ViewCoordination dashboard={dash} careCaseId={id} />
           )}
         </div>
       </div>
