@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -191,6 +192,7 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
 }
 
 function RcpPanel({ careCaseId }: { careCaseId: string }) {
+  const router = useRouter();
   const { data: rcps, isLoading } = useQuery({
     queryKey: ["rcps", careCaseId],
     queryFn: async () => {
@@ -209,7 +211,7 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold text-gray-900">Réunions de concertation</h4>
-        <button className="text-xs px-3 py-1.5 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3]">Nouvelle RCP</button>
+        <button onClick={() => router.push(`/patients/${careCaseId}/rcp`)} className="text-xs px-3 py-1.5 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3]">Nouvelle RCP</button>
       </div>
       {rcps && Array.isArray(rcps) && rcps.length > 0 ? (
         <div className="space-y-2">
@@ -232,6 +234,7 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
 }
 
 function EquipePanel({ careCaseId }: { careCaseId: string }) {
+  const router = useRouter();
   const { data: team, isLoading } = useQuery({
     queryKey: ["team", careCaseId],
     queryFn: async () => {
@@ -250,20 +253,20 @@ function EquipePanel({ careCaseId }: { careCaseId: string }) {
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold text-gray-900">Équipe de soins</h4>
-        <button className="text-xs px-3 py-1.5 rounded-lg border border-[#5B4EC4] text-[#5B4EC4] hover:bg-[#F8F7FD]">Inviter</button>
+        <button onClick={() => router.push("/equipe")} className="text-xs px-3 py-1.5 rounded-lg border border-[#5B4EC4] text-[#5B4EC4] hover:bg-[#F8F7FD]">Inviter</button>
       </div>
       {Array.isArray(members) && members.length > 0 ? (
         <div className="space-y-2">
           {members.map((m: any) => {
-            const provider = m.provider || m;
+            const person = m.person || m;
             return (
               <div key={m.id} className="flex items-center gap-3 py-2">
                 <div className="w-9 h-9 rounded-full bg-[#EDE9FC] flex items-center justify-center text-sm font-semibold text-[#5B4EC4]">
-                  {(provider.firstName?.[0] || "?").toUpperCase()}
+                  {(person.firstName?.[0] || "?").toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{provider.firstName} {provider.lastName}</p>
-                  <p className="text-xs text-gray-500">{provider.specialty || m.role || ""}</p>
+                  <p className="text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</p>
+                  <p className="text-xs text-gray-500">{m.roleInCase || m.role || ""}</p>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[m.role] || roleColors.MEMBER}`}>
                   {m.role === "LEAD" ? "Responsable" : m.role || "Membre"}

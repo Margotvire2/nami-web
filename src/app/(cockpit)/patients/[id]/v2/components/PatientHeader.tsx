@@ -177,7 +177,7 @@ function TeamAvatars({ careCaseId }: { careCaseId: string }) {
     <div className="flex items-center gap-1.5">
       <div className="flex -space-x-2">
         {visible.map((m: any, i: number) => {
-          const p = m.provider || m;
+          const p = m.person || m;
           const initials = `${p.firstName?.[0] || "?"}${p.lastName?.[0] || ""}`.toUpperCase();
           return (
             <div
