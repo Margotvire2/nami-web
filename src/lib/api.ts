@@ -2141,6 +2141,9 @@ export function apiWithToken(token: string) {
         request<Invoice>(`/billing/invoices/${id}/finalize`, { method: "POST" }, token),
       cancel: (id: string) =>
         request<{ message: string }>(`/billing/invoices/${id}`, { method: "DELETE" }, token),
+      getConfig: () => request<BillingConfig>("/billing/config", {}, token),
+      updateConfig: (data: Partial<Omit<BillingConfig, "id" | "personId" | "lastInvoiceNumber">>) =>
+        request<BillingConfig>("/billing/config", { method: "PATCH", body: JSON.stringify(data) }, token),
     },
   };
 }
@@ -2164,6 +2167,29 @@ export interface TaskWithContext {
 }
 
 // ─── Billing ─────────────────────────────────────────────────────────────────
+
+export interface BillingConfig {
+  id: string;
+  personId: string;
+  rppsNumber: string | null;
+  amNumber: string | null;
+  finessNumber: string | null;
+  siretNumber: string | null;
+  sector: string;
+  isOPTAM: boolean;
+  caisseCode: string | null;
+  caisseLabel: string | null;
+  centreGestion: string | null;
+  defaultPaymentMode: string;
+  autoTransmit: boolean;
+  lastInvoiceNumber: number;
+}
+
+export interface LibreInvoiceLine {
+  description: string;
+  unitPrice: number;
+  quantity: number;
+}
 
 export interface BillingTariff {
   id: string;

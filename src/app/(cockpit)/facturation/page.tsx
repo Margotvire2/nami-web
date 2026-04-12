@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken } from "@/lib/api";
-import type { Invoice, BillingTariff, CreateInvoiceInput, InvoiceLineInput } from "@/lib/api";
+import type { Invoice, BillingTariff, BillingConfig, LibreInvoiceLine, CreateInvoiceInput, InvoiceLineInput } from "@/lib/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   Receipt, Plus, Loader2, CheckCircle2,
   Clock, X, Search, FileText, User, BarChart2, FileDown,
+  Settings, Trash2, FileSignature,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 const API = process.env.NEXT_PUBLIC_API_URL || "https://nami-production-f268.up.railway.app";
 
 type Api = ReturnType<typeof apiWithToken>;
+type Tab = "fse" | "dashboard" | "config" | "libre";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,7 +52,7 @@ export default function FacturationPage() {
   const api = apiWithToken(accessToken);
   const qc = useQueryClient();
 
-  const [tab, setTab] = useState<"fse" | "dashboard">("fse");
+  const [tab, setTab] = useState<Tab>("fse");
   const [showNew, setShowNew] = useState(false);
   const [selected, setSelected] = useState<Invoice | null>(null);
 
@@ -64,28 +66,25 @@ export default function FacturationPage() {
       {/* ── Barre d'onglets ── */}
       <div className="shrink-0 flex items-center justify-between px-4 h-[56px] border-b border-[#E8ECF4] bg-white">
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => setTab("fse")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
-              tab === "fse"
-                ? "bg-[#EEF2FF] text-[#4F46E5]"
-                : "text-muted-foreground hover:text-[#0F172A] hover:bg-[#F8FAFF]"
-            )}
-          >
-            <Receipt size={13} /> Feuilles de soins
-          </button>
-          <button
-            onClick={() => setTab("dashboard")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
-              tab === "dashboard"
-                ? "bg-[#EEF2FF] text-[#4F46E5]"
-                : "text-muted-foreground hover:text-[#0F172A] hover:bg-[#F8FAFF]"
-            )}
-          >
-            <BarChart2 size={13} /> Dashboard
-          </button>
+          {([
+            { key: "fse",       icon: Receipt,       label: "Feuilles de soins" },
+            { key: "libre",     icon: FileSignature, label: "Note d'honoraires" },
+            { key: "dashboard", icon: BarChart2,     label: "Dashboard" },
+            { key: "config",    icon: Settings,      label: "Paramètres" },
+          ] as const).map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
+                tab === key
+                  ? "bg-[#EEF2FF] text-[#4F46E5]"
+                  : "text-muted-foreground hover:text-[#0F172A] hover:bg-[#F8FAFF]"
+              )}
+            >
+              <Icon size={13} /> {label}
+            </button>
+          ))}
         </div>
         {tab === "fse" && (
           <Button size="sm" className="h-7 text-xs gap-1 px-2.5" onClick={() => { setShowNew(true); setSelected(null); }}>
@@ -98,6 +97,20 @@ export default function FacturationPage() {
       {tab === "dashboard" && (
         <div className="flex-1 overflow-y-auto bg-[#F8FAFF] p-6">
           <BillingDashboard />
+        </div>
+      )}
+
+      {/* ── Paramètres ── */}
+      {tab === "config" && (
+        <div className="flex-1 overflow-y-auto bg-[#F8FAFF] p-6">
+          <BillingConfigTab api={api} />
+        </div>
+      )}
+
+      {/* ── Note d'honoraires libre ── */}
+      {tab === "libre" && (
+        <div className="flex-1 overflow-y-auto bg-[#F8FAFF] p-6">
+          <LibreInvoiceTab accessToken={accessToken} api={api} />
         </div>
       )}
 
@@ -541,6 +554,327 @@ function Row({ label, value, valueClass }: { label: string; value: string; value
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{label}</span>
       <span className={valueClass}>{value}</span>
+    </div>
+  );
+}
+
+// ─── Paramètres facturation ───────────────────────────────────────────────────
+
+function BillingConfigTab({ api }: { api: Api }) {
+  const qc = useQueryClient();
+  const { data: config, isLoading } = useQuery<BillingConfig>({
+    queryKey: ["billing-config"],
+    queryFn: () => api.billing.getConfig(),
+  });
+
+  const [form, setForm] = useState<Partial<BillingConfig>>({});
+  const [dirty, setDirty] = useState(false);
+
+  const set = (key: keyof BillingConfig, value: string | boolean) => {
+    setForm((f) => ({ ...f, [key]: value }));
+    setDirty(true);
+  };
+
+  const save = useMutation({
+    mutationFn: () => api.billing.updateConfig(form),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["billing-config"] });
+      setDirty(false);
+      toast.success("Paramètres enregistrés");
+    },
+    onError: () => toast.error("Erreur lors de l'enregistrement"),
+  });
+
+  const val = (key: keyof BillingConfig): string =>
+    String((form[key] ?? config?.[key]) ?? "");
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-32">
+      <Loader2 size={18} className="animate-spin text-muted-foreground" />
+    </div>
+  );
+
+  return (
+    <div className="max-w-lg mx-auto space-y-6">
+      <div>
+        <h2 className="text-[15px] font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>
+          Paramètres de facturation
+        </h2>
+        <p className="text-[12px] text-muted-foreground mt-0.5">
+          Ces informations apparaissent sur vos feuilles de soins et notes d'honoraires.
+        </p>
+      </div>
+
+      {/* Identification */}
+      <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-4">
+        <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Identification</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="N° RPPS" value={val("rppsNumber")} onChange={(v) => set("rppsNumber", v)} placeholder="Ex : 10012345678" />
+          <Field label="N° AM (Assurance Maladie)" value={val("amNumber")} onChange={(v) => set("amNumber", v)} placeholder="Ex : 123456789" />
+          <Field label="N° FINESS" value={val("finessNumber")} onChange={(v) => set("finessNumber", v)} placeholder="Ex : 750123456" />
+          <Field label="SIRET" value={val("siretNumber")} onChange={(v) => set("siretNumber", v)} placeholder="Ex : 12345678900012" />
+        </div>
+      </div>
+
+      {/* Convention */}
+      <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-4">
+        <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Convention</h3>
+        <div>
+          <label className="text-[11px] font-medium text-muted-foreground">Secteur</label>
+          <div className="flex gap-2 mt-1">
+            {(["1", "2", "NC"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => set("sector", s)}
+                className={cn(
+                  "flex-1 text-[11px] py-1.5 rounded-lg border transition-colors",
+                  val("sector") === s
+                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] font-medium"
+                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]"
+                )}
+              >
+                {s === "1" ? "Secteur 1" : s === "2" ? "Secteur 2" : "Non conventionné"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={Boolean(form.isOPTAM ?? config?.isOPTAM)}
+            onChange={(e) => set("isOPTAM", e.target.checked)}
+            className="rounded"
+          />
+          <span className="text-[12px] text-[#0F172A]">Adhésion OPTAM / OPTAM-CO</span>
+        </label>
+      </div>
+
+      {/* Caisse */}
+      <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-4">
+        <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Caisse de rattachement</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Code caisse" value={val("caisseCode")} onChange={(v) => set("caisseCode", v)} placeholder="Ex : 750" />
+          <Field label="Libellé caisse" value={val("caisseLabel")} onChange={(v) => set("caisseLabel", v)} placeholder="Ex : CPAM Paris" />
+          <Field label="Centre de gestion" value={val("centreGestion")} onChange={(v) => set("centreGestion", v)} placeholder="Ex : 01" className="col-span-2" />
+        </div>
+      </div>
+
+      <Button
+        className="w-full h-9 text-sm gap-2"
+        onClick={() => save.mutate()}
+        disabled={!dirty || save.isPending}
+      >
+        {save.isPending && <Loader2 size={14} className="animate-spin" />}
+        Enregistrer les paramètres
+      </Button>
+    </div>
+  );
+}
+
+function Field({
+  label, value, onChange, placeholder, className,
+}: {
+  label: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-8 text-xs mt-1"
+      />
+    </div>
+  );
+}
+
+// ─── Note d'honoraires libre ──────────────────────────────────────────────────
+
+const PAYMENT_METHODS = ["Virement", "Carte bancaire", "Espèces", "Chèque"];
+
+function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api: Api }) {
+  const [patientFirstName, setPatientFirstName] = useState("");
+  const [patientLastName, setPatientLastName] = useState("");
+  const [patientBirthDate, setPatientBirthDate] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentMethod, setPaymentMethod] = useState("Virement");
+  const [notes, setNotes] = useState("");
+  const [lines, setLines] = useState<LibreInvoiceLine[]>([
+    { description: "", unitPrice: 0, quantity: 1 },
+  ]);
+  const [generating, setGenerating] = useState(false);
+
+  const total = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+
+  const setLine = (i: number, key: keyof LibreInvoiceLine, value: string | number) => {
+    setLines((prev) => prev.map((l, idx) => idx === i ? { ...l, [key]: value } : l));
+  };
+
+  const canGenerate = patientFirstName.trim() && patientLastName.trim() &&
+    lines.every((l) => l.description.trim() && l.unitPrice > 0);
+
+  async function generate() {
+    if (!canGenerate) return;
+    setGenerating(true);
+    try {
+      const res = await fetch(`${API}/billing/libre/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          patientFirstName: patientFirstName.trim(),
+          patientLastName: patientLastName.trim(),
+          patientBirthDate: patientBirthDate || null,
+          lines,
+          date,
+          paymentMethod,
+          notes: notes || null,
+        }),
+      });
+      if (!res.ok) { toast.error("Erreur génération PDF"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Note-honoraires-${patientLastName}-${date}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Note d'honoraires générée");
+    } catch {
+      toast.error("Erreur lors de la génération");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <div className="max-w-lg mx-auto space-y-5">
+      <div>
+        <h2 className="text-[15px] font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>
+          Note d'honoraires
+        </h2>
+        <p className="text-[12px] text-muted-foreground mt-0.5">
+          Pour les professionnels non conventionnés (psychologue, diététicien, ostéopathe…). Sans SESAM-Vitale.
+        </p>
+      </div>
+
+      {/* Patient */}
+      <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-3">
+        <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Patient</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[11px] font-medium text-muted-foreground">Prénom</label>
+            <Input value={patientFirstName} onChange={(e) => setPatientFirstName(e.target.value)}
+              placeholder="Prénom" className="h-8 text-xs mt-1" />
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-muted-foreground">Nom</label>
+            <Input value={patientLastName} onChange={(e) => setPatientLastName(e.target.value)}
+              placeholder="Nom" className="h-8 text-xs mt-1" />
+          </div>
+        </div>
+        <div>
+          <label className="text-[11px] font-medium text-muted-foreground">Date de naissance (optionnel)</label>
+          <Input type="date" value={patientBirthDate} onChange={(e) => setPatientBirthDate(e.target.value)}
+            className="h-8 text-xs mt-1 w-40" />
+        </div>
+      </div>
+
+      {/* Prestations */}
+      <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-3">
+        <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Prestations</h3>
+        {lines.map((line, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <Input
+              value={line.description}
+              onChange={(e) => setLine(i, "description", e.target.value)}
+              placeholder="Ex : Consultation diététique 45 min"
+              className="h-8 text-xs flex-1"
+            />
+            <Input
+              type="number"
+              value={line.unitPrice || ""}
+              onChange={(e) => setLine(i, "unitPrice", parseFloat(e.target.value) || 0)}
+              placeholder="Prix €"
+              className="h-8 text-xs w-24"
+              min={0}
+            />
+            <Input
+              type="number"
+              value={line.quantity}
+              onChange={(e) => setLine(i, "quantity", parseInt(e.target.value) || 1)}
+              className="h-8 text-xs w-14"
+              min={1}
+            />
+            {lines.length > 1 && (
+              <button onClick={() => setLines((prev) => prev.filter((_, idx) => idx !== i))}
+                className="text-muted-foreground hover:text-destructive shrink-0">
+                <Trash2 size={13} />
+              </button>
+            )}
+          </div>
+        ))}
+        <div className="flex items-center justify-between pt-1">
+          <button
+            onClick={() => setLines((prev) => [...prev, { description: "", unitPrice: 0, quantity: 1 }])}
+            className="flex items-center gap-1 text-[11px] text-[#4F46E5] hover:text-[#4338CA]"
+          >
+            <Plus size={12} /> Ajouter une prestation
+          </button>
+          <span className="text-[13px] font-bold text-[#0F172A]">
+            Total : {total.toFixed(2).replace(".", ",")} €
+          </span>
+        </div>
+      </div>
+
+      {/* Date + règlement */}
+      <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-3">
+        <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Date & règlement</h3>
+        <div>
+          <label className="text-[11px] font-medium text-muted-foreground">Date de la consultation</label>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+            className="h-8 text-xs mt-1 w-44" />
+        </div>
+        <div>
+          <label className="text-[11px] font-medium text-muted-foreground">Mode de règlement</label>
+          <div className="flex gap-2 mt-1 flex-wrap">
+            {PAYMENT_METHODS.map((m) => (
+              <button key={m} onClick={() => setPaymentMethod(m)}
+                className={cn(
+                  "text-[11px] px-3 py-1.5 rounded-lg border transition-colors",
+                  paymentMethod === m
+                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] font-medium"
+                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]"
+                )}>
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-[11px] font-medium text-muted-foreground">Notes (optionnel)</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Ex : Suivi dans le cadre d'un parcours pluridisciplinaire TCA"
+            rows={2}
+            className="w-full mt-1 rounded-lg border border-[#E8ECF4] px-3 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
+          />
+        </div>
+      </div>
+
+      <Button
+        className="w-full h-10 text-sm gap-2"
+        onClick={generate}
+        disabled={!canGenerate || generating}
+      >
+        {generating ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />}
+        Générer la note d'honoraires (PDF)
+      </Button>
     </div>
   );
 }
