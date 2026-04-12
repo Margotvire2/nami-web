@@ -19,6 +19,7 @@ import {
   BookOpen,
   CheckSquare,
   Receipt,
+  FlaskConical,
 } from "lucide-react";
 
 /*
@@ -39,6 +40,7 @@ const NAV_PATIENTS = [
   { href: "/alertes",     label: "Alertes",      icon: BellDot },
   { href: "/taches",      label: "Tâches",       icon: CheckSquare },
   { href: "/protocoles",  label: "Protocoles",   icon: BookOpen },
+  { href: "/intelligence", label: "Références",   icon: FlaskConical },
   { href: "/documents",   label: "Documents",    icon: FileText },
 ];
 

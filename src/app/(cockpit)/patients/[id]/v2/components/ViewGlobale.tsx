@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboard";
 
 interface Props {
@@ -33,6 +34,7 @@ export function ViewGlobale({ dashboard, careCaseId }: Props) {
         </div>
         <div className="space-y-4">
           <ActionsPanel actions={actions} />
+          <ConditionsCard careCaseId={careCaseId} />
           <FlagsBanner alerts={alerts} screenings={screenings} />
         </div>
       </div>
@@ -45,10 +47,13 @@ export function ViewGlobale({ dashboard, careCaseId }: Props) {
 // ══════════════════════════════════════════════════════
 
 function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
+  const qc = useQueryClient();
   const [sections, setSections] = useState<{ title: string; content: string }[]>([]);
   const [collapsed, setCollapsed] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [streamText, setStreamText] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
     api.get(`/care-cases/${careCaseId}`).then((res) => {
@@ -59,15 +64,49 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     }).catch(() => {});
   }, [careCaseId]);
 
-  async function generate() {
-    setLoading(true);
-    try {
-      const res = await api.post(`/intelligence/summary`, { careCaseId });
-      setSections(parseSummary(res.data?.summary || res.data?.content || ""));
-      setLastUpdated(new Date().toISOString());
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  }
+  const generate = useCallback(() => {
+    const token = (() => {
+      try { const s = localStorage.getItem("nami-auth"); return s ? JSON.parse(s)?.state?.accessToken : null; } catch { return null; }
+    })();
+    if (!token) return;
+    setIsStreaming(true);
+    setStreamText("");
+
+    const es = new EventSource(
+      `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(token)}`
+    );
+
+    es.onmessage = (e) => {
+      if (e.data === "[DONE]") {
+        es.close();
+        setIsStreaming(false);
+        qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["dashboard"] });
+        toast.success("Résumé IA généré");
+        // Recharger le résumé depuis la DB
+        api.get(`/care-cases/${careCaseId}`).then((res) => {
+          if (res.data?.clinicalSummary) {
+            setSections(parseSummary(res.data.clinicalSummary));
+            setLastUpdated(new Date().toISOString());
+          }
+        }).catch(() => {});
+        return;
+      }
+      try {
+        const { text, error } = JSON.parse(e.data);
+        if (error) { toast.error(error); es.close(); setIsStreaming(false); return; }
+        if (text) setStreamText((prev) => prev + text);
+      } catch { /* ignore parse errors */ }
+    };
+
+    es.onerror = () => {
+      es.close();
+      setIsStreaming(false);
+      toast.error("Erreur de connexion au résumé IA");
+    };
+  }, [careCaseId, qc, API_URL]);
 
   function parseSummary(text: string): { title: string; content: string }[] {
     if (!text) return [];
@@ -102,13 +141,24 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
           {lastUpdated && <span className="text-[10px] text-gray-400">{new Date(lastUpdated).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); generate(); }} disabled={loading} className="text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50">
-            {loading ? "…" : sections.length > 0 ? "Actualiser" : "Générer"}
+          <button onClick={(e) => { e.stopPropagation(); generate(); }} disabled={isStreaming} className="text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50">
+            {isStreaming ? "…" : sections.length > 0 ? "Actualiser" : "Générer"}
           </button>
           {sections.length > 0 && <Chevron open={!collapsed} />}
         </div>
       </button>
-      {!collapsed && sections.length > 0 && (
+      {isStreaming && (
+        <div className="px-5 py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 border-2 border-[#5B4EC4] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <span className="text-xs text-[#5B4EC4]">Génération en cours…</span>
+          </div>
+          {streamText && (
+            <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed max-h-40 overflow-y-auto">{streamText}</div>
+          )}
+        </div>
+      )}
+      {!isStreaming && !collapsed && sections.length > 0 && (
         <div className="px-5 pb-4 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
           {sections.map((s, i) => (
             <div key={i} className="rounded-lg bg-gray-50/70 p-3 border border-gray-100">
@@ -118,12 +168,6 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{s.content}</p>
             </div>
           ))}
-        </div>
-      )}
-      {loading && sections.length === 0 && (
-        <div className="px-5 pb-4 border-t border-gray-100 flex items-center gap-2 py-4">
-          <div className="w-4 h-4 border-2 border-[#5B4EC4] border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-gray-500">Génération…</span>
         </div>
       )}
     </div>
@@ -402,6 +446,170 @@ function FlagsBanner({ alerts, screenings }: { alerts: PatientDashboard["alerts"
             <div key={i} className="flex items-center justify-between py-0.5">
               <span className="text-gray-600">{s.fromLabel} → {s.toLabel}</span>
               {s.suggestedSpecialty && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EDE9FC] text-[#5B4EC4]">→ {s.suggestedSpecialty}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════
+// CONDITIONS CLINIQUES
+// ══════════════════════════════════════════════════════
+
+const CONDITION_TYPE_STYLE: Record<string, { badge: string; label: string }> = {
+  PRIMARY:     { badge: "bg-[#EDE9FC] text-[#5B4EC4] border-[#C4B5FD]",   label: "Principale" },
+  COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",    label: "Comorbidité" },
+  SUSPECTED:   { badge: "bg-amber-50 text-amber-700 border-amber-200",     label: "Suspectée" },
+};
+
+const SEVERITY_STYLE: Record<string, string> = {
+  mild:     "bg-green-50 text-green-700",
+  moderate: "bg-amber-50 text-amber-700",
+  severe:   "bg-red-50 text-red-700",
+};
+
+function ConditionsCard({ careCaseId }: { careCaseId: string }) {
+  const qc = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
+  const [condType, setCondType] = useState<"PRIMARY" | "COMORBIDITY" | "SUSPECTED">("COMORBIDITY");
+  const [severity, setSeverity] = useState<"" | "mild" | "moderate" | "severe">("");
+
+  const { data: conditions = [], isLoading } = useQuery({
+    queryKey: ["conditions", careCaseId],
+    queryFn: async () => {
+      const res = await api.get(`/care-cases/${careCaseId}/conditions`);
+      return res.data;
+    },
+  });
+
+  const { data: catalog = [] } = useQuery({
+    queryKey: ["conditions-catalog", careCaseId],
+    queryFn: async () => {
+      const res = await api.get(`/care-cases/${careCaseId}/conditions/catalog`);
+      return res.data;
+    },
+    enabled: addOpen,
+  });
+
+  const addMut = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await api.post(`/care-cases/${careCaseId}/conditions`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["conditions", careCaseId] });
+      setAddOpen(false); setSearch(""); setSelected(null); setSeverity("");
+      toast.success("Condition ajoutée");
+    },
+    onError: () => toast.error("Erreur lors de l'ajout"),
+  });
+
+  const resolveMut = useMutation({
+    mutationFn: async (conditionId: string) => {
+      const res = await api.patch(`/care-cases/${careCaseId}/conditions/${conditionId}/resolve`);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["conditions", careCaseId] });
+      toast.success("Condition résolue");
+    },
+  });
+
+  const active = (conditions as any[]).filter((c) => c.status === "active" || c.status === "suspected");
+  const filtered = (catalog as any[]).filter((e: any) =>
+    !search || e.label?.toLowerCase().includes(search.toLowerCase()) || e.code?.toLowerCase().includes(search.toLowerCase())
+  ).slice(0, 8);
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold text-gray-900 uppercase tracking-wider">Conditions</h3>
+        <button onClick={() => setAddOpen((o) => !o)} className="text-[11px] text-[#5B4EC4] hover:text-[#4A3DB3] font-medium">
+          + Ajouter
+        </button>
+      </div>
+
+      {addOpen && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2">
+          <input
+            placeholder="Rechercher (code ou libellé)…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setSelected(null); }}
+            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] bg-white"
+            autoFocus
+          />
+          {search && !selected && filtered.length > 0 && (
+            <div className="rounded-md border border-gray-200 bg-white max-h-36 overflow-y-auto divide-y divide-gray-50">
+              {filtered.map((e: any) => (
+                <button key={e.code} onClick={() => { setSelected(e); setCondType(e.type || "COMORBIDITY"); setSearch(e.label); }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-medium">{e.label}</span>
+                  <span className="text-[10px] font-mono text-gray-400 shrink-0">{e.code}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {selected && (
+            <div className="space-y-2">
+              <div className="flex gap-1 flex-wrap">
+                {(["PRIMARY", "COMORBIDITY", "SUSPECTED"] as const).map((t) => (
+                  <button key={t} onClick={() => setCondType(t)}
+                    className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${condType === t ? CONDITION_TYPE_STYLE[t].badge : "border-gray-200 text-gray-500 hover:border-[#5B4EC4]/30"}`}>
+                    {CONDITION_TYPE_STYLE[t].label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-1">
+                {(["mild", "moderate", "severe"] as const).map((s) => (
+                  <button key={s} onClick={() => setSeverity(severity === s ? "" : s)}
+                    className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${severity === s ? SEVERITY_STYLE[s] + " border-transparent" : "border-gray-200 text-gray-500"}`}>
+                    {s === "mild" ? "Légère" : s === "moderate" ? "Modérée" : "Sévère"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => { setAddOpen(false); setSearch(""); setSelected(null); }} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1">Annuler</button>
+            <button onClick={() => addMut.mutate({ conditionCode: selected?.code, conditionLabel: selected?.label, conditionType: condType, severity: severity || undefined })}
+              disabled={!selected || addMut.isPending}
+              className="text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50">
+              {addMut.isPending ? "…" : "Ajouter"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="space-y-1.5">
+          {[1, 2].map((i) => <div key={i} className="h-8 rounded-lg bg-gray-100 animate-pulse" />)}
+        </div>
+      ) : active.length === 0 && !addOpen ? (
+        <p className="text-xs text-gray-400 italic">Aucune condition documentée</p>
+      ) : (
+        <div className="space-y-1.5">
+          {active.map((c: any) => (
+            <div key={c.id} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-2.5 py-1.5 group">
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border shrink-0 ${CONDITION_TYPE_STYLE[c.conditionType]?.badge ?? "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                {CONDITION_TYPE_STYLE[c.conditionType]?.label ?? c.conditionType}
+              </span>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium truncate block">{c.conditionLabel}</span>
+                <span className="text-[10px] font-mono text-gray-400">{c.conditionCode}</span>
+              </div>
+              {c.severity && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${SEVERITY_STYLE[c.severity]}`}>
+                  {c.severity === "mild" ? "Légère" : c.severity === "moderate" ? "Modérée" : "Sévère"}
+                </span>
+              )}
+              <button onClick={() => resolveMut.mutate(c.id)} disabled={resolveMut.isPending}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-300 hover:text-red-400 shrink-0 text-xs" title="Résoudre">
+                ✕
+              </button>
             </div>
           ))}
         </div>

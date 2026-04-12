@@ -688,6 +688,7 @@ function PatientHeader({ careCase: c, onAddNote, onReferral, onTask, onMessage, 
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5" onClick={onMessage}><MessageSquare size={12} /> Message</Button>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5 text-red-600 border-red-200 hover:bg-red-50" onClick={onRecord}><Mic size={12} /> Enregistrer</Button>
           <Link href="/agenda"><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"><CalendarPlus size={12} /> RDV</Button></Link>
+          <Link href={`/patients/${careCaseId}/v2`}><Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5 text-[#5B4EC4] border-[#5B4EC4]/30 hover:bg-[#F8F7FD]"><Sparkles size={12} /> Vue V2</Button></Link>
           <Button size="sm" variant="outline" className="text-xs gap-1.5 h-7 px-2.5"
             onClick={handleAiSummarize} disabled={aiStreaming}>
             <Sparkles size={12} /> {aiStreaming ? "Génération…" : "Résumé IA"}
