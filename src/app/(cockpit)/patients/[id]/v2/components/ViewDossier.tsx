@@ -54,7 +54,7 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
       ) : activeTab === "bio" ? (
         <BioPanel careCaseId={careCaseId} careCase={careCase} />
       ) : null}
-      {activeTab === "journal" && <JournalPanel careCaseId={careCaseId} />}
+      {activeTab === "journal" && <JournalPanel careCaseId={careCaseId} careCase={careCase} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
       {activeTab === "documents" && <DocumentsPanel careCaseId={careCaseId} />}
     </div>
@@ -329,12 +329,31 @@ function BioSparkline({ values, status }: { values: number[]; status: string }) 
 
 type PeriodFilter = "today" | "7d" | "30d" | "all";
 
-function JournalPanel({ careCaseId }: { careCaseId: string }) {
+interface MetabolicNeeds {
+  source: "BIA" | "formula" | null;
+  mb: number | null;
+  det: number | null;
+  minIntake: number | null;
+  maxIntake: number | null;
+  nap: number | null;
+  napDescription: string | null;
+  formula: string | null;
+  measuredAt: string | null;
+}
+
+function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseDetail }) {
   const [period, setPeriod] = useState<PeriodFilter>("7d");
   const { data: journalEntries, isLoading } = useQuery({
     queryKey: ["journal", careCaseId],
     queryFn: async () => {
       const res = await api.get(`/care-cases/${careCaseId}/journal`);
+      return res.data;
+    },
+  });
+  const { data: metabolic } = useQuery<MetabolicNeeds>({
+    queryKey: ["metabolic-needs", careCaseId],
+    queryFn: async () => {
+      const res = await api.get(`/care-cases/${careCaseId}/metabolic-needs`);
       return res.data;
     },
   });
@@ -383,6 +402,39 @@ function JournalPanel({ careCaseId }: { careCaseId: string }) {
         </div>
       </div>
 
+      {metabolic?.mb && (
+        <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">⚡ Besoins énergétiques</p>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white border border-indigo-200 text-indigo-600 font-medium">
+              {metabolic.source === "BIA" ? "Biody Xpert" : "Mifflin-St Jeor"}
+              {metabolic.measuredAt && ` · ${new Date(metabolic.measuredAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-lg bg-white border border-indigo-100 p-2.5 text-center">
+              <p className="text-lg font-bold text-gray-900">{metabolic.mb.toLocaleString("fr-FR")}</p>
+              <p className="text-[10px] text-gray-500">MB (kcal/j)</p>
+            </div>
+            <div className="rounded-lg bg-white border border-indigo-100 p-2.5 text-center">
+              <p className="text-lg font-bold text-gray-900">{metabolic.det?.toLocaleString("fr-FR") ?? "—"}</p>
+              <p className="text-[10px] text-gray-500">DET (kcal/j)</p>
+            </div>
+            <div className="rounded-lg bg-white border border-indigo-100 p-2.5 text-center">
+              <p className="text-lg font-bold text-gray-900">
+                {metabolic.minIntake && metabolic.maxIntake
+                  ? `${metabolic.minIntake.toLocaleString("fr-FR")}–${metabolic.maxIntake.toLocaleString("fr-FR")}`
+                  : "—"}
+              </p>
+              <p className="text-[10px] text-gray-500">Apports (kcal/j)</p>
+            </div>
+          </div>
+          {metabolic.napDescription && (
+            <p className="text-[10px] text-indigo-500 mt-2">NAP {metabolic.nap} · {metabolic.napDescription}</p>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <p className="text-xs text-gray-500 mb-1">🧠 Énergie</p>
@@ -421,7 +473,17 @@ function JournalPanel({ careCaseId }: { careCaseId: string }) {
                     const dayStr = d.toISOString().split("T")[0];
                     const dayMeals = meals.filter((m: any) => new Date(m.createdAt || m.date).toISOString().split("T")[0] === dayStr);
                     const filled = dayMeals[si];
-                    return <div key={di} className={`h-6 rounded-sm border ${filled ? "bg-green-300 border-green-400" : "bg-gray-50 border-gray-100"}`} />;
+                    const photo = filled?.payload?.photoUrl as string | undefined;
+                    return photo ? (
+                      <div key={di} className="h-6 rounded-sm border border-green-400 overflow-hidden relative group cursor-pointer">
+                        <img src={photo} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-[8px]">📷</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={di} className={`h-6 rounded-sm border ${filled ? "bg-green-300 border-green-400" : "bg-gray-50 border-gray-100"}`} />
+                    );
                   })}
                 </div>
               ))}
