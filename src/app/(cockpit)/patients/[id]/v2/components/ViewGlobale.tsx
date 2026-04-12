@@ -5,13 +5,15 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboard";
+import { CareCaseDetail } from "@/lib/api";
 
 interface Props {
   dashboard: PatientDashboard;
   careCaseId: string;
+  careCase?: CareCaseDetail;
 }
 
-export function ViewGlobale({ dashboard, careCaseId }: Props) {
+export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
   const { indicators, questionnaires, actions, alerts, screenings } = dashboard;
 
   const { data: protocolData } = useQuery({
@@ -34,6 +36,7 @@ export function ViewGlobale({ dashboard, careCaseId }: Props) {
         </div>
         <div className="space-y-4">
           <ActionsPanel actions={actions} />
+          {careCase && <PatientInfoCard careCase={careCase} />}
           <ConditionsCard careCaseId={careCaseId} />
           <FlagsBanner alerts={alerts} screenings={screenings} />
         </div>
@@ -614,6 +617,53 @@ function ConditionsCard({ careCaseId }: { careCaseId: string }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════
+// INFORMATIONS PATIENT
+// ══════════════════════════════════════════════════════
+
+function PatientInfoCard({ careCase }: { careCase: CareCaseDetail }) {
+  const p = careCase.patient;
+  const age = p.birthDate
+    ? Math.floor((Date.now() - new Date(p.birthDate).getTime()) / (365.25 * 24 * 3600000))
+    : null;
+
+  const rows: { label: string; value: string | null | undefined }[] = [
+    {
+      label: "Naissance",
+      value: p.birthDate
+        ? `${new Date(p.birthDate).toLocaleDateString("fr-FR")}${age ? ` (${age} ans)` : ""}`
+        : null,
+    },
+    { label: "Sexe", value: p.sex === "F" || p.sex === "FEMALE" ? "Féminin" : p.sex === "M" || p.sex === "MALE" ? "Masculin" : p.sex ?? null },
+    { label: "Téléphone", value: p.phone ?? null },
+    { label: "Email", value: p.email ?? null },
+    {
+      label: "Lead",
+      value: careCase.leadProvider
+        ? `${careCase.leadProvider.person.firstName} ${careCase.leadProvider.person.lastName}`
+        : null,
+    },
+  ].filter((r) => r.value);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <h3 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-3">
+        Informations patient
+      </h3>
+      <div className="space-y-1.5">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-baseline gap-2">
+            <span className="text-[11px] text-gray-400 w-20 shrink-0">{r.label}</span>
+            <span className="text-xs text-gray-700 break-all">{r.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

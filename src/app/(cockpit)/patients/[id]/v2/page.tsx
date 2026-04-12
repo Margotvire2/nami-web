@@ -297,7 +297,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
           {activeTab === "globale" && (
-            <ViewGlobale dashboard={dash} careCaseId={id} />
+            <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} />
           )}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} />}
           {activeTab === "coordination" && (
