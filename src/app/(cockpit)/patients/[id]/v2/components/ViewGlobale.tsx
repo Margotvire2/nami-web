@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
+import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 
 interface Props {
   dashboard: PatientDashboard;
@@ -16,19 +17,11 @@ interface Props {
 export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
   const { indicators, questionnaires, actions, alerts, screenings } = dashboard;
 
-  const { data: protocolData } = useQuery({
-    queryKey: ["protocol", careCaseId],
-    queryFn: async () => {
-      const res = await api.get(`/protocols/care-cases/${careCaseId}/active-protocol`);
-      return res.data;
-    },
-  });
-
   return (
     <div className="space-y-5">
       <ClinicalSummaryCard careCaseId={careCaseId} />
       <DeltaTickerBanner indicators={indicators} questionnaires={questionnaires} />
-      {protocolData && <ProtocolBanner protocol={protocolData} />}
+      <ProtocolBanner careCaseId={careCaseId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="lg:col-span-3">
@@ -217,55 +210,6 @@ function DeltaTickerBanner({ indicators, questionnaires }: {
             {d.label} {d.delta > 0 ? "+" : ""}{fv(d.delta)}{d.unit ? ` ${d.unit}` : ""} {d.delta > 0 ? "↑" : "↓"}
           </span>
         ))}
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════
-// PROTOCOLE HDJ
-// ══════════════════════════════════════════════════════
-
-function ProtocolBanner({ protocol }: { protocol: any }) {
-  if (!protocol?.name) return null;
-
-  const steps = protocol.steps || protocol.phases || [];
-  const completedCount = steps.filter((s: any) => s.status === "COMPLETED" || s.completed).length;
-
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span>📋</span>
-          <h3 className="text-sm font-semibold text-gray-900">{protocol.name}</h3>
-          {protocol.date && <span className="text-xs text-gray-400">· {new Date(protocol.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</span>}
-        </div>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
-          {completedCount}/{steps.length} étapes
-        </span>
-      </div>
-      <div className="flex items-center gap-1 overflow-x-auto pb-1">
-        {steps.map((step: any, i: number) => {
-          const isDone = step.status === "COMPLETED" || step.completed;
-          const isCurrent = step.status === "IN_PROGRESS" || step.current;
-          return (
-            <div key={i} className="flex items-center">
-              {i > 0 && <span className={`mx-1 text-xs ${isDone ? "text-green-400" : "text-gray-300"}`}>→</span>}
-              <div className="flex flex-col items-center min-w-[80px]">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 ${
-                  isDone ? "bg-green-100 border-green-400 text-green-700" :
-                  isCurrent ? "bg-blue-100 border-blue-400 text-blue-700" :
-                  "bg-gray-50 border-gray-200 text-gray-400"
-                }`}>
-                  {isDone ? "✓" : isCurrent ? "●" : "○"}
-                </div>
-                <span className={`text-[10px] mt-1 text-center font-medium ${isDone ? "text-green-600" : isCurrent ? "text-blue-600" : "text-gray-400"}`}>
-                  {step.specialtyLabel || step.label || step.name}
-                </span>
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );
