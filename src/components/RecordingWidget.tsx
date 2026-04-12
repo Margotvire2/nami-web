@@ -131,7 +131,7 @@ export function RecordingWidget() {
           </p>
           <div className="flex gap-2">
             <Link
-              href={`/patients/${rec.careCaseId}`}
+              href={`/patients/${rec.careCaseId}/v2`}
               onClick={rec.dismiss}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
             >
