@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
@@ -583,8 +583,21 @@ const UPLOAD_TYPES = [
 function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [uploadType, setUploadType] = useState("OTHER");
   const [uploading, setUploading] = useState(false);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
+
+  useEffect(() => {
+    if (!showUploadMenu) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowUploadMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showUploadMenu]);
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ["documents", careCaseId],
@@ -616,11 +629,14 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: form,
       });
-      if (!res.ok) throw new Error("Erreur upload");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as Record<string, string>).error || `Erreur ${res.status}`);
+      }
       queryClient.invalidateQueries({ queryKey: ["documents", careCaseId] });
       toast.success("Document ajouté");
-    } catch {
-      toast.error("Erreur lors de l'upload");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de l'upload");
     } finally {
       setUploading(false);
     }
@@ -768,22 +784,31 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
             </button>
           ))}
         </div>
-        <div className="relative group">
+        <div className="relative" ref={menuRef}>
           <button
             disabled={uploading}
+            onClick={() => setShowUploadMenu((v) => !v)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             {uploading ? "Upload…" : "+ Ajouter"}
           </button>
-          <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-1.5 hidden group-hover:block z-50 min-w-[160px]">
-            {UPLOAD_TYPES.map((t) => (
-              <button key={t.type} onClick={() => { setUploadType(t.type); fileInputRef.current?.click(); }}
-                className="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+          {showUploadMenu && (
+            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-1.5 z-50 min-w-[160px]">
+              {UPLOAD_TYPES.map((t) => (
+                <button
+                  key={t.type}
+                  onClick={() => {
+                    setUploadType(t.type);
+                    setShowUploadMenu(false);
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
