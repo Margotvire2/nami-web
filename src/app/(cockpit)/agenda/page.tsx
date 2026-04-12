@@ -418,7 +418,11 @@ export default function AgendaPage() {
                     const rawH = MIN_H + (e.clientY - rect.top) / HOUR_H
                     const h = Math.floor(rawH)
                     const m = Math.round((rawH - h) * 4) * 15
-                    const loc = agenda.locations[0] ?? null
+                    const dayName = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][date.getDay()]
+                    const loc = agenda.locations.find(l => {
+                      const sched = l.schedule ?? {}
+                      return Array.isArray(sched[dayName]) && (sched[dayName] as Array<unknown>).length > 0
+                    }) ?? agenda.locations[0] ?? null
                     setCreateCtx({ date, hour: h, minute: m, location: loc })
                   }}
                 />
@@ -494,7 +498,11 @@ export default function AgendaPage() {
           hour={createCtx.hour}
           minute={createCtx.minute}
           location={createCtx.location}
-          consultationTypes={agenda.consultationTypes}
+          consultationTypes={(() => {
+            const allowed = createCtx.location?.allowedConsultTypes
+            if (!allowed || allowed.length === 0) return agenda.consultationTypes
+            return agenda.consultationTypes.filter(ct => allowed.includes(ct.id ?? ""))
+          })()}
           patients={agenda.patients}
           isCreating={agenda.isCreating}
           providerId={agenda.providerId}

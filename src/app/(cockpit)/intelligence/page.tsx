@@ -142,10 +142,12 @@ function KnowledgeDetailModal({
   const { accessToken } = useAuthStore();
   const api = apiWithToken(accessToken!);
 
-  const { data: entry, isLoading } = useQuery<KnowledgeEntryDetail>({
+  const { data: entry, isLoading, isError } = useQuery<KnowledgeEntryDetail>({
     queryKey: ["knowledge-entry", entryId],
     queryFn: () => api.intelligence.knowledgeEntry(entryId),
+    enabled: !!entryId,
     staleTime: 5 * 60_000,
+    retry: 1,
   });
 
   useEffect(() => {
@@ -233,6 +235,11 @@ function KnowledgeDetailModal({
               {[...Array(8)].map((_, i) => (
                 <div key={i} className={`h-3.5 rounded bg-gray-100 animate-pulse ${i % 3 === 2 ? "w-2/3" : "w-full"}`} />
               ))}
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2 text-center">
+              <p className="text-sm font-medium text-gray-600">Fiche introuvable</p>
+              <p className="text-xs text-gray-400">Ce contenu n&apos;est pas disponible.</p>
             </div>
           ) : entry ? (
             <KnowledgeContentRenderer content={entry.content} source={entry.source} />

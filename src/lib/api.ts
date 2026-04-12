@@ -774,6 +774,9 @@ export interface ConsultationLocation {
   color: string | null;
   isActive: boolean;
   createdAt: string;
+  allowedConsultTypes: string[];
+  activeDays: string[];
+  schedule: Record<string, Array<{ start: string; end: string }>>;
 }
 
 export interface CreateLocationInput {

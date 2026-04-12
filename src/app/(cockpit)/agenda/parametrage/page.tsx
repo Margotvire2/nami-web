@@ -408,6 +408,8 @@ export default function ParametresAgenda() {
         address: loc.address || undefined,
         instructions: loc.accessInfo || undefined,
         isActive: loc.active,
+        allowedConsultTypes: loc.allowedConsultIds,
+        schedule: loc.schedule,
       };
       if (loc.id && !loc.id.startsWith("new_")) {
         return api.locations.update(loc.id, payload);
