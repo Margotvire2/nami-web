@@ -576,6 +576,10 @@ const UPLOAD_TYPES = [
   { label: "Ordonnance", type: "PRESCRIPTION" },
   { label: "Compte rendu", type: "CONSULTATION_REPORT" },
   { label: "Bilan biologique", type: "LAB_REPORT" },
+  { label: "Impédancemétrie", type: "IMPEDANCE_REPORT" },
+  { label: "DXA / Densitométrie", type: "DXA_REPORT" },
+  { label: "ECG / EFR", type: "ECG_REPORT" },
+  { label: "Imagerie", type: "IMAGING" },
   { label: "Courrier", type: "LETTER" },
   { label: "Autre", type: "OTHER" },
 ];
@@ -745,18 +749,25 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   };
 
   const docTypeIcons: Record<string, string> = {
-    PRESCRIPTION: "💊", LAB_REPORT: "🧪", DISCHARGE_SUMMARY: "🏥",
-    REFERRAL_LETTER: "↗️", CONSULTATION_REPORT: "📋", IMAGING: "🩻",
-    TRANSCRIPTION: "🎙️", PATIENT_UPLOAD: "📱", OTHER: "📄",
+    PRESCRIPTION: "💊", LAB_REPORT: "🧪", BIOLOGICAL_REPORT: "🧪",
+    DISCHARGE_SUMMARY: "🏥", REFERRAL_LETTER: "↗️", CONSULTATION_REPORT: "📋",
+    IMAGING: "🩻", IMPEDANCE_REPORT: "⚖️", DXA_REPORT: "🦴",
+    ECG_REPORT: "🫀", TRANSCRIPTION: "🎙️", PATIENT_UPLOAD: "📱", OTHER: "📄",
+    LETTER: "✉️",
   };
   const docTypeLabels: Record<string, string> = {
-    PRESCRIPTION: "Ordonnance", LAB_REPORT: "Bilan biologique",
+    PRESCRIPTION: "Ordonnance", LAB_REPORT: "Bilan biologique", BIOLOGICAL_REPORT: "Bilan biologique",
     DISCHARGE_SUMMARY: "CR d'hospitalisation", REFERRAL_LETTER: "Courrier d'adressage",
     CONSULTATION_REPORT: "CR de consultation", IMAGING: "Imagerie",
-    TRANSCRIPTION: "Transcription", PATIENT_UPLOAD: "Document patient", OTHER: "Document",
+    IMPEDANCE_REPORT: "Bilan d'impédancemétrie", DXA_REPORT: "DXA / Densitométrie",
+    ECG_REPORT: "ECG / EFR", TRANSCRIPTION: "Transcription",
+    PATIENT_UPLOAD: "Document patient", OTHER: "Document", LETTER: "Courrier",
   };
 
-  const isBioDoc = (doc: any) => doc.documentType === "LAB_REPORT" || doc.documentType === "BIOLOGICAL_REPORT";
+  const isBioDoc = (doc: any) => [
+    "LAB_REPORT", "BIOLOGICAL_REPORT", "IMPEDANCE_REPORT",
+    "DXA_REPORT", "ECG_REPORT", "IMAGING", "OTHER",
+  ].includes(doc.documentType);
 
   return (
     <div>
