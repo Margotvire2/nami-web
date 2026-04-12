@@ -14,9 +14,11 @@ export type ConsultationType = "suivi" | "premiere" | "teleconsult"
 export interface DashboardConsultation {
   id: string
   time: string
+  startAt: string
   patient: string
   patientId: string
   careCaseId: string | null
+  caseType: string | null
   initials: string
   type: ConsultationType
   typeLabel: string
@@ -95,6 +97,7 @@ interface ApiAppointment {
   patient: { id: string; firstName: string; lastName: string; birthDate?: string; phone?: string; email?: string }
   provider: { person: { firstName: string; lastName: string } }
   consultationType: { name: string; durationMinutes: number } | null
+  careCase?: { caseType: string } | null
 }
 
 function mapAppointments(dtos: ApiAppointment[]): DashboardConsultation[] {
@@ -126,9 +129,11 @@ function mapAppointments(dtos: ApiAppointment[]): DashboardConsultation[] {
     return {
       id: dto.id,
       time: formatTime(dto.startAt),
+      startAt: dto.startAt,
       patient: `${dto.patient.firstName} ${dto.patient.lastName}`,
       patientId: dto.patient.id,
       careCaseId: dto.careCaseId ?? null,
+      caseType: dto.careCase?.caseType ?? null,
       initials: toInitials(dto.patient.firstName, dto.patient.lastName),
       type,
       typeLabel: dto.consultationType?.name ?? deriveTypeLabel(type),

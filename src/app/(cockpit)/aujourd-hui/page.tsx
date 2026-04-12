@@ -7,23 +7,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Stethoscope, ArrowLeftRight, Clock, ChevronRight, X,
-  MapPin, Video, Phone, Mail, Check,
+  MapPin, Video, Phone, Mail, Check, Play, ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
 import { KnowledgeSearch } from "@/components/nami/KnowledgeSearch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiWithToken, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral } from "@/lib/api";
+import { apiWithToken, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral, type TaskWithContext } from "@/lib/api";
 import { toast } from "sonner";
+import { useConsultation } from "@/contexts/ConsultationContext";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ACTUALITÉS RÉSEAU — static (pas de backend pour l'instant)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const NEWS_ITEMS = [
-  { id: "n1", emoji: "🏥", entity: "CHU Necker", title: "Nouvelle procédure HAD pour TCA", meta: "Publiée hier · 2 min de lecture" },
-  { id: "n2", emoji: "📍", entity: "CPTS Paris 14", title: "Réunion plénière — 28 avril", meta: "Inscription ouverte" },
-  { id: "n3", emoji: "🔬", entity: "Réseau Obésité IDF", title: "Webinaire chirurgie bariatrique", meta: "Jeudi 17 avril · 18h00" },
+  { id: "n1", emoji: "🏥", entity: "CHU Necker", title: "Nouvelle procédure HAD pour TCA", meta: "Publiée hier · 2 min de lecture", isNew: true },
+  { id: "n2", emoji: "📍", entity: "CPTS Paris 14", title: "Réunion plénière — 28 avril", meta: "Inscription ouverte", isNew: false },
+  { id: "n3", emoji: "🔬", entity: "Réseau Obésité IDF", title: "Webinaire chirurgie bariatrique", meta: "Jeudi 17 avril · 18h00", isNew: false },
 ];
 
 const PENDING_REFERRAL_STATUSES = ["SENT", "RECEIVED", "UNDER_REVIEW"];
@@ -38,6 +40,17 @@ const TYPE_PILL: Record<string, { bg: string; text: string }> = {
   teleconsult: { bg: "bg-sky-50",    text: "text-sky-600" },
 };
 
+const CASE_TYPE_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+  TCA:          { bg: "bg-rose-50",   text: "text-rose-600",   label: "TCA" },
+  OBESITY:      { bg: "bg-teal-50",   text: "text-teal-600",   label: "Obésité" },
+  METABOLIC:    { bg: "bg-orange-50", text: "text-orange-600", label: "Métabolique" },
+  MENTAL_HEALTH:{ bg: "bg-violet-50", text: "text-violet-600", label: "Santé mentale" },
+  PEDIATRIC:    { bg: "bg-sky-50",    text: "text-sky-600",    label: "Pédiatrie" },
+  CHRONIC_PAIN: { bg: "bg-amber-50",  text: "text-amber-600",  label: "Douleur" },
+};
+
+const PRIORITY_ORDER: Record<string, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+
 const AVATAR_COLORS = ["bg-indigo-100 text-indigo-700", "bg-violet-100 text-violet-700", "bg-rose-100 text-rose-700", "bg-teal-100 text-teal-700", "bg-amber-100 text-amber-700"];
 function avatarColor(name: string): string {
   let h = 0;
@@ -51,6 +64,12 @@ function formatGap(mins: number): string {
   return h > 0 ? (m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`) : `${m}min`;
 }
 
+// Vrai si le RDV démarre dans les 30 prochaines minutes ou est passé non complété
+function isImminent(c: DashboardConsultation): boolean {
+  const minsUntil = (new Date(c.startAt).getTime() - Date.now()) / 60_000;
+  return c.status === "next" || (c.status === "upcoming" && minsUntil <= 30);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -59,12 +78,46 @@ export default function DashboardPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { user, accessToken } = useAuthStore();
+  const { startConsultation } = useConsultation();
 
   // ── RDV du jour ──
   const { consultations, nextConsultation: nextConsult, totalToday, isLoading, isError, refetch } = useDashboard();
 
-  // ── Adressages envoyés en attente ──
+  // ── Tâches du provider (cross-care-case) ──
   const api = apiWithToken(accessToken!);
+  const { data: allTasks = [] } = useQuery<TaskWithContext[]>({
+    queryKey: ["tasks-mine"],
+    queryFn: () => api.tasksMine.list(),
+    enabled: !!accessToken,
+    refetchInterval: 60_000,
+  });
+
+  // Tâches non complétées, triées par urgence
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const pendingTasks = allTasks
+    .filter((t) => t.status !== "COMPLETED" && t.status !== "CANCELLED")
+    .sort((a, b) => {
+      const aOverdue = a.dueDate && new Date(a.dueDate) < new Date();
+      const bOverdue = b.dueDate && new Date(b.dueDate) < new Date();
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+      const aPrio = PRIORITY_ORDER[a.priority] ?? 2;
+      const bPrio = PRIORITY_ORDER[b.priority] ?? 2;
+      return aPrio - bPrio;
+    });
+
+  // Tâches en retard ou dues aujourd'hui par careCaseId (pour badge ⚠)
+  const taskAlertByCase = new Map<string, number>();
+  for (const t of pendingTasks) {
+    if (!t.careCase?.id) continue;
+    const isOverdueOrToday = t.dueDate && new Date(t.dueDate) <= today;
+    if (isOverdueOrToday) {
+      taskAlertByCase.set(t.careCase.id, (taskAlertByCase.get(t.careCase.id) ?? 0) + 1);
+    }
+  }
+
+  // ── Adressages envoyés en attente ──
   const { data: outgoingReferrals = [] } = useQuery({
     queryKey: ["referrals-outgoing-pending"],
     queryFn: () => api.referrals.outgoing(),
@@ -77,13 +130,24 @@ export default function DashboardPage() {
 
   const selected = consultations.find((c: DashboardConsultation) => c.id === selectedId) ?? null;
 
+  async function handleStartConsultation(c: DashboardConsultation) {
+    if (!c.careCaseId) return;
+    try {
+      await startConsultation({ careCaseId: c.careCaseId, patientName: c.patient });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible de démarrer");
+    }
+  }
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-white border-b border-[#E8ECF4] px-6 py-5 shrink-0">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Bonjour{user ? `, ${user.firstName}` : ""}</h1>
+            <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>
+              Bonjour{user ? `, ${user.firstName}` : ""}
+            </h1>
             <KnowledgeSearch className="w-80 hidden sm:block" />
           </div>
           <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -97,7 +161,7 @@ export default function DashboardPage() {
             )}
             {nextConsult && (
               <button onClick={() => setSelectedId(nextConsult.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4F46E5] text-white text-[13px] font-medium hover:bg-[#4338CA] transition-colors">
-                <Clock size={14} /> Dans 15min · {nextConsult.patient} · {nextConsult.time}
+                <Clock size={14} /> Prochain · {nextConsult.patient} · {nextConsult.time}
               </button>
             )}
           </div>
@@ -109,8 +173,10 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex gap-6 items-start flex-col lg:flex-row">
 
-            {/* ── Colonne gauche — Timeline ── */}
-            <div className="w-full lg:flex-[60] min-w-0">
+            {/* ── Colonne gauche 2/3 ── */}
+            <div className="w-full lg:flex-[2] min-w-0 space-y-5">
+
+              {/* MA JOURNÉE */}
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3 }}>
                 <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E8ECF4" }}>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-5" style={{ fontFamily: "var(--font-inter)" }}>MA JOURNÉE</p>
@@ -120,13 +186,11 @@ export default function DashboardPage() {
                       <div className="w-5 h-5 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
-
                   {isError && (
                     <div className="text-center py-8 text-[13px] text-red-400">
                       Erreur de chargement — <button onClick={() => refetch()} className="underline">Réessayer</button>
                     </div>
                   )}
-
                   {!isLoading && !isError && consultations.length === 0 && (
                     <div className="text-center py-8 text-[13px] text-[#94A3B8]">
                       Aucune consultation aujourd&apos;hui
@@ -135,11 +199,14 @@ export default function DashboardPage() {
 
                   <div className="space-y-0">
                     {consultations.map((c: DashboardConsultation, i: number) => {
-                      const tp = TYPE_PILL[c.type];
+                      const tp = TYPE_PILL[c.type] ?? TYPE_PILL.suivi;
                       const isPast = c.status === "past";
                       const isNext = c.status === "next";
+                      const imminent = isImminent(c);
+                      const alertCount = c.careCaseId ? (taskAlertByCase.get(c.careCaseId) ?? 0) : 0;
+                      const caseBadge = c.caseType ? CASE_TYPE_BADGE[c.caseType] : null;
 
-                      // Gap before this consultation
+                      // Gap avant ce RDV
                       const prevEndMin = i > 0 ? (() => {
                         const prev = consultations[i - 1];
                         const [ph, pm] = prev.time.split(":").map(Number);
@@ -151,7 +218,6 @@ export default function DashboardPage() {
 
                       return (
                         <div key={c.id}>
-                          {/* Gap line */}
                           {gap >= 45 && (
                             <div className="flex items-center gap-3 py-3 px-2">
                               <div className="flex-1 border-t border-dashed border-[#E2E8F0]" />
@@ -160,25 +226,23 @@ export default function DashboardPage() {
                             </div>
                           )}
 
-                          {/* Row */}
-                          <motion.button
+                          <motion.div
                             initial={{ opacity: 0, x: -6 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.15 + i * 0.05, duration: 0.2 }}
-                            onClick={() => setSelectedId(c.id)}
                             className={cn(
-                              "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-150 group",
+                              "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-150 group",
                               isPast ? "opacity-50" : "",
                               isNext ? "bg-indigo-50/50" : "hover:bg-[#F8FAFC]",
                               selectedId === c.id ? "ring-2 ring-[#4F46E5] bg-indigo-50/30" : ""
                             )}
                           >
-                            {/* Time */}
+                            {/* Heure */}
                             <span className={cn("w-12 text-[13px] font-medium tabular-nums shrink-0", isPast ? "text-[#CBD5E1]" : "text-[#64748B]")} style={{ fontFamily: "var(--font-inter)" }}>
                               {c.time}
                             </span>
 
-                            {/* Dot */}
+                            {/* Dot statut */}
                             {isPast ? (
                               <div className="w-5 h-5 rounded-full bg-[#CBD5E1] flex items-center justify-center shrink-0"><Check size={10} className="text-white" /></div>
                             ) : isNext ? (
@@ -188,13 +252,26 @@ export default function DashboardPage() {
                             )}
 
                             {/* Avatar */}
-                            <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0", avatarColor(c.patient))}>
+                            <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 cursor-pointer hover:ring-2 hover:ring-[#4F46E5]", avatarColor(c.patient))}
+                              onClick={() => c.careCaseId && router.push(`/patients/${c.careCaseId}`)}>
                               {c.initials}
                             </div>
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[14px] font-semibold text-[#0F172A] truncate" style={{ fontFamily: "var(--font-jakarta)" }}>{c.patient}</p>
+                            {/* Infos patient */}
+                            <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedId(c.id)}>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-[14px] font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>{c.patient}</p>
+                                {caseBadge && (
+                                  <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", caseBadge.bg, caseBadge.text)}>
+                                    {caseBadge.label}
+                                  </span>
+                                )}
+                                {alertCount > 0 && (
+                                  <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5" title={`${alertCount} tâche${alertCount > 1 ? "s" : ""} en retard`}>
+                                    <AlertTriangle size={9} />  {alertCount}
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <span className={cn("text-[11px] font-medium px-2 py-0.5 rounded-full", tp.bg, tp.text)}>{c.typeLabel}</span>
                                 <span className="text-[11px] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>{c.duration}</span>
@@ -204,32 +281,45 @@ export default function DashboardPage() {
                               </div>
                             </div>
 
-                            {/* Badges */}
-                            {isNext && (
-                              <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">
-                                Dans 15min
-                              </motion.span>
-                            )}
-
-                            <ChevronRight size={14} className="text-[#CBD5E1] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </motion.button>
+                            {/* Badges + actions droite */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {isNext && (
+                                <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full hidden sm:inline">
+                                  Maintenant
+                                </motion.span>
+                              )}
+                              {imminent && c.careCaseId && (
+                                <button
+                                  onClick={() => handleStartConsultation(c)}
+                                  className="h-7 px-2.5 rounded-lg bg-[#4F46E5] text-white text-[11px] font-semibold flex items-center gap-1 hover:bg-[#4338CA] transition-colors"
+                                >
+                                  <Play size={10} fill="currentColor" /> Démarrer
+                                </button>
+                              )}
+                              <ChevronRight size={14} className="text-[#CBD5E1] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setSelectedId(c.id)} />
+                            </div>
+                          </motion.div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
               </motion.div>
+
+              {/* À FAIRE */}
+              <TachesSection tasks={pendingTasks.slice(0, 5)} api={api} />
             </div>
 
-            {/* ── Colonne droite ── */}
-            <div className="w-full lg:flex-[40] min-w-0 space-y-5">
+            {/* ── Colonne droite 1/3 ── */}
+            <div className="w-full lg:flex-[1] min-w-0 space-y-5">
+
               {/* ADRESSAGES ENVOYÉS EN ATTENTE */}
               {pendingOutgoing.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
                   <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>MES ADRESSAGES EN ATTENTE</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ADRESSAGES EN ATTENTE</p>
                         <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold flex items-center justify-center">{pendingOutgoing.length}</span>
                       </div>
                       <Link href="/adressages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir</Link>
@@ -238,15 +328,19 @@ export default function DashboardPage() {
                       {pendingOutgoing.slice(0, 3).map((ref) => {
                         const daysAgoRef = Math.floor((Date.now() - new Date(ref.updatedAt).getTime()) / 86400000);
                         const timeLabel = daysAgoRef === 0 ? "aujourd'hui" : daysAgoRef === 1 ? "hier" : `il y a ${daysAgoRef}j`;
+                        const isUrgent = ref.priority === "URGENT" || ref.priority === "EMERGENCY";
                         return (
                           <Link key={ref.id} href="/adressages">
                             <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
-                              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                                <ArrowLeftRight size={14} className="text-amber-600" />
+                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", isUrgent ? "bg-red-50" : "bg-amber-50")}>
+                                <ArrowLeftRight size={14} className={isUrgent ? "text-red-500" : "text-amber-600"} />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-medium text-[#374151] truncate">{ref.careCase?.caseTitle ?? "Dossier"}</p>
-                                <p className="text-[11px] text-[#94A3B8] truncate">{ref.priority === "URGENT" ? "Urgent" : ref.priority === "EMERGENCY" ? "Urgence" : "Routine"} · sans réponse {timeLabel}</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="text-[13px] font-medium text-[#374151] truncate">{ref.careCase?.caseTitle ?? "Dossier"}</p>
+                                  {isUrgent && <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full shrink-0">Urgent</span>}
+                                </div>
+                                <p className="text-[11px] text-[#94A3B8]">Sans réponse {timeLabel}</p>
                               </div>
                               <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
@@ -258,37 +352,42 @@ export default function DashboardPage() {
                 </motion.div>
               )}
 
-              {/* DEMANDES DE PATIENTS (ConnectionRequests) */}
+              {/* DEMANDES DE PATIENTS */}
               <IncomingRequestsSection />
 
-              {/* DEMANDES DE RDV (AppointmentRequests) */}
+              {/* DEMANDES DE RDV */}
               <AppointmentRequestsSection />
 
-              {/* DEMANDES DE COORDINATION (Referrals reçus) */}
+              {/* DEMANDES DE COORDINATION */}
               <IncomingReferralsSection />
 
               {/* ACTUALITÉS */}
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
-                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ACTUALITÉS</p>
-                    <button className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</button>
-                  </div>
-                  <div className="divide-y divide-[#F1F5F9]">
-                    {NEWS_ITEMS.map((item) => (
-                      <div key={item.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0 hover:bg-[#F8FAFC] -mx-2 px-2 rounded-lg transition-colors cursor-pointer group">
-                        <span className="text-lg shrink-0 mt-0.5">{item.emoji}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-[#94A3B8]">{item.entity}</p>
-                          <p className="text-[13px] font-medium text-[#0F172A] mt-0.5 truncate">{item.title}</p>
-                          <p className="text-[11px] text-[#94A3B8] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{item.meta}</p>
+              {NEWS_ITEMS.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+                  <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ACTUALITÉS</p>
+                      <button className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</button>
+                    </div>
+                    <div className="divide-y divide-[#F1F5F9]">
+                      {NEWS_ITEMS.map((item) => (
+                        <div key={item.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0 hover:bg-[#F8FAFC] -mx-2 px-2 rounded-lg transition-colors cursor-pointer group">
+                          <span className="text-lg shrink-0 mt-0.5">{item.emoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-[11px] font-semibold text-[#94A3B8]">{item.entity}</p>
+                              {item.isNew && <span className="text-[9px] font-bold text-[#4F46E5] bg-indigo-50 px-1.5 py-0.5 rounded-full">Nouveau</span>}
+                            </div>
+                            <p className="text-[13px] font-medium text-[#0F172A] mt-0.5 truncate">{item.title}</p>
+                            <p className="text-[11px] text-[#94A3B8] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{item.meta}</p>
+                          </div>
+                          <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
 
               {/* MESSAGES */}
               <ProMessagesSection />
@@ -303,14 +402,11 @@ export default function DashboardPage() {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/20 z-40" onClick={() => setSelectedId(null)} />
             <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 flex flex-col" style={{ border: "1px solid #E8ECF4" }}>
-              {/* Drawer header */}
               <div className="px-5 py-4 flex items-center justify-between shrink-0 border-b border-[#E8ECF4]">
                 <p className="text-sm font-semibold text-[#0F172A]">Consultation</p>
                 <button onClick={() => setSelectedId(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#F1F5F9] transition-colors"><X size={16} /></button>
               </div>
-
               <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-                {/* Patient identity */}
                 <div className="flex items-center gap-3">
                   <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold", avatarColor(selected.patient))}>
                     {selected.initials}
@@ -320,13 +416,10 @@ export default function DashboardPage() {
                     <p className="text-[13px] text-[#64748B]">{selected.detail.age} ans · {selected.detail.dob}</p>
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[13px] text-[#475569]"><Phone size={13} className="text-[#94A3B8]" /> {selected.detail.phone}</div>
                   <div className="flex items-center gap-2 text-[13px] text-[#475569]"><Mail size={13} className="text-[#94A3B8]" /> {selected.detail.email}</div>
                 </div>
-
-                {/* Consultation du jour */}
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>CONSULTATION DU JOUR</p>
                   <div className="bg-[#F8FAFC] rounded-xl p-4 space-y-2 text-[13px] text-[#374151]">
@@ -336,11 +429,14 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-
-              {/* CTA */}
-              <div className="px-5 py-4 border-t border-[#E8ECF4] shrink-0">
-                <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.careCaseId ?? selected.patientId}`); }} className="w-full h-10 rounded-xl bg-[#4F46E5] text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
-                  Voir le dossier complet <ChevronRight size={16} />
+              <div className="px-5 py-4 border-t border-[#E8ECF4] shrink-0 space-y-2">
+                {selected.careCaseId && (
+                  <button onClick={() => handleStartConsultation(selected)} className="w-full h-9 rounded-xl bg-[#4F46E5] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
+                    <Play size={12} fill="currentColor" /> Démarrer la consultation
+                  </button>
+                )}
+                <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.careCaseId ?? selected.patientId}`); }} className="w-full h-9 rounded-xl border border-[#E8ECF4] text-[#374151] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-[#F8FAFC] transition-colors">
+                  Voir le dossier <ChevronRight size={14} />
                 </button>
               </div>
             </motion.div>
@@ -348,6 +444,94 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// À FAIRE — tâches cross-dossiers du provider
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function TachesSection({ tasks, api }: { tasks: TaskWithContext[]; api: ReturnType<typeof apiWithToken> }) {
+  const qc = useQueryClient();
+
+  const completeMut = useMutation({
+    mutationFn: (t: TaskWithContext) =>
+      api.tasks.update(t.careCase.id, t.id, { status: "COMPLETED" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks-mine"] });
+    },
+  });
+
+  if (tasks.length === 0) return null;
+
+  const router = useRouter();
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+
+  function taskMeta(t: TaskWithContext): { label: string; cls: string } {
+    if (!t.dueDate) return { label: "", cls: "text-[#94A3B8]" };
+    const d = new Date(t.dueDate);
+    if (d < todayStart) {
+      const days = Math.round((todayStart.getTime() - d.getTime()) / 86400000);
+      return { label: `En retard (${days}j)`, cls: "text-red-500 font-semibold" };
+    }
+    if (d <= todayEnd) return { label: "Aujourd'hui", cls: "text-amber-600 font-medium" };
+    return { label: d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }), cls: "text-[#94A3B8]" };
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E8ECF4" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <ClipboardList size={14} className="text-[#94A3B8]" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>À FAIRE</p>
+          </div>
+          <Link href="/taches" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</Link>
+        </div>
+        <div className="space-y-1">
+          {tasks.map((t) => {
+            const meta = taskMeta(t);
+            const isCompleting = completeMut.isPending && (completeMut.variables as TaskWithContext)?.id === t.id;
+            return (
+              <div key={t.id} className="flex items-start gap-3 px-2 py-2.5 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
+                {/* Checkbox */}
+                <button
+                  onClick={() => completeMut.mutate(t)}
+                  disabled={isCompleting}
+                  className={cn(
+                    "mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
+                    isCompleting ? "bg-emerald-100 border-emerald-300" : "border-[#CBD5E1] hover:border-[#4F46E5]"
+                  )}
+                >
+                  {isCompleting && <Check size={9} className="text-emerald-500" />}
+                </button>
+
+                {/* Titre + patient */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-[#0F172A] truncate">{t.title}</p>
+                  {t.careCase?.patient && (
+                    <button
+                      onClick={() => router.push(`/patients/${t.careCase.id}`)}
+                      className="text-[11px] text-[#4F46E5] hover:underline truncate block text-left"
+                    >
+                      {t.careCase.patient.firstName} {t.careCase.patient.lastName}
+                    </button>
+                  )}
+                </div>
+
+                {/* Date */}
+                {meta.label && (
+                  <span className={cn("text-[11px] shrink-0", meta.cls)} style={{ fontFamily: "var(--font-inter)" }}>
+                    {meta.label}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
