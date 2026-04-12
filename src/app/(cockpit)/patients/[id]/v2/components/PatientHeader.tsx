@@ -39,13 +39,14 @@ export function PatientHeader({
     : null;
 
   return (
-    <div className="pt-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
+    <div className="py-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
             {c.patient.firstName} {c.patient.lastName}
           </h1>
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 flex-wrap">
+          {/* Ligne démographique */}
+          <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
             {age && <span>{age} ans</span>}
             {c.patient.sex && (
               <span>
@@ -55,19 +56,6 @@ export function PatientHeader({
                   : c.patient.sex === "M" || c.patient.sex === "MALE"
                   ? "Homme"
                   : c.patient.sex}
-              </span>
-            )}
-            {pathway && (
-              <>
-                <span>•</span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EDE9FC] text-[#5B4EC4]">
-                  {pathway.label}
-                </span>
-              </>
-            )}
-            {c.careStage && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                {c.careStage}
               </span>
             )}
             {poids?.value && (
@@ -90,18 +78,30 @@ export function PatientHeader({
               </>
             )}
           </div>
-          {/* Lead + prochaine étape */}
-          <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+          {/* Badges parcours — ligne séparée */}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {pathway && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EDE9FC] text-[#5B4EC4]">
+                {pathway.label}
+              </span>
+            )}
+            {c.careStage && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                {c.careStage}
+              </span>
+            )}
             {c.leadProvider && (
-              <span>Lead : {c.leadProvider.person.firstName} {c.leadProvider.person.lastName}</span>
+              <span className="text-xs text-gray-400">
+                Lead : {c.leadProvider.person.firstName} {c.leadProvider.person.lastName}
+              </span>
             )}
             {c.nextStepSummary && (
-              <span className="flex items-center gap-1">→ {c.nextStepSummary}</span>
+              <span className="text-xs text-gray-400">→ {c.nextStepSummary}</span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           {/* Équipe */}
           <div className="hidden sm:flex items-center gap-1.5">
             <TeamAvatars careCaseId={careCaseId} />
