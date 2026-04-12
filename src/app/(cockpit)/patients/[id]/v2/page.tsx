@@ -213,7 +213,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
     };
   }, [accessToken, id, qc, API_URL]);
 
-  if (careCaseLoading || dashboardLoading) {
+  if (!accessToken || careCaseLoading || dashboardLoading) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 size={20} className="animate-spin text-[#5B4EC4]" />
