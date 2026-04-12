@@ -573,12 +573,12 @@ function JournalSparkline({ values, color }: { values: number[]; color: string }
 type DocFilter = "all" | "shared" | "mine" | "patient" | "transcriptions";
 
 const UPLOAD_TYPES = [
-  { label: "Ordonnance", type: "PRESCRIPTION" },
-  { label: "Compte rendu", type: "CONSULTATION_REPORT" },
-  { label: "Bilan biologique", type: "LAB_REPORT" },
+  { label: "Bilan biologique", type: "BIOLOGICAL_REPORT" },
   { label: "Impédancemétrie", type: "IMPEDANCE_REPORT" },
   { label: "DXA / Densitométrie", type: "DXA_REPORT" },
   { label: "ECG / EFR", type: "ECG_REPORT" },
+  { label: "Ordonnance", type: "PRESCRIPTION" },
+  { label: "Compte rendu", type: "CONSULTATION_REPORT" },
   { label: "Imagerie", type: "IMAGING" },
   { label: "Courrier", type: "LETTER" },
   { label: "Autre", type: "OTHER" },
@@ -616,6 +616,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [validationDocId, setValidationDocId] = useState<string | null>(null);
   const [extractionDate, setExtractionDate] = useState<string>("");
+  const [extractionExamType, setExtractionExamType] = useState<string | null>(null);
 
   async function handleUpload(file: File, docType: string) {
     setUploading(true);
@@ -681,8 +682,8 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
     onSuccess: (data, docId) => {
       const extracted = data.candidates || data.observations || [];
       setCandidates(extracted.map((c: any) => ({ ...c, selected: true })));
-      // Stocker la date de prélèvement retournée par l'extraction
       setExtractionDate(data.datePrelevement || new Date().toISOString().split("T")[0]);
+      setExtractionExamType(data.examType ?? null);
       setValidationDocId(docId);
       setExtractingDocId(null);
     },
@@ -891,34 +892,74 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
       {/* Modal validation bio */}
       {validationDocId && candidates.length > 0 && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-hidden shadow-xl">
+          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[85vh] overflow-hidden shadow-xl">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">🧪 Valider l'extraction biologique</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {extractionExamType === "IMPEDANCEMETRIE" ? "⚖️ Bilan d'impédancemétrie"
+                    : extractionExamType === "DXA" ? "🦴 Ostéodensitométrie (DXA)"
+                    : extractionExamType === "ECG" ? "🫀 ECG"
+                    : "🧪 Bilan biologique"} — brouillon IA
+                </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {candidates.length} valeur{candidates.length > 1 ? "s" : ""} extraite{candidates.length > 1 ? "s" : ""} — décochez ce que vous ne souhaitez pas intégrer
+                  {candidates.length} valeur{candidates.length > 1 ? "s" : ""} extraite{candidates.length > 1 ? "s" : ""}
+                  {extractionDate ? ` · ${new Date(extractionDate).toLocaleDateString("fr-FR")}` : ""}
+                  {" — "}décochez ce que vous ne souhaitez pas intégrer
                 </p>
               </div>
-              <button onClick={() => { setValidationDocId(null); setCandidates([]); }} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => { setValidationDocId(null); setCandidates([]); setExtractionExamType(null); }} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <div className="px-5 py-3 overflow-y-auto max-h-[50vh] space-y-2">
-              {candidates.map((c, i) => (
-                <label key={i} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${c.selected ? "border-[#5B4EC4] bg-[#F8F7FD]" : "border-gray-200 bg-gray-50 opacity-60"}`}>
-                  <input type="checkbox" checked={c.selected} onChange={() => toggleCandidate(i)} className="rounded border-gray-300 text-[#5B4EC4] w-4 h-4" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{c.labelOriginal || c.label || c.metricKey}</p>
+            <div className="px-5 py-3 overflow-y-auto max-h-[55vh] space-y-4">
+              {(() => {
+                // Grouper par catégorie en conservant l'index global
+                const groups: Record<string, Array<{ c: any; gi: number }>> = {};
+                candidates.forEach((c, gi) => {
+                  const cat = c.category || "Autres";
+                  if (!groups[cat]) groups[cat] = [];
+                  groups[cat].push({ c, gi });
+                });
+                return Object.entries(groups).map(([cat, items]) => (
+                  <div key={cat}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{cat}</p>
+                    <div className="space-y-1.5">
+                      {items.map(({ c, gi }) => {
+                        const val = c.value ?? c.valueNumeric;
+                        const refMin = c.refMin ?? null;
+                        const refMax = c.refMax ?? null;
+                        let badge: { text: string; cls: string } | null = null;
+                        if (val != null && (refMin != null || refMax != null)) {
+                          const low = refMin != null && val < refMin;
+                          const high = refMax != null && val > refMax;
+                          if (low || high) badge = { text: low ? "↓" : "↑", cls: "bg-amber-100 text-amber-700" };
+                          else badge = { text: "✓", cls: "bg-green-100 text-green-700" };
+                        }
+                        return (
+                          <label key={`cand-${gi}`} className={`flex items-center gap-3 px-3 py-2 rounded-lg border cursor-pointer transition-all ${c.selected ? "border-[#5B4EC4] bg-[#F8F7FD]" : "border-gray-100 bg-gray-50 opacity-50"}`}>
+                            <input type="checkbox" checked={c.selected} onChange={() => toggleCandidate(gi)} className="rounded border-gray-300 text-[#5B4EC4] w-4 h-4 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{c.labelOriginal || c.label || c.metricKey}</p>
+                              {(refMin != null || refMax != null) && (
+                                <p className="text-[10px] text-gray-400">
+                                  Réf : {refMin != null ? refMin : "—"} – {refMax != null ? refMax : "—"} {c.unit || ""}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {badge && <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${badge.cls}`}>{badge.text}</span>}
+                              <p className="text-sm font-semibold text-gray-900 text-right">{val ?? "—"} <span className="text-[10px] font-normal text-gray-500">{c.unit || ""}</span></p>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-semibold text-gray-900">{c.value ?? c.valueNumeric ?? "—"} {c.unit || ""}</p>
-                    {c.confidence && <p className="text-[10px] text-gray-400">Confiance {Math.round(c.confidence * 100)}%</p>}
-                  </div>
-                </label>
-              ))}
+                ));
+              })()}
             </div>
             <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
               <p className="text-xs text-gray-500">{candidates.filter((c) => c.selected).length} / {candidates.length} sélectionnée{candidates.filter((c) => c.selected).length > 1 ? "s" : ""}</p>
               <div className="flex gap-2">
-                <button onClick={() => { setValidationDocId(null); setCandidates([]); }} className="text-xs px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Annuler</button>
+                <button onClick={() => { setValidationDocId(null); setCandidates([]); setExtractionExamType(null); }} className="text-xs px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Annuler</button>
                 <button
                   onClick={handleValidate}
                   disabled={validateMutation.isPending || candidates.filter((c) => c.selected).length === 0}
