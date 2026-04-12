@@ -142,8 +142,8 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
 
   // Fetch trajectory for weight chart
   const { data: trajectoryData } = useQuery({
-    queryKey: ["trajectory", careCaseId, ["weight_kg"], "90d"],
-    queryFn: () => api.trajectory.get(careCaseId, ["weight_kg", "heart_rate_bpm"], "90d"),
+    queryKey: ["trajectory", careCaseId, ["weight_kg"], "1y"],
+    queryFn: () => api.trajectory.get(careCaseId, ["weight_kg", "heart_rate_bpm"], "1y"),
     enabled: !!accessToken,
   })
 

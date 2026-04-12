@@ -69,7 +69,7 @@ export interface PatientDashboard {
     urgentTasks: Array<{ id: string; label: string; dueDate: string | null; assigneeName: string | null }>;
     upcomingAppointments: Array<{ id: string; date: string; providerName: string | null; type: string | null }>;
     pendingReferrals: Array<{ id: string; toSpecialty: string | null; status: string }>;
-    suggestedReferrals: Array<{ specialty: string; reason: string; source: string }>;
+    suggestedReferrals: Array<{ specialty: string; comorbidity: string; fromCondition: string; linkType: string; source: string }>;
   };
   recentActivity: Array<{
     type: "NOTE" | "OBSERVATION" | "DOCUMENT" | "APPOINTMENT" | "REFERRAL" | "JOURNAL";

@@ -12,17 +12,16 @@ import {
   ExternalLink,
   FlaskConical,
   X,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 
 // ─── Source meta ─────────────────────────────────────────────────────────────
 
 const SOURCE_META: Record<string, { label: string; color: string; desc: string }> = {
-  FFAB:       { label: "FFAB",       color: "bg-purple-50 text-purple-700 border-purple-200", desc: "DU TCA 2025-2026" },
-  HAS:        { label: "HAS",        color: "bg-blue-50 text-blue-700 border-blue-200",        desc: "Haute Autorité de Santé" },
-  FICHE:      { label: "Fiche",      color: "bg-emerald-50 text-emerald-700 border-emerald-200", desc: "Fiches pathologies Nami" },
-  ALGORITHME: { label: "Algorithme", color: "bg-amber-50 text-amber-700 border-amber-200",     desc: "Arbres décisionnels" },
+  FFAB:         { label: "FFAB",         color: "bg-purple-50 text-purple-700 border-purple-200",   desc: "DU TCA 2025-2026" },
+  HAS:          { label: "HAS",          color: "bg-blue-50 text-blue-700 border-blue-200",          desc: "Haute Autorité de Santé" },
+  FICHE:        { label: "Fiche",        color: "bg-emerald-50 text-emerald-700 border-emerald-200", desc: "Fiches pathologies Nami" },
+  FICHE_EXPERT: { label: "Fiche expert", color: "bg-teal-50 text-teal-700 border-teal-200",          desc: "Fiches cliniques expertes" },
+  ALGORITHME:   { label: "Algorithme",   color: "bg-amber-50 text-amber-700 border-amber-200",       desc: "Arbres décisionnels" },
 };
 
 const SOURCE_ICON: Record<string, typeof BookOpen> = {
@@ -46,7 +45,6 @@ const SUGGESTED_QUERIES = [
 // ─── Result card ─────────────────────────────────────────────────────────────
 
 function ResultCard({ result }: { result: KnowledgeSearchResult }) {
-  const [expanded, setExpanded] = useState(false);
   const meta = SOURCE_META[result.source];
   const Icon = SOURCE_ICON[result.source] ?? FileText;
 
@@ -125,19 +123,22 @@ export default function IntelligencePage() {
   const [results, setResults] = useState<KnowledgeSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [activeSource, setActiveSource] = useState<string | null>(null);
 
   const doSearch = async (q: string) => {
     if (!q.trim() || q.trim().length < 2) return;
     setLoading(true);
     setSearched(false);
+    setSearchError(null);
     setActiveSource(null);
     try {
       const data = await apiWithToken(accessToken!).intelligence.knowledgeSearch(q, { limit: 30 });
       setResults(data.results);
       setSearched(true);
-    } catch {
+    } catch (err: any) {
       setResults([]);
+      setSearchError(err?.message || "Erreur de recherche");
       setSearched(true);
     } finally {
       setLoading(false);
@@ -274,10 +275,17 @@ export default function IntelligencePage() {
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <Search size={20} className="text-gray-400" />
           </div>
-          <p className="text-gray-600 font-medium">Aucun résultat pour «&nbsp;{query}&nbsp;»</p>
-          <p className="text-sm text-gray-400 mt-1">
-            Essayez d'autres termes ou vérifiez l'orthographe
-          </p>
+          {searchError ? (
+            <>
+              <p className="text-red-600 font-medium">Erreur de recherche</p>
+              <p className="text-sm text-red-400 mt-1">{searchError}</p>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-600 font-medium">Aucun résultat pour «&nbsp;{query}&nbsp;»</p>
+              <p className="text-sm text-gray-400 mt-1">Essayez d'autres termes ou vérifiez l'orthographe</p>
+            </>
+          )}
         </div>
       )}
 

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { apiWithToken } from "@/lib/api"
+import { apiWithToken, type SemanticSearchResult } from "@/lib/api"
 import { DecisionTreeExplorer } from "@/components/nami/decision-tree-navigator"
 import { CasCliniquePlayer } from "@/components/nami/cas-clinique"
 import { ChecklistConsultation } from "@/components/nami/checklist-consultation"
@@ -16,7 +16,7 @@ import { RechercheFFAB } from "@/components/nami/recherche-ffab"
 import {
   BookOpen, GraduationCap, ClipboardCheck, BookA, MapPin,
   ChevronRight, FileText, Zap, FlipVertical2, Stethoscope,
-  Activity, HeartPulse, Search,
+  Activity, HeartPulse, Search, X, Sparkles, ExternalLink,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -64,19 +64,44 @@ type PathologyTab = "tca" | "obesite"
 export default function ProtocolesPage() {
   const [tab, setTab] = useState<PathologyTab>("tca")
   const [activeSection, setActiveSection] = useState<SectionId>("recherche")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedFiche, setSelectedFiche] = useState<{ slug: string; sectionTitle?: string } | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const sections = tab === "tca" ? tcaSections : obesiteSections
-  const defaultSection = tab === "tca" ? "recherche" : "ob-parcours"
 
   function switchTab(t: PathologyTab) {
     setTab(t)
     setActiveSection(t === "tca" ? "recherche" : "ob-parcours")
   }
 
+  const isSearching = searchQuery.trim().length >= 3
+
   return (
-    <div className="flex h-full">
+    <div className="flex h-full relative">
       {/* Sidebar menu */}
-      <div className="w-[200px] shrink-0 border-r overflow-y-auto py-2 px-2">
+      <div className="w-[200px] shrink-0 border-r flex flex-col py-2 px-2">
+        {/* Barre de recherche sémantique */}
+        <div className="relative mb-3">
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Trouver un protocole…"
+            className="w-full pl-7 pr-7 py-1.5 text-[12px] bg-muted/40 border border-transparent rounded-lg focus:outline-none focus:border-primary/40 focus:bg-white transition-all placeholder:text-muted-foreground/60"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(""); searchInputRef.current?.focus() }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X size={11} />
+            </button>
+          )}
+        </div>
+
         {/* Onglets TCA / Obésité */}
         <div className="flex gap-1 p-1 mb-3 bg-muted/50 rounded-lg">
           <button
@@ -132,36 +157,62 @@ export default function ProtocolesPage() {
 
       {/* Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="border-b px-6 py-3">
-          <h1 className="font-heading text-lg font-semibold">
-            {sections.find((s) => s.id === activeSection)?.label}
-          </h1>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {activeSection === "recherche" && <RechercheFFAB />}
-          {activeSection === "protocoles" && <DecisionTreeExplorer />}
-          {activeSection === "questionnaires" && <QuestionnairesSection />}
-          {activeSection === "checklists" && <ChecklistsSection />}
-          {activeSection === "dsm5" && <DSM5Section />}
-          {activeSection === "seuils" && <div className="p-6"><MemoSeuils /></div>}
-          {activeSection === "epidemio" && <EpidemioSection />}
-          {activeSection === "cas-cliniques" && <CasCliniqueSection />}
-          {activeSection === "flashcards" && <div className="p-6"><Flashcards /></div>}
-          {activeSection === "glossaire" && <div className="p-6"><Glossaire /></div>}
-          {activeSection === "fiches-patient" && <FichesPatientSection />}
-          {activeSection === "annuaire" && <div className="p-6"><AnnuaireStructures /></div>}
+        {isSearching ? (
+          <>
+            <div className="border-b px-6 py-3 flex items-center gap-2">
+              <Sparkles size={14} className="text-primary" />
+              <h1 className="font-heading text-lg font-semibold">Résultats pour « {searchQuery} »</h1>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <SemanticSearchPanel
+                query={searchQuery}
+                onOpenFiche={(slug, sectionTitle) => setSelectedFiche({ slug, sectionTitle })}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="border-b px-6 py-3">
+              <h1 className="font-heading text-lg font-semibold">
+                {sections.find((s) => s.id === activeSection)?.label}
+              </h1>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {activeSection === "recherche" && <RechercheFFAB />}
+              {activeSection === "protocoles" && <DecisionTreeExplorer />}
+              {activeSection === "questionnaires" && <QuestionnairesSection />}
+              {activeSection === "checklists" && <ChecklistsSection />}
+              {activeSection === "dsm5" && <DSM5Section />}
+              {activeSection === "seuils" && <div className="p-6"><MemoSeuils /></div>}
+              {activeSection === "epidemio" && <EpidemioSection />}
+              {activeSection === "cas-cliniques" && <CasCliniqueSection />}
+              {activeSection === "flashcards" && <div className="p-6"><Flashcards /></div>}
+              {activeSection === "glossaire" && <div className="p-6"><Glossaire /></div>}
+              {activeSection === "fiches-patient" && <FichesPatientSection />}
+              {activeSection === "annuaire" && <div className="p-6"><AnnuaireStructures /></div>}
 
-          {/* ── Sections Obésité ── */}
-          {activeSection === "ob-parcours" && <ObesiteParcoursSection />}
-          {activeSection === "ob-profils" && <ObesiteProfilsSection />}
-          {activeSection === "ob-specialistes" && <ObesiteSpecialistesSection />}
-          {activeSection === "ob-seuils" && <ObesiteSeuilsSection />}
-          {activeSection === "ob-pieges" && <ObesitePiegesSection />}
-          {activeSection === "ob-questionnaires" && <ObesiteQuestionnairesSection />}
-          {activeSection === "ob-medicaments" && <ObesiteMedicamentsSection />}
-          {activeSection === "ob-bariatrique" && <ObesiteBariatriqueSection />}
-        </div>
+              {/* ── Sections Obésité ── */}
+              {activeSection === "ob-parcours" && <ObesiteParcoursSection />}
+              {activeSection === "ob-profils" && <ObesiteProfilsSection />}
+              {activeSection === "ob-specialistes" && <ObesiteSpecialistesSection />}
+              {activeSection === "ob-seuils" && <ObesiteSeuilsSection />}
+              {activeSection === "ob-pieges" && <ObesitePiegesSection />}
+              {activeSection === "ob-questionnaires" && <ObesiteQuestionnairesSection />}
+              {activeSection === "ob-medicaments" && <ObesiteMedicamentsSection />}
+              {activeSection === "ob-bariatrique" && <ObesiteBariatriqueSection />}
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Modal fiche */}
+      {selectedFiche && (
+        <FicheModal
+          slug={selectedFiche.slug}
+          sectionTitle={selectedFiche.sectionTitle}
+          onClose={() => setSelectedFiche(null)}
+        />
+      )}
     </div>
   )
 }
@@ -976,6 +1027,260 @@ function FichesPatientSection() {
           <ChevronRight className="size-4 text-muted-foreground" />
         </button>
       ))}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SEMANTIC SEARCH PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function SemanticSearchPanel({
+  query,
+  onOpenFiche,
+}: {
+  query: string
+  onOpenFiche: (slug: string, sectionTitle?: string) => void
+}) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["semantic-search", query],
+    queryFn: () => api.intelligence.semanticSearch(query, 10),
+    enabled: query.trim().length >= 3,
+    staleTime: 60_000,
+  })
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-20 rounded-xl bg-muted/40 animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 text-center text-sm text-red-600">
+        Erreur lors de la recherche. Vérifiez que la base est indexée.
+      </div>
+    )
+  }
+
+  const results: SemanticSearchResult[] = data?.results ?? []
+
+  const bySlug = results.reduce<Record<string, SemanticSearchResult[]>>((acc, r) => {
+    if (!acc[r.slug]) acc[r.slug] = []
+    acc[r.slug].push(r)
+    return acc
+  }, {})
+
+  if (results.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-60 text-center px-6">
+        <Search size={28} className="text-muted-foreground/30 mb-3" />
+        <p className="text-sm font-medium text-muted-foreground">Aucun résultat trouvé</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">Essayez avec d&apos;autres mots-clés</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 space-y-3">
+      <p className="text-xs text-muted-foreground mb-4">
+        {results.length} passage{results.length > 1 ? "s" : ""} dans {Object.keys(bySlug).length} fiche{Object.keys(bySlug).length > 1 ? "s" : ""}
+      </p>
+
+      {Object.entries(bySlug).map(([slug, chunks]) => {
+        const best = chunks[0]
+        const scorePercent = Math.round(best.score * 100)
+
+        return (
+          <div
+            key={slug}
+            className="rounded-xl border bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow cursor-pointer"
+            onClick={() => onOpenFiche(slug, best.sectionTitle)}
+          >
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                      {scorePercent}% pertinent
+                    </span>
+                    {chunks.length > 1 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {chunks.length} sections
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </p>
+                  <p className="text-[11px] text-primary/80 mb-2">
+                    § {best.sectionTitle}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                    {best.content.replace(/^#+\s.*\n+/, "").slice(0, 180)}…
+                  </p>
+                </div>
+                <ExternalLink size={13} className="shrink-0 mt-1 text-muted-foreground/50" />
+              </div>
+
+              {chunks.length > 1 && (
+                <div className="mt-2 pt-2 border-t flex flex-wrap gap-1">
+                  {chunks.slice(1).map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={(e) => { e.stopPropagation(); onOpenFiche(slug, c.sectionTitle) }}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      § {c.sectionTitle}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FICHE MODAL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function FicheModal({
+  slug,
+  sectionTitle,
+  onClose,
+}: {
+  slug: string
+  sectionTitle?: string
+  onClose: () => void
+}) {
+  const { accessToken } = useAuthStore()
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+
+  const { data: markdown, isLoading } = useQuery({
+    queryKey: ["fiche-content", slug],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/knowledge/pathology-content/${encodeURIComponent(slug)}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (!res.ok) throw new Error("Fiche introuvable")
+      const d = await res.json()
+      return d.content as string
+    },
+    staleTime: 24 * 60 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">Fiche pathologique</p>
+            <h2 className="text-base font-semibold">
+              {slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+            </h2>
+            {sectionTitle && (
+              <p className="text-xs text-primary mt-0.5">§ {sectionTitle}</p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className={cn("h-4 rounded bg-muted/40 animate-pulse", i % 3 === 2 ? "w-2/3" : "w-full")} />
+              ))}
+            </div>
+          ) : markdown ? (
+            <MarkdownRenderer content={markdown} highlightSection={sectionTitle} />
+          ) : (
+            <p className="text-sm text-muted-foreground">Contenu indisponible.</p>
+          )}
+        </div>
+
+        <div className="px-6 py-3 border-t shrink-0 bg-amber-50">
+          <p className="text-[10px] text-amber-700">
+            Brouillon IA — à vérifier par le professionnel de santé avant utilisation clinique.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MarkdownRenderer({ content, highlightSection }: { content: string; highlightSection?: string }) {
+  const lines = content.split("\n")
+
+  return (
+    <div className="space-y-1 text-sm text-foreground">
+      {lines.map((line, i) => {
+        if (line.startsWith("# ")) {
+          return <h1 key={i} className="text-lg font-bold mt-4 mb-2 first:mt-0">{line.slice(2)}</h1>
+        }
+        if (line.startsWith("## ")) {
+          const title = line.slice(3)
+          const isHighlighted = highlightSection && title.toLowerCase().includes(highlightSection.toLowerCase())
+          return (
+            <h2 key={i} className={cn(
+              "text-base font-semibold mt-5 mb-1.5 pb-1 border-b",
+              isHighlighted ? "text-primary border-primary/30 bg-primary/5 px-2 rounded-t-md -mx-2" : "border-muted"
+            )}>
+              {title}
+            </h2>
+          )
+        }
+        if (line.startsWith("### ")) {
+          return <h3 key={i} className="text-sm font-semibold mt-3 mb-1 text-foreground/80">{line.slice(4)}</h3>
+        }
+        if (line.startsWith("- ") || line.startsWith("* ")) {
+          return <li key={i} className="ml-4 list-disc text-[13px] text-foreground/80 leading-relaxed">{line.slice(2)}</li>
+        }
+        if (line.match(/^\d+\. /)) {
+          return <li key={i} className="ml-4 list-decimal text-[13px] text-foreground/80 leading-relaxed">{line.replace(/^\d+\. /, "")}</li>
+        }
+        if (line.startsWith("> ")) {
+          return <blockquote key={i} className="border-l-2 border-primary/30 pl-3 text-[12px] text-muted-foreground italic">{line.slice(2)}</blockquote>
+        }
+        if (line.trim() === "") {
+          return <div key={i} className="h-2" />
+        }
+        const parts = line.split(/(\*\*[^*]+\*\*)/)
+        return (
+          <p key={i} className="text-[13px] leading-relaxed text-foreground/80">
+            {parts.map((part, j) =>
+              part.startsWith("**") && part.endsWith("**")
+                ? <strong key={j} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+                : part
+            )}
+          </p>
+        )
+      })}
     </div>
   )
 }

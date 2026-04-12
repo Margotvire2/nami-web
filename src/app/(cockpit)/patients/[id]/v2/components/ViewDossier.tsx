@@ -712,6 +712,8 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
       queryClient.invalidateQueries({ queryKey: ["observations-latest", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["observations-delta", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["observations-history", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["bia-sessions", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["trajectory", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["care-case", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", careCaseId] });
       setValidationDocId(null);

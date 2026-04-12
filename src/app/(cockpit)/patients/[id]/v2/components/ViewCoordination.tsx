@@ -133,7 +133,141 @@ function MessagesPanel({ careCaseId }: { careCaseId: string }) {
   );
 }
 
+const LINK_TYPE_LABEL: Record<string, string> = {
+  CAUSED_BY: "Complication possible",
+  COMORBID_WITH: "Comorbidité fréquente",
+  COMORBIDITY: "Comorbidité potentielle",
+  REQUIRES_SCREENING: "Dépistage recommandé",
+  REQUIRES_COORDINATION: "Coordination nécessaire",
+  TRIGGERS_SPECIALTY: "Spécialité requise",
+  RISK_FACTOR: "Facteur de risque",
+};
+
+type InviteTarget = {
+  specialty: string;
+  comorbidity: string;
+  linkType: string;
+  fromCondition: string;
+  source: string;
+};
+
+function InviteModal({ target, careCaseId, onClose }: {
+  target: InviteTarget;
+  careCaseId: string;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [mode, setMode] = useState<"annuaire" | "lien">("annuaire");
+  const [providerName, setProviderName] = useState("");
+
+  const reason = `${LINK_TYPE_LABEL[target.linkType] ?? target.linkType} · ${target.comorbidity}`;
+
+  const inviteMutation = useMutation({
+    mutationFn: () =>
+      api.post("/referrals", {
+        careCaseId,
+        preferredSpecialty: target.specialty,
+        clinicalReason: `${target.comorbidity} — coordination recommandée`,
+        referralType: "REFERRAL",
+        priority: "ROUTINE",
+        patientConsent: true,
+      }),
+    onSuccess: () => {
+      toast.success("Invitation envoyée");
+      queryClient.invalidateQueries({ queryKey: ["referrals", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", careCaseId] });
+      onClose();
+    },
+    onError: () => toast.error("Erreur lors de l'envoi de l'invitation"),
+  });
+
+  function copyLink() {
+    const msg = `Bonjour, je vous invite à rejoindre un parcours de soins coordonnés sur Nami pour une consultation en ${target.specialty}. Inscrivez-vous sur : ${typeof window !== "undefined" ? window.location.origin : "https://nami.care"}/equipe`;
+    navigator.clipboard.writeText(msg).then(() => toast.success("Lien copié dans le presse-papier"));
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-gray-900">
+            Inviter un · <span className="text-[#5B4EC4]">{target.specialty}</span>
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+        </div>
+
+        {/* Motif */}
+        <p className="text-sm text-gray-500 mb-5 bg-[#F8F7FD] rounded-lg px-3 py-2">
+          Motif : <span className="font-medium text-gray-700">{reason}</span>
+        </p>
+
+        {/* Mode selector */}
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Comment inviter ?</p>
+        <div className="space-y-3 mb-5">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input type="radio" name="mode" value="annuaire" checked={mode === "annuaire"}
+              onChange={() => setMode("annuaire")} className="mt-0.5 accent-[#5B4EC4]" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-800">Chercher dans l'annuaire Nami</p>
+              {mode === "annuaire" && (
+                <input
+                  type="text"
+                  value={providerName}
+                  onChange={(e) => setProviderName(e.target.value)}
+                  placeholder="Nom, spécialité…"
+                  className="mt-2 w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]"
+                  autoFocus
+                />
+              )}
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input type="radio" name="mode" value="lien" checked={mode === "lien"}
+              onChange={() => setMode("lien")} className="mt-0.5 accent-[#5B4EC4]" />
+            <div>
+              <p className="text-sm font-medium text-gray-800">Envoyer un lien d'invitation</p>
+              <p className="text-xs text-gray-400 mt-0.5">Le confrère peut s'inscrire et rejoindre le parcours</p>
+            </div>
+          </label>
+        </div>
+
+        {/* RGPD notice */}
+        <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-5">
+          <span className="shrink-0">⚠</span>
+          <span>Le nom du patient ne sera pas communiqué dans l'invitation (RGPD santé)</span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 justify-end">
+          <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
+            Annuler
+          </button>
+          {mode === "annuaire" ? (
+            <button
+              onClick={() => inviteMutation.mutate()}
+              disabled={inviteMutation.isPending}
+              className="text-sm px-4 py-2 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50 font-medium"
+            >
+              {inviteMutation.isPending ? "Envoi…" : "Envoyer l'invitation"}
+            </button>
+          ) : (
+            <button
+              onClick={copyLink}
+              className="text-sm px-4 py-2 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] font-medium"
+            >
+              Copier le lien
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboard; careCaseId: string }) {
+  const [inviteTarget, setInviteTarget] = useState<InviteTarget | null>(null);
   const { data: referrals, isLoading } = useQuery({
     queryKey: ["referrals", careCaseId],
     queryFn: async () => {
@@ -142,6 +276,7 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
     },
   });
   const { suggestedReferrals } = dashboard.actions;
+
   if (isLoading) return <LoadingSpinner />;
 
   const statusColors: Record<string, string> = {
@@ -151,6 +286,14 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
   };
 
   return (
+    <>
+      {inviteTarget && (
+        <InviteModal
+          target={inviteTarget}
+          careCaseId={careCaseId}
+          onClose={() => setInviteTarget(null)}
+        />
+      )}
     <div className="space-y-5">
       {suggestedReferrals.length > 0 && (
         <div className="rounded-xl border border-[#5B4EC4]/20 bg-[#F8F7FD] p-4">
@@ -158,14 +301,18 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
           <div className="space-y-2">
             {suggestedReferrals.map((s, i) => (
               <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-100">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">→ {s.specialty}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{s.reason}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">→ {s.specialty}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {LINK_TYPE_LABEL[s.linkType] ?? s.linkType} · {s.comorbidity}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-gray-400">{s.source}</span>
-                  <button className="text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3]">Créer</button>
-                </div>
+                <button
+                  onClick={() => setInviteTarget(s)}
+                  className="ml-3 text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] shrink-0"
+                >
+                  Inviter
+                </button>
               </div>
             ))}
           </div>
@@ -188,6 +335,7 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
         ) : <p className="text-sm text-gray-400 italic">Aucun adressage</p>}
       </div>
     </div>
+    </>
   );
 }
 

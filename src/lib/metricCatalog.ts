@@ -248,6 +248,40 @@ export const METRIC_CATALOG: MetricDef[] = [
   { key: "bia_impedance_ratio", label: "Ratio d'impédance (Z200/Z5)", unit: "", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["ratio impédance","impedance ratio","z200/z5","ir","ratio z200/z5"], ranges: [{min:0.75,max:0.85}] },
   { key: "bia_z50_impedance", label: "Impédance Z50", unit: "Ω", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["impédance z50","z50","z50 (ω)","impedance z50"], ranges: [] },
   { key: "bia_smm_weight_ratio", label: "Ratio SMM/Poids", unit: "%", examType: "BIA", category: "Composition corporelle", aliases: ["ratio smm/poids","smm/weight","smm weight ratio"], ranges: [] },
+  // Masses supplémentaires
+  { key: "bia_dry_fat_free_mass", label: "Masse maigre sèche", unit: "kg", examType: "BIA", category: "Composition corporelle", aliases: ["masse maigre sèche","dry fat free mass","dry ffm","dry lean mass"], ranges: [] },
+  { key: "bia_metabolic_protein_mass", label: "Masse protéique métabolique", unit: "kg", examType: "BIA", category: "Composition corporelle", aliases: ["masse protéique métabolique","metabolic protein mass","metabolic protein"], ranges: [] },
+  { key: "bia_soft_lean_mass", label: "Masse maigre molle", unit: "kg", examType: "BIA", category: "Composition corporelle", aliases: ["masse maigre molle","soft lean mass","slm"], ranges: [] },
+  { key: "bia_total_minerals", label: "Minéraux totaux", unit: "kg", examType: "BIA", category: "Composition corporelle", aliases: ["minéraux totaux","total minerals","minerals","tbm"], ranges: [] },
+  { key: "bia_extracellular_solids", label: "Solides extracellulaires", unit: "kg", examType: "BIA", category: "Composition corporelle", aliases: ["solides extracellulaires","extracellular solids","ecs"], ranges: [] },
+  // Hydratation supplémentaire
+  { key: "bia_fat_free_water", label: "Eau de masse maigre", unit: "L", examType: "BIA", category: "Hydratation", aliases: ["eau masse maigre","fat free water","ffm water"], ranges: [] },
+  { key: "bia_ffm_hydration", label: "Hydratation masse maigre (TBW/FFM)", unit: "%", examType: "BIA", category: "Hydratation", aliases: ["hydratation masse maigre","tbw/ffm","fat free mass hydration","ffm hydration"], ranges: [{min:71,max:74}] },
+  { key: "bia_hydration_level", label: "Niveau d'hydratation global", unit: "%", examType: "BIA", category: "Hydratation", aliases: ["niveau d'hydratation","hydration level","niveau hydratation"], ranges: [] },
+  { key: "bia_fat_free_hydration_level", label: "Hydratation masse maigre (niveau)", unit: "%", examType: "BIA", category: "Hydratation", aliases: ["fat free hydration level","hydratation masse maigre niveau"], ranges: [] },
+  // Impédances brutes par fréquence
+  { key: "bia_z500_impedance", label: "Impédance Z500 (500kHz)", unit: "Ω", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["impédance z500","z500","z 500","500khz impedance"], ranges: [] },
+  { key: "bia_z200_impedance", label: "Impédance Z200 (200kHz)", unit: "Ω", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["impédance z200","z200","z 200","200khz impedance"], ranges: [] },
+  { key: "bia_z100_impedance", label: "Impédance Z100 (100kHz)", unit: "Ω", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["impédance z100","z100","z 100","100khz impedance"], ranges: [] },
+  { key: "bia_z20_impedance", label: "Impédance Z20 (20kHz)", unit: "Ω", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["impédance z20","z20","z 20","20khz impedance"], ranges: [] },
+  { key: "bia_z5_impedance", label: "Impédance Z5 (5kHz)", unit: "Ω", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["impédance z5","z5","z 5","5khz impedance"], ranges: [] },
+  // Ratios supplémentaires
+  { key: "bia_e_i_ratio", label: "Ratio E/I (ECW/ICW)", unit: "", examType: "BIA", category: "Marqueurs bioélectriques", aliases: ["ratio e/i","e/i ratio","ecw/icw","ratio extracellulaire/intracellulaire"], ranges: [] },
+  { key: "bia_tbw_ffm_ratio", label: "Ratio TBW/FFM", unit: "%", examType: "BIA", category: "Hydratation", aliases: ["tbw/ffm","ratio tbw/ffm","tbw ffm ratio"], ranges: [{min:71,max:74}] },
+  { key: "bia_fat_lean_ratio", label: "Ratio Graisse/Maigre", unit: "", examType: "BIA", category: "Composition corporelle", aliases: ["ratio graisse/maigre","fat/lean ratio","fat lean ratio"], ranges: [] },
+  // Métabolisme
+  { key: "bia_basal_metabolic_rate_ref", label: "Métabolisme de base référence", unit: "kcal", examType: "BIA", category: "Métabolisme", aliases: ["métabolisme de base référence","reference bmr","estimated reference","bmr reference","mb référence"], ranges: [] },
+  { key: "bia_total_energy_expenditure", label: "Dépense énergétique totale", unit: "kcal", examType: "BIA", category: "Métabolisme", aliases: ["dépense énergétique totale","total energy expenditure","dee","tee","energy expenditure"], ranges: [] },
+  { key: "bia_recommended_intake_min", label: "Apport recommandé minimum", unit: "kcal", examType: "BIA", category: "Métabolisme", aliases: ["apport recommandé minimum","recomm. intake min","recommended intake min","apport min"], ranges: [] },
+  { key: "bia_recommended_intake_max", label: "Apport recommandé maximum", unit: "kcal", examType: "BIA", category: "Métabolisme", aliases: ["apport recommandé maximum","recomm. intake max","recommended intake max","apport max"], ranges: [] },
+  // Gaps théoriques
+  { key: "bia_fat_mass_gap", label: "Écart masse grasse (gap théorique)", unit: "kg", examType: "BIA", category: "Gaps théoriques", aliases: ["écart masse grasse","theoretical gap fat mass","fat mass gap","gap fm"], ranges: [] },
+  { key: "bia_muscle_mass_gap", label: "Écart masse musculaire (gap théorique)", unit: "kg", examType: "BIA", category: "Gaps théoriques", aliases: ["écart masse musculaire","theoretical gap muscle mass","muscle mass gap","gap smm"], ranges: [] },
+  { key: "bia_water_volume_gap", label: "Écart volume d'eau (gap théorique)", unit: "L", examType: "BIA", category: "Gaps théoriques", aliases: ["écart volume d'eau","theoretical gap water volume","water volume gap","gap water"], ranges: [] },
+  { key: "bia_bone_mineral_gap", label: "Écart minéral osseux (gap théorique)", unit: "kg", examType: "BIA", category: "Gaps théoriques", aliases: ["écart minéral osseux","theoretical gap bone mineral","bone mineral gap","gap bmc"], ranges: [] },
+  // Scores de risque
+  { key: "bia_cardiovascular_risk_score", label: "Score risque cardiovasculaire", unit: "/3", examType: "BIA", category: "Scores de risque", aliases: ["score risque cardiovasculaire","cardiovascular risk score","cardiovascular risk","risque cardio"], ranges: [{min:0,max:1}] },
+  { key: "bia_metabolic_risk_score", label: "Score risque métabolique", unit: "/3", examType: "BIA", category: "Scores de risque", aliases: ["score risque métabolique","metabolic risk score","metabolic risk","risque métabolique"], ranges: [{min:0,max:1}] },
 
   // ══ DXA ══
   { key: "dxa_tscore_spine", label: "T-score rachis", unit: "DS", examType: "DXA_BONE", category: "Densité osseuse", aliases: ["t-score rachis","t-score l1-l4","t score rachis lombaire","t-score lombaire"], ranges: [{min:-1}] },
