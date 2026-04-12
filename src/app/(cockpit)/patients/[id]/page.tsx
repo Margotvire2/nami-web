@@ -254,12 +254,16 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         onRecord={() =>
           startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)
         }
-        onStartConsultation={() =>
-          startConsultation({
-            careCaseId: id,
-            patientName: `${careCase.patient.firstName} ${careCase.patient.lastName}`,
-          })
-        }
+        onStartConsultation={async () => {
+          try {
+            await startConsultation({
+              careCaseId: id,
+              patientName: `${careCase.patient.firstName} ${careCase.patient.lastName}`,
+            });
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Impossible de démarrer la consultation");
+          }
+        }}
         onAiSummarize={handleAiSummarize}
         aiStreaming={aiStreaming}
       />
