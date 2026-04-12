@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type NoteAnalysis } from "@/lib/api";
 import { usePatientDashboard } from "@/hooks/usePatientDashboard";
 import { useRecording } from "@/contexts/RecordingContext";
+import { useConsultation } from "@/contexts/ConsultationContext";
 import { PatientHeader } from "./v2/components/PatientHeader";
 import { ViewGlobale } from "./v2/components/ViewGlobale";
 import { ViewDossier } from "./v2/components/ViewDossier";
@@ -172,6 +173,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const qc = useQueryClient();
   const api = apiWithToken(accessToken!);
   const { startRecording } = useRecording();
+  const { startConsultation } = useConsultation();
 
   const [activeTab, setActiveTab] = useState<Tab>("globale");
   const [noteOpen, setNoteOpen] = useState(false);
@@ -251,6 +253,12 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         onTask={() => setTaskModalOpen(true)}
         onRecord={() =>
           startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)
+        }
+        onStartConsultation={() =>
+          startConsultation({
+            careCaseId: id,
+            patientName: `${careCase.patient.firstName} ${careCase.patient.lastName}`,
+          })
         }
         onAiSummarize={handleAiSummarize}
         aiStreaming={aiStreaming}

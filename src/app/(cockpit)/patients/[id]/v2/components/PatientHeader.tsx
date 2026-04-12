@@ -13,6 +13,7 @@ interface Props {
   onReferral: () => void;
   onTask: () => void;
   onRecord: () => void;
+  onStartConsultation?: () => void;
   onAiSummarize: () => void;
   aiStreaming: boolean;
 }
@@ -25,6 +26,7 @@ export function PatientHeader({
   onReferral,
   onTask,
   onRecord,
+  onStartConsultation,
   onAiSummarize,
   aiStreaming,
 }: Props) {
@@ -112,7 +114,10 @@ export function PatientHeader({
             <ActionButton label="Note" icon="✏️" onClick={onAddNote} />
             <ActionButton label="Tâche" icon="☑️" onClick={onTask} />
             <ActionButton label="Adresser" icon="↗️" onClick={onReferral} />
-            <ActionButton label="Enregistrer" icon="🎙️" accent onClick={onRecord} />
+            <ActionButton label="Enregistrer" icon="🎙️" onClick={onRecord} />
+            {onStartConsultation && (
+              <ActionButton label="Consultation" icon="🩺" accent onClick={onStartConsultation} />
+            )}
             <ActionButton
               label={aiStreaming ? "Génération…" : "Résumé IA"}
               icon="✨"
