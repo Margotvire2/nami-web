@@ -2,16 +2,18 @@
 
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
+import { SuiviTab } from "@/components/patient/SuiviTab";
 
 interface Props {
   careCaseId: string;
+  careCase?: CareCaseDetail;
 }
 
 type DossierTab = "notes" | "bio" | "journal" | "timeline" | "documents";
 
-export function ViewDossier({ careCaseId }: Props) {
+export function ViewDossier({ careCaseId, careCase }: Props) {
   const [activeTab, setActiveTab] = useState<DossierTab>("notes");
 
   return (
@@ -38,7 +40,19 @@ export function ViewDossier({ careCaseId }: Props) {
       </div>
 
       {activeTab === "notes" && <NotesPanel careCaseId={careCaseId} />}
-      {activeTab === "bio" && <BioPanel careCaseId={careCaseId} />}
+      {activeTab === "bio" && careCase ? (
+        <SuiviTab
+          careCaseId={careCaseId}
+          pathwayKey={careCase.pathwayTemplateId ?? "default"}
+          personId={careCase.patient.id}
+          patient={{ firstName: careCase.patient.firstName, lastName: careCase.patient.lastName, birthDate: careCase.patient.birthDate ?? null, sex: careCase.patient.sex ?? undefined }}
+          height={careCase.height}
+          napValue={careCase.napValue}
+          napDescription={careCase.napDescription}
+        />
+      ) : activeTab === "bio" ? (
+        <BioPanel careCaseId={careCaseId} />
+      ) : null}
       {activeTab === "journal" && <JournalPanel careCaseId={careCaseId} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
       {activeTab === "documents" && <DocumentsPanel careCaseId={careCaseId} />}

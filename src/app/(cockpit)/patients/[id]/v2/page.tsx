@@ -299,7 +299,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           {activeTab === "globale" && (
             <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} />
           )}
-          {activeTab === "dossier" && <ViewDossier careCaseId={id} />}
+          {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (
             <ViewCoordination dashboard={dash} careCaseId={id} />
           )}
