@@ -133,6 +133,13 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
     enabled: !!accessToken,
   })
 
+  // Fetch BIA sessions (N vs N-1 vs N-2)
+  const { data: biaSessions } = useQuery({
+    queryKey: ["bia-sessions", careCaseId],
+    queryFn: () => api.observations.sessions(careCaseId, "bia_", 5),
+    enabled: !!accessToken,
+  })
+
   // Fetch trajectory for weight chart
   const { data: trajectoryData } = useQuery({
     queryKey: ["trajectory", careCaseId, ["weight_kg"], "90d"],
@@ -285,6 +292,11 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
 
       {/* ── SECTION 2 — Bilan biologique ── */}
       <BioSection obs={obs} pathwayKey={pathwayKey} sex={sex} age={age} />
+
+      {/* ── SECTION 2b — Historique impédancemétrie (N vs N-1) ── */}
+      {biaSessions && biaSessions.sessions.length > 0 && (
+        <BiaHistorySection sessions={biaSessions.sessions} metricKeys={biaSessions.metricKeys} />
+      )}
 
       {/* ── SECTION 3 — Suivi pondéral ── */}
       <div className="rounded-xl border bg-card p-5">
@@ -454,11 +466,12 @@ function BioSection({ obs, pathwayKey, sex, age }: { obs: Map<string, ObsRecord>
       ? ["hba1c_percent", "fasting_glycemia_mmol", "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol"]
       : []
 
-  // Collect ALL bio observations (from catalog or bio_ prefix)
+  // Collect ALL bio observations (from catalog, or known prefixes)
+  const BIO_PREFIXES = ["bio_", "bia_", "dxa_", "ecg_"]
 
   const allBio: ObsRecord[] = []
   obs.forEach((o, key) => {
-    if (ALL_BIO_KEYS.has(key) || key.startsWith("bio_")) {
+    if (ALL_BIO_KEYS.has(key) || BIO_PREFIXES.some((p) => key.startsWith(p))) {
       allBio.push(o)
     }
   })
@@ -545,6 +558,85 @@ function BioSection({ obs, pathwayKey, sex, age }: { obs: Map<string, ObsRecord>
           )
         })
       })()}
+    </div>
+  )
+}
+
+// ─── BiaHistorySection — Tableau N vs N-1 impédancemétrie ───────────────────
+
+const BIA_DISPLAY_ORDER = [
+  "weight_kg", "bmi",
+  "bia_fat_mass_kg", "bia_fat_mass_percent", "bia_fat_free_mass_kg",
+  "bia_skeletal_muscle_mass", "bia_appendicular_smm",
+  "bia_total_body_water", "bia_extracellular_water", "bia_intracellular_water", "bia_ecw_tbw_ratio",
+  "bia_phase_angle", "bia_impedance_ratio", "bia_ecm_bcm_ratio",
+  "bia_ffmi", "bia_fmi", "bia_asmi", "bia_smi",
+  "bia_basal_metabolic_rate",
+]
+
+function BiaHistorySection({
+  sessions,
+  metricKeys,
+}: {
+  sessions: Array<{ date: string; values: Record<string, number> }>;
+  metricKeys: Record<string, { label: string; unit: string | null }>;
+}) {
+  // Toutes les métriques présentes dans au moins une session
+  const allKeys = Array.from(
+    new Set([
+      ...BIA_DISPLAY_ORDER.filter((k) => sessions.some((s) => s.values[k] != null)),
+      ...Object.keys(metricKeys).filter((k) => !BIA_DISPLAY_ORDER.includes(k) && sessions.some((s) => s.values[k] != null)),
+    ])
+  )
+
+  const cols = sessions.slice(0, 3) // max 3 colonnes
+
+  return (
+    <div className="rounded-xl border bg-card p-5">
+      <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">⚖️ Impédancemétrie — évolution</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left font-medium text-muted-foreground pb-2 pr-4 w-40">Métrique</th>
+              {cols.map((s) => (
+                <th key={s.date} className="text-right font-medium text-muted-foreground pb-2 px-3 min-w-[80px]">
+                  {new Date(s.date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" })}
+                </th>
+              ))}
+              {cols.length >= 2 && <th className="text-right font-medium text-muted-foreground pb-2 pl-3 min-w-[56px]">Δ</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {allKeys.map((key) => {
+              const meta = metricKeys[key] ?? KEY_TO_METRIC[key] ?? { label: key, unit: null }
+              const vals = cols.map((s) => s.values[key] ?? null)
+              const latest = vals[0]
+              const prev = vals[1] ?? null
+              const delta = latest != null && prev != null ? Math.round((latest - prev) * 100) / 100 : null
+              const isGoodDown = ["bia_fat_mass_kg", "bia_fat_mass_percent", "bia_ecm_bcm_ratio", "bia_fmi"].includes(key)
+              const isGoodUp = ["bia_fat_free_mass_kg", "bia_skeletal_muscle_mass", "bia_phase_angle", "bia_ffmi", "bia_asmi", "bia_total_body_water"].includes(key)
+              const deltaColor = delta == null ? "" : delta === 0 ? "text-gray-400" : (delta < 0 && isGoodDown) || (delta > 0 && isGoodUp) ? "text-emerald-600" : (delta < 0 && isGoodUp) || (delta > 0 && isGoodDown) ? "text-red-500" : "text-gray-500"
+
+              return (
+                <tr key={key} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+                  <td className="py-1.5 pr-4 text-muted-foreground">{typeof meta.label === "string" ? meta.label : key}</td>
+                  {vals.map((v, i) => (
+                    <td key={i} className={`py-1.5 px-3 text-right tabular-nums ${i === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                      {v != null ? `${v}${meta.unit ? " " + meta.unit : ""}` : <span className="text-gray-300">—</span>}
+                    </td>
+                  ))}
+                  {cols.length >= 2 && (
+                    <td className={`py-1.5 pl-3 text-right tabular-nums font-medium ${deltaColor}`}>
+                      {delta != null ? `${delta > 0 ? "+" : ""}${delta}` : ""}
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

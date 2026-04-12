@@ -1621,6 +1621,15 @@ export const observationsApi = {
     request<{ deltas: DeltaObservation[]; referenceDate: string | null; total: number }>(
       `/care-cases/${careCaseId}/observations/delta`, {}, token
     ),
+
+  sessions: (token: string, careCaseId: string, prefix = "bia_", maxSessions = 5) =>
+    request<{
+      sessions: Array<{ date: string; values: Record<string, number> }>;
+      metricKeys: Record<string, { label: string; unit: string | null }>;
+    }>(
+      `/care-cases/${careCaseId}/observations/sessions?prefix=${encodeURIComponent(prefix)}&sessions=${maxSessions}`,
+      {}, token
+    ),
 };
 
 // ─── Pathway ────────────────────────────────────────────────────────────────
@@ -1963,6 +1972,7 @@ export function apiWithToken(token: string) {
       create: (careCaseId: string, observations: ObservationInput[]) => observationsApi.create(token, careCaseId, observations),
       list: (careCaseId: string, params?: { metricKey?: string; domain?: string; from?: string; to?: string; limit?: number; offset?: number }) => observationsApi.list(token, careCaseId, params),
       latest: (careCaseId: string) => observationsApi.latest(token, careCaseId),
+      sessions: (careCaseId: string, prefix?: string, maxSessions?: number) => observationsApi.sessions(token, careCaseId, prefix, maxSessions),
     },
     recordings: {
       upload: (audioBlob: Blob, duration?: number) => recordingsApi.upload(token, audioBlob, duration),
