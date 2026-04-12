@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
+import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
 
 interface Props {
   dashboard: PatientDashboard;
@@ -16,16 +17,17 @@ interface Props {
 
 export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
   const { indicators, questionnaires, actions, alerts, screenings } = dashboard;
+  const profile: ClinicalProfile = getClinicalProfile(careCase);
 
   return (
     <div className="space-y-5">
       <ClinicalSummaryCard careCaseId={careCaseId} />
-      <DeltaTickerBanner indicators={indicators} questionnaires={questionnaires} />
+      <DeltaTickerBanner indicators={indicators} questionnaires={questionnaires} profile={profile} />
       <ProtocolBanner careCaseId={careCaseId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="lg:col-span-3">
-          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} />
+          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} />
         </div>
         <div className="space-y-4">
           <ActionsPanel actions={actions} />
@@ -174,21 +176,22 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
 // BANDEAU DELTAS
 // ══════════════════════════════════════════════════════
 
-function DeltaTickerBanner({ indicators, questionnaires }: {
+function DeltaTickerBanner({ indicators, questionnaires, profile }: {
   indicators: DashboardIndicator[];
   questionnaires: PatientDashboard["questionnaires"];
+  profile: ClinicalProfile;
 }) {
-  const deltas: { label: string; delta: number; unit: string; percent: number | null }[] = [];
+  const deltas: { metricKey: string; label: string; delta: number; unit: string; percent: number | null }[] = [];
 
   for (const ind of indicators) {
     if (ind.delta != null && ind.delta !== 0) {
-      deltas.push({ label: ind.label, delta: ind.delta, unit: ind.unit || "", percent: ind.deltaPercent });
+      deltas.push({ metricKey: ind.metricKey, label: ind.label, delta: ind.delta, unit: ind.unit || "", percent: ind.deltaPercent });
     }
   }
 
   for (const q of questionnaires) {
     if (q.lastScore != null && q.previousScore != null && q.lastScore !== q.previousScore) {
-      deltas.push({ label: q.label, delta: q.lastScore - q.previousScore, unit: "", percent: null });
+      deltas.push({ metricKey: q.key, label: q.label, delta: q.lastScore - q.previousScore, unit: "", percent: null });
     }
   }
 
@@ -206,7 +209,7 @@ function DeltaTickerBanner({ indicators, questionnaires }: {
       </span>
       <div className="flex items-center gap-3 overflow-x-auto">
         {deltas.map((d, i) => (
-          <span key={i} className={`flex-shrink-0 text-xs font-medium ${d.delta > 0 ? "text-green-600" : "text-red-500"}`}>
+          <span key={i} className={`flex-shrink-0 text-xs font-medium ${getDeltaColorClass(d.metricKey, d.delta, profile)}`}>
             {d.label} {d.delta > 0 ? "+" : ""}{fv(d.delta)}{d.unit ? ` ${d.unit}` : ""} {d.delta > 0 ? "↑" : "↓"}
           </span>
         ))}
@@ -219,9 +222,10 @@ function DeltaTickerBanner({ indicators, questionnaires }: {
 // INDICATEURS CLÉS
 // ══════════════════════════════════════════════════════
 
-function KeyIndicatorsGrid({ indicators, questionnaires }: {
+function KeyIndicatorsGrid({ indicators, questionnaires, profile }: {
   indicators: DashboardIndicator[];
   questionnaires: PatientDashboard["questionnaires"];
+  profile: ClinicalProfile;
 }) {
   const withValues = indicators.filter((i) => i.value !== null || i.status === "CRITICAL" || i.status === "ALERT" || i.required);
   const byDomain = new Map<string, DashboardIndicator[]>();
@@ -243,7 +247,7 @@ function KeyIndicatorsGrid({ indicators, questionnaires }: {
             <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">{domain}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
               {inds.map((ind) => (
-                <IndicatorTile key={ind.metricKey} ind={ind} />
+                <IndicatorTile key={ind.metricKey} ind={ind} profile={profile} />
               ))}
             </div>
           </div>
@@ -274,7 +278,7 @@ function KeyIndicatorsGrid({ indicators, questionnaires }: {
   );
 }
 
-function IndicatorTile({ ind }: { ind: DashboardIndicator }) {
+function IndicatorTile({ ind, profile }: { ind: DashboardIndicator; profile: ClinicalProfile }) {
   const c = {
     OK: { bg: "bg-green-50/60", border: "border-green-100", text: "text-green-800", dot: "bg-green-400" },
     ALERT: { bg: "bg-amber-50/60", border: "border-amber-100", text: "text-amber-800", dot: "bg-amber-400" },
@@ -294,7 +298,7 @@ function IndicatorTile({ ind }: { ind: DashboardIndicator }) {
         <span className="text-lg text-gray-200">—</span>
       )}
       {ind.delta != null && ind.delta !== 0 && (
-        <span className={`block text-[10px] font-medium ${ind.delta > 0 ? "text-green-600" : "text-red-500"}`}>
+        <span className={`block text-[10px] font-medium ${getDeltaColorClass(ind.metricKey, ind.delta, profile)}`}>
           {ind.delta > 0 ? "↑" : "↓"} {Math.abs(ind.delta).toFixed(1)}{ind.deltaPercent ? ` (${ind.delta > 0 ? "+" : ""}${ind.deltaPercent}%)` : ""}
         </span>
       )}

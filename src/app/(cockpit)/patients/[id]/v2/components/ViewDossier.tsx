@@ -291,8 +291,8 @@ function BioPanel({ careCaseId, careCase }: { careCaseId: string; careCase?: Car
                     <div className="w-24 text-right flex-shrink-0">
                       {row.delta !== null && row.delta !== 0 ? (
                         <div>
-                          <span className={`text-sm font-semibold ${getDeltaColor(row)}`}>{row.delta > 0 ? "+" : ""}{formatVal(row.delta)} {row.unit}</span>
-                          <span className={`block text-[10px] ${getDeltaColor(row)}`}>{row.delta > 0 ? "↑" : "↓"} {row.deltaPercent !== null ? `${Math.abs(row.deltaPercent)}%` : ""}</span>
+                          <span className={`text-sm font-semibold ${getDeltaColorClass(row.metricKey, row.delta, profile)}`}>{row.delta > 0 ? "+" : ""}{formatVal(row.delta)} {row.unit}</span>
+                          <span className={`block text-[10px] ${getDeltaColorClass(row.metricKey, row.delta, profile)}`}>{row.delta > 0 ? "↑" : "↓"} {row.deltaPercent !== null ? `${Math.abs(row.deltaPercent)}%` : ""}</span>
                         </div>
                       ) : <span className="text-xs text-gray-300">—</span>}
                     </div>
@@ -322,12 +322,6 @@ function BioSparkline({ values, status }: { values: number[]; status: string }) 
   );
 }
 
-function getDeltaColor(row: { status: string }): string {
-  if (row.status === "OK") return "text-green-600";
-  if (row.status === "ALERT") return "text-amber-600";
-  if (row.status === "CRITICAL") return "text-red-600";
-  return "text-gray-400";
-}
 
 // ══════════════════════════════════════════════════════
 // Journal patient
