@@ -722,7 +722,12 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
     },
     onError: (err: any) => {
       console.error("[validate-bio] error:", err);
-      toast.error(`Erreur validation : ${err?.message || "Erreur inconnue"}`);
+      const msg = err?.message || "Erreur inconnue";
+      if (msg === "UPGRADE_REQUIRED") {
+        toast.error("Cette fonctionnalité nécessite un abonnement Nami Pro");
+      } else {
+        toast.error(`Erreur lors de l'intégration : ${msg}`);
+      }
     },
   });
 
@@ -870,7 +875,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                   <span>{new Date(doc.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}</span>
                   {doc.fileSize && <span>• {formatFileSize(doc.fileSize)}</span>}
                 </div>
-                <div className="flex gap-1.5 mt-2">
+                <div className="flex gap-1.5 mt-2 items-center flex-wrap">
                   {isExtracted && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium border border-emerald-100">🧪 Bio extraite</span>
                   )}
@@ -879,17 +884,17 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                       <span className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />Analyse…
                     </span>
                   )}
+                  {isBioDoc(doc) && isExtracted && (
+                    <button onClick={(e) => { e.stopPropagation(); handleExtract(doc.id); }} className="text-[10px] text-[#5B4EC4] hover:underline font-medium">
+                      Ré-analyser
+                    </button>
+                  )}
                 </div>
                 <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={(e) => { e.stopPropagation(); handleDownload(doc.id); }} className="text-xs text-[#5B4EC4] hover:underline">Télécharger</button>
                   {isBioDoc(doc) && !isExtracted && !isExtracting && (
                     <button onClick={(e) => { e.stopPropagation(); handleExtract(doc.id); }} className="text-xs text-emerald-600 hover:underline font-medium">
                       🧪 Analyser IA
-                    </button>
-                  )}
-                  {isBioDoc(doc) && isExtracted && (
-                    <button onClick={(e) => { e.stopPropagation(); handleExtract(doc.id); }} className="text-xs text-gray-400 hover:underline">
-                      Ré-analyser
                     </button>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }} className="text-xs text-red-400 hover:underline ml-auto">
