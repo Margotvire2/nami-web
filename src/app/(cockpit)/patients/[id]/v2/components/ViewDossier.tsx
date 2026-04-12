@@ -704,12 +704,23 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
       });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const count = data?.observations?.length ?? candidates.filter((c) => c.selected).length;
+      toast.success(`${count} observation${count > 1 ? "s" : ""} intégrée${count > 1 ? "s" : ""} dans le dossier`);
       queryClient.invalidateQueries({ queryKey: ["documents", careCaseId] });
       queryClient.invalidateQueries({ queryKey: ["observations-bio", careCaseId] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["observations-latest", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["observations-delta", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["observations-history", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", careCaseId] });
       setValidationDocId(null);
       setCandidates([]);
+      setExtractionExamType(null);
+    },
+    onError: (err: any) => {
+      console.error("[validate-bio] error:", err);
+      toast.error(`Erreur validation : ${err?.message || "Erreur inconnue"}`);
     },
   });
 
