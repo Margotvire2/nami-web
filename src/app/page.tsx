@@ -65,6 +65,18 @@ export default function LandingPage() {
             Annuaire
           </Link>
           <Link
+            href="/pathologies"
+            className="text-sm text-gray-500 hover:text-gray-900 transition-colors hidden sm:inline"
+          >
+            Pathologies
+          </Link>
+          <Link
+            href="/blog"
+            className="text-sm text-gray-500 hover:text-gray-900 transition-colors hidden sm:inline"
+          >
+            Blog
+          </Link>
+          <Link
             href="/login"
             className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
@@ -209,6 +221,12 @@ export default function LandingPage() {
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <Link href="/soignants" className="hover:text-gray-600 transition-colors">
               Annuaire
+            </Link>
+            <Link href="/pathologies" className="hover:text-gray-600 transition-colors">
+              Pathologies
+            </Link>
+            <Link href="/blog" className="hover:text-gray-600 transition-colors">
+              Blog
             </Link>
             <Link href="/login" className="hover:text-gray-600 transition-colors">
               Connexion
