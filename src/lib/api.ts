@@ -434,6 +434,22 @@ export const intelligenceApi = {
       {},
       token
     ),
+
+  knowledgeSearch: (
+    token: string,
+    q: string,
+    opts: { limit?: number; source?: string; category?: string } = {}
+  ) => {
+    const params = new URLSearchParams({ q });
+    if (opts.limit) params.set("limit", String(opts.limit));
+    if (opts.source) params.set("source", opts.source);
+    if (opts.category) params.set("category", opts.category);
+    return request<{ query: string; count: number; results: KnowledgeSearchResult[] }>(
+      `/intelligence/search?${params.toString()}`,
+      {},
+      token
+    );
+  },
 };
 
 export interface SemanticSearchResult {
@@ -442,6 +458,21 @@ export interface SemanticSearchResult {
   sectionTitle: string;
   content: string;
   score: number;
+}
+
+export interface KnowledgeSearchResult {
+  id: string;
+  source: "FFAB" | "HAS" | "FICHE" | "ALGORITHME";
+  category: string;
+  subcategory: string | null;
+  title: string;
+  excerpt: string; // HTML with <mark> highlights
+  score: number;
+  sourceUrl: string | null;
+  publicationDate: string | null;
+  gradeEvidence: string | null;
+  tags: string[];
+  pathwayTypes: string[];
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1953,6 +1984,8 @@ export function apiWithToken(token: string) {
       validateSource: (id: string) => intelligenceApi.validateSource(token, id),
       publishSource: (id: string) => intelligenceApi.publishSource(token, id),
       semanticSearch: (q: string, limit?: number) => intelligenceApi.semanticSearch(token, q, limit),
+      knowledgeSearch: (q: string, opts?: { limit?: number; source?: string; category?: string }) =>
+        intelligenceApi.knowledgeSearch(token, q, opts),
     },
     onboarding: {
       me: () => onboardingApi.me(token),
@@ -2171,6 +2204,45 @@ export interface CreateInvoiceInput {
   isMaternity?: boolean;
   notes?: string;
 }
+
+// ─── Generic API client (lit le token depuis le store Zustand persisté) ──────
+
+function getPersistedToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem("nami-auth");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return parsed?.state?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function apiRequest<T = any>(method: string, url: string, body?: unknown): Promise<{ data: T }> {
+  const token = getPersistedToken();
+  const res = await fetch(`${API_URL}${url}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Erreur ${res.status}`);
+  }
+  return { data: await res.json() };
+}
+
+export const api = {
+  defaults: { baseURL: API_URL },
+  get:    <T = any>(url: string)                    => apiRequest<T>("GET",    url),
+  post:   <T = any>(url: string, body?: unknown)    => apiRequest<T>("POST",   url, body),
+  patch:  <T = any>(url: string, body?: unknown)    => apiRequest<T>("PATCH",  url, body),
+  delete: <T = any>(url: string)                    => apiRequest<T>("DELETE", url),
+};
 
 export interface InvoiceLineInput {
   actCode: string;
