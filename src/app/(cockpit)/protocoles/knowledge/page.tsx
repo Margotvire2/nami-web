@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useMemo, useRef } from "react";
 import {
   BookOpen,
   Check,
@@ -22,6 +23,7 @@ import {
   Clock,
   Shield,
   ArrowLeft,
+  Search,
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -99,6 +101,9 @@ export default function KnowledgePage() {
             </p>
           </div>
         </div>
+
+        {/* Recherche clinique IA */}
+        <ClinicalQAPanel accessToken={accessToken!} />
 
         {/* Tabs */}
         <div className="flex gap-1 mt-3">
@@ -313,6 +318,209 @@ function SourceCard({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── ClinicalQAPanel ─────────────────────────────────────────────────────────
+
+interface QASource {
+  index: number;
+  slug: string;
+  sectionTitle: string;
+  similarity: number;
+}
+
+interface QAResult {
+  answer: string;
+  sources: QASource[];
+  chunksFound: number;
+  disclaimer: string;
+}
+
+function ClinicalQAPanel({ accessToken }: { accessToken: string }) {
+  const [open, setOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [result, setResult] = useState<QAResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  const exampleQuestions = useMemo(() => [
+    "Prophylaxie doxycycline après morsure de tique chez enfant de 8 ans ?",
+    "Critères d'hospitalisation en anorexie mentale chez l'adolescent ?",
+    "Quand faire un bilan lipidique dans le suivi de l'obésité pédiatrique ?",
+  ], []);
+
+  const handleSubmit = async () => {
+    if (!question.trim() || question.trim().length < 5 || loading) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const res = await fetch(`${API_URL}/intelligence/clinical-qa`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ question: question.trim() }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Erreur ${res.status}`);
+      }
+
+      const data: QAResult = await res.json();
+      setResult(data);
+    } catch (e: any) {
+      setError(e.message || "Erreur lors de la recherche");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const reset = () => {
+    setResult(null);
+    setError(null);
+    setQuestion("");
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-[#5B4EC4]/20 bg-[#F8F7FD] overflow-hidden">
+      {/* Toggle header */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#EDE9FC]/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-[#5B4EC4]" />
+          <span className="text-sm font-semibold text-[#5B4EC4]">Recherche clinique IA</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+            Brouillon — à vérifier
+          </span>
+        </div>
+        {open ? <ChevronUp size={14} className="text-[#5B4EC4]" /> : <ChevronDown size={14} className="text-[#5B4EC4]" />}
+      </button>
+
+      {open && (
+        <div className="border-t border-[#5B4EC4]/10 px-4 py-4 space-y-3">
+          {!result ? (
+            <>
+              {/* Exemples de questions */}
+              {!question && (
+                <div className="flex flex-wrap gap-2">
+                  {exampleQuestions.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => { setQuestion(q); setTimeout(() => inputRef.current?.focus(), 50); }}
+                      className="text-xs px-2.5 py-1 rounded-full border border-[#5B4EC4]/20 text-[#5B4EC4] hover:bg-[#EDE9FC] transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Zone de saisie */}
+              <div className="flex gap-2 items-end">
+                <textarea
+                  ref={inputRef}
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Posez une question clinique… (Entrée pour valider)"
+                  rows={2}
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] bg-white"
+                />
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !question.trim()}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#5B4EC4] text-white text-sm font-medium hover:bg-[#4A3DB3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Search size={14} />
+                  )}
+                  {loading ? "Recherche…" : "Chercher"}
+                </button>
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+              )}
+            </>
+          ) : (
+            <div className="space-y-4">
+              {/* Question posée */}
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-medium text-[#5B4EC4] italic">« {question} »</p>
+                <button
+                  onClick={reset}
+                  className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
+                >
+                  <X size={12} /> Nouvelle question
+                </button>
+              </div>
+
+              {/* Réponse structurée */}
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-line text-sm leading-relaxed">
+                  {result.answer.split("\n").map((line, i) => {
+                    if (line.startsWith("## ")) {
+                      return (
+                        <p key={i} className="text-xs font-semibold text-gray-900 uppercase tracking-wider mt-3 mb-1 first:mt-0">
+                          {line.replace("## ", "")}
+                        </p>
+                      );
+                    }
+                    return <p key={i} className="mb-1">{line}</p>;
+                  })}
+                </div>
+
+                {/* Sources utilisées */}
+                {result.sources.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">
+                      {result.chunksFound} extrait{result.chunksFound > 1 ? "s" : ""} de la base de connaissances
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {result.sources.map((s) => (
+                        <span
+                          key={s.index}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-[#EDE9FC] text-[#5B4EC4] font-medium"
+                          title={s.sectionTitle}
+                        >
+                          [{s.index}] {s.slug}{s.sectionTitle ? ` — ${s.sectionTitle}` : ""}
+                          <span className="ml-1 opacity-60">({Math.round(s.similarity * 100)}%)</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Disclaimer MDR */}
+              <p className="text-[10px] text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-100">
+                ⚠️ {result.disclaimer}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
