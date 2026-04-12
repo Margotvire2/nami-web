@@ -64,7 +64,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
 
   const notesList = Array.isArray(notes) ? notes : [];
   const filtered = search
-    ? notesList.filter((n: any) => `${n.title || ""} ${n.content || ""} ${n.author?.firstName || ""} ${n.author?.lastName || ""}`.toLowerCase().includes(search.toLowerCase()))
+    ? notesList.filter((n: any) => `${n.title || ""} ${n.body || n.content || ""} ${n.author?.firstName || ""} ${n.author?.lastName || ""}`.toLowerCase().includes(search.toLowerCase()))
     : notesList;
   filtered.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
