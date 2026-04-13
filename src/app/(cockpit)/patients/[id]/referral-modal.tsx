@@ -174,11 +174,11 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
   if (!open) return null
 
   const colleagueOptions: ProviderOption[] = (colleagues as any[]).map((c: any) => ({
-    id: c.id,
-    personId: c.personId,
-    firstName: c.person?.firstName ?? c.firstName ?? "",
-    lastName: c.person?.lastName ?? c.lastName ?? "",
-    specialties: c.specialties ?? [],
+    id: c.provider?.id,
+    personId: c.person?.id,
+    firstName: c.person?.firstName ?? "",
+    lastName: c.person?.lastName ?? "",
+    specialties: c.provider?.specialties ?? [],
     isOnNami: true,
   }))
 
