@@ -6,6 +6,7 @@ import { apiWithToken, type OnboardingStructureInput } from "@/lib/api"
 import { useState } from "react"
 import { Plus, Trash2, AlertCircle, MapPin, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AddressAutocomplete } from "@/components/AddressAutocomplete"
 
 interface Structure {
   name:       string
@@ -208,29 +209,57 @@ export function StepStructures() {
             </select>
           </div>
 
-          <FormInput
-            label="Adresse"
-            value={form.address}
-            onChange={(v) => setForm((f) => ({ ...f, address: v }))}
-            placeholder="12 rue de la Paix"
-            required
-          />
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-neutral-600">
+              Adresse <span className="text-red-500">*</span>
+            </label>
+            <AddressAutocomplete
+              defaultValue={form.address}
+              placeholder="12 rue de la Paix..."
+              onSelect={(result) =>
+                setForm((f) => ({
+                  ...f,
+                  address:    result.name,
+                  postalCode: result.postcode,
+                  city:       result.city,
+                }))
+              }
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <FormInput
-              label="Code postal"
-              value={form.postalCode}
-              onChange={(v) => setForm((f) => ({ ...f, postalCode: v }))}
-              placeholder="75001"
-              required
-            />
-            <FormInput
-              label="Ville"
-              value={form.city}
-              onChange={(v) => setForm((f) => ({ ...f, city: v }))}
-              placeholder="Paris"
-              required
-            />
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-neutral-600">
+                Code postal <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.postalCode}
+                onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
+                placeholder="75001"
+                readOnly={!!form.postalCode}
+                className={cn(
+                  "w-full px-3 py-2 rounded-lg border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+                  form.postalCode && "bg-neutral-50 text-neutral-500"
+                )}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-neutral-600">
+                Ville <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.city}
+                onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                placeholder="Paris"
+                readOnly={!!form.city}
+                className={cn(
+                  "w-full px-3 py-2 rounded-lg border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+                  form.city && "bg-neutral-50 text-neutral-500"
+                )}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
