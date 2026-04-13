@@ -30,29 +30,29 @@ export const PROFESSIONS: Profession[] = [
   { id: "chirurgien_bariatrique",label: "Chirurgien bariatrique",              category: "medical",       hasRPPS: true,  hasADELI: false, hasConvention: true,  hasCMU: true },
 
   // Paramédicaux
-  { id: "dieteticien",          label: "Diététicien(ne)",                      category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
-  { id: "infirmier",            label: "Infirmier(e)",                         category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: true,  hasCMU: true },
-  { id: "kinesitherapeute",     label: "Masseur-kinésithérapeute",             category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: true,  hasCMU: true },
-  { id: "orthophoniste",        label: "Orthophoniste",                        category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: true,  hasCMU: true },
-  { id: "ergotherapeute",       label: "Ergothérapeute",                       category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
-  { id: "psychomotricien",      label: "Psychomotricien(ne)",                  category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
+  { id: "dieteticien",          label: "Diététicien(ne)",                      category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "infirmier",            label: "Infirmier(e)",                         category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: true,  hasCMU: true },
+  { id: "kinesitherapeute",     label: "Masseur-kinésithérapeute",             category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: true,  hasCMU: true },
+  { id: "orthophoniste",        label: "Orthophoniste",                        category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: true,  hasCMU: true },
+  { id: "ergotherapeute",       label: "Ergothérapeute",                       category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "psychomotricien",      label: "Psychomotricien(ne)",                  category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
   { id: "sage_femme",           label: "Sage-femme",                           category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: true,  hasCMU: true },
-  { id: "pedicure_podologue",   label: "Pédicure-podologue",                   category: "paramedical",   hasRPPS: false, hasADELI: true,  hasConvention: true,  hasCMU: true },
+  { id: "pedicure_podologue",   label: "Pédicure-podologue",                   category: "paramedical",   hasRPPS: true,  hasADELI: false, hasConvention: true,  hasCMU: true },
 
   // Santé mentale (non médecin)
-  { id: "psychologue",          label: "Psychologue",                          category: "sante_mentale", hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
-  { id: "psychologue_neuro",    label: "Neuropsychologue",                     category: "sante_mentale", hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
-  { id: "psychotherapeute",     label: "Psychothérapeute",                     category: "sante_mentale", hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
+  { id: "psychologue",          label: "Psychologue",                          category: "sante_mentale", hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "psychologue_neuro",    label: "Neuropsychologue",                     category: "sante_mentale", hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "psychotherapeute",     label: "Psychothérapeute",                     category: "sante_mentale", hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
 
   // Social
-  { id: "assistant_social",     label: "Assistant(e) de service social",       category: "social",        hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
-  { id: "educateur_specialise", label: "Éducateur(rice) spécialisé(e)",        category: "social",        hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "assistant_social",     label: "Assistant(e) de service social",       category: "social",        hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "educateur_specialise", label: "Éducateur(rice) spécialisé(e)",        category: "social",        hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
   { id: "coordinateur_parcours",label: "Coordinateur de parcours",             category: "social",        hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
 
   // Sport & bien-être
   { id: "apa",                  label: "Enseignant APA",                       category: "sport",         hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
   { id: "coach_sante",          label: "Coach santé",                          category: "sport",         hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
-  { id: "osteopathe",           label: "Ostéopathe",                           category: "sport",         hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
+  { id: "osteopathe",           label: "Ostéopathe",                           category: "sport",         hasRPPS: true,  hasADELI: false, hasConvention: false, hasCMU: false },
 ]
 
 // ─── Domaines d'expertise ───────────────────────────────────────────────────
