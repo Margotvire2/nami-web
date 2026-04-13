@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, PatientCondition } from "@/lib/api";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
@@ -170,6 +171,7 @@ export function PatientHeader({
               onClick={onAiSummarize}
               disabled={aiStreaming}
             />
+            <ExportPdfButton careCaseId={careCaseId} />
           </div>
         </div>
       </div>
@@ -245,5 +247,45 @@ function TeamAvatars({ careCaseId }: { careCaseId: string }) {
         <span className="text-xs text-gray-400">{members.length}</span>
       )}
     </div>
+  );
+}
+
+function ExportPdfButton({ careCaseId }: { careCaseId: string }) {
+  const [loading, setLoading] = useState(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  async function handleExport() {
+    setLoading(true);
+    try {
+      const token = (() => {
+        try { const s = localStorage.getItem("nami-auth"); return s ? JSON.parse(s)?.state?.accessToken : null; } catch { return null; }
+      })();
+      const res = await fetch(`${API_URL}/care-cases/${careCaseId}/export/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erreur export");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rapport-${careCaseId.slice(0, 8)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent fail — user sees nothing downloaded
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleExport}
+      disabled={loading}
+      title="Exporter en PDF"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors duration-150 disabled:opacity-50"
+    >
+      {loading ? "⏳" : "📄"} Export
+    </button>
   );
 }
