@@ -423,6 +423,21 @@ function MainWidget({ wide }: { wide: boolean }) {
         </div>
       </div>
 
+      {/* Lien dossier patient */}
+      {careCaseId && (
+        <div className="px-4 pt-2 pb-0 shrink-0">
+          <a
+            href={`/patients/${careCaseId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-600 hover:text-teal-700 transition-colors"
+          >
+            <ExternalLink size={11} />
+            Ouvrir le dossier patient
+          </a>
+        </div>
+      )}
+
       {/* Content */}
       <div className={`flex flex-col gap-3 px-4 py-4 overflow-y-auto ${contentMaxH}`}>
         {/* Audio section */}
