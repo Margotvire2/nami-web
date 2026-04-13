@@ -14,8 +14,9 @@ export default function ConfidentialitePage() {
       <section className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">1. Responsable du traitement</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
-          Le responsable du traitement des données collectées via la plateforme Nami est la société éditrice,
-          joignable à l&apos;adresse <strong>contact@nami-sante.fr</strong>.
+          Le responsable du traitement des données collectées via la plateforme Nami est <strong>Margot Vire</strong>,
+          diététicienne-nutritionniste (RPPS : 10007322976), 55 boulevard du Château, 92200 Neuilly-sur-Seine.
+          Contact : <strong>contact@namipourlavie.com</strong>.
         </p>
       </section>
 
@@ -76,7 +77,7 @@ export default function ConfidentialitePage() {
           <li>Droit d&apos;opposition</li>
         </ul>
         <p className="text-sm text-gray-600 leading-relaxed mt-3">
-          Pour exercer ces droits : <strong>contact@nami-sante.fr</strong>.<br />
+          Pour exercer ces droits : <strong>contact@namipourlavie.com</strong>.<br />
           Vous pouvez également saisir la CNIL : <strong>cnil.fr</strong>
         </p>
       </section>

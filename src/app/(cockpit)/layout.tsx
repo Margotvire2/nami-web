@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { onboardingApi } from "@/lib/api";
 import { Sidebar } from "@/components/sidebar";
+import { Footer } from "@/components/Footer";
 import { RecordingProvider } from "@/contexts/RecordingContext";
 import { RecordingWidget } from "@/components/RecordingWidget";
 import { ConsultationProvider } from "@/contexts/ConsultationContext";
@@ -52,9 +53,12 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
       <ConsultationProvider>
         <div className="flex h-screen bg-background">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            {children}
-          </main>
+          <div className="flex flex-col flex-1 min-w-0">
+            <main className="flex-1 overflow-y-auto">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </div>
         <RecordingWidget />
         <ConsultationWidget />

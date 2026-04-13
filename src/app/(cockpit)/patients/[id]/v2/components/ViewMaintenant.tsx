@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { AiDisclaimer } from "@/components/AiDisclaimer";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import {
@@ -677,6 +678,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
           ) : (
             <p className="text-sm text-gray-400 italic">Aucune section détectée.</p>
           )}
+          <AiDisclaimer variant="inline" className="mt-3" />
         </div>
       )}
     </div>

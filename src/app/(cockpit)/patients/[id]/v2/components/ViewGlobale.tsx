@@ -35,6 +35,7 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
           <ActionsPanel actions={actions} />
           {careCase && <PatientInfoCard careCase={careCase} />}
           <ConditionsCard careCaseId={careCaseId} />
+          <CareTeamCard careCaseId={careCaseId} />
           <FlagsBanner alerts={alerts} screenings={screenings} />
         </div>
       </div>
@@ -616,6 +617,89 @@ function PatientInfoCard({ careCase }: { careCase: CareCaseDetail }) {
             <span className="text-xs text-gray-700 break-all">{r.value}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════
+// ÉQUIPE DE SOINS
+// ══════════════════════════════════════════════════════
+
+function CareTeamCard({ careCaseId }: { careCaseId: string }) {
+  const { data } = useQuery({
+    queryKey: ["team", careCaseId],
+    queryFn: async () => {
+      const res = await api.get(`/care-cases/${careCaseId}/team`);
+      return res.data;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const { data: notes } = useQuery({
+    queryKey: ["notes-authors", careCaseId],
+    queryFn: async () => {
+      const res = await api.get(`/care-cases/${careCaseId}/notes?limit=100`);
+      return (res.data?.notes || res.data || []) as any[];
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const members: any[] = data?.members || data || [];
+  if (members.length === 0) return null;
+
+  // Build last-contact map per personId
+  const lastContact: Record<string, string> = {};
+  if (Array.isArray(notes)) {
+    for (const n of notes) {
+      const pid = n.authorPersonId || n.author?.id;
+      if (pid && (!lastContact[pid] || n.createdAt > lastContact[pid])) {
+        lastContact[pid] = n.createdAt;
+      }
+    }
+  }
+
+  const fmtDate = (iso?: string) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return "Hier";
+    if (diffDays < 7) return `Il y a ${diffDays}j`;
+    return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  };
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900">Équipe de soins</h3>
+      </div>
+      <div className="divide-y divide-gray-50">
+        {members.map((m: any, i: number) => {
+          const p = m.person || m;
+          const initials = `${p.firstName?.[0] || "?"}${p.lastName?.[0] || ""}`.toUpperCase();
+          const specialties = m.provider?.specialties || [];
+          const last = lastContact[p.id];
+          return (
+            <div key={m.id || i} className="flex items-center gap-2.5 px-4 py-2.5">
+              <div className="w-7 h-7 rounded-full bg-[#EDE9FC] flex items-center justify-center text-[10px] font-semibold text-[#5B4EC4] shrink-0">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-800 truncate">
+                  {p.firstName} {p.lastName}
+                </p>
+                <p className="text-[10px] text-gray-400 truncate">
+                  {m.roleInCase || specialties[0] || "Soignant"}
+                </p>
+              </div>
+              {last && (
+                <span className="text-[10px] text-gray-400 shrink-0">{fmtDate(last)}</span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

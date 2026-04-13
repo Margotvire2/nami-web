@@ -104,10 +104,19 @@ export default function CguPage() {
         </p>
       </section>
 
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">9. Éditeur</h2>
+        <div className="text-sm text-gray-600 space-y-1">
+          <p><strong>Responsable :</strong> Margot Vire, diététicienne-nutritionniste (RPPS : 10007322976)</p>
+          <p><strong>Adresse :</strong> Hôpital Américain de Paris, 55 boulevard du Château, 92200 Neuilly-sur-Seine</p>
+          <p><strong>Contact :</strong> contact@namipourlavie.com</p>
+        </div>
+      </section>
+
       <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">9. Contact</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">10. Droit applicable</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
-          Pour toute question relative aux présentes CGU : <strong>contact@nami-sante.fr</strong>
+          Les présentes CGU sont soumises au droit français. Tout litige sera porté devant les juridictions compétentes du ressort de Paris.
         </p>
       </section>
     </article>

@@ -14,10 +14,12 @@ export default function MentionsLegalesPage() {
       <section className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Éditeur</h2>
         <div className="text-sm text-gray-600 space-y-1">
-          <p><strong>Raison sociale :</strong> Nami</p>
-          <p><strong>Forme juridique :</strong> SAS (en cours de constitution)</p>
+          <p><strong>Éditeur :</strong> Margot Vire</p>
+          <p><strong>Statut :</strong> Entreprise individuelle</p>
+          <p><strong>RPPS :</strong> 10007322976</p>
+          <p><strong>Adresse :</strong> Hôpital Américain de Paris, 55 boulevard du Château, 92200 Neuilly-sur-Seine</p>
           <p><strong>Directrice de publication :</strong> Margot Vire</p>
-          <p><strong>Contact :</strong> contact@nami-sante.fr</p>
+          <p><strong>Contact :</strong> contact@namipourlavie.com</p>
         </div>
       </section>
 

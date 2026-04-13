@@ -12,6 +12,7 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Sparkles, Calendar, X, ChevronDown, ChevronUp } from "lucide-react";
+import { AiDisclaimer } from "@/components/AiDisclaimer";
 import { useNamiStore } from "@/lib/nami-store";
 import { getCarePathwayDashboard } from "@/lib/nami-store/selectors";
 
@@ -198,6 +199,7 @@ function AISnapshotBlock({ summary, expanded, onToggle }: { summary: string; exp
           {expanded ? <><ChevronUp size={12} /> Réduire</> : <><ChevronDown size={12} /> Voir plus</>}
         </button>
       )}
+      <AiDisclaimer variant="compact" className="mt-2" />
     </>
   );
 }
