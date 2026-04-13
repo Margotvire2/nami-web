@@ -15,6 +15,7 @@ import {
   FileText,
   Loader2,
   Check,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -52,7 +53,6 @@ function AudioControls() {
   const {
     audioStatus,
     recordingSeconds,
-    hasAudio,
     micDenied,
     startRecording,
     pauseRecording,
@@ -355,6 +355,7 @@ function ErrorView({ wide }: { wide: boolean }) {
 function MainWidget({ wide }: { wide: boolean }) {
   const {
     patientName,
+    careCaseId,
     appointmentTitle,
     notes,
     saveStatus,
