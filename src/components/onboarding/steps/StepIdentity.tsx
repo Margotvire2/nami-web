@@ -310,7 +310,7 @@ export function StepIdentity() {
                 )
               })}
               <span className="text-[10px] text-neutral-400 self-center ml-1">
-                {expertiseDomains.length}/5
+                {expertiseDomains.length}/10
               </span>
             </div>
           )}
@@ -354,7 +354,7 @@ export function StepIdentity() {
                     <div className="p-2.5 flex flex-wrap gap-1.5 border-t">
                       {theme.domains.map(domain => {
                         const isSelected = expertiseDomains.includes(domain.id)
-                        const isDisabled = !isSelected && expertiseDomains.length >= 5
+                        const isDisabled = !isSelected && expertiseDomains.length >= 10
                         return (
                           <button
                             key={domain.id}
