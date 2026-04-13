@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Plus, ChevronLeft, Clock, CheckCircle2, Users, MessageSquare, AlertTriangle, Zap, Calendar } from "lucide-react";
 import Link from "next/link";
+import { formatDate, formatShortDate } from "@/lib/date-utils";
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -275,7 +276,7 @@ function RcpCard({ rcp, careCaseId }: { rcp: RcpSummary; careCaseId: string }) {
             <h3 className="font-semibold text-gray-900 truncate">{rcp.title}</h3>
           </div>
           <div className="text-right text-xs text-gray-500 shrink-0">
-            {new Date(rcp.openedAt).toLocaleDateString("fr-FR")}
+            {formatDate(rcp.openedAt)}
           </div>
         </div>
 
@@ -297,13 +298,13 @@ function RcpCard({ rcp, careCaseId }: { rcp: RcpSummary; careCaseId: string }) {
           {rcp.rcpType === "SYNC" && rcp.scheduledAt && (
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              Visio {new Date(rcp.scheduledAt).toLocaleDateString("fr-FR")}
+              Visio {formatDate(rcp.scheduledAt)}
             </span>
           )}
           {rcp.deadline && rcp.status !== "CLOSED" && rcp.status !== "CANCELLED" && (
             <span className="flex items-center gap-1 text-amber-600">
               <Clock className="w-3.5 h-3.5" />
-              {new Date(rcp.deadline).toLocaleDateString("fr-FR")}
+              {formatDate(rcp.deadline)}
             </span>
           )}
           {rcp.status === "CLOSED" && (

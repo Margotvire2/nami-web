@@ -7,6 +7,7 @@ import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
 import { SuiviTab } from "@/components/patient/SuiviTab";
 import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
+import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
 
 interface Props {
   careCaseId: string;
@@ -124,7 +125,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
                     )}
                   </div>
                   <span className="text-xs text-gray-400 flex-shrink-0">
-                    {new Date(note.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {formatDateTime(note.createdAt)}
                   </span>
                 </div>
                 {authorName && (
@@ -243,7 +244,7 @@ function BioPanel({ careCaseId, careCase }: { careCaseId: string; careCase?: Car
           <h3 className="text-sm font-semibold text-gray-900">Biologie — N vs N-1</h3>
           {latestDate && (
             <p className="text-xs text-gray-400 mt-0.5">
-              Référence : {latestDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} · {rows.length} indicateurs
+              Référence : {formatDate(latestDate)} · {rows.length} indicateurs
             </p>
           )}
         </div>
@@ -270,7 +271,7 @@ function BioPanel({ careCaseId, careCase }: { careCaseId: string; careCase?: Car
                       <p className="text-sm font-medium text-gray-800">{row.label}</p>
                       {row.currentDate && row.previousDate && (
                         <p className="text-[10px] text-gray-400">
-                          {new Date(row.previousDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} → {new Date(row.currentDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                          {formatShortDate(row.previousDate)} → {formatShortDate(row.currentDate)}
                         </p>
                       )}
                     </div>
@@ -410,7 +411,7 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
             <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">⚡ Besoins énergétiques</p>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-white border border-indigo-200 text-indigo-600 font-medium">
               {metabolic.source === "BIA" ? "Biody Xpert" : "Mifflin-St Jeor"}
-              {metabolic.measuredAt && ` · ${new Date(metabolic.measuredAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`}
+              {metabolic.measuredAt && ` · ${formatShortDate(metabolic.measuredAt)}`}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -564,7 +565,7 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
                   {s.intensity && (
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${s.intensity > 6 ? "bg-red-100 text-red-600" : s.intensity > 3 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600"}`}>{s.intensity}/10</span>
                   )}
-                  <span className="text-[10px] text-gray-400">{new Date(s.createdAt || s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
+                  <span className="text-[10px] text-gray-400">{formatShortDate(s.createdAt || s.date)}</span>
                 </div>
               </div>
             ))}
@@ -578,7 +579,7 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
             {positives.map((p: any, i: number) => (
               <div key={i} className="rounded-lg bg-yellow-50 border border-yellow-100 p-3">
                 <p className="text-xs text-gray-700">{p.entryType === "POSITIVE" ? "✨ " : "📝 "}{p.content || p.description}</p>
-                <p className="text-[10px] text-gray-400 mt-1">{new Date(p.createdAt || p.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</p>
+                <p className="text-[10px] text-gray-400 mt-1">{formatShortDate(p.createdAt || p.date)}</p>
               </div>
             ))}
           </div>
@@ -932,7 +933,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                 </div>
                 <p className="text-sm font-medium text-gray-900 truncate">{doc.title || doc.fileName || "Sans titre"}</p>
                 <div className="flex items-center gap-2 mt-1.5 text-[10px] text-gray-400">
-                  <span>{new Date(doc.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  <span>{formatDate(doc.createdAt)}</span>
                   {doc.fileSize && <span>• {formatFileSize(doc.fileSize)}</span>}
                 </div>
                 <div className="flex gap-1.5 mt-2 items-center flex-wrap">
@@ -981,7 +982,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {candidates.length} valeur{candidates.length > 1 ? "s" : ""} extraite{candidates.length > 1 ? "s" : ""}
-                  {extractionDate ? ` · ${new Date(extractionDate).toLocaleDateString("fr-FR")}` : ""}
+                  {extractionDate ? ` · ${formatDate(extractionDate)}` : ""}
                   {" — "}décochez ce que vous ne souhaitez pas intégrer
                 </p>
               </div>
@@ -1156,7 +1157,7 @@ function TimelinePanel({ careCaseId }: { careCaseId: string }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">Ligne de vie clinique</h3>
-          {startDate && <p className="text-xs text-gray-400">Depuis le {startDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>}
+          {startDate && <p className="text-xs text-gray-400">Depuis le {formatDate(startDate)}</p>}
         </div>
         <div className="flex gap-1">
           {([
@@ -1199,7 +1200,7 @@ function TimelinePanel({ careCaseId }: { careCaseId: string }) {
                               {e.title || e.summary || e.label}
                             </p>
                             <span className="text-[11px] text-gray-400 flex-shrink-0">
-                              {d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                              {formatDateTime(d)}
                             </span>
                           </div>
                           {e.description && <p className="text-xs text-gray-500 mt-0.5">{e.description}</p>}

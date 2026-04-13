@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { formatShortDate } from "@/lib/date-utils";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
 
 interface Props {
@@ -81,8 +82,8 @@ function WeightCurveCard({ observations }: { observations: Observation[] }) {
       </svg>
 
       <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-        <span>{new Date(weights[0].effectiveAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
-        <span>{new Date(weights[weights.length - 1].effectiveAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
+        <span>{formatShortDate(weights[0].effectiveAt)}</span>
+        <span>{formatShortDate(weights[weights.length - 1].effectiveAt)}</span>
       </div>
     </div>
   );
@@ -140,7 +141,7 @@ function BioComparisonCard({ observations }: { observations: Observation[] }) {
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-medium text-gray-700">{row.label}</span>
                 <span className="text-[10px] text-gray-400 ml-1">
-                  {new Date(row.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                  {formatShortDate(row.date)}
                 </span>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
@@ -271,7 +272,7 @@ function MentalHealthCard({ dashboard }: { dashboard: PatientDashboard }) {
                   )}
                   {q.lastCompletedAt && (
                     <span className="text-[10px] text-gray-400">
-                      {new Date(q.lastCompletedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                      {formatShortDate(q.lastCompletedAt)}
                     </span>
                   )}
                 </div>
@@ -329,7 +330,7 @@ function ActivityCard({ careCaseId }: { careCaseId: string }) {
                   </div>
                 </div>
                 <span className="text-[10px] text-gray-400 flex-shrink-0">
-                  {new Date(a.occurredAt ?? a.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                  {formatShortDate(a.occurredAt ?? a.createdAt)}
                 </span>
               </div>
             );

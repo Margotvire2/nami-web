@@ -16,6 +16,7 @@ import {
   ChevronLeft, Clock, Users, AlertTriangle, Zap, CheckCircle2,
   MessageSquare, Sparkles, X, Plus, Activity, FileText, Lock,
 } from "lucide-react";
+import { formatDate } from "@/lib/date-utils";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -51,10 +52,6 @@ function parsePosition(body: string): { position: string | null; content: string
   const match = body.match(/^\[([A-Z_]+)\] ([\s\S]*)$/);
   if (match) return { position: match[1], content: match[2] };
   return { position: null, content: body };
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 // ─── Close RCP Modal ──────────────────────────────────────────────────────────
