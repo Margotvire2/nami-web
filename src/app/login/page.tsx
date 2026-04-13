@@ -26,7 +26,7 @@ export default function LoginPage() {
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
       track.login({ method: "email" });
-      router.push("/dashboard");
+      router.push(user.roleType === "PATIENT" ? "/accueil" : "/aujourd-hui");
     } catch {
       toast.error("Email ou mot de passe incorrect");
     } finally {

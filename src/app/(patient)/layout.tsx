@@ -9,8 +9,8 @@ import { Home, Calendar, FileText, MessageCircle, User, LogOut } from "lucide-re
 const NAV = [
   { href: "/accueil",     icon: Home,           label: "Accueil" },
   { href: "/rendez-vous", icon: Calendar,       label: "Rendez-vous" },
-  { href: "/documents",   icon: FileText,       label: "Documents" },
-  { href: "/messages",    icon: MessageCircle,  label: "Messages" },
+  { href: "/mes-documents",   icon: FileText,       label: "Documents" },
+  { href: "/mes-messages",    icon: MessageCircle,  label: "Messages" },
   { href: "/mon-compte",  icon: User,           label: "Mon compte" },
 ];
 

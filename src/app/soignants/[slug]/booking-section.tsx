@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import {
   CalendarPlus, Clock, MapPin, Video, Phone,
   ChevronRight, ChevronLeft, X, Check, Loader2,
-  User, Mail, Lock, Heart,
+  User, Mail, Lock, Heart, Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 import { authApi } from "@/lib/api"
@@ -25,6 +25,7 @@ interface PublicSlot {
   weekday: number
   locationType: string
   consultationType: { name: string; durationMinutes: number } | null
+  priority: "recommended" | "available"
 }
 
 interface BookingSectionProps {
@@ -250,51 +251,7 @@ export default function BookingSection({
             <Loader2 size={14} className="animate-spin" /> Chargement des créneaux…
           </div>
         ) : slots.length > 0 ? (
-          <>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {slots.slice(0, 6).map((slot) => (
-                <button
-                  key={slot.id}
-                  onClick={() => selectSlot(slot)}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 text-left hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-center min-w-[52px]">
-                      <p className="text-xs font-medium text-gray-500">
-                        {formatSlotDate(slot.date)}
-                      </p>
-                      <p className="text-lg font-bold text-gray-900">{slot.startTime}</p>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        {locationIcon(slot.locationType)}
-                        <span className="text-xs text-gray-600">
-                          {locationLabel(slot.locationType)}
-                        </span>
-                      </div>
-                      {slot.consultationType && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <Clock size={11} className="text-gray-400" />
-                          <span className="text-[11px] text-gray-400">
-                            {slot.consultationType.durationMinutes} min — {slot.consultationType.name}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={14}
-                    className="text-gray-300 group-hover:text-indigo-500 transition-colors"
-                  />
-                </button>
-              ))}
-            </div>
-            {slots.length > 6 && (
-              <p className="text-xs text-gray-400 mt-2 text-center">
-                + {slots.length - 6} autres créneaux disponibles
-              </p>
-            )}
-          </>
+          <SlotGrid slots={slots} onSelect={selectSlot} />
         ) : (
           <div className="text-center py-4">
             <p className="text-sm text-gray-500 mb-3">
@@ -517,6 +474,99 @@ export default function BookingSection({
         </div>
       )}
     </>
+  )
+}
+
+// ─── SlotGrid — two-section display (recommended + available) ────────────────
+
+function SlotButton({ slot, variant, onSelect }: {
+  slot: PublicSlot
+  variant: "recommended" | "default"
+  onSelect: (s: PublicSlot) => void
+}) {
+  const isRec = variant === "recommended"
+  return (
+    <button
+      onClick={() => onSelect(slot)}
+      className={`flex items-center justify-between gap-2 rounded-lg border p-3 text-left transition-colors group ${
+        isRec
+          ? "border-teal-200 bg-teal-50 hover:border-teal-400 hover:bg-teal-100/60"
+          : "border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/30"
+      }`}
+    >
+      <div className="flex items-center gap-2.5">
+        <div className="text-center min-w-[52px]">
+          <p className={`text-xs font-medium ${isRec ? "text-teal-600" : "text-gray-500"}`}>
+            {formatSlotDate(slot.date)}
+          </p>
+          <p className={`text-base font-bold ${isRec ? "text-teal-800" : "text-gray-900"}`}>
+            {slot.startTime}
+          </p>
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5">
+            {locationIcon(slot.locationType)}
+            <span className="text-xs text-gray-600">{locationLabel(slot.locationType)}</span>
+          </div>
+          {slot.consultationType && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <Clock size={11} className="text-gray-400" />
+              <span className="text-[11px] text-gray-400">
+                {slot.consultationType.durationMinutes} min
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+      <ChevronRight
+        size={13}
+        className={`${isRec ? "text-teal-400 group-hover:text-teal-600" : "text-gray-300 group-hover:text-indigo-500"} transition-colors`}
+      />
+    </button>
+  )
+}
+
+function SlotGrid({ slots, onSelect }: { slots: PublicSlot[]; onSelect: (s: PublicSlot) => void }) {
+  const recommended = slots.filter((s) => s.priority === "recommended")
+  const others = slots.filter((s) => s.priority === "available")
+
+  return (
+    <div className="space-y-4">
+      {recommended.length > 0 && (
+        <div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Sparkles size={13} className="text-teal-600" />
+            <h3 className="text-xs font-semibold text-teal-700">Créneaux recommandés</h3>
+          </div>
+          <p className="text-[11px] text-gray-400 mb-2">
+            Ces créneaux s&apos;enchaînent avec vos consultations — pas de trou d&apos;agenda
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {recommended.slice(0, 6).map((slot) => (
+              <SlotButton key={slot.id} slot={slot} variant="recommended" onSelect={onSelect} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {others.length > 0 && (
+        <div>
+          {recommended.length > 0 && (
+            <h3 className="text-xs font-semibold text-gray-500 mb-2">Autres créneaux disponibles</h3>
+          )}
+          <div className="grid gap-2 sm:grid-cols-2">
+            {others.slice(0, recommended.length > 0 ? 4 : 6).map((slot) => (
+              <SlotButton key={slot.id} slot={slot} variant="default" onSelect={onSelect} />
+            ))}
+          </div>
+          {(recommended.length > 0 ? others.length > 4 : others.length > 6) && (
+            <p className="text-xs text-gray-400 mt-2 text-center">
+              + {recommended.length > 0 ? others.length - 4 : others.length - 6} autres créneaux disponibles
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 

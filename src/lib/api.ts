@@ -1912,6 +1912,43 @@ export interface CloseRcpInput {
   }[];
 }
 
+// ─── Patient Portal types ─────────────────────────────────────────────────────
+
+export interface PatientMe {
+  person: {
+    id: string; firstName: string; lastName: string; email: string;
+    phone: string | null; birthDate: string | null; sex: string | null; photoUrl: string | null;
+  };
+  careCases: Array<{
+    id: string; caseTitle: string; caseType: string; status: string; startDate: string;
+    members: Array<{
+      id: string; personId: string; roleInCase: string;
+      person: { id: string; firstName: string; lastName: string; photoUrl: string | null };
+      provider: { id: string; specialties: string[] } | null;
+    }>;
+  }>;
+}
+
+export interface PatientAppointment {
+  id: string; startAt: string; endAt: string; status: string;
+  locationType: string; notes: string | null;
+  provider: { person: { firstName: string; lastName: string } };
+  consultationType: { name: string; durationMinutes: number } | null;
+  location: { name: string; address: string | null; city: string | null; color: string | null } | null;
+}
+
+export interface PatientDocument {
+  id: string; title: string; documentType: string; fileUrl: string;
+  mimeType: string; sizeBytes: number; createdAt: string; careCaseId: string;
+  uploadedBy: { firstName: string; lastName: string; roleType: string };
+}
+
+export interface PatientMessage {
+  id: string; body: string; createdAt: string; careCaseId: string;
+  sender: { id: string; firstName: string; lastName: string; roleType: string; photoUrl: string | null };
+  reads: Array<{ personId: string; readAt: string }>;
+}
+
 export function apiWithToken(token: string) {
   return {
     careCases: {
@@ -2147,6 +2184,18 @@ export function apiWithToken(token: string) {
       getConfig: () => request<BillingConfig>("/billing/config", {}, token),
       updateConfig: (data: Partial<Omit<BillingConfig, "id" | "personId" | "lastInvoiceNumber">>) =>
         request<BillingConfig>("/billing/config", { method: "PATCH", body: JSON.stringify(data) }, token),
+    },
+    patient: {
+      me: () => request<PatientMe>("/patient/me", {}, token),
+      patchMe: (data: { phone?: string; birthDate?: string; sex?: string }) =>
+        request<PatientMe["person"]>("/patient/me", { method: "PATCH", body: JSON.stringify(data) }, token),
+      appointments: (status?: "upcoming" | "past") =>
+        request<PatientAppointment[]>(`/patient/appointments${status ? `?status=${status}` : ""}`, {}, token),
+      documents: () => request<PatientDocument[]>("/patient/documents", {}, token),
+      messages: (careCaseId: string) =>
+        request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
+      sendMessage: (careCaseId: string, body: string) =>
+        request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
     },
   };
 }
