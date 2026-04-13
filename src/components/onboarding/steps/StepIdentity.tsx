@@ -4,8 +4,8 @@ import { useState, useMemo } from "react"
 import { useOnboardingStore } from "@/stores/onboarding.store"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken, type OnboardingIdentityInput } from "@/lib/api"
-import { PROFESSIONS, EXPERTISE_THEMES, PROFESSION_THEME_MAP, type Profession, type ExpertiseTheme } from "@/lib/data/specialties"
-import { AlertCircle, Loader2, Search, X, Check } from "lucide-react"
+import { PROFESSIONS, EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
+import { AlertCircle, Loader2, Search, X, Check, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -74,7 +74,23 @@ export function StepIdentity() {
     }
   }
 
-  const canNext = !!data.professionType && expertiseDomains.length > 0
+  // Champ identifiant professionnel (RPPS ou ADELI) selon la profession
+  const identifierType = selectedProfession?.hasRPPS
+    ? "rpps"
+    : selectedProfession?.hasADELI
+    ? "adeli"
+    : null
+
+  const identifierValue =
+    identifierType === "rpps"  ? (data.rppsNumber  ?? "") :
+    identifierType === "adeli" ? (data.adeliNumber ?? "") : ""
+
+  const isIdentifierValid =
+    identifierType === null ||
+    (identifierType === "rpps"  && /^\d{11}$/.test(data.rppsNumber  ?? "")) ||
+    (identifierType === "adeli" && /^\d{9}$/.test(data.adeliNumber  ?? ""))
+
+  const canNext = !!data.professionType && expertiseDomains.length > 0 && isIdentifierValid
 
   const handleNext = async () => {
     if (!data.professionType) {
@@ -83,6 +99,11 @@ export function StepIdentity() {
     }
     if (expertiseDomains.length === 0) {
       setError("Sélectionnez au moins un domaine d'expertise.")
+      return
+    }
+    if (identifierType && !isIdentifierValid) {
+      const label = identifierType === "rpps" ? "RPPS (11 chiffres)" : "ADELI (9 chiffres)"
+      setError(`Numéro ${label} invalide.`)
       return
     }
     if (!accessToken) {
@@ -209,7 +230,59 @@ export function StepIdentity() {
         )}
       </div>
 
-      {/* ── 2. Domaines d'expertise (multi select, shown after profession) ── */}
+      {/* ── 2. N° RPPS / ADELI (shown once profession selected) ── */}
+      {selectedProfession && identifierType && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-neutral-700">
+            N° {identifierType === "rpps" ? "RPPS" : "ADELI"}{" "}
+            <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={identifierValue}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, identifierType === "rpps" ? 11 : 9)
+                identifierType === "rpps"
+                  ? setData({ rppsNumber: v })
+                  : setData({ adeliNumber: v })
+              }}
+              placeholder={identifierType === "rpps" ? "Ex : 10007322976" : "Ex : 759912345"}
+              className={cn(
+                "w-full px-3 py-2.5 border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-300",
+                identifierValue && !isIdentifierValid
+                  ? "border-red-300 focus:ring-red-200"
+                  : "border-neutral-200"
+              )}
+            />
+            {identifierValue && isIdentifierValid && (
+              <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-500 pointer-events-none" />
+            )}
+          </div>
+          <p className="text-xs text-neutral-400 flex items-start gap-1">
+            <Info className="w-3 h-3 shrink-0 mt-0.5" />
+            Votre numéro figure sur votre carte CPS ou sur{" "}
+            <a
+              href="https://annuaire.sante.fr"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-neutral-600"
+            >
+              annuaire.sante.fr
+            </a>
+          </p>
+          {identifierValue && !isIdentifierValid && (
+            <p className="text-xs text-red-500">
+              {identifierType === "rpps"
+                ? "Le numéro RPPS doit contenir exactement 11 chiffres."
+                : "Le numéro ADELI doit contenir exactement 9 chiffres."}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ── 3. Domaines d'expertise (multi select, shown after profession) ── */}
       {data.professionType && (
         <div className="space-y-3">
           <label className="text-sm font-medium text-neutral-700">

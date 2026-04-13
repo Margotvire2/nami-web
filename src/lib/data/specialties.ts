@@ -52,7 +52,7 @@ export const PROFESSIONS: Profession[] = [
   // Sport & bien-être
   { id: "apa",                  label: "Enseignant APA",                       category: "sport",         hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
   { id: "coach_sante",          label: "Coach santé",                          category: "sport",         hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
-  { id: "osteopathe",           label: "Ostéopathe",                           category: "sport",         hasRPPS: false, hasADELI: false, hasConvention: false, hasCMU: false },
+  { id: "osteopathe",           label: "Ostéopathe",                           category: "sport",         hasRPPS: false, hasADELI: true,  hasConvention: false, hasCMU: false },
 ]
 
 // ─── Domaines d'expertise ───────────────────────────────────────────────────
