@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
-import { authApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import {
   LayoutDashboard,
   Users,
@@ -14,12 +12,12 @@ import {
   FileText,
   CalendarDays,
   BellDot,
-  LogOut,
   UsersRound,
   BookOpen,
   CheckSquare,
   Receipt,
   FlaskConical,
+  Settings,
 } from "lucide-react";
 
 /*
@@ -54,16 +52,7 @@ const NAV_NETWORK = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, refreshToken, logout } = useAuthStore();
-
-  async function handleLogout() {
-    if (refreshToken) {
-      await authApi.logout(refreshToken).catch(() => {});
-    }
-    logout();
-    router.push("/login");
-    toast.success("Déconnecté");
-  }
+  const { user } = useAuthStore();
 
   function isActive(href: string) {
     if (href === "/aujourd-hui") return pathname === "/aujourd-hui" || pathname === "/dashboard";
@@ -92,9 +81,9 @@ export function Sidebar() {
       {/* User */}
       <div className="px-3 py-3 shrink-0 border-t border-[#F1F5F9]">
         <button
-          onClick={handleLogout}
+          onClick={() => router.push("/reglages")}
           className="flex items-center gap-2.5 w-full px-2 py-2 rounded-[10px] hover:bg-[#F0F2FA] transition-all duration-150 group text-left"
-          title="Se déconnecter"
+          title="Réglages du profil"
         >
           <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
             {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -103,7 +92,7 @@ export function Sidebar() {
             <p className="text-[12px] font-semibold text-[#0F172A] truncate">{user?.firstName} {user?.lastName}</p>
             <p className="text-[10px] text-[#94A3B8] truncate">{user?.email}</p>
           </div>
-          <LogOut size={14} className="text-[#94A3B8] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Settings size={14} className="text-[#94A3B8] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       </div>
     </aside>

@@ -69,7 +69,6 @@ export function StepIdentity() {
     if (current.includes(id)) {
       setData({ specialties: current.filter(s => s !== id) })
     } else {
-      if (current.length >= 5) return
       setData({ specialties: [...current, id] })
     }
   }
