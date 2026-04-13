@@ -269,10 +269,10 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
     setSummarizing(true);
     try {
       await apiWithToken(accessToken!).rcps.summarize(rcpId);
-      toast.success("Synthèse IA générée");
+      toast.success("Synthèse clinique générée");
       invalidate();
     } catch {
-      toast.error("Erreur lors de la synthèse IA");
+      toast.error("Erreur lors de la synthèse clinique");
     } finally {
       setSummarizing(false);
     }
@@ -376,7 +376,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
               className="border-purple-200 text-purple-600 hover:bg-purple-50"
             >
               <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-              {summarizing ? "Génération..." : "Synthèse IA"}
+              {summarizing ? "Génération..." : "Synthèse clinique"}
             </Button>
             {rcp.canClose && (
               <Button size="sm" variant="outline" onClick={handleCancel} className="text-slate-500">
@@ -506,7 +506,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
             <div className="bg-purple-50 rounded-xl border border-purple-200 p-4">
               <h2 className="text-sm font-semibold text-purple-800 mb-2 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
-                Synthèse IA des avis
+                Synthèse des avis
               </h2>
               <MarkdownContent content={rcp.aiSummary} className="text-purple-900" />
             </div>

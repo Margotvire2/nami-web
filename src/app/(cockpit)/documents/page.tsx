@@ -529,7 +529,7 @@ export default function DocumentsPage() {
                             className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-help"
                             title="Synthèse automatique extractive. Validation humaine requise avant tout usage."
                           >
-                            <Sparkles size={9} /> Brouillon IA — à vérifier
+                            <Sparkles size={9} /> Brouillon · à valider — à vérifier
                           </span>
                         )}
                         {doc.bioExtracted && (

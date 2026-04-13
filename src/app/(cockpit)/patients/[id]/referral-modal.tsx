@@ -152,7 +152,7 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
       setLetterDraft(data.letter)
       setClinicalReason(data.letter)
     } catch {
-      toast.error("Impossible de générer la lettre IA")
+      toast.error("Impossible de générer la lettre d'adressage")
     } finally {
       setLetterLoading(false)
     }
@@ -350,13 +350,13 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
                   >
                     {letterLoading
                       ? <><Loader2 size={10} className="animate-spin" /> Génération…</>
-                      : <><Sparkles size={10} /> Générer la lettre IA</>
+                      : <><Sparkles size={10} /> Générer la lettre d'adressage</>
                     }
                   </button>
                 </div>
                 {letterDraft && (
                   <div className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mb-1.5">
-                    <Sparkles size={9} /> Brouillon IA — à relire et modifier avant envoi
+                    <Sparkles size={9} /> Brouillon — à relire et valider avant envoi
                   </div>
                 )}
                 <Textarea

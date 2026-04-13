@@ -1,9 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, PatientCondition } from "@/lib/api";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
+import { PATHOLOGIES } from "@/lib/data/pathologies";
+
+// CIM-11 code → pathology slug
+const CIM_TO_SLUG: Record<string, string> = Object.fromEntries(
+  PATHOLOGIES.filter((p) => p.cim11).map((p) => [p.cim11!, p.slug])
+);
 
 interface Props {
   dashboard: PatientDashboard;
@@ -32,6 +39,15 @@ export function PatientHeader({
 }: Props) {
   const { pathway, indicators } = dashboard;
   const c = careCase;
+
+  const { data: conditions = [] } = useQuery<PatientCondition[]>({
+    queryKey: ["conditions", careCaseId],
+    queryFn: async () => {
+      const res = await api.get<PatientCondition[]>(`/care-cases/${careCaseId}/conditions`);
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const poids = indicators.find((i) => ["weight_kg", "poids"].includes(i.metricKey));
   const imc = indicators.find((i) => ["bmi", "imc"].includes(i.metricKey));
@@ -80,8 +96,38 @@ export function PatientHeader({
               </>
             )}
           </div>
+          {/* Conditions pathologiques avec liens fiches */}
+          {conditions.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              {conditions.slice(0, 4).map((cond) => {
+                const slug = CIM_TO_SLUG[cond.conditionCode];
+                const isPrimary = cond.conditionType === "PRIMARY";
+                const badge = (
+                  <span
+                    key={cond.id}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                      isPrimary
+                        ? "bg-[#EDE9FC] text-[#5B4EC4] hover:bg-[#DDD9F9]"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    } ${slug ? "cursor-pointer" : ""}`}
+                  >
+                    {cond.conditionLabel}
+                    {slug && <span className="ml-1 opacity-50 text-[9px]">↗</span>}
+                  </span>
+                );
+                return slug ? (
+                  <Link key={cond.id} href={`/pathologies/${slug}`} target="_blank" rel="noopener noreferrer">
+                    {badge}
+                  </Link>
+                ) : (
+                  <span key={cond.id}>{badge}</span>
+                );
+              })}
+            </div>
+          )}
+
           {/* Badges parcours — ligne séparée */}
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             {pathway && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EDE9FC] text-[#5B4EC4]">
                 {pathway.label}
@@ -119,7 +165,7 @@ export function PatientHeader({
               <ActionButton label="Consultation" icon="🩺" accent onClick={onStartConsultation} />
             )}
             <ActionButton
-              label={aiStreaming ? "Génération…" : "Résumé IA"}
+              label={aiStreaming ? "Génération…" : "Synthèse"}
               icon="✨"
               onClick={onAiSummarize}
               disabled={aiStreaming}

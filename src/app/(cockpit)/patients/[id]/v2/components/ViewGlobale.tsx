@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { AiDisclaimer } from "@/components/AiDisclaimer";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -83,7 +84,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
         qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
         qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
         qc.invalidateQueries({ queryKey: ["dashboard"] });
-        toast.success("Résumé IA généré");
+        toast.success("Synthèse clinique générée");
         // Recharger le résumé depuis la DB
         api.get(`/care-cases/${careCaseId}`).then((res) => {
           if (res.data?.clinicalSummary) {
@@ -103,7 +104,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     es.onerror = () => {
       es.close();
       setIsStreaming(false);
-      toast.error("Erreur de connexion au résumé IA");
+      toast.error("Erreur de connexion à la synthèse clinique");
     };
   }, [careCaseId, qc, API_URL]);
 
@@ -136,7 +137,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
         <div className="flex items-center gap-2">
           <span>✨</span>
           <h3 className="text-sm font-semibold text-gray-900">Résumé clinique</h3>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">Brouillon IA</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">Brouillon · à valider</span>
           {lastUpdated && <span className="text-[10px] text-gray-400">{new Date(lastUpdated).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>}
         </div>
         <div className="flex items-center gap-2">
@@ -159,6 +160,9 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
       )}
       {!isStreaming && !collapsed && sections.length > 0 && (
         <div className="px-5 pb-4 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+          <div className="lg:col-span-2">
+            <AiDisclaimer variant="inline" className="mb-2" />
+          </div>
           {sections.map((s, i) => (
             <div key={i} className="rounded-lg bg-gray-50/70 p-3 border border-gray-100">
               <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center gap-1">

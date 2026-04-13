@@ -114,7 +114,7 @@ function NoteAnalysisBanner({
     return (
       <div className="border-b bg-indigo-50/60 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-indigo-700">
         <Loader2 size={12} className="animate-spin shrink-0" />
-        <span>Analyse IA de la note en cours…</span>
+        <span>Analyse de la note en cours…</span>
         <button onClick={onDismiss} className="ml-auto text-indigo-400 hover:text-indigo-700">
           <X size={13} />
         </button>
@@ -126,7 +126,7 @@ function NoteAnalysisBanner({
     return (
       <div className="border-b bg-slate-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-slate-500">
         <AlertTriangle size={12} className="shrink-0" />
-        <span>L'analyse IA n'a pas pu aboutir.</span>
+        <span>L'analyse n'a pas pu aboutir.</span>
         <button onClick={onDismiss} className="ml-auto text-slate-400 hover:text-slate-600">
           <X size={13} />
         </button>
@@ -138,7 +138,7 @@ function NoteAnalysisBanner({
     return (
       <div className="border-b bg-slate-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-slate-500">
         <CheckCircle2 size={12} className="shrink-0" />
-        <span>Analyse IA terminée — aucun élément à valider.</span>
+        <span>Analyse terminée — aucun élément à valider.</span>
         <button onClick={onDismiss} className="ml-auto text-slate-400 hover:text-slate-600">
           <X size={13} />
         </button>
@@ -150,7 +150,7 @@ function NoteAnalysisBanner({
     <div className="border-b bg-indigo-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs">
       <Sparkles size={12} className="shrink-0 text-indigo-600" />
       <span className="text-indigo-800 font-medium">
-        L'IA a détecté <strong>{totalItems}</strong> élément{totalItems > 1 ? "s" : ""} à valider
+        Nami a identifié <strong>{totalItems}</strong> élément{totalItems > 1 ? "s" : ""} à valider
       </span>
       <span className="text-indigo-400 mx-1">—</span>
       <span className="text-indigo-500">brouillon, validation humaine requise</span>
@@ -204,7 +204,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         qc.invalidateQueries({ queryKey: ["care-case", id] });
         qc.invalidateQueries({ queryKey: ["notes", id] });
         qc.invalidateQueries({ queryKey: ["timeline", id] });
-        toast.success("Résumé IA généré");
+        toast.success("Synthèse clinique générée");
       }
     };
     es.onerror = () => {

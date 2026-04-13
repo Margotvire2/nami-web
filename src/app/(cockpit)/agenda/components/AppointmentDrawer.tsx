@@ -121,15 +121,15 @@ export function AppointmentDrawer({ apt, onClose, onPatch, isPatching }: Props) 
             </Section>
           )}
 
-          {/* Résumé IA (placeholder) */}
-          <Section label="Résumé IA">
+          {/* Synthèse clinique (placeholder) */}
+          <Section label="Synthèse clinique">
             <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Sparkles size={11} className="text-primary" />
-                <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Brouillon IA</span>
+                <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Brouillon · à valider</span>
               </div>
               <p className="text-[11px] text-muted-foreground italic">
-                Le résumé IA sera disponible après la consultation.
+                Le synthèse clinique sera disponible après la consultation.
               </p>
               <p className="text-[9px] text-muted-foreground/60 mt-1">
                 Synthèse automatique extractive. Validation humaine requise avant tout usage.

@@ -86,7 +86,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
 
   const noteTypeLabels: Record<string, string> = {
     CONSULTATION: "Compte rendu", SOAP: "Note SOAP", PROGRESS: "Évolution",
-    TEAM: "Note d'équipe", AI_SUMMARY: "Résumé IA", PHONE_CALL: "Appel",
+    TEAM: "Note d'équipe", AI_SUMMARY: "Synthèse clinique", PHONE_CALL: "Appel",
   };
   const noteTypeColors: Record<string, string> = {
     CONSULTATION: "border-l-[#5B4EC4]", SOAP: "border-l-blue-500",
@@ -120,7 +120,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
                       <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">🎙️ Transcription</span>
                     )}
                     {note.aiAnalysis && (
-                      <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">✨ Analyse IA</span>
+                      <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">✨ Extraction assistée</span>
                     )}
                   </div>
                   <span className="text-xs text-gray-400 flex-shrink-0">
@@ -143,7 +143,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
                 {note.aiAnalysis && (
                   <div className="mt-4 rounded-lg bg-[#F8F7FD] border border-[#EDE9FC] p-3">
                     <p className="text-[10px] font-medium text-[#5B4EC4] uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                      ✨ Analyse IA <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 ml-1">Brouillon</span>
+                      ✨ Extraction assistée <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 ml-1">Brouillon</span>
                     </p>
                     <MarkdownContent
                       content={typeof note.aiAnalysis === "string" ? note.aiAnalysis : JSON.stringify(note.aiAnalysis, null, 2)}
@@ -954,7 +954,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                   <button onClick={(e) => { e.stopPropagation(); handleDownload(doc.id); }} className="text-xs text-[#5B4EC4] hover:underline">Télécharger</button>
                   {isBioDoc(doc) && !isExtracted && !isExtracting && (
                     <button onClick={(e) => { e.stopPropagation(); handleExtract(doc.id); }} className="text-xs text-emerald-600 hover:underline font-medium">
-                      🧪 Analyser IA
+                      🧪 Extraire les données
                     </button>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }} className="text-xs text-red-400 hover:underline ml-auto">
@@ -977,7 +977,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                   {extractionExamType === "IMPEDANCEMETRIE" ? "⚖️ Bilan d'impédancemétrie"
                     : extractionExamType === "DXA" ? "🦴 Ostéodensitométrie (DXA)"
                     : extractionExamType === "ECG" ? "🫀 ECG"
-                    : "🧪 Bilan biologique"} — brouillon IA
+                    : "🧪 Bilan biologique"} — brouillon · à valider
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {candidates.length} valeur{candidates.length > 1 ? "s" : ""} extraite{candidates.length > 1 ? "s" : ""}
@@ -1163,7 +1163,7 @@ function TimelinePanel({ careCaseId }: { careCaseId: string }) {
             { key: "all" as const, label: "Tout" },
             { key: "rdv" as const, label: "RDV" },
             { key: "referral" as const, label: "Adressages" },
-            { key: "alert" as const, label: "Alertes" },
+            { key: "alert" as const, label: "Rappels" },
           ]).map((f) => (
             <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${filter === f.key ? "bg-[#5B4EC4] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
               {f.label}

@@ -20,7 +20,7 @@ const FILTERS: Array<{ key: Filter; label: string }> = [
   { key: "all", label: "Tout" },
   { key: "appointments", label: "RDV" },
   { key: "referrals", label: "Adressages" },
-  { key: "alerts", label: "Alertes" },
+  { key: "alerts", label: "Rappels" },
 ]
 
 const CLINICAL_TYPES = new Set([
@@ -52,8 +52,8 @@ const EVENT_CONFIG: Record<string, EventConfig> = {
   REFERRAL_CREATED: { icon: Send, color: "text-amber-600", bgColor: "bg-amber-100", label: "Adressage envoyé" },
   REFERRAL_ACCEPTED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Adressage accepté" },
   REFERRAL_DECLINED: { icon: Send, color: "text-red-600", bgColor: "bg-red-100", label: "Adressage décliné" },
-  ALERT_TRIGGERED: { icon: AlertTriangle, color: "text-red-600", bgColor: "bg-red-100", label: "Alerte" },
-  ALERT_RESOLVED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Alerte résolue" },
+  ALERT_TRIGGERED: { icon: AlertTriangle, color: "text-red-600", bgColor: "bg-red-100", label: "Rappel" },
+  ALERT_RESOLVED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Rappel traité" },
   NOTE_ADDED: { icon: ClipboardList, color: "text-violet-600", bgColor: "bg-violet-100", label: "Note clinique" },
   TASK_COMPLETED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Tâche complétée" },
 }

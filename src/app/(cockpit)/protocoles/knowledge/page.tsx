@@ -102,7 +102,7 @@ export default function KnowledgePage() {
           </div>
         </div>
 
-        {/* Recherche clinique IA */}
+        {/* Références cliniques */}
         <ClinicalQAPanel accessToken={accessToken!} />
 
         {/* Tabs */}
@@ -407,7 +407,7 @@ function ClinicalQAPanel({ accessToken }: { accessToken: string }) {
       >
         <div className="flex items-center gap-2">
           <Sparkles size={14} className="text-[#5B4EC4]" />
-          <span className="text-sm font-semibold text-[#5B4EC4]">Recherche clinique IA</span>
+          <span className="text-sm font-semibold text-[#5B4EC4]">Références cliniques</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
             Brouillon — à vérifier
           </span>

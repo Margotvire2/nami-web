@@ -86,7 +86,7 @@ export function RecordingWidget() {
     const steps = ["uploading", "transcribing", "analyzing"] as const;
     const currentIdx = steps.indexOf(rec.status as typeof steps[number]);
     const percent = Math.round(((currentIdx + 1) / steps.length) * 100);
-    const labels = { uploading: "Envoi audio…", transcribing: "Transcription…", analyzing: "Analyse IA…" };
+    const labels = { uploading: "Envoi audio…", transcribing: "Transcription…", analyzing: "Extraction structurée…" };
 
     return (
       <div className="fixed bottom-6 right-6 z-[100] w-[300px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">

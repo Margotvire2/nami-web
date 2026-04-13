@@ -35,10 +35,10 @@ const NAV_ACTIVITY = [
 
 const NAV_PATIENTS = [
   { href: "/patients",    label: "Patients",     icon: Users },
-  { href: "/alertes",     label: "Alertes",      icon: BellDot },
+  { href: "/alertes",     label: "Rappels",      icon: BellDot },
   { href: "/taches",      label: "Tâches",       icon: CheckSquare },
-  { href: "/protocoles",  label: "Protocoles",   icon: BookOpen },
-  { href: "/intelligence", label: "Références",   icon: FlaskConical },
+  { href: "/protocoles",  label: "Références",   icon: BookOpen },
+  { href: "/intelligence", label: "Base documentaire", icon: FlaskConical },
   { href: "/documents",   label: "Documents",    icon: FileText },
 ];
 
@@ -77,6 +77,17 @@ export function Sidebar() {
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
         <NavGroup items={NAV_NETWORK} isActive={isActive} />
       </nav>
+
+      {/* Legal footer */}
+      <div className="px-4 py-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link href="/cgu" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#4F46E5] transition-colors">CGU</Link>
+          <span className="text-[#E2E8F0] text-[10px]">·</span>
+          <Link href="/confidentialite" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#4F46E5] transition-colors">Confidentialité</Link>
+          <span className="text-[#E2E8F0] text-[10px]">·</span>
+          <Link href="/mentions-legales" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#4F46E5] transition-colors">Mentions légales</Link>
+        </div>
+      </div>
 
       {/* User */}
       <div className="px-3 py-3 shrink-0 border-t border-[#F1F5F9]">

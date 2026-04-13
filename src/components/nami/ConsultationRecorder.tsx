@@ -315,7 +315,7 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
                 {[
                   { key: "uploading", label: "Envoi de l'audio…" },
                   { key: "transcribing", label: "Transcription (Whisper)…" },
-                  { key: "analyzing", label: "Analyse IA (Claude)…" },
+                  { key: "analyzing", label: "Extraction structurée…" },
                 ].map((step) => {
                   const steps: RecorderState[] = ["uploading", "transcribing", "analyzing"];
                   const currentIdx = steps.indexOf(state);

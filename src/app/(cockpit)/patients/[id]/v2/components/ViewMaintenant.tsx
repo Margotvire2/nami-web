@@ -23,7 +23,7 @@ export function ViewMaintenant({ dashboard, careCaseId }: Props) {
 
   return (
     <div className="space-y-5">
-      {/* ═══ BLOC 1 — Résumé IA structuré ═══ */}
+      {/* ═══ BLOC 1 — Synthèse structurée ═══ */}
       <ClinicalSummaryCard careCaseId={careCaseId} />
 
       {/* ═══ Indicateurs + Actions ═══ */}
@@ -603,8 +603,8 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     return (
       <div className="rounded-xl border border-dashed border-[#5B4EC4]/30 bg-[#F8F7FD] p-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-700">Résumé clinique IA</p>
-          <p className="text-xs text-gray-400 mt-0.5">Aucun résumé généré. Lancez la génération pour obtenir une synthèse structurée.</p>
+          <p className="text-sm font-medium text-gray-700">Synthèse clinique</p>
+          <p className="text-xs text-gray-400 mt-0.5">Aucune synthèse générée. Lancez la génération pour obtenir une synthèse structurée.</p>
         </div>
         <button
           onClick={startStream}
@@ -624,7 +624,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
           <span className="text-base">✨</span>
           <span className="text-sm font-semibold text-gray-900">Résumé clinique</span>
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700">
-            Brouillon IA — à vérifier
+            Brouillon — à valider
           </span>
           {streaming && (
             <span className="inline-flex items-center gap-1 text-[10px] text-[#5B4EC4]">

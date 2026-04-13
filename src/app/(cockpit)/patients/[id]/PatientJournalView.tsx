@@ -432,7 +432,7 @@ function MealCard({ entry, canSeeAiMacros }: { entry: JournalEntry; canSeeAiMacr
       )}
       {canSeeAiMacros && macros && (
         <div className="bg-indigo-50 rounded p-2 border border-indigo-100 mt-1">
-          <p className="text-[10px] font-semibold text-indigo-600 mb-0.5">Analyse IA</p>
+          <p className="text-[10px] font-semibold text-indigo-600 mb-0.5">Extraction structurée</p>
           <div className="flex gap-2 flex-wrap text-[10px]">
             {macros.calories != null && <span className="font-medium">{macros.calories}kcal</span>}
             {macros.protein_g != null && <span>P: {macros.protein_g}g</span>}

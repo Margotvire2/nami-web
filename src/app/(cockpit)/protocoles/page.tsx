@@ -32,7 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const tcaSections = [
   { id: "recherche", label: "Recherche FFAB", icon: Search, count: "8K+" },
-  { id: "protocoles", label: "Protocoles", icon: BookOpen, count: "21" },
+  { id: "protocoles", label: "Références cliniques", icon: BookOpen, count: "21" },
   { id: "questionnaires", label: "Questionnaires", icon: Stethoscope, count: "2" },
   { id: "checklists", label: "Checklists", icon: ClipboardCheck, count: "5" },
   { id: "dsm5", label: "Critères DSM-5", icon: FileText, count: "4" },
@@ -1226,7 +1226,7 @@ function FicheModal({
 
         <div className="px-6 py-3 border-t shrink-0 bg-amber-50">
           <p className="text-[10px] text-amber-700">
-            Brouillon IA — à vérifier par le professionnel de santé avant utilisation clinique.
+            Brouillon · à valider — à vérifier par le professionnel de santé avant utilisation clinique.
           </p>
         </div>
       </div>

@@ -190,7 +190,7 @@ function AISnapshotBlock({ summary, expanded, onToggle }: { summary: string; exp
     <>
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={13} className="text-slate-400" />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-400" style={{ fontFamily: "var(--font-inter)" }}>Résumé IA</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-400" style={{ fontFamily: "var(--font-inter)" }}>Synthèse structurée</span>
       </div>
       <p className={cn("text-sm text-slate-700 leading-relaxed", !expanded ? "line-clamp-3" : "")}>{summary}</p>
       {summary.length > 150 && (
