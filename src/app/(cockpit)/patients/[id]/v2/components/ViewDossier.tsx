@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
@@ -144,9 +145,10 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
                     <p className="text-[10px] font-medium text-[#5B4EC4] uppercase tracking-wider mb-1.5 flex items-center gap-1">
                       ✨ Analyse IA <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 ml-1">Brouillon</span>
                     </p>
-                    <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                      {typeof note.aiAnalysis === "string" ? note.aiAnalysis : JSON.stringify(note.aiAnalysis, null, 2)}
-                    </div>
+                    <MarkdownContent
+                      content={typeof note.aiAnalysis === "string" ? note.aiAnalysis : JSON.stringify(note.aiAnalysis, null, 2)}
+                      compact
+                    />
                   </div>
                 )}
               </div>

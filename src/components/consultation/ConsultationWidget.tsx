@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { MarkdownContent } from "@/components/MarkdownContent";
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -288,9 +289,10 @@ function CompletedView({ wide }: { wide: boolean }) {
         {aiSummary && (
           <div className="mb-4 p-3 rounded-xl bg-indigo-50 border border-indigo-100 max-h-48 overflow-y-auto">
             <p className="text-xs font-semibold text-indigo-700 mb-1.5">Aperçu du compte-rendu</p>
-            <p className="text-[11px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {aiSummary.slice(0, 600)}{aiSummary.length > 600 ? "…" : ""}
-            </p>
+            <MarkdownContent
+              content={aiSummary.slice(0, 600) + (aiSummary.length > 600 ? "\n\n…" : "")}
+              compact
+            />
           </div>
         )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -163,7 +164,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
               <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center gap-1">
                 <span>{icons[s.title] || "📄"}</span>{s.title}
               </h4>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{s.content}</p>
+              <MarkdownContent content={s.content} compact />
             </div>
           ))}
         </div>

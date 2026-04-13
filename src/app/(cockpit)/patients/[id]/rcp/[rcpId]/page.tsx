@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type RcpDetail, type CloseRcpInput } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -507,7 +508,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
                 <Sparkles className="w-4 h-4" />
                 Synthèse IA des avis
               </h2>
-              <p className="text-sm text-purple-900 whitespace-pre-line">{rcp.aiSummary}</p>
+              <MarkdownContent content={rcp.aiSummary} className="text-purple-900" />
             </div>
           )}
         </div>
@@ -580,7 +581,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
                   </span>
                 )}
               </h2>
-              <p className="text-sm text-green-900 whitespace-pre-line">{rcp.decision}</p>
+              <MarkdownContent content={rcp.decision} className="text-green-900" />
               {rcp.closedAt && (
                 <p className="text-xs text-green-600 mt-2">Clôturée le {formatDate(rcp.closedAt)}</p>
               )}
