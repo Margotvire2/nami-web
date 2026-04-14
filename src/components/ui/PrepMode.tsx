@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { apiWithToken } from "@/lib/api"
+import { apiWithToken, type ClinicalNote } from "@/lib/api"
 import { format, parseISO, differenceInDays } from "date-fns"
 import { fr } from "date-fns/locale"
 import { X, Mic, ChevronRight, Clock } from "lucide-react"
@@ -111,6 +111,15 @@ export function PrepMode() {
     staleTime: 60_000,
   })
 
+  // Fetch notes for AI fallback (only when no clinicalSummary)
+  const needsNotesFallback = !!event?.careCaseId && !careCase?.clinicalSummary
+  const { data: notes = [] } = useQuery<ClinicalNote[]>({
+    queryKey: ["notes", event?.careCaseId],
+    queryFn: () => api.notes.list(event!.careCaseId),
+    enabled: !!event?.careCaseId && !!accessToken && needsNotesFallback,
+    staleTime: 60_000,
+  })
+
   if (!event) return null
 
   const activities = timelineData?.data ?? []
@@ -142,6 +151,14 @@ export function PrepMode() {
   const weight = getLatestVal("weight_kg")
   const bmi = getLatestVal("bmi")
   const phq9 = getLatestVal("phq9_score")
+
+  // Last AI-generated note (EVOLUTION with AI title, or AI_SUMMARY type)
+  const aiNote = (notes as ClinicalNote[])
+    .filter((n) =>
+      n.noteType === "AI_SUMMARY" ||
+      (n.noteType === "EVOLUTION" && (n.title?.toLowerCase().includes("compte-rendu") || n.title?.toLowerCase().includes("résumé")))
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] ?? null
 
   const activityIcon: Record<string, string> = {
     APPOINTMENT_CREATED: "📅",
@@ -244,7 +261,7 @@ export function PrepMode() {
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#8A8A96", letterSpacing: "0.07em", textTransform: "uppercase" }}>
                       Résumé
                     </div>
-                    {careCase?.clinicalSummary ? (
+                    {careCase?.clinicalSummary || aiNote ? (
                       <span style={{
                         fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
                         background: "#E8F5EC", color: "#059669",
@@ -264,7 +281,7 @@ export function PrepMode() {
                   </div>
 
                   {careCase?.clinicalSummary ? (
-                    /* Résumé IA disponible → l'afficher en priorité */
+                    /* Résumé IA dossier disponible → l'afficher en priorité */
                     <div>
                       <p style={{
                         fontSize: 13, color: "#1A1A2E", lineHeight: 1.6,
@@ -294,8 +311,24 @@ export function PrepMode() {
                         </div>
                       )}
                     </div>
+                  ) : aiNote ? (
+                    /* Dernier compte-rendu IA → afficher le contenu textuel */
+                    <div>
+                      <p style={{
+                        fontSize: 13, color: "#1A1A2E", lineHeight: 1.6,
+                        margin: 0, fontStyle: "italic",
+                        display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      } as React.CSSProperties}>
+                        &ldquo;{aiNote.body}&rdquo;
+                      </p>
+                      <div style={{ marginTop: 8, fontSize: 10, color: "#8A8A96" }}>
+                        {aiNote.title ?? "Compte-rendu"} · {format(parseISO(aiNote.createdAt), "d MMM yyyy", { locale: fr })}
+                        {aiNote.author && ` · ${aiNote.author.firstName} ${aiNote.author.lastName}`}
+                      </div>
+                    </div>
                   ) : (
-                    /* Pas de résumé IA → activité récente comme fallback */
+                    /* Pas de résumé ni de note IA → activité récente comme dernier recours */
                     <div>
                       {eventsSince.length === 0 ? (
                         <p style={{ fontSize: 12, color: "#8A8A96", fontStyle: "italic" }}>Aucune activité enregistrée depuis le dernier RDV.</p>

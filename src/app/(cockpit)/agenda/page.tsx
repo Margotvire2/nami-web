@@ -9,7 +9,7 @@ import { AgendaSetup } from "./components/AgendaSetup"
 import { CreateAppointmentModal } from "./components/CreateAppointmentModal"
 import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { apiWithToken, type ConsultationLocation, type CareCase } from "@/lib/api"
+import { apiWithToken, type ConsultationLocation, type CareCase, type Appointment } from "@/lib/api"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 
@@ -401,15 +401,16 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
   const st = STATUS_CFG[appt.status] ?? STATUS_CFG.CONFIRMED
   const loc = appt.location
 
-  // Mini parcours de soin
-  const { data: timelineData } = useQuery({
-    queryKey: ["timeline", appt.careCaseId],
-    queryFn: () => api.careCases.timeline(appt.careCaseId!, 1, 20),
+  // Mini parcours de soin — UNIQUEMENT les vrais RDV de l'équipe (pas de notes ni bilans)
+  const { data: caseAppts = [] } = useQuery({
+    queryKey: ["appts-care-case", appt.careCaseId],
+    queryFn: () => api.appointments.list({ careCaseId: appt.careCaseId! }),
     enabled: !!accessToken && !!appt.careCaseId,
     staleTime: 60_000,
   })
-  const recentActivities = (timelineData?.data ?? [])
-    .filter((a) => Object.keys(ACTIVITY_CFG).includes(a.activityType?.toUpperCase?.() ?? ""))
+  const recentAppts = (caseAppts as Appointment[])
+    .filter((a) => a.status === "COMPLETED" && a.id !== appt.id)
+    .sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime())
     .slice(0, 6)
 
   return (
@@ -522,15 +523,14 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
           </div>
         )}
 
-        {/* Mini parcours de soin */}
-        {recentActivities.length > 0 && (
+        {/* Mini parcours de soin — RDV réels de l'équipe uniquement */}
+        {recentAppts.length > 0 && (
           <div>
-            <div style={dL}>Parcours de soin</div>
+            <div style={dL}>Consultations passées</div>
             <div style={{ position: "relative", paddingLeft: 20 }}>
               {/* Vertical line */}
               <div style={{ position: "absolute", left: 7, top: 4, bottom: 4, width: 1, background: "#E8ECF4" }} />
-              {recentActivities.map((a, i) => {
-                const cfg = ACTIVITY_CFG[a.activityType?.toUpperCase?.() ?? ""] ?? { emoji: "·", color: "#8A8A96" }
+              {recentAppts.map((a, i) => {
                 return (
                   <div key={a.id} style={{
                     display: "flex", gap: 8, paddingBottom: 10,
@@ -538,18 +538,18 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
                   }}>
                     <div style={{
                       width: 14, height: 14, borderRadius: "50%",
-                      background: cfg.color, flexShrink: 0, zIndex: 1,
+                      background: N.success, flexShrink: 0, zIndex: 1,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 7, color: "#fff", marginLeft: -20,
                     }}>
-                      {cfg.emoji.length <= 1 ? cfg.emoji : "·"}
+                      ✓
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 11, fontWeight: 600, color: N.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {a.title}
+                        {a.consultationType?.name ?? "Consultation"}
                       </div>
                       <div style={{ fontSize: 10, color: N.textSoft, marginTop: 1 }}>
-                        {a.person.firstName} {a.person.lastName} · {format(parseISO(a.occurredAt), "d MMM yyyy", { locale: fr })}
+                        {a.provider.person.firstName} {a.provider.person.lastName} · {format(parseISO(a.startAt), "d MMM yyyy", { locale: fr })}
                       </div>
                     </div>
                   </div>
