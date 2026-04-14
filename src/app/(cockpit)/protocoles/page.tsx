@@ -702,7 +702,7 @@ function ObesiteMedicamentsSection() {
           <CardContent className="pt-3 space-y-2">
             {m.indication && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Indication :</span> {m.indication}</p>}
             {m.posology && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Posologie :</span> {m.posology}</p>}
-            {m.monitoring && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Surveillance :</span> {m.monitoring}</p>}
+            {m.monitoring && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Cadences de suivi :</span> {m.monitoring}</p>}
             {m.contraindications && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">CI :</span> {m.contraindications}</p>}
             {m.details && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Détails :</span> {m.details}</p>}
             <p className="text-[10px] text-muted-foreground/60">Source : {m.pathway}</p>

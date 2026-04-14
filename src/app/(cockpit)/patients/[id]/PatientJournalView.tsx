@@ -225,7 +225,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
           ) : (
             <StatCard
               icon={<Activity size={14} className="text-amber-500" />}
-              title="Activité — Surveillance"
+              title="Activité — À évaluer"
               value={`${totalActivityMin} min`}
               sub={painCount > 0 ? `${painCount} douleurs` : "—"}
               alert={totalActivityMin > 420 || (avgPleasure === 0 && totalActivityMin > 60)}
@@ -278,7 +278,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
       {activities.length > 0 && (
         <Section
           icon={<Activity size={15} className={anorexiaSurveillance ? "text-amber-600" : "text-green-600"} />}
-          title={anorexiaSurveillance ? "Activité physique — Surveillance" : "Activité physique"}
+          title={anorexiaSurveillance ? "Activité physique — À évaluer" : "Activité physique"}
           count={activities.length}
           defaultOpen={false}
         >

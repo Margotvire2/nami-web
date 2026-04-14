@@ -106,7 +106,7 @@ export default function PatientsPage() {
   });
 
   function exportCSV() {
-    const headers = ["Nom", "Prénom", "Date de naissance", "Pathologie", "Statut", "Risque", "Ouverture dossier", "Dernière activité", "Membres équipe"];
+    const headers = ["Nom", "Prénom", "Date de naissance", "Pathologie", "Statut", "Indicateur", "Ouverture dossier", "Dernière activité", "Membres équipe"];
     const RISK_FR: Record<string, string> = { CRITICAL: "Critique", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Inconnu" };
     const STATUS_FR: Record<string, string> = { ACTIVE: "Actif", PAUSED: "En pause", CLOSED: "Fermé", ARCHIVED: "Archivé" };
     const rows = filtered.map((c) => [

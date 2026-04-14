@@ -72,9 +72,14 @@ export function PublicFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 12, color: "rgba(238,236,234,0.2)" }}>© 2026 Nami — Margot Vire</span>
-          <span style={{ fontSize: 12, color: "rgba(238,236,234,0.15)" }}>Coordination des parcours de soins complexes</span>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 22, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "rgba(238,236,234,0.2)" }}>© 2026 Nami — Margot Vire</span>
+            <span style={{ fontSize: 12, color: "rgba(238,236,234,0.15)" }}>Coordination des parcours de soins complexes</span>
+          </div>
+          <p style={{ fontSize: 11, color: "rgba(238,236,234,0.15)", textAlign: "center" }}>
+            Nami n&apos;est pas un dispositif médical. Aucune information fournie ne constitue un avis médical. En cas d&apos;urgence, appelez le 15 ou le 112.
+          </p>
         </div>
       </div>
     </footer>
