@@ -5,8 +5,6 @@ import { MarkdownContent } from "@/components/MarkdownContent";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
-import { SuiviTab } from "@/components/patient/SuiviTab";
-import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
 import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
 
 interface Props {
@@ -14,7 +12,7 @@ interface Props {
   careCase?: CareCaseDetail;
 }
 
-type DossierTab = "notes" | "bio" | "journal" | "timeline" | "documents";
+type DossierTab = "notes" | "journal" | "timeline" | "documents";
 
 export function ViewDossier({ careCaseId, careCase }: Props) {
   const [activeTab, setActiveTab] = useState<DossierTab>("notes");
@@ -24,7 +22,6 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
       <div className="flex gap-1 mb-5 border-b border-gray-200">
         {[
           { key: "notes" as const, label: "Notes cliniques", icon: "📝" },
-          { key: "bio" as const, label: "Biologie", icon: "🧪" },
           { key: "journal" as const, label: "Journal patient", icon: "📱" },
           { key: "timeline" as const, label: "Ligne de vie", icon: "🕐" },
           { key: "documents" as const, label: "Documents", icon: "📄" },
@@ -43,19 +40,6 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
       </div>
 
       {activeTab === "notes" && <NotesPanel careCaseId={careCaseId} />}
-      {activeTab === "bio" && careCase ? (
-        <SuiviTab
-          careCaseId={careCaseId}
-          pathwayKey={careCase.pathwayTemplateId ?? "default"}
-          personId={careCase.patient.id}
-          patient={{ firstName: careCase.patient.firstName, lastName: careCase.patient.lastName, birthDate: careCase.patient.birthDate ?? null, sex: careCase.patient.sex ?? undefined }}
-          height={careCase.height}
-          napValue={careCase.napValue}
-          napDescription={careCase.napDescription}
-        />
-      ) : activeTab === "bio" ? (
-        <BioPanel careCaseId={careCaseId} careCase={careCase} />
-      ) : null}
       {activeTab === "journal" && <JournalPanel careCaseId={careCaseId} careCase={careCase} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
       {activeTab === "documents" && <DocumentsPanel careCaseId={careCaseId} />}
@@ -161,169 +145,6 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
   );
 }
 
-// ══════════════════════════════════════════════════════
-// Bio — N vs N-1
-// ══════════════════════════════════════════════════════
-
-function BioPanel({ careCaseId, careCase }: { careCaseId: string; careCase?: CareCaseDetail }) {
-  const profile: ClinicalProfile = getClinicalProfile(careCase);
-  const { data: observations, isLoading } = useQuery({
-    queryKey: ["observations-bio", careCaseId],
-    queryFn: async () => {
-      const res = await api.get(`/care-cases/${careCaseId}/observations`);
-      return res.data.observations ?? [];
-    },
-  });
-
-  const [domainFilter, setDomainFilter] = useState<string>("all");
-  if (isLoading) return <LoadingState />;
-
-  const obs = Array.isArray(observations) ? observations : [];
-  const byMetric = new Map<string, any[]>();
-  for (const o of obs) {
-    const key = o.metricId || o.metric?.key || o.metric?.id;
-    if (!key) continue;
-    const group = byMetric.get(key) || [];
-    group.push(o);
-    byMetric.set(key, group);
-  }
-
-  interface BioRow {
-    metricKey: string; label: string; domain: string; unit: string;
-    current: number | null; previous: number | null; delta: number | null; deltaPercent: number | null;
-    currentDate: string | null; previousDate: string | null; sparkline: number[];
-    normalMin: number | null; normalMax: number | null; status: string;
-  }
-
-  const rows: BioRow[] = [];
-  for (const [key, metricObs] of byMetric) {
-    metricObs.sort((a: any, b: any) => new Date(b.effectiveAt).getTime() - new Date(a.effectiveAt).getTime());
-    const metric = metricObs[0]?.metric || {};
-    const current = metricObs[0]?.valueNumeric ?? null;
-    const previous = metricObs[1]?.valueNumeric ?? null;
-    const delta = current !== null && previous !== null ? current - previous : null;
-    const deltaPercent = delta !== null && previous !== null && previous !== 0 ? (delta / Math.abs(previous)) * 100 : null;
-    const sparkline = metricObs.slice(0, 8).map((o: any) => o.valueNumeric).filter((v: any): v is number => v !== null).reverse();
-    let status = "OK";
-    if (current === null) status = "MISSING";
-    else if (metric.criticalLow !== null && current < metric.criticalLow) status = "CRITICAL";
-    else if (metric.criticalHigh !== null && current > metric.criticalHigh) status = "CRITICAL";
-    else if (metric.alertLow !== null && current < metric.alertLow) status = "ALERT";
-    else if (metric.alertHigh !== null && current > metric.alertHigh) status = "ALERT";
-    rows.push({
-      metricKey: key, label: metric.label || key, domain: metric.domain || "other",
-      unit: metricObs[0]?.unit || metric.unit || "", current, previous,
-      delta: delta !== null ? Math.round(delta * 100) / 100 : null,
-      deltaPercent: deltaPercent !== null ? Math.round(deltaPercent * 10) / 10 : null,
-      currentDate: metricObs[0]?.effectiveAt || null, previousDate: metricObs[1]?.effectiveAt || null,
-      sparkline, normalMin: metric.normalMin ?? null, normalMax: metric.normalMax ?? null, status,
-    });
-  }
-
-  const domains = [...new Set(rows.map((r) => r.domain))];
-  const filtered = domainFilter === "all" ? rows : rows.filter((r) => r.domain === domainFilter);
-  const groupedByDomain = new Map<string, BioRow[]>();
-  for (const row of filtered) {
-    const group = groupedByDomain.get(row.domain) || [];
-    group.push(row);
-    groupedByDomain.set(row.domain, group);
-  }
-
-  const domainLabels: Record<string, string> = {
-    anthropometry: "Anthropométrie", vital: "Vitaux", biology: "Biologie",
-    psychology: "Psychologie", nutrition_behavior: "Comportement alimentaire",
-    endocrinology: "Endocrinologie", other: "Autres",
-  };
-  const latestDate = obs.length > 0
-    ? new Date(Math.max(...obs.map((o: any) => new Date(o.effectiveAt).getTime()))) : null;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Biologie — N vs N-1</h3>
-          {latestDate && (
-            <p className="text-xs text-gray-400 mt-0.5">
-              Référence : {formatDate(latestDate)} · {rows.length} indicateurs
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="flex gap-1.5 mb-4 flex-wrap">
-        <FilterChip label="Tout" active={domainFilter === "all"} onClick={() => setDomainFilter("all")} />
-        {domains.map((d) => (
-          <FilterChip key={d} label={domainLabels[d] || d} active={domainFilter === d} onClick={() => setDomainFilter(d)} />
-        ))}
-      </div>
-      {filtered.length === 0 ? (
-        <p className="text-sm text-gray-400 italic text-center py-12">Aucune observation biologique</p>
-      ) : (
-        <div className="space-y-4">
-          {Array.from(groupedByDomain.entries()).map(([domain, domainRows]) => (
-            <div key={domain} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-              <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{domainLabels[domain] || domain}</p>
-              </div>
-              <div className="divide-y divide-gray-50">
-                {domainRows.map((row) => (
-                  <div key={row.metricKey} className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50/50 transition-colors">
-                    <div className="w-44 flex-shrink-0">
-                      <p className="text-sm font-medium text-gray-800">{row.label}</p>
-                      {row.currentDate && row.previousDate && (
-                        <p className="text-[10px] text-gray-400">
-                          {formatShortDate(row.previousDate)} → {formatShortDate(row.currentDate)}
-                        </p>
-                      )}
-                    </div>
-                    <div className="w-24 flex-shrink-0">
-                      {row.sparkline.length >= 2 ? <BioSparkline values={row.sparkline} status={row.status} /> : <div className="h-6" />}
-                    </div>
-                    <div className="w-24 text-right flex-shrink-0">
-                      <p className="text-[10px] text-gray-400">Préc.</p>
-                      <p className="text-sm text-gray-500">{row.previous !== null ? `${formatVal(row.previous)} ${row.unit}` : "—"}</p>
-                    </div>
-                    <div className="w-24 text-right flex-shrink-0">
-                      <p className="text-[10px] text-gray-400">Actuel</p>
-                      <p className="text-sm font-semibold text-gray-900">{row.current !== null ? `${formatVal(row.current)} ${row.unit}` : "—"}</p>
-                    </div>
-                    <div className="w-20 text-center flex-shrink-0">
-                      {(row.normalMin !== null || row.normalMax !== null) && (
-                        <p className="text-[10px] text-gray-400">({row.normalMin ?? ""}–{row.normalMax ?? ""})</p>
-                      )}
-                    </div>
-                    <div className="w-24 text-right flex-shrink-0">
-                      {row.delta !== null && row.delta !== 0 ? (
-                        <div>
-                          <span className={`text-sm font-semibold ${getDeltaColorClass(row.metricKey, row.delta, profile)}`}>{row.delta > 0 ? "+" : ""}{formatVal(row.delta)} {row.unit}</span>
-                          <span className={`block text-[10px] ${getDeltaColorClass(row.metricKey, row.delta, profile)}`}>{row.delta > 0 ? "↑" : "↓"} {row.deltaPercent !== null ? `${Math.abs(row.deltaPercent)}%` : ""}</span>
-                        </div>
-                      ) : <span className="text-xs text-gray-300">—</span>}
-                    </div>
-                    <div className="w-20 flex-shrink-0 text-right"><StatusBadge status={row.status} /></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function BioSparkline({ values, status }: { values: number[]; status: string }) {
-  const min = Math.min(...values); const max = Math.max(...values);
-  const range = max - min || 1; const h = 28; const w = 80;
-  const step = w / (values.length - 1);
-  const points = values.map((v, i) => `${i * step},${h - ((v - min) / range) * (h - 4) - 2}`).join(" ");
-  const color = status === "CRITICAL" ? "#ef4444" : status === "ALERT" ? "#f59e0b" : "#6366f1";
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-7">
-      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={(values.length - 1) * step} cy={parseFloat(points.split(" ").pop()!.split(",")[1])} r="2.5" fill={color} />
-    </svg>
-  );
-}
 
 
 // ══════════════════════════════════════════════════════
@@ -1059,24 +880,6 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
 // Composants partagés
 // ══════════════════════════════════════════════════════
 
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { bg: string; text: string; label: string }> = {
-    OK: { bg: "bg-green-100", text: "text-green-700", label: "Normal" },
-    ALERT: { bg: "bg-amber-100", text: "text-amber-700", label: "Attention" },
-    CRITICAL: { bg: "bg-red-100", text: "text-red-700", label: "Critique" },
-    MISSING: { bg: "bg-gray-100", text: "text-gray-500", label: "Manquant" },
-  };
-  const c = config[status] || config.MISSING;
-  return <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium ${c.bg} ${c.text}`}>{c.label}</span>;
-}
-
-function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${active ? "bg-[#5B4EC4] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
-      {label}
-    </button>
-  );
-}
 
 // ══════════════════════════════════════════════════════
 // Ligne de vie — timeline verticale détaillée
@@ -1227,7 +1030,6 @@ function LoadingState() {
   );
 }
 
-function formatVal(v: number): string { return Number.isInteger(v) ? v.toString() : v.toFixed(1); }
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} o`;
