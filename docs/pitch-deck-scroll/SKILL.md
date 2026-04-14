@@ -1,63 +1,62 @@
-# SKILL — Nami Pitch Deck Scroll
+---
+name: pitch-deck-scroll
+description: Skill pour créer des pitch decks scroll-based avec rigueur VC et conformité santé. Lire AVANT de construire /pitch ou /decouvrir.
+---
 
-## Objectif
+# Pitch Deck Scroll — Le deck du futur
 
-Construire la page `/pitch` : un pitch deck interactif en scroll pour les investisseurs VC (seed/pré-seed).  
-Inspiré des grandes landing pages produit (Linear, Vercel, Stripe) — chaque section = 1 slide du deck, révélée au scroll.
+Lis ce fichier + les 3 références AVANT de construire.
 
-## Contexte
+## Framework narratif — 10 sections (page /pitch VCs)
 
-- **Audience cible** : partenaires VC (Boris Golden / Partech, fonds santé numérique)
-- **Objectif de la page** : convaincre en 3 minutes de scroll sans présentation orale
-- **Ton** : sobre, précis, ambitieux — jamais promotionnel
-- **Contrainte légale** : aucun mot interdit MDR (voir `compliance-integration.md`)
+1. HERO (100vh) — Titre mot par mot + mockup React géant (3 pathologies)
+2. PROBLÈME — Citation cas réel + 3 compteurs géants sourcés
+3. INSIGHT — "Aucun outil ne rend du temps" en serif italic, fade-blur, espace blanc massif
+4. SOLUTION — Sticky scroll 300vh, 3 scènes patient (anorexie/obésité/épilepsie)
+5. ARCHITECTURE TECHNIQUE — Fond sombre, 4 couches empilées, ambient glow
+6. TRACTION — Timeline + cards institutionnelles honnêtes ("aucun engagement formel")
+7. MARCHÉ — Fond sombre, compteurs géants (237 200 médecins, 4 000 MSP, 269 PCR, 20M patients)
+8. PRICING — Face-à-face Doctolib 149€ barré vs Nami 0€ en gradient géant + 5 tiers
+9. FONDATRICE — Split avatar + bio + citation + vélocité
+10. CTA — Fond sombre, ambient glow pulsant, 1 bouton blanc
 
-## Structure narrative (ordre des sections)
+## Framework narratif — 8 sections (page /decouvrir hôpitaux)
 
-```
-1. HOOK          → La phrase qui stoppe le scroll. Le problème en 1 ligne.
-2. PATIENT        → Gabrielle. L'histoire fondatrice. Émotionnel + concret.
-3. PROBLÈME       → Pourquoi le système échoue. Données chiffrées.
-4. SOLUTION       → Ce que fait Nami. Workflow-first, pas médical.
-5. PRODUIT        → Screenshots / démo animée. Ce qu'on a vraiment construit.
-6. TRACTION       → Ce qui prouve que ça marche. Métriques réelles.
-7. MARCHÉ         → Taille + wedge. TCA/obésité → nutrition → pluridisciplinaire.
-8. MOAT           → Pourquoi Nami ne se copie pas. Network effect + données.
-9. ÉQUIPE         → Margot. Insider unique. Diét TCA = première utilisatrice.
-10. ROADMAP       → Ce qu'on build. HAP, HDS, appel obésité.
-11. ASK           → Montant, usage des fonds, next milestone.
-12. CTA           → Prendre RDV / Demander accès démo.
-```
+1. HERO — "Quand votre patient voit 5 soignants..." + mockup
+2. PROBLÈME — 3 pathologies, même défaut de coordination
+3. COMMENT ÇA MARCHE — 3 étapes (Invitez, Documentez, Coordonnez)
+4. SOLUTION — Même sticky scroll 3 pathologies
+5. BASE DOCUMENTAIRE — Mockup recherche + compteurs animés
+6. SÉCURITÉ — 6 éléments grille (HDS, chiffrement, secret pro, IA, audit, pas DM)
+7. PRICING — Même face-à-face + 5 tiers
+8. FONDATRICE + CTA — Combiné sur fond sombre
 
-## Règles de design pour cette page
+## Règles absolues
+- Problème AVANT solution. Toujours.
+- Chaque chiffre = une source (petit, italic, muted)
+- Chaque section = UN message
+- Mockups = composants React vivants (jamais des images)
+- Titres GÉANTS : clamp(3rem, 8vw, 6rem) — ne pas être timide
+- Sections 100vh minimum
+- Le sticky scroll de la démo est OBLIGATOIRE — c'est le moment wow
+- Statuts de validation HONNÊTES : jamais "intéressé" comme "client"
+- JAMAIS de fond #000000 — utiliser #1A1A2E
 
-- Fond sombre (`#1A1A2E`) pour les sections hero/hook/équipe
-- Fond clair (`#FAFAF8`) pour les sections produit/métriques
-- Alternance dark/light crée le rythme de lecture
-- Chaque section = `min-h-screen` ou `min-h-[80vh]`
-- Animations : `ScrollReveal` (fade-up, fade-scale) — jamais de carousel
-- Stats : `AnimatedCounter` au scroll
-- Mobile-first : la page doit fonctionner sur téléphone (VC lit souvent sur mobile)
+## Rythme des fonds
+Hero=#FAFAF8 → Problème=#F5F3EF → Insight=#FAFAF8 → Solution=#FAFAF8 → Archi=#1A1A2E → Traction=#FAFAF8 → Marché=#1A1A2E → Pricing=#F5F3EF → Fondatrice=#FAFAF8 → CTA=#1A1A2E
 
-## Fichiers de référence
+## Composants clés (src/components/pitch/)
+- `WordByWordTitle` — titre mot par mot (80ms/mot, IntersectionObserver, gradient sur mots clés)
+- `PitchStickyDemo` — wrapper 300vh sticky, 3 scènes (0-33%/33-67%/67-100% scroll), crossfade
+- `PatientScene` — scène patient réutilisable (AnimatedSVGCurve, avatars, métriques, phase)
+- `AnimatedSVGCurve` — trait SVG qui se dessine à chaque fois que la scène devient active
+- `AmbientGlow` — orbes de glow flous animés (sections sombres uniquement)
+- `PitchPricing` — comparaison Doctolib barré vs Nami 0€ en gradient + 5 tiers
 
-- `references/vc-rigor.md` — ce qui convainc vs ce qui agace un VC
-- `references/design-patterns.md` — patterns visuels qui fonctionnent
-- `references/compliance-integration.md` — intégration conformité MDR dans le pitch
+## Mots interdits sur ces pages
+surveillance, monitoring, alerte clinique, alerte santé, signaux, vigilance, scoring, détecter, prévenir, sécuriser, risque clinique, drapeaux rouges, care gaps, suivi longitudinal, continuité de prise en charge, IA clinique, aide à la décision, dispositif médical (sauf pour dire que Nami N'EN EST PAS un)
 
-## Fichiers à créer
-
-```
-src/app/pitch/page.tsx        ← Page principale (Server Component + "use client" sections)
-src/app/pitch/layout.tsx      ← Layout minimal (pas de sidebar cockpit)
-```
-
-## Checklist avant livraison
-
-- [ ] Aucun mot interdit MDR (surveiller, alerte clinique, scoring...)
-- [ ] Histoire Gabrielle présente et émotionnelle
-- [ ] Métriques réelles uniquement (pas de projections non sourcées)
-- [ ] CTA clair avec calendly ou email direct
-- [ ] tsc : 0 erreur
-- [ ] Build Vercel : OK
-- [ ] Testé sur mobile (responsive)
+## Références
+- references/vc-rigor.md — Frameworks VC, benchmarks, questions pièges, chiffres marché
+- references/design-patterns.md — Patterns visuels par section, CSS patterns, anti-patterns
+- references/compliance-integration.md — Conformité comme MOAT, deux vocabulaires

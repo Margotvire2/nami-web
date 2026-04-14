@@ -1,102 +1,70 @@
-# Référence VC — Ce qui convainc vs ce qui agace
+# VC Rigor — Frameworks & Benchmarks
 
-## Contexte Nami
+## Framework 4M (Partech)
+- Market : TAM >1B€, bottom-up + top-down, SAM/TAM 20-50%
+- Management : founder-market fit, track record, vélocité
+- Model : marge brute >70% SaaS, CAC payback <18 mois, NRR >110%
+- Momentum : PMF ladder (0 client=pré-PMF, 1=seed OK, 3-5=seed idéal, 5-10=Series A)
 
-Cible : Boris Golden (Partech), fonds health-tech seed/pré-seed français.  
-Stade : pré-seed, première demo VC, fondatrice solo.
+## Benchmarks seed Europe 2025 (Point Nine)
+- Valorisation médiane : 5.0M€ pre-money | AI premium : +20%
+- Fourchette Nami réaliste : 3-5M€ pre-money
+- Ne JAMAIS justifier par multiples d'ARR quand ARR ≈ 0
+- Marge brute SaaS santé cible : >75% | CAC payback : <6 mois | LTV/CAC : >3:1 (Nami >10:1 projeté)
+- NRR projeté : >120% (expansion : plus d'users + upgrade tier)
 
----
+## Chiffres marché validés (à sourcer sur les pages)
+- 237 200 médecins en activité en France (DREES, janvier 2025)
+- ~2 700 MSP en fonctionnement, objectif 4 000 d'ici 2027
+- ~800 CPTS en structuration pour couvrir 100% du territoire
+- 269 structures sélectionnées pour le PCR Obésité Complexe (Arrêté 2026)
+- 20 millions de patients atteints de maladies chroniques en France (HAS)
+- 5,2 soignants en moyenne par parcours complexe (Étude terrain 2025)
+- 582 101 professionnels dans l'annuaire RPPS/ANS
+- SAM France total : ~100M€/an | TAM Europe : ~500-800M€
 
-## Ce qui CONVAINC un VC santé numérique
+## Questions pièges et réponses calibrées
 
-### 1. Founder-market fit évident
-- Margot est diététicienne spécialisée TCA → elle **est** l'utilisatrice
-- Elle a vécu le problème avant de coder la solution
-- Elle comprend le parcours de soins de l'intérieur
-- **Formuler** : "Je coordonne des parcours TCA depuis X ans. Nami est l'outil que j'aurais voulu avoir."
+### "Zéro client — pas de PMF"
+"On ne prétend pas avoir le PMF. On a deux signaux : (1) vélocité produit — 26 500 lignes en 10 jours, en production, seule. (2) Légitimité institutionnelle — présentations Paul-Brousse et HAP programmées. Seed = passer de 0 à 5 clients."
 
-### 2. Problème précis, pas générique
-- ❌ "La coordination des soins est inefficace en France"
-- ✅ "Gabrielle, 10 ans. Anorexie + harcèlement. 3 soignants compétents. 0 outil commun. Les parents coordonnaient par SMS. 4 mois perdus."
-- Le cas fondateur = ancre émotionnelle + proof que le problème est réel
+### "Est-ce un dispositif médical ?"
+"Nami ne produit AUCUNE interprétation clinique autonome. Les synthèses IA sont des brouillons extractifs — validation humaine obligatoire. Les indicateurs sont de la complétude documentaire. Base : Art. L.1110-12 CSP. Ref : MDCG 2019-11. Roadmap CE IIa si features futures : post-Série A, budget provisionné."
+NE PAS dire 'on n'est pas un DM, c'est sûr' — montrer qu'on connaît exactement la ligne.
 
-### 3. Wedge étroit + vision large
-- Wedge : TCA/obésité/nutrition pluridisciplinaire (marché adressable limité = crédible)
-- Vision : orchestration de tout parcours complexe multi-spécialités
-- **Ne pas commencer par le marché total** — commencer par "voici le problème que je résous aujourd'hui"
+### "Solo founder"
+"Norme au seed (Lemkin/SaaStr). Vélocité prouve la capacité d'exécution. CTO co-fondateur dans les 3 mois post-seed. Code structuré pour reprise (TS strict, 0 erreur, Prisma, infra managée)."
 
-### 4. Métriques de traction réelles
-- Ce qui compte : soignants actifs, dossiers créés, rétention à 30j, NPS qualitatif
-- **Ne pas gonfler** : un VC qui découvre une projection fausse = deal killer
-- Préférer "12 soignants actifs, 100% de rétention sur 60j" à "marché de 50Mds€"
+### "Doctolib peut copier en 6 mois"
+"Doctolib est une marketplace patient-facing. Ajouter un graphe de 116K relations cliniques + RAG + évaluation 5 métriques = un nouveau produit. Et Nami offre GRATUITEMENT ce que Doctolib facture 149€."
 
-### 5. Moat défendable
-- Network effect : plus il y a de soignants sur Nami, plus le graphe de coordination a de valeur
-- Data propriétaire : patterns de coordination multi-spécialités (personne d'autre ne les a)
-- Insider access : Margot = crédibilité + accès direct aux soignants TCA/obésité
+### "Paaco-Globule est gratuit"
+"Paaco a une adoption catastrophique car UX conçue par des institutionnels. Nami construit par une soignante. L'IA est un différenciateur irrattrapable. Les deux coexistent : Paaco ARS, Nami quotidien."
 
-### 6. Clarté sur le "pourquoi maintenant"
-- Appel à projets HAP/obésité (financement ARS)
-- Réforme du financement des parcours complexes (CPTS, DAC)
-- LLMs qui rendent possible l'extraction intelligente de données cliniques
+### "Le tier gratuit, c'est un suicide financier ?"
+"Coût marginal ~2-3€/mois/user. 10 000 gratuits = 25K€/mois — dans le budget seed. Lock-in (données, habitudes) + funnel naturel 0→19→79→149→499€ déclenché par besoin terrain, pas du marketing."
 
----
+## Pricing — 5 tiers (à afficher sur les pages)
+- GRATUIT (0€) : Agenda, RDV, référencement 582K, messagerie patients & soignants, téléexpertise, réseau
+- ESSENTIEL (19€/mois) : + Facturation non-médecin + Visio/téléconsultation (0% commission)
+- COORDINATION (79€/mois) : + Adressage structuré + App patient (IA photos repas) + Dashboard KPIs soignant
+- INTELLIGENCE (149€/mois) : + Synthèses IA sourcées + Extraction bio auto + Base documentaire 22K + App mobile soignant
+- RÉSEAU (499€/mois + 79€/user) : + Parcours complexes sur mesure + Vue pilote + Multi-équipes + Admin
 
-## Ce qui AGACE ou INQUIÈTE un VC santé
+## Red flags — ne JAMAIS faire
+- "On a le PMF" avec 0 client
+- "Pas de concurrence"  
+- Présenter "intéressé" comme "client"
+- Justifier la valo par multiples quand ARR = 0
+- Cacher les risques (DM, solo, HDS)
+- "Révolutionner la santé" — les VCs l'ont entendu 1000 fois
 
-### ❌ Confusion DM/non-DM
-- Tout ce qui ressemble à un dispositif médical = risque réglementaire = red flag
-- Ne jamais mentionner "alerte clinique", "détection", "scoring de risque" dans le pitch
-- Formuler : "outil de coordination et de partage d'information entre professionnels"
-
-### ❌ Marché total en premier
-- "Le marché mondial de la e-santé est de 600Mds€" = aucune crédibilité
-- Montrer d'abord le wedge précis, puis l'expansion logique
-
-### ❌ Trop technique trop tôt
-- Les détails de stack (pgvector, RAG, SSE) n'appartiennent pas au pitch principal
-- Garder pour les questions techniques en due diligence
-
-### ❌ "Révolutionner la santé"
-- Les VCs santé ont entendu ça 1000 fois
-- Préférer : "Nami fait X pour Y. Voici la preuve que ça marche."
-
-### ❌ Comparaisons mal choisies
-- "Comme Slack pour les soignants" = trop vague
-- "Comme Linear pour les équipes médicales" = plus précis mais à manier avec soin
-- Mieux : expliquer en quoi Nami est unique, pas en quoi il ressemble à autre chose
-
-### ❌ Roadmap trop ambitieuse sans preuve
-- Ne pas mettre "mobile, websockets, agents IA autonomes, multi-tenant" si ce n'est pas construit
-- Roadmap crédible = ce qui est construit + ce que le financement permet de faire en 18 mois
-
----
-
-## Structure narrative optimale pour Boris Golden / Partech
-
-```
-1. Le problème (1 slide, émotionnel + chiffré)
-2. Pourquoi maintenant (contexte réglementaire + timing marché)
-3. La solution (ce qu'on a construit, pas ce qu'on va construire)
-4. Traction (métriques réelles, même petites)
-5. Marché (wedge → vision, pas l'inverse)
-6. Moat (network effect + données + insider)
-7. Équipe (Margot + advisory si applicable)
-8. Ask (montant, usage précis, milestone à 18 mois)
-```
-
----
-
-## Formulations à réutiliser
-
-**Hook** :  
-> "Les soignants sont excellents dans leur silo. Le problème, c'est le silence entre les silos."
-
-**Positionnement** :  
-> "Nami n'est pas un logiciel médical. C'est l'infrastructure de coordination que les équipes pluridisciplinaires n'ont pas."
-
-**Founder fit** :  
-> "Je suis diététicienne spécialisée TCA. J'ai coordonné des dizaines de parcours complexes avant de construire Nami. Je suis à la fois la fondatrice et la première utilisatrice."
-
-**Moat** :  
-> "Chaque soignant qui rejoint Nami augmente la valeur du réseau pour tous les autres. Le graphe de coordination devient propriétaire au bout de 6 mois."
+## Reasons to Believe
+1. Founder-market fit exceptionnelle — diét HAP, 8 réseaux, master AP-HP + ESSEC, recherche terrain
+2. Vélocité sans précédent — 26 500 lignes, 260 endpoints, 22K sources, 10 jours, seule
+3. Architecture enterprise — 4 couches, 5 métriques qualité, traçabilité source
+4. Data flywheel mesurable — coût marginal → 0, rendements d'échelle croissants
+5. Pipeline institutionnel rang 1 — Paul-Brousse, HAP, Foch
+6. SaaS pur >80% marge brute | Wedge pricing Doctolib 19€ vs 149€
+7. MOAT data — 22K sources, 116K relations, 425 pathologies
+8. Tailwinds réglementaires — PCR 269 structures, Plan 4000 MSP, CPTS

@@ -1,21 +1,90 @@
-# NAMI WEB — Contexte frontend pour Claude Code
-> Repo frontend uniquement. Ne pas modifier sans validation de Margot.
+# NAMI — Règles pour Claude Code
 
----
+## Identité du projet
+Nami est une plateforme de coordination des parcours de soins complexes — le système nerveux du parcours de soin.
+Deux interfaces : cockpit soignant (web + mobile) et espace patient (mobile + web).
+Domaine : namipourlavie.com
+Stack : Next.js App Router, TypeScript, Tailwind, Prisma, Supabase (eu-west-3), Railway
 
-## Vision produit
+## Architecture technique — 4 couches
+1. Référentiel médical vectorisé (22 308 entrées : HAS, DSM-5, FFAB, Orphanet, BDPM, ICD-11 — 116 000 relations cliniques typées avec grades de preuve)
+2. Pipeline RAG hybride (vectoriel large → reranking pertinence → traversée automatique du graphe de connaissances)
+3. Moteur de règles temps réel (exécuté sur chaque mise à jour du dossier — complétude, anomalies temporelles — chaque exécution loguée et auditable)
+4. Framework d'évaluation automatique (5 métriques : couverture sources, taux hallucination, complétude, actionnabilité, cohérence)
 
-Nami est le système nerveux du parcours de soins complexes.
-Les soignants sont excellents dans leur silo. Le problème : l'information ne circule pas entre silos. Le patient devient coordinateur de son propre parcours. Nami transfère cette charge vers les professionnels.
+## Pricing — 5 tiers
+- GRATUIT (0€) : Agenda, prise de RDV, référencement annuaire 582K, messagerie patients, messagerie soignants, téléexpertise, réseau
+- ESSENTIEL (19€/mois) : + Facturation non-médecin + Visio/téléconsultation (0% commission)
+- COORDINATION (79€/mois) : + Adressage structuré + App patient (IA photos repas, transmission docs) + Dashboard flux financiers KPIs soignant
+- INTELLIGENCE (149€/mois) : + Synthèses IA sourcées + Extraction bio auto + Base documentaire 22K + Moteur de complétude + App soignant mobile complète + Analytics financiers structures
+- RÉSEAU (499€/mois + 79€/utilisateur) : + Configuration parcours complexes sur mesure + Vue pilote avancement + Multi-équipes + Parcours HAS + Dashboard KPIs structures financières + Admin & accès
 
-**Positionnement** : infrastructure d'orchestration multi-spécialités — pas un logiciel médical, pas un CRM santé.  
-**Wedge** : obésité, TCA, nutrition pluridisciplinaire.  
-**Cas fondateur** : Gabrielle, 10 ans, anorexie + harcèlement scolaire. Médecin + psy + diét. Parents coordinateurs par SMS. 4 mois perdus. Défaut d'orchestration, pas de compétence.  
-**Fondatrice** : Margot Vire, diététicienne spécialisée TCA, première utilisatrice.
+## 3 pathologies de démonstration
+- Gabrielle M., 16 ans — Anorexie mentale (psychiatre, diét, psy, MT, endocrino)
+- Marc D., 52 ans — Obésité complexe PCR (endocrino, diét, psy, APA, MT)
+- Léo R., 8 ans — Épilepsie pédiatrique (neuropédiatre, neuropsy, orthophoniste, enseignant, MT)
 
----
+## Règles absolues
 
-## Stack & Infrastructure
+### Mots interdits (risque requalification DM / télésurveillance)
+JAMAIS dans l'UI, le marketing, les CGU, le deck, ou les outputs IA :
+- surveillance, monitoring, suivi longitudinal
+- alerte clinique, alerte santé, signaux, vigilance
+- drapeaux rouges, care gaps, scoring
+- détecter, prévenir, sécuriser, réduire les risques
+- continuité de prise en charge
+- probable, recommander, à surveiller, non observance, anormal, danger, risque, urgence (outputs IA)
+
+Remplacements safe : coordination, organisation, centraliser, structurer, documenter, faciliter, indicateur de complétude, notification organisationnelle, continuité de coordination, dossier de coordination, brouillon IA, synthèse structurée
+
+### Wording légal obligatoire
+- Dossier = "dossier de coordination" (JAMAIS "dossier médical")
+- Résumé IA = badge "Brouillon IA — à vérifier" + bouton "Voir les sources"
+- Indicateurs = tooltip "Indicateurs non cliniques destinés à l'organisation du dossier"
+- Messagerie patient = bannière "En cas d'urgence vitale : 15 / 112" visible en permanence
+- Footer toutes pages publiques = "Nami n'est pas un dispositif médical"
+
+### Deux vocabulaires selon le contexte
+- Page scroll publique / UI : "synthèses structurées", "indicateurs de complétude", "base documentaire", "coordination"
+- Meeting VC / directeur médical : "moteur d'intelligence clinique", "taux d'hallucination mesuré", "graphe 116K relations", "pipeline RAG hybride"
+Le vocabulaire technique sert en meeting. Les pages publiques utilisent le vocabulaire safe.
+
+### Palette Nami
+- Primaire : #5B4EC4 (violet doux)
+- Secondaire : #2BA89C (teal)
+- Fond principal : #FAFAF8 (crème chaud — PAS de noir dominant)
+- Fond alterné : #F5F3EF
+- Section sombre : #1A1A2E (max 2 par page, JAMAIS #000000)
+- Surface sombre : #252540
+- Texte : #1A1A2E (titres), #4A4A5A (body), #8A8A96 (muted)
+- Cards : #FFFFFF avec border rgba(26,26,46,0.06)
+- Font : Plus Jakarta Sans
+- Gradient text : linear-gradient(135deg, #5B4EC4, #2BA89C)
+
+### Design — pages pitch/decouvrir
+- Sections 100vh minimum sur les pages scroll (pitch, decouvrir)
+- Titres géants : clamp(3rem, 8vw, 6rem) — ne pas être timide
+- Animations : WordByWordTitle (80ms/mot), StickyScrollContainer (300vh, 3 scènes), AnimatedCounter, ScrollReveal
+- Easing : cubic-bezier(0.16, 1, 0.3, 1) partout
+- Hover cards : translateY(-6px) + shadow dramatique 0 20px 60px rgba(26,26,46,0.12)
+- PAS de Framer Motion — CSS transitions + IntersectionObserver + requestAnimationFrame
+- Mockups = composants React vivants (PAS des images)
+- Ambient glow orbs sur les sections sombres
+- Responsive obligatoire : mobile 390px, tablet 768px, desktop 1280px+
+
+### Code
+- TypeScript strict, 0 erreur TSC
+- Check : /Users/margotvire/nami-web/node_modules/.bin/tsc -p /Users/margotvire/nami-web/tsconfig.json --noEmit
+- Prisma migrations uniquement (JAMAIS db push en prod — risque sur index knowledge)
+- router.refresh() au lieu de window.location.reload()
+- Pas de texte hardcodé quand une variable existe
+- Format de debug : DIAGNOSTIC → BROKEN LINK → FIX → PROOF
+
+### Comptes démo
+- margot.vire@namihealth.com / Demo2024! (soignante fondatrice)
+- lea.rousseau@patient.com / Patient2024! (patient démo)
+
+## Stack complète
 
 | Élément | Valeur |
 |---------|--------|
@@ -23,204 +92,34 @@ Les soignants sont excellents dans leur silo. Le problème : l'information ne ci
 | State | TanStack Query v5 + Zustand |
 | CSS | Tailwind 4 + CSS variables |
 | Fonts | Plus Jakarta Sans (UI) + Inter (data/labels) |
-| Animations | ScrollReveal (nouvelles pages) + Framer Motion (cockpit existant) |
-| Backend | `nami-production-f268.up.railway.app` |
-| Deploy | Vercel auto-deploy sur push `main` |
-| GitHub | `Margotvire2/nami-web` |
+| Animations | ScrollReveal + AnimatedCounter (nouvelles pages) · Framer Motion (cockpit existant) |
+| Backend | nami-production-f268.up.railway.app |
+| Deploy | Vercel auto-deploy sur push main |
+| GitHub | Margotvire2/nami-web |
 
-**Local dev** : `npm run dev` → port 3001  
-**Build prod** : `npm run build`  
-**TypeScript check** : `./node_modules/.bin/tsc -p tsconfig.json --noEmit`
-
----
-
-## Design System — Medical 2026
-
-### Palette (CSS variables dans `globals.css`)
-```
-Primary      : #5B4EC4  (violet Nami)
-Primary light: rgba(91,78,196,0.08)
-Teal accent  : #2BA89C
-Background   : #FAFAF8
-Dark sections: #1A1A2E
-Text         : #1A1A2E  (dark) / #8A8A96 (soft)
-Border       : rgba(26,26,46,0.08)
-Card bg      : #FFFFFF  border: #E8ECF4
-```
-
-### Severity (désaturée, jamais criard)
-```
-Critical : #DC2626  bg #FEF2F2  border #FECACA
-High     : #D97706  bg #FFFBEB  border #FDE68A
-Info     : #2563EB  bg #EFF6FF  border #BFDBFE
-Success  : #059669  bg #F0FDF4  border #BBF7D0
-```
-
-### Composants
-- Cards : `rounded-xl`, shadow subtile, hover lift + border violet
-- CSS classes : `.nami-card`, `.nami-card-interactive`, `.nami-pillar-card`, `.nami-patient-card`, `.nami-stagger-item`
-- Hover cards : `box-shadow 0 4px 16px rgba(91,78,196,0.10)` + `translateY(-1px)`
-- Animations : `ScrollReveal` (fade-up/left/right/scale/blur) + `AnimatedCounter`
-
-### ❌ Ne jamais utiliser
-- Couleurs hardcodées hors composants locaux (utiliser CSS variables)
-- `#4F46E5` ou `#0F766E` (anciennes palettes)
-- `#F0F2FA` comme fond (utiliser `#FAFAF8`)
-
----
-
-## Règles absolues
-
-```
-1. Lire les fichiers existants ENTIÈREMENT avant toute modification
-2. Ne jamais réécrire une page entière — Edit, pas Write sur fichier existant
-3. Ajouter uniquement ce qui manque — ne pas écraser
-4. ./node_modules/.bin/tsc -p tsconfig.json --noEmit AVANT et APRÈS → 0 erreur
-5. "use client" obligatoire si : useState, useEffect, event handlers, hooks
-6. export const metadata → Server Component uniquement (incompatible avec "use client")
-7. Event handlers (onMouseOver, onClick inline) → interdit dans Server Components
-8. CATEGORY_LABELS (et tout Record de labels) doit être exhaustif par rapport aux union types
-9. Jamais de secrets dans le code (clés API, JWT)
-10. Toute feature doit renforcer : Coordination, Visibilité clinique, Passage de relais, ou Pilotage longitudinal
-```
-
----
-
-## Wording légal — conforme MDR/DM
-
-| ❌ Interdit | ✅ Autorisé |
-|------------|------------|
-| Alerte clinique | Indicateur de complétude |
-| Surveiller / Monitoring | Centraliser / Organiser |
-| Détecter | Observer / Noter |
-| Risque clinique | Complétude du dossier |
-| Anormal | À vérifier |
-| Scoring automatique | Feedback soignant |
-| Surveillance | Cadences de suivi |
-
-**Disclaimers obligatoires :**
-- Footer public : "Nami n'est pas un dispositif médical. En cas d'urgence, appelez le 15 ou le 112."
-- Messagerie patient : bannière permanente urgences 15/112
-- Messagerie pro : "Cette messagerie est réservée à la coordination entre professionnels."
-- Toute sortie IA : label "Brouillon — à valider par le soignant"
-
----
+## Paysage concurrentiel
+- Doctolib : 149€/mois pour agenda+RDV+messagerie. Nami offre tout ça GRATUITEMENT.
+- Omnidoc : téléexpertise acte par acte. Pas de parcours continu.
+- Paaco-Globule : coordination gratuite (financée ARS). UX très pauvre, adoption faible.
+- Santélien : coordination MSP uniquement. Pas d'IA, pas de KB.
+- Lifen : échange de documents. Tuyau sans intelligence.
+Nami remplit la case vide : coordination pluridisciplinaire ville-hôpital + intelligence clinique intégrée.
 
 ## Architecture pages
 
-### Espace public (`/`)
-```
-/                    → Landing page (SSG, "use client")
-/pathologies         → Liste pathologies (Server Component)
-/pathologies/[slug]  → Fiche détail (SSG, generateStaticParams)
-/trouver-un-soignant → Annuaire public
-/blog                → Liste articles
-/blog/[slug]         → Article
-/login               → Connexion
-/signup              → Inscription soignant
-/invite/[token]      → Rejoindre une care team
-/cgu /confidentialite /mentions-legales → Légal
-```
+### Espace public
+/ → Landing | /pathologies → Liste | /pathologies/[slug] → Fiche | /trouver-un-soignant → Annuaire
+/login /signup /invite/[token] | /cgu /confidentialite /mentions-legales
+/pitch → Deck VC (non-indexé) | /decouvrir → Page hôpitaux (non-indexé)
 
-### Cockpit soignant (`/(cockpit)/`)
-```
-/aujourd-hui         → Dashboard principal (Framer Motion, 2/3 + 1/3)
-/patients            → Liste patients (grid cards + table)
-/patients/[id]       → Dossier patient V2
-/agenda              → Agenda plein écran
-/messages            → Messagerie coordination (2 colonnes)
-/documents           → Documents
-/equipe              → Réseau soignant (RPPS)
-/adressages          → Adressages
-/facturation         → Facturation SESAM-Vitale
-/intelligence        → Base de connaissances RAG
-/protocoles          → Protocoles HAS
-/taches              → Tâches cross-dossiers
-/reglages            → Paramètres
-```
+### Cockpit soignant /(cockpit)/
+/aujourd-hui /patients /patients/[id] /agenda /messages /documents
+/equipe /adressages /facturation /intelligence /protocoles /taches /reglages
 
-### Espace patient (`/(patient)/`)
-```
-/accueil             → Dashboard patient
-/rendez-vous         → Mes RDV (maxWidth 720px)
-/mes-documents       → Mes documents (maxWidth 720px)
-/mes-messages        → Messagerie + disclaimer urgences
-/mon-compte          → Profil
-```
+### Espace patient /(patient)/
+/accueil /rendez-vous /mes-documents /mes-messages /mon-compte
 
----
-
-## Comptes de démonstration
-
-```
-Soignant (Margot Vire — diététicienne fondatrice) :
-  email    : margot.vire@namihealth.com
-  password : Demo2024!
-
-Patient démo :
-  email    : lea.rousseau@patient.com
-  password : Patient2024!
-```
-
----
-
-## Conventions frontend
-
-### Server vs Client Components
-- Par défaut : Server Component (pas de "use client")
-- Ajouter "use client" si : hooks React, event handlers, localStorage, window
-- `export const metadata` → seulement dans Server Components
-- Hover effects en Server Component → CSS classes uniquement (`.nami-pillar-card:hover`)
-
-### Data fetching
-- Cockpit : TanStack Query (`useQuery`, `useMutation`)
-- Pages publiques statiques : `generateStaticParams` + `fetch` direct
-- Auth : `useAuthStore` (Zustand) → `accessToken` → `apiWithToken(token)`
-
-### Animations
-- Nouvelles pages : `ScrollReveal` (`src/components/ui/ScrollReveal.tsx`)
-- Compteurs animés : `AnimatedCounter` (`src/components/ui/AnimatedCounter.tsx`)
-- Cockpit existant : Framer Motion (ne pas mélanger dans un même fichier)
-- Stagger CSS pur : classe `.nami-stagger-item` + `animationDelay: \`${idx * 0.05}s\``
-
-### Déploiement Vercel
-- Chaque push sur `main` → build auto + déploiement
-- Pas besoin de redéployer manuellement (sauf changement de variables d'env sans push)
-- Build fail → le commit suivant corrigé suffit (Vercel prend le snapshot complet du code)
-
----
-
-## Anti-patterns interdits
-
-```
-❌ Write sur un fichier existant sans Read d'abord
-❌ Event handlers dans un Server Component (onMouseOver, onMouseEnter...)
-❌ "use client" sur une page qui exporte metadata
-❌ Couleur hardcodée #4F46E5 (ancienne) ou #0F766E (teal patient)
-❌ Record de labels incomplet par rapport au union type TypeScript
-❌ Modifier 5 fichiers quand 1 suffit
-❌ Dire "livré" sans vérification tsc
-❌ Mots interdits MDR dans l'UI (voir tableau wording)
-❌ Messagerie sans disclaimer urgences
-```
-
----
-
-## Format de réponse obligatoire
-
-```
-### DIAGNOSTIC
-- Fichier(s) concerné(s) : [path:ligne]
-- PROBLÈME : "[maillon cassé précis]"
-
-### FIX
-- Fichier : [un seul si possible]
-- Ligne : [avant → après]
-- Raison : [pourquoi ça fixe]
-
-### PREUVE
-- tsc : 0 erreur
-
-### EFFETS DE BORD
-- Aucun / Liste
-```
+## Skills de référence
+- Avant de construire une page pitch ou investisseur : lire docs/pitch-deck-scroll/SKILL.md et ses references/
+- Avant d'écrire du copy marketing ou UI : respecter les mots interdits ci-dessus
+- Avant de toucher au design : palette Nami + proportions premium (sections 100vh, titres géants)

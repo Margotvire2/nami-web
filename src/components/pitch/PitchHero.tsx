@@ -1,0 +1,192 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
+import { PitchMockup } from "./PitchMockup"
+
+interface Props {
+  variant: "vc" | "hospital"
+}
+
+const CONTENT = {
+  vc: {
+    eyebrow: "SEED 2026",
+    lines: ["Le système nerveux", "de vos parcours de soins."],
+    gradientWords: ["système", "nerveux"],
+    subtitle:
+      "Nami coordonne les équipes pluridisciplinaires autour de chaque patient. TCA, obésité, pédiatrie, épilepsie, maladies chroniques — un moteur d'intelligence clinique pour structurer, documenter et communiquer.",
+    cta: "Demander un meeting →",
+    ctaHref: "mailto:contact@namipourlavie.com",
+    ctaSecondary: "contact@namipourlavie.com",
+    footer: "Conforme RGPD · Art. L.1110-12 CSP",
+  },
+  hospital: {
+    eyebrow: "COORDINATION DES PARCOURS COMPLEXES",
+    lines: ["Quand votre patient voit 5 soignants,", "chacun sait ce que les autres ont fait."],
+    gradientWords: ["chacun", "sait"],
+    subtitle:
+      "Nami est l'espace commun de votre équipe pluridisciplinaire. Un dossier de coordination partagé, structuré, sécurisé.",
+    cta: "Demander une démo →",
+    ctaHref: "mailto:contact@namipourlavie.com",
+    ctaSecondary: "Voir en 3 minutes ↓",
+    footer: "Conforme RGPD · Hébergement européen · Art. L.1110-12 CSP",
+  },
+}
+
+export function PitchHero({ variant }: Props) {
+  const c = CONTENT[variant]
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 80)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const allWords = c.lines.flatMap(l => l.split(" "))
+  let wordIdx = 0
+
+  return (
+    <section style={{
+      background: "#FAFAF8",
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      padding: "0 clamp(24px, 5vw, 80px)",
+    }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 80, paddingBottom: 60 }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 72 }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 11,
+            background: "linear-gradient(135deg, #5B4EC4, #2BA89C)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <span style={{ color: "#fff", fontSize: 14, fontWeight: 900 }}>N</span>
+          </div>
+          <span style={{ fontSize: 17, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.02em" }}>Nami</span>
+        </div>
+
+        {/* Eyebrow */}
+        <div style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "none" : "translateY(16px)",
+          transition: "opacity 0.5s ease 0ms, transform 0.5s ease 0ms",
+          fontSize: 11, fontWeight: 800, letterSpacing: "0.1em",
+          textTransform: "uppercase", color: "#5B4EC4", marginBottom: 22,
+        }}>
+          {c.eyebrow}
+        </div>
+
+        {/* Title — word by word */}
+        <h1 style={{
+          fontSize: "clamp(2.8rem, 7.5vw, 5.8rem)",
+          fontWeight: 800,
+          letterSpacing: "-0.04em",
+          lineHeight: 1.05,
+          color: "#1A1A2E",
+          margin: "0 0 28px",
+          fontFamily: "var(--font-jakarta)",
+        }}>
+          {c.lines.map((line, li) => (
+            <span key={li} style={{ display: "block" }}>
+              {line.split(" ").map((word, wi) => {
+                const delay = 80 + wordIdx++ * 80
+                const isGradient = c.gradientWords.some(gw => word.toLowerCase() === gw.toLowerCase())
+                return (
+                  <span
+                    key={wi}
+                    style={{
+                      display: "inline-block",
+                      marginRight: wi < line.split(" ").length - 1 ? "0.28em" : 0,
+                      opacity: visible ? 1 : 0,
+                      transform: visible ? "translateY(0) scale(1)" : "translateY(28px) scale(0.96)",
+                      transition: `opacity 0.55s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.55s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+                      ...(isGradient ? {
+                        background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      } : {}),
+                    }}
+                  >
+                    {word}
+                  </span>
+                )
+              })}
+            </span>
+          ))}
+        </h1>
+
+        {/* Subtitle */}
+        <p style={{
+          fontSize: "clamp(15px, 1.8vw, 18px)",
+          color: "#4A4A5A",
+          lineHeight: 1.65,
+          maxWidth: 560,
+          margin: "0 0 36px",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "none" : "translateY(20px)",
+          transition: "opacity 0.6s ease 600ms, transform 0.6s ease 600ms",
+        }}>
+          {c.subtitle}
+        </p>
+
+        {/* CTAs */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 18,
+          flexWrap: "wrap",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "none" : "translateY(16px)",
+          transition: "opacity 0.6s ease 760ms, transform 0.6s ease 760ms",
+        }}>
+          <a href={c.ctaHref} style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "14px 30px",
+            borderRadius: 100,
+            background: "#5B4EC4",
+            color: "#fff",
+            fontSize: 15,
+            fontWeight: 700,
+            textDecoration: "none",
+            fontFamily: "inherit",
+            boxShadow: "0 4px 20px rgba(91,78,196,0.30)",
+          }}>
+            {c.cta}
+          </a>
+          <a href={c.ctaSecondary.startsWith("mailto") || c.ctaSecondary.startsWith("#") ? c.ctaSecondary : "#demo"} style={{
+            fontSize: 14,
+            color: "#8A8A96",
+            textDecoration: "none",
+            fontFamily: "inherit",
+          }}>
+            {c.ctaSecondary}
+          </a>
+        </div>
+
+        {/* Footer note */}
+        <div style={{
+          marginTop: 40,
+          fontSize: 11,
+          color: "#8A8A96",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.6s ease 900ms",
+        }}>
+          {c.footer}
+        </div>
+
+        {/* Mockup */}
+        <div style={{
+          marginTop: 56,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(40px)",
+          transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 500ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 500ms",
+        }}>
+          <PitchMockup />
+        </div>
+      </div>
+    </section>
+  )
+}
