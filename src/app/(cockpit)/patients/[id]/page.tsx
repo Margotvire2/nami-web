@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type NoteAnalysis } from "@/lib/api";
@@ -11,6 +12,7 @@ import { PatientHeader } from "./v2/components/PatientHeader";
 import { ViewGlobale } from "./v2/components/ViewGlobale";
 import { ViewDossier } from "./v2/components/ViewDossier";
 import { ViewCoordination } from "./v2/components/ViewCoordination";
+import { SuiviTab } from "@/components/patient/SuiviTab";
 import { ReferralModal } from "./referral-modal";
 import { QuickTaskModal } from "./QuickTaskModal";
 import { Button } from "@/components/ui/button";
@@ -18,10 +20,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 
-type Tab = "globale" | "dossier" | "coordination";
+type Tab = "globale" | "suivi" | "dossier" | "coordination";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "globale", label: "Vue globale" },
+  { key: "suivi", label: "Suivi" },
   { key: "dossier", label: "Dossier" },
   { key: "coordination", label: "Coordination" },
 ];
@@ -175,7 +178,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const { startRecording } = useRecording();
   const { startConsultation } = useConsultation();
 
-  const [activeTab, setActiveTab] = useState<Tab>("globale");
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as Tab | null) ?? "globale";
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [noteOpen, setNoteOpen] = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -310,6 +315,22 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         <div className="p-6">
           {activeTab === "globale" && (
             <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} />
+          )}
+          {activeTab === "suivi" && (
+            <SuiviTab
+              careCaseId={id}
+              pathwayKey={careCase.pathwayTemplateId ?? "default"}
+              personId={careCase.patient?.id}
+              patient={{
+                firstName: careCase.patient?.firstName ?? "",
+                lastName: careCase.patient?.lastName ?? "",
+                birthDate: careCase.patient?.birthDate ?? null,
+                sex: careCase.patient?.sex ?? undefined,
+              }}
+              height={careCase.height ?? null}
+              napValue={careCase.napValue ?? null}
+              napDescription={careCase.napDescription ?? null}
+            />
           )}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (

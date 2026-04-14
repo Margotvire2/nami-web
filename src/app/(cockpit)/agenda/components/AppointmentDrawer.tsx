@@ -5,6 +5,7 @@ import { fr } from "date-fns/locale"
 import type { AgendaAppointment, AppointmentStatus } from "../hooks/useAgenda"
 import { X, Video, Phone, MapPin, Clock, FileText, Sparkles, MessageSquare, Mail, ArrowDownLeft } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -37,6 +38,8 @@ interface Props {
 
 export function AppointmentDrawer({ apt, onClose, onPatch, isPatching }: Props) {
   if (!apt) return null
+
+  const router = useRouter()
 
   const age = apt.patient.birthDate
     ? differenceInYears(new Date(), parseISO(apt.patient.birthDate))
@@ -173,7 +176,11 @@ export function AppointmentDrawer({ apt, onClose, onPatch, isPatching }: Props) 
               variant="outline"
               size="sm"
               className="flex-1 text-xs gap-1"
-              onClick={() => {/* TODO: send message */}}
+              onClick={() => {
+                onClose()
+                if (apt.careCaseId) router.push(`/patients/${apt.careCaseId}?tab=coordination`)
+                else router.push("/collaboration")
+              }}
             >
               <MessageSquare size={11} /> Message
             </Button>
