@@ -86,9 +86,7 @@ export default function OnboardingPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-8 h-14 bg-white border-b border-[#E8ECF4]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center" style={{ background: "linear-gradient(135deg, #5B4EC4, #2BA89C)" }}>
-            <span className="text-white text-xs font-extrabold">N</span>
-          </div>
+          <img src="/nami-mascot.png" alt="Nami" className="w-8 h-8" style={{ borderRadius: 10, objectFit: "contain" }} />
           <span className="text-[15px] font-bold text-[#0F172A] tracking-tight">Nami</span>
         </div>
         <StepDots step={step} />

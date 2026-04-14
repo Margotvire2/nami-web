@@ -163,9 +163,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
           <div className="space-y-5">
             <div className="bg-card rounded-2xl border p-8 space-y-6">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground text-sm font-extrabold">N</span>
-                </div>
+                <img src="/nami-mascot.png" alt="Nami" className="w-9 h-9" style={{ borderRadius: 12, objectFit: "contain" }} />
                 <span className="text-lg font-bold text-foreground tracking-tight">Nami</span>
               </div>
 

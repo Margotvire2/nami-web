@@ -100,10 +100,7 @@ export default function SignupPage() {
 
           {/* Logo */}
           <div className="mb-8">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "linear-gradient(135deg,#5B4EC4,#2BA89C)" }}>
-              <span className="text-white text-sm font-extrabold">N</span>
-            </div>
+            <img src="/nami-mascot.png" alt="Nami" className="w-10 h-10 mb-5" style={{ borderRadius: 12, objectFit: "contain" }} />
             <h1 className="text-2xl font-extrabold tracking-tight mb-1"
               style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}>
               Créez votre espace.

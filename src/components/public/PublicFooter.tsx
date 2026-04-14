@@ -44,9 +44,7 @@ export function PublicFooter() {
           {/* Brand column */}
           <div>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", marginBottom: 14 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#5B4EC4,#2BA89C)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <span style={{ color: "#fff", fontSize: 10, fontWeight: 900 }}>N</span>
-              </div>
+              <img src="/nami-mascot.png" alt="Nami" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "contain", flexShrink: 0 }} />
               <span style={{ color: "#EEECEA", fontSize: 15, fontWeight: 800, letterSpacing: "-0.02em" }}>Nami</span>
             </Link>
             <p style={{ color: "rgba(238,236,234,0.35)", fontSize: 13, lineHeight: 1.7, maxWidth: 230 }}>
