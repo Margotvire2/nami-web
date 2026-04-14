@@ -472,9 +472,9 @@ function TachesSection({ tasks, api }: { tasks: TaskWithContext[]; api: ReturnTy
     },
   });
 
-  if (tasks.length === 0) return null;
-
   const router = useRouter();
+
+  if (tasks.length === 0) return null;
   const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
   const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
 
