@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { PatientSelect } from "@/components/PatientSelect";
 import { BillingDashboard } from "@/components/billing/BillingDashboard";
 import { cn } from "@/lib/utils";
+import { ShimmerCard } from "@/components/ui/shimmer";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://nami-production-f268.up.railway.app";
 
@@ -122,8 +123,8 @@ export default function FacturationPage() {
 
         <div className="flex-1 overflow-y-auto divide-y divide-[#F1F5F9]">
           {isLoading && (
-            <div className="flex items-center justify-center h-20">
-              <Loader2 size={18} className="animate-spin text-muted-foreground" />
+            <div className="flex flex-col gap-2 p-2">
+              {[...Array(4)].map((_, i) => <ShimmerCard key={i} />)}
             </div>
           )}
           {!isLoading && invoices.length === 0 && (

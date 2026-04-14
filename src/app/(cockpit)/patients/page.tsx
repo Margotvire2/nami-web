@@ -6,6 +6,8 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, CareCase, type ObservationRecord } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NamiCard } from "@/components/ui/NamiCard";
+import { ShimmerCard } from "@/components/ui/shimmer";
 import Link from "next/link";
 import { Search, ChevronRight, Users, Plus, Upload, LayoutGrid, LayoutList, TrendingUp, TrendingDown, Minus, Download, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -169,25 +171,23 @@ export default function PatientsPage() {
       </div>
 
       {/* Tabs + filtres */}
-      <div className="border-b bg-card px-6 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex">
+      <div className="bg-card px-6 shrink-0">
+        <div className="flex items-end justify-between gap-4">
+          {/* Onglets avec underline animé */}
+          <div className="nami-tabs flex-1" style={{ borderBottom: "1px solid #E8ECF4" }}>
             {TABS.map((t) => {
               const count = allCases.filter(t.filter).length;
+              const isActive = tab === t.key;
               return (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${
-                    tab === t.key
-                      ? "border-primary text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`nami-tab flex items-center gap-1.5${isActive ? " active" : ""}`}
                 >
                   {t.label}
                   {count > 0 && (
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-                      tab === t.key ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    <span className={`min-w-[16px] h-[16px] px-0.5 rounded-full text-[9px] font-bold flex items-center justify-center ${
+                      isActive ? "bg-[#5B4EC4] text-white" : "bg-[#E8ECF4] text-[#94A3B8]"
                     }`}>
                       {count}
                     </span>
@@ -198,11 +198,11 @@ export default function PatientsPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div className="flex items-center gap-2 py-1.5">
+          <div className="flex items-center gap-2 pb-1.5">
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="text-xs border rounded px-2 py-1 bg-background text-muted-foreground h-7"
+              className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4]"
             >
               <option value="">Risque</option>
               {([["CRITICAL", "Critique"], ["HIGH", "Élevé"], ["MEDIUM", "Modéré"], ["LOW", "Faible"], ["UNKNOWN", "Inconnu"]] as const).map(([r, label]) => (
@@ -213,7 +213,7 @@ export default function PatientsPage() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="text-xs border rounded px-2 py-1 bg-background text-muted-foreground h-7"
+                className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4]"
               >
                 <option value="">Pathologie</option>
                 {types.map((t) => (
@@ -224,7 +224,7 @@ export default function PatientsPage() {
             <select
               value={activityFilter}
               onChange={(e) => setActivityFilter(e.target.value)}
-              className="text-xs border rounded px-2 py-1 bg-background text-muted-foreground h-7"
+              className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4]"
             >
               <option value="">Activité</option>
               <option value="recent">Active &lt; 7j</option>
@@ -265,9 +265,15 @@ export default function PatientsPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-6 space-y-2">
-            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 rounded" />)}
-          </div>
+          viewMode === "cards" ? (
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => <ShimmerCard key={i} />)}
+            </div>
+          ) : (
+            <div className="p-6 space-y-2">
+              {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}
+            </div>
+          )
         ) : allCases.length === 0 ? (
           <PatientsEmptyState
             onImport={() => setImportOpen(true)}
@@ -433,7 +439,7 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
 
   return (
     <Link href={`/patients/${c.id}`}>
-      <div className="bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+      <NamiCard variant="depth" padding="none" className="p-4 cursor-pointer group">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -491,7 +497,7 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
             <span>{c.lastActivityAt ? daysAgo(c.lastActivityAt) : "jamais"}</span>
           </div>
         </div>
-      </div>
+      </NamiCard>
     </Link>
   );
 }

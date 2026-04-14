@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
+import { AnimatedTabs } from "@/components/ui/AnimatedTabs";
 
 type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination";
 
@@ -296,21 +297,12 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
       )}
 
       {/* Tab bar */}
-      <nav className="bg-card border-b px-6 shrink-0 flex">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-all -mb-px ${
-              activeTab === tab.key
-                ? "border-[#5B4EC4] text-[#5B4EC4]"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      <AnimatedTabs
+        tabs={TABS.map((t) => ({ id: t.key, label: t.label }))}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as Tab)}
+        className="bg-card px-6 shrink-0"
+      />
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto">

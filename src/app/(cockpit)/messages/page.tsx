@@ -65,7 +65,7 @@ export default function MessagesPage() {
               variant="subtle"
             />
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-[#F1F5F9] nami-card-stagger">
               {cases.map((c) => (
                 <CaseChatRow
                   key={c.id}
@@ -107,8 +107,10 @@ function CaseChatRow({ careCase: c, isSelected, onSelect }: {
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left px-4 py-3 transition-colors ${
-        isSelected ? "bg-primary/5 border-l-2 border-primary" : "hover:bg-muted/30"
+      className={`w-full text-left px-4 py-3 transition-all duration-150 ${
+        isSelected
+          ? "bg-[#EEEDFB] border-l-[3px] border-[#5B4EC4] pl-[13px]"
+          : "border-l-[3px] border-transparent hover:bg-[#F8FAFC]"
       }`}
     >
       <div className="flex items-start gap-2.5">

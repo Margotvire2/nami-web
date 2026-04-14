@@ -13,6 +13,7 @@ import {
   ChevronRight, Send, Loader2, AlertCircle,
 } from "lucide-react";
 import { EmptyState } from "@/components/nami/EmptyState";
+import { ShimmerCard } from "@/components/ui/shimmer";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -109,8 +110,14 @@ export default function AdressagesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-6 h-6 animate-spin text-[#4F46E5]" />
+      <div className="h-full flex flex-col overflow-hidden">
+        <div className="bg-white border-b border-[#E8ECF4] px-6 py-4 shrink-0">
+          <div className="h-7 w-40 bg-[#F1F5F9] rounded-lg animate-pulse" />
+          <div className="h-4 w-64 bg-[#F1F5F9] rounded mt-2 animate-pulse" />
+        </div>
+        <div className="flex-1 overflow-auto px-6 py-4 flex flex-col gap-3">
+          {[...Array(5)].map((_, i) => <ShimmerCard key={i} />)}
+        </div>
       </div>
     );
   }

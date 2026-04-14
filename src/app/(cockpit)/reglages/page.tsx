@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { useAuthStore } from "@/lib/store"
 import { authApi } from "@/lib/api"
 import { EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
+import { ShimmerCard } from "@/components/ui/shimmer"
 import {
   User, Mail, Phone, BadgeCheck, Loader2, Save,
   Plus, Trash2, LogOut, ChevronDown, ChevronUp,
@@ -104,7 +105,7 @@ interface ProfileData {
 function Section({ title, icon, children, defaultOpen = true }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="bg-white rounded-2xl border border-[#E8ECF4] overflow-hidden">
+    <div className="nami-card overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-6 py-4 hover:bg-[#F8F9FC] transition-colors"
@@ -382,8 +383,10 @@ export default function ReglagesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 size={24} className="animate-spin text-[#4F46E5]" />
+      <div className="min-h-full bg-[#F0F2FA]">
+        <div className="max-w-2xl mx-auto px-6 py-8 space-y-4">
+          {[...Array(5)].map((_, i) => <ShimmerCard key={i} />)}
+        </div>
       </div>
     )
   }

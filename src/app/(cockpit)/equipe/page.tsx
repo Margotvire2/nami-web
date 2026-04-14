@@ -13,6 +13,8 @@ import {
   type DirectoryEntry,
 } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NamiCard } from "@/components/ui/NamiCard";
+import { ShimmerCard } from "@/components/ui/shimmer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -213,7 +215,7 @@ function ColleaguesTab({
   if (isLoading) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-2">
-        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+        {[...Array(3)].map((_, i) => <ShimmerCard key={i} />)}
       </div>
     );
   }
@@ -246,7 +248,7 @@ function ColleaguesTab({
         return (
           <div
             key={c.person.id}
-            className="rounded-xl border bg-card p-4 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow"
+            className="nami-card-interactive p-4"
           >
             <div className="flex items-center gap-3">
               {/* Avatar */}
@@ -341,7 +343,7 @@ function StructuresTab({
       {structures.map((s) => (
         <div
           key={s.id}
-          className="rounded-xl border bg-card p-4 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow"
+          className="nami-card-interactive p-4"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center shrink-0">
@@ -437,7 +439,7 @@ function RPPSTab() {
       ) : results.length > 0 ? (
         <div className="space-y-2">
           {results.map((r) => (
-            <div key={r.id} className="rounded-xl border bg-card p-4 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow">
+            <div key={r.id} className="nami-card-interactive p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
                   {r.type === "CDS" ? <Building2 size={14} /> : initials(r.firstName ?? "?", r.lastName ?? "?")}
@@ -554,7 +556,7 @@ function InvitationsTab({
         return (
           <div
             key={inv.id}
-            className="rounded-xl border bg-card p-4 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow"
+            className="nami-card-interactive p-4"
           >
             <div className="flex items-center gap-3">
               <div className={cn(

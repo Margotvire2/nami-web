@@ -7,6 +7,7 @@ import { annuaireApi, apiWithToken, type DirectoryEntry, type DirectorySearchRes
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ShimmerCard } from "@/components/ui/shimmer"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
@@ -170,7 +171,7 @@ export default function AnnuairePage() {
       {/* Results */}
       {isLoading || isFetching ? (
         <div className="space-y-2">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+          {[...Array(5)].map((_, i) => <ShimmerCard key={i} />)}
         </div>
       ) : searchTrigger > 0 && results.length > 0 ? (
         <>
@@ -362,8 +363,8 @@ function DirectoryCard({ entry, onInvite }: { entry: DirectoryEntry; onInvite: (
     : `${(entry.firstName ?? "?")[0]}${entry.lastName[0]}`.toUpperCase()
 
   return (
-    <div className="rounded-xl border bg-card hover:shadow-[0_2px_12px_rgba(79,70,229,0.08)] transition-all hover:border-primary/20">
-      <div className="flex items-center gap-3 p-4">
+    <div className="nami-card-interactive p-4">
+      <div className="flex items-center gap-3">
         {/* Avatar */}
         <div className={`w-11 h-11 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
           isCDS ? "bg-emerald-50 text-emerald-700" : "bg-primary/5 text-primary"

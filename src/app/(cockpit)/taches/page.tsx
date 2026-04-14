@@ -13,6 +13,8 @@ import {
   Loader2,
 } from "lucide-react"
 import { EmptyState } from "@/components/nami/EmptyState"
+import { NamiCard } from "@/components/ui/NamiCard"
+import { ShimmerCard } from "@/components/ui/shimmer"
 
 const N = {
   primary: "#5B4EC4", primaryLight: "#EDE9FC", text: "#2D2B3D",
@@ -99,8 +101,8 @@ export default function TachesPage() {
 
         {/* Loading */}
         {isLoading && (
-          <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-            <Loader2 size={24} className="animate-spin" style={{ color: N.primary }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[...Array(4)].map((_, i) => <ShimmerCard key={i} />)}
           </div>
         )}
 
@@ -122,10 +124,10 @@ export default function TachesPage() {
             const isDone = task.status === "COMPLETED"
 
             return (
-              <div key={task.id} style={{
-                background: N.card, borderRadius: 14, border: `1px solid ${N.border}`,
-                padding: "14px 16px", opacity: isDone ? 0.6 : 1,
-              }}>
+              <NamiCard key={task.id} variant={isDone ? "flat" : "lift"} padding="none"
+                className="nami-stagger-item"
+                style={{ padding: "14px 16px", opacity: isDone ? 0.6 : 1, animationDelay: `${shown.indexOf(task) * 40}ms` }}
+              >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   {/* Check button */}
                   <button
@@ -200,7 +202,7 @@ export default function TachesPage() {
                     </div>
                   )}
                 </div>
-              </div>
+              </NamiCard>
             )
           })}
         </div>

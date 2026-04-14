@@ -16,6 +16,7 @@ import {
   Microscope,
   Globe,
 } from "lucide-react";
+import { ShimmerCard } from "@/components/ui/shimmer";
 
 // ─── Source meta ─────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ function ResultCard({
 
   return (
     <div
-      className="bg-white rounded-xl border border-[#E8ECF4] hover:border-[#C7C4F0] hover:shadow-md transition-all cursor-pointer"
+      className="nami-card-interactive cursor-pointer"
       onClick={() => onOpen(result.id)}
     >
       <div className="p-4">
@@ -569,11 +570,8 @@ export default function IntelligencePage() {
 
       {/* ── Results ── */}
       {loading && (
-        <div className="flex items-center justify-center py-16">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-400">Recherche en cours…</p>
-          </div>
+        <div className="flex flex-col gap-3 py-4">
+          {[...Array(5)].map((_, i) => <ShimmerCard key={i} />)}
         </div>
       )}
 

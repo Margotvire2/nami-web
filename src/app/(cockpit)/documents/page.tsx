@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NamiCard } from "@/components/ui/NamiCard";
+import { ShimmerCard } from "@/components/ui/shimmer";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -445,10 +447,8 @@ export default function DocumentsPage() {
       {/* Contenu */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-6 space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-xl" />
-            ))}
+          <div className="max-w-3xl mx-auto px-6 py-4 space-y-3">
+            {[...Array(5)].map((_, i) => <ShimmerCard key={i} />)}
           </div>
         ) : filtered.length === 0 && !search ? (
           /* ── Empty state contexte 1 : liste globale vide ── */
@@ -494,7 +494,7 @@ export default function DocumentsPage() {
           </div>
         ) : (
           /* ── Liste de documents ── */
-          <div className="max-w-3xl mx-auto px-6 py-4 space-y-2">
+          <div className="max-w-3xl mx-auto px-6 py-4 space-y-2 nami-card-stagger">
             {filtered.map((doc) => {
               const cc = caseMap.get(doc.careCaseId);
               const typeLabel =
@@ -503,9 +503,11 @@ export default function DocumentsPage() {
                 DOC_TYPE_STYLE[doc.documentType] ?? DOC_TYPE_STYLE.OTHER;
 
               return (
-                <div
+                <NamiCard
                   key={doc.id}
-                  className="rounded-xl border bg-card p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow"
+                  variant="lift"
+                  padding="none"
+                  className="p-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-9 h-9 rounded-lg bg-muted/30 flex items-center justify-center shrink-0 mt-0.5">
@@ -602,7 +604,7 @@ export default function DocumentsPage() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </NamiCard>
               );
             })}
           </div>
