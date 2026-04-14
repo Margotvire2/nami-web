@@ -9,9 +9,9 @@ import { Calendar, FileText, Users, MessageCircle, Loader2 } from "lucide-react"
 import Link from "next/link";
 
 const C = {
-  primary: "#0F766E", primaryLight: "#CCFBF1", primaryMid: "#14B8A6",
-  text: "#1C2B2A", textSoft: "#6B7280", border: "#E5E7EB",
-  card: "#FFFFFF", bg: "#F8FAFB",
+  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)", primaryMid: "#2BA89C",
+  text: "#1A1A2E", textSoft: "#8A8A96", border: "rgba(26,26,46,0.08)",
+  card: "#FFFFFF", bg: "#FAFAF8",
 };
 
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
@@ -31,7 +31,7 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: "16px 20px", ...style }}>
+    <div style={{ background: C.card, borderRadius: 20, border: `1px solid ${C.border}`, padding: "20px 24px", boxShadow: "0 1px 3px rgba(26,26,46,0.05)", transition: "box-shadow 0.2s ease, transform 0.2s ease", ...style }}>
       {children}
     </div>
   );
@@ -97,13 +97,13 @@ export default function AccueilPage() {
   };
 
   return (
-    <div style={{ padding: "28px 24px 80px", maxWidth: 640, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
+    <div style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, letterSpacing: "-0.5px" }}>
-          Bonjour {user?.firstName} 👋
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: 30, fontWeight: 800, color: C.text, letterSpacing: "-0.04em", fontFamily: "var(--font-jakarta)" }}>
+          Bonjour {user?.firstName} 💙
         </h1>
-        <p style={{ fontSize: 14, color: C.textSoft, marginTop: 4 }}>Voici un résumé de votre suivi</p>
+        <p style={{ fontSize: 15, color: C.textSoft, marginTop: 6 }}>Votre parcours, au même endroit.</p>
       </div>
 
       {/* Prochain RDV */}
@@ -138,8 +138,8 @@ export default function AccueilPage() {
             </div>
             <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
               <Link href="/rendez-vous" style={{
-                padding: "8px 16px", borderRadius: 8, background: C.primary, color: "#fff",
-                fontSize: 13, fontWeight: 600, textDecoration: "none",
+                padding: "9px 18px", borderRadius: 10, background: C.primary, color: "#fff",
+                fontSize: 13, fontWeight: 600, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)",
               }}>
                 Voir le détail
               </Link>
@@ -184,7 +184,7 @@ export default function AccueilPage() {
         <Link href="/messages" style={{ textDecoration: "none" }}>
           <Card style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <MessageCircle size={18} color={C.primary} strokeWidth={2} />
               </div>
               <span style={{ fontSize: 14, color: C.text }}>Messagerie avec mon équipe</span>

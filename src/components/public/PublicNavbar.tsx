@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { label: "Fonctionnalités", href: "/landing-page#features" },
+  { label: "Fonctionnalités", href: "/#features" },
   { label: "Pathologies", href: "/pathologies" },
   { label: "Annuaire", href: "/trouver-un-soignant" },
   { label: "Blog", href: "/blog" },
@@ -40,7 +40,7 @@ export function PublicNavbar() {
     >
       <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         {/* Logo */}
-        <Link href="/landing-page" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
           <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg,#5B4EC4,#2BA89C)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <span style={{ color: "#fff", fontSize: 12, fontWeight: 900 }}>N</span>
           </div>

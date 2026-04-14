@@ -55,14 +55,21 @@ export default async function BlogPage() {
 
       <PublicNavbar />
 
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Blog Santé</h1>
-          <p className="mt-2 text-gray-500 max-w-2xl mx-auto text-sm">
-            Guides cliniques, conseils pour patients et familles, algorithmes décisionnels expliqués.
-            Contenu validé par des professionnels de santé.
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="text-center mb-12" style={{ paddingTop: 80 }}>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
+            style={{ background: "rgba(43,168,156,0.07)", color: "#2BA89C", border: "1px solid rgba(43,168,156,0.15)", letterSpacing: "0.08em" }}>
+            RESSOURCES
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-5"
+            style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)", lineHeight: 1.08 }}>
+            Connaissances, coordination,<br className="hidden md:block" /> pratique.
+          </h1>
+          <p className="text-lg leading-relaxed max-w-xl mx-auto mb-3"
+            style={{ color: "#4A4A5A" }}>
+            Articles de référence pour les professionnels de la coordination de soins.
           </p>
-          <p className="text-xs text-gray-400 mt-1">{total} articles publiés</p>
+          <p className="text-sm font-medium" style={{ color: "#8A8A96" }}>{total} articles publiés</p>
         </div>
 
         <BlogBrowser initialArticles={articles} initialTotal={total} apiUrl={API_URL} pageSize={PAGE_SIZE} />

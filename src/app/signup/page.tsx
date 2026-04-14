@@ -7,21 +7,13 @@ import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import Link from "next/link";
 import { track } from "@/lib/track";
 
 const SPECIALTIES = [
-  "Médecin généraliste",
-  "Psychiatre",
-  "Psychologue",
-  "Diététicien(ne)",
-  "Infirmier(ère)",
-  "Kinésithérapeute",
-  "Endocrinologue",
-  "Cardiologue",
-  "Autre",
+  "Médecin généraliste", "Psychiatre", "Psychologue", "Diététicien(ne)",
+  "Infirmier(ère)", "Kinésithérapeute", "Endocrinologue", "Cardiologue", "Autre",
 ];
 
 export default function SignupPage() {
@@ -80,142 +72,186 @@ export default function SignupPage() {
     }
   }
 
+  // LEFT PANEL — form
+  // RIGHT PANEL — visual dark with quote + stats + animation rings
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30">
-      <div className="w-full max-w-sm space-y-6 px-4 py-8">
-        {/* Logo */}
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Nami</h1>
-          <p className="text-sm text-muted-foreground">Créer votre compte soignant</p>
-        </div>
+    <div className="min-h-screen flex" style={{ background: "#FAFAF8" }}>
+      <style>{`
+        @keyframes ring-pulse {
+          0%, 100% { opacity: 0.06; transform: scale(1); }
+          50% { opacity: 0.13; transform: scale(1.05); }
+        }
+        .signup-ring { position: absolute; border-radius: 50%; animation: ring-pulse 4s ease-in-out infinite; }
+        @keyframes stat-in {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .stat-badge { animation: stat-in 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+        .spec-card { transition: all 0.18s cubic-bezier(0.16,1,0.3,1); }
+        .spec-card:hover { transform: scale(1.02); }
+        .signup-btn { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s; }
+        .signup-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(91,78,196,0.35) !important; }
+      `}</style>
 
-        <Card>
-          <CardHeader className="pb-2 pt-5">
-            <p className="text-sm text-muted-foreground">
-              Remplissez vos informations pour accéder au cockpit clinique
+      {/* ── Left panel — form ── */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8 py-14 overflow-y-auto">
+        <div className="w-full max-w-[400px]">
+
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
+              style={{ background: "linear-gradient(135deg,#5B4EC4,#2BA89C)" }}>
+              <span className="text-white text-sm font-extrabold">N</span>
+            </div>
+            <h1 className="text-2xl font-extrabold tracking-tight mb-1"
+              style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}>
+              Créez votre espace.
+            </h1>
+            <p className="text-sm" style={{ color: "#8A8A96" }}>
+              Rejoignez les soignants qui coordonnent mieux.
             </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Nom / Prénom */}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* Role selector */}
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Je suis…</p>
               <div className="grid grid-cols-2 gap-3">
+                {(["PROVIDER", "PATIENT"] as const).map((r, idx) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, roleType: r }))}
+                    className="spec-card rounded-xl py-3 px-4 border text-sm font-semibold transition-all text-left"
+                    style={{
+                      borderColor: form.roleType === r ? "#5B4EC4" : "rgba(26,26,46,0.1)",
+                      background: form.roleType === r ? "rgba(91,78,196,0.05)" : "#fff",
+                      color: form.roleType === r ? "#5B4EC4" : "#4A4A5A",
+                      boxShadow: form.roleType === r ? "0 0 0 2px rgba(91,78,196,0.15)" : "none",
+                    }}
+                  >
+                    <div style={{ fontSize: 18, marginBottom: 2 }}>{idx === 0 ? "🩺" : "👤"}</div>
+                    {r === "PROVIDER" ? "Soignant" : "Patient"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Name row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Prénom</Label>
+                <Input id="firstName" value={form.firstName} onChange={(e) => set("firstName", e.target.value)}
+                  className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Nom</Label>
+                <Input id="lastName" value={form.lastName} onChange={(e) => set("lastName", e.target.value)}
+                  className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Email</Label>
+              <Input id="email" type="email" autoComplete="email" value={form.email}
+                onChange={(e) => set("email", e.target.value)} placeholder="vous@exemple.com"
+                className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Mot de passe</Label>
+              <Input id="password" type="password" autoComplete="new-password" value={form.password}
+                onChange={(e) => set("password", e.target.value)} placeholder="8 caractères minimum"
+                className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
+            </div>
+
+            {/* Provider-only fields */}
+            {form.roleType === "PROVIDER" && (
+              <>
                 <div className="space-y-1.5">
-                  <Label htmlFor="firstName">Prénom</Label>
-                  <Input
-                    id="firstName"
-                    value={form.firstName}
-                    onChange={(e) => set("firstName", e.target.value)}
-                    required
-                  />
+                  <Label htmlFor="rpps" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>
+                    RPPS <span style={{ color: "#B0B0BA", fontWeight: 400 }}>(optionnel)</span>
+                  </Label>
+                  <Input id="rpps" value={form.rppsNumber} onChange={(e) => set("rppsNumber", e.target.value)}
+                    placeholder="11 chiffres" className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="lastName">Nom</Label>
-                  <Input
-                    id="lastName"
-                    value={form.lastName}
-                    onChange={(e) => set("lastName", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
-                  placeholder="vous@exemple.com"
-                  required
-                />
-              </div>
-
-              {/* Password */}
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={form.password}
-                  onChange={(e) => set("password", e.target.value)}
-                  placeholder="8 caractères minimum"
-                  required
-                />
-              </div>
-
-              {/* Rôle */}
-              <div className="space-y-1.5">
-                <Label>Rôle</Label>
-                <div className="flex gap-2">
-                  {(["PROVIDER", "PATIENT"] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setForm((f) => ({ ...f, roleType: r }))}
-                      className={`flex-1 py-1.5 text-sm rounded-md border transition-colors ${
-                        form.roleType === r
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "border-input text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {r === "PROVIDER" ? "Soignant" : "Patient"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* RPPS (soignant seulement) */}
-              {form.roleType === "PROVIDER" && (
-                <>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="rpps">Numéro RPPS <span className="text-muted-foreground">(optionnel)</span></Label>
-                    <Input
-                      id="rpps"
-                      value={form.rppsNumber}
-                      onChange={(e) => set("rppsNumber", e.target.value)}
-                      placeholder="11 chiffres"
-                    />
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Spécialité(s)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SPECIALTIES.map((s) => (
+                      <button key={s} type="button" onClick={() => toggleSpecialty(s)}
+                        className="spec-card text-xs px-3 py-1.5 rounded-full border font-medium"
+                        style={{
+                          borderColor: form.specialties.includes(s) ? "#5B4EC4" : "rgba(26,26,46,0.12)",
+                          background: form.specialties.includes(s) ? "rgba(91,78,196,0.08)" : "#fff",
+                          color: form.specialties.includes(s) ? "#5B4EC4" : "#4A4A5A",
+                        }}>
+                        {s}
+                      </button>
+                    ))}
                   </div>
+                </div>
+              </>
+            )}
 
-                  <div className="space-y-1.5">
-                    <Label>Spécialité(s)</Label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {SPECIALTIES.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => toggleSpecialty(s)}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                            form.specialties.includes(s)
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "border-input text-muted-foreground hover:bg-muted"
-                          }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+            <Button type="submit" className="signup-btn w-full h-11 rounded-xl text-sm font-semibold text-white border-0 mt-2"
+              style={{ background: "#5B4EC4", boxShadow: "0 2px 10px rgba(91,78,196,0.3)" }} disabled={loading}>
+              {loading ? "Création…" : "Créer mon espace"}
+            </Button>
+          </form>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Création…" : "Créer mon compte"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+          <p className="text-center text-sm mt-6" style={{ color: "#8A8A96" }}>
+            Déjà un compte ?{" "}
+            <Link href="/login" className="font-semibold hover:underline underline-offset-2" style={{ color: "#5B4EC4" }}>
+              Se connecter
+            </Link>
+          </p>
+          <p className="text-center text-xs mt-4" style={{ color: "#B0B0BA" }}>
+            En cas d&apos;urgence vitale : 15 / 112
+          </p>
+        </div>
+      </div>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Déjà un compte ?{" "}
-          <Link href="/login" className="text-foreground underline underline-offset-2">
-            Se connecter
-          </Link>
-        </p>
+      {/* ── Right panel — visual ── */}
+      <div className="hidden lg:flex flex-col items-center justify-center relative overflow-hidden"
+        style={{ width: 460, flexShrink: 0, background: "linear-gradient(160deg, #1A1A2E 0%, #1E1A3C 50%, #151F2E 100%)" }}>
+
+        <div className="signup-ring" style={{ width: 200, height: 200, border: "1px solid rgba(91,78,196,0.3)", animationDelay: "0s" }} />
+        <div className="signup-ring" style={{ width: 300, height: 300, border: "1px solid rgba(91,78,196,0.2)", animationDelay: "1s" }} />
+        <div className="signup-ring" style={{ width: 400, height: 400, border: "1px solid rgba(43,168,156,0.15)", animationDelay: "2s" }} />
+        <div className="signup-ring" style={{ width: 520, height: 520, border: "1px solid rgba(91,78,196,0.07)", animationDelay: "0.5s" }} />
+
+        <div className="relative z-10 px-10 text-center">
+          <blockquote className="text-lg font-bold leading-snug mb-8"
+            style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)" }}>
+            &quot;Quand votre patient voit 5 soignants,{" "}
+            <span style={{ background: "linear-gradient(90deg,#5B4EC4,#2BA89C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              chacun sait ce que les autres ont fait.
+            </span>&quot;
+          </blockquote>
+
+          <div className="space-y-3">
+            {[
+              { value: "865 000+", label: "soignants en annuaire", delay: "0.3s" },
+              { value: "22 308", label: "fiches de référence", delay: "0.5s" },
+              { value: "121", label: "parcours structurés", delay: "0.7s" },
+            ].map((s) => (
+              <div key={s.label} className="stat-badge flex items-center gap-3 rounded-xl px-4 py-3"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", animationDelay: s.delay }}>
+                <span className="font-extrabold text-base" style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)", minWidth: 72 }}>{s.value}</span>
+                <span className="text-xs" style={{ color: "rgba(238,236,234,0.4)" }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-xs mt-8" style={{ color: "rgba(238,236,234,0.2)" }}>
+            Nami · Coordination des parcours complexes
+          </p>
+        </div>
       </div>
     </div>
   );

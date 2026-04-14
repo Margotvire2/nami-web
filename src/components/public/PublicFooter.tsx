@@ -6,7 +6,7 @@ const FOOTER_COLS = [
   {
     title: "Produit",
     links: [
-      { l: "Fonctionnalités", h: "/landing-page#features" },
+      { l: "Fonctionnalités", h: "/#features" },
       { l: "Connexion", h: "/login" },
       { l: "Créer un compte", h: "/signup" },
     ],
@@ -43,7 +43,7 @@ export function PublicFooter() {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 44, marginBottom: 44 }}>
           {/* Brand column */}
           <div>
-            <Link href="/landing-page" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", marginBottom: 14 }}>
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", marginBottom: 14 }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#5B4EC4,#2BA89C)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <span style={{ color: "#fff", fontSize: 10, fontWeight: 900 }}>N</span>
               </div>

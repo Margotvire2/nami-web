@@ -83,54 +83,54 @@ export default function TrouverUnSoignantPage() {
   const isPatient = user?.roleType === "PATIENT";
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
       {/* Header */}
-      <header className="bg-card border-b">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft size={16} />
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground text-xs font-extrabold">N</span>
-              </div>
-              <span className="text-sm font-bold text-foreground">Nami</span>
+      <div style={{ background: "#FAFAF8", borderBottom: "1px solid rgba(26,26,46,0.06)" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px 40px" }}>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
+              style={{ background: "rgba(91,78,196,0.07)", color: "#5B4EC4", border: "1px solid rgba(91,78,196,0.15)", letterSpacing: "0.08em" }}>
+              ANNUAIRE
             </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4"
+              style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)", lineHeight: 1.08 }}>
+              Trouvez le bon soignant,<br className="hidden md:block" /> au bon moment.
+            </h1>
+            <p className="text-lg mb-8" style={{ color: "#4A4A5A" }}>
+              865 000+ professionnels de santé répertoriés.
+            </p>
           </div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight">
-            Trouver un soignant
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Recherchez un professionnel de santé spécialisé et envoyez une demande de suivi.
-          </p>
 
-          {/* Filters */}
-          <div className="flex gap-2 mt-4">
-            <div className="relative flex-1">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Nom, spécialité, ville…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 h-9 text-xs"
-              />
+          {/* Search bar premium */}
+          <div style={{ maxWidth: 640, margin: "0 auto" }}>
+            <div className="flex gap-3 flex-wrap">
+              <div className="relative flex-1" style={{ minWidth: 240 }}>
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "#8A8A96" }} />
+                <Input
+                  placeholder="Nom, spécialité, ville…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="border-0 rounded-full h-12 pl-11 pr-5 text-sm"
+                  style={{ background: "#fff", boxShadow: "0 1px 3px rgba(26,26,46,0.08)", color: "#1A1A2E" }}
+                />
+              </div>
+              <select
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                className="h-12 px-5 rounded-full border-0 text-sm font-medium"
+                style={{ background: "#fff", boxShadow: "0 1px 3px rgba(26,26,46,0.08)", color: "#4A4A5A", minWidth: 200 }}
+              >
+                {SPECIALTY_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
             </div>
-            <select
-              value={specialty}
-              onChange={(e) => setSpecialty(e.target.value)}
-              className="h-9 px-3 rounded-md border bg-card text-xs min-w-[180px]"
-            >
-              {SPECIALTY_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Results */}
-      <div className="max-w-4xl mx-auto px-6 py-6">
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" }}>
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
@@ -144,8 +144,8 @@ export default function TrouverUnSoignantPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-muted-foreground mb-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <p className="text-sm font-medium mb-5 sm:col-span-2 lg:col-span-3" style={{ color: "#8A8A96" }}>
               {filtered.length} soignant{filtered.length !== 1 ? "s" : ""} disponible{filtered.length !== 1 ? "s" : ""}
             </p>
             {filtered.map((provider) => (
@@ -196,7 +196,8 @@ function ProviderCard({
   const structure = provider.structures[0];
 
   return (
-    <div className="rounded-xl border bg-card p-4 hover:shadow-[0_2px_8px_rgba(79,70,229,0.08)] transition-shadow">
+    <div className="nami-pillar-card rounded-2xl border bg-white p-5 cursor-pointer"
+      style={{ borderColor: "rgba(26,26,46,0.07)", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-sm font-bold text-white shrink-0">
