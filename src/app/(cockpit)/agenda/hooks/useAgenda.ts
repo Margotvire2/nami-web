@@ -5,7 +5,7 @@ import { startOfWeek, endOfWeek, addWeeks } from "date-fns"
 import {
   appointmentsApi, locationsApi, absencesApi, careCasesApi,
   type ConsultationTypeDTO, type AvailabilitySlotDTO,
-  type ConsultationLocation, type AgendaAbsence,
+  type ConsultationLocation, type AgendaAbsence, type CareCase,
 } from "@/lib/api"
 import { useAuthStore } from "@/lib/store"
 import { useState, useEffect, useMemo } from "react"
@@ -254,6 +254,7 @@ export function useAgenda() {
     createAbsence: absenceMutation.mutateAsync,
     isCreatingAbsence: absenceMutation.isPending,
 
+    careCases: (careCasesQ.data ?? []) as CareCase[],
     providerId: user?.providerProfile?.id ?? "",
   }
 }

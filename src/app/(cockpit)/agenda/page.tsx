@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { parseISO, format, isSameDay, addDays } from "date-fns"
+import { parseISO, format, isSameDay, addDays, formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useAgenda, type AgendaAppointment, type AppointmentStatus } from "./hooks/useAgenda"
 import { AgendaSetup } from "./components/AgendaSetup"
 import { CreateAppointmentModal } from "./components/CreateAppointmentModal"
 import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { apiWithToken, type ConsultationLocation } from "@/lib/api"
+import { apiWithToken, type ConsultationLocation, type CareCase } from "@/lib/api"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 
@@ -30,6 +30,25 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; ico
   CANCELLED: { label: "Annulé", color: N.danger, bg: N.dangerBg, icon: "✕" },
   COMPLETED: { label: "Terminé", color: N.primary, bg: N.primaryLight, icon: "✓" },
   NO_SHOW: { label: "Absent", color: N.danger, bg: N.dangerBg, icon: "✕" },
+}
+
+/* ═══════════════════════════════════════════
+   PATHOLOGY COLORS
+   ═══════════════════════════════════════════ */
+const PATHOLOGY_CFG: Record<string, { color: string; label: string }> = {
+  TCA:           { color: "#5B4EC4", label: "TCA" },
+  OBESITY:       { color: "#2BA89C", label: "Obésité" },
+  METABOLIC:     { color: "#E6993E", label: "Métabolisme" },
+  MENTAL_HEALTH: { color: "#7B6FD4", label: "Santé mentale" },
+  PEDIATRIC:     { color: "#2563EB", label: "Pédiatrie" },
+  CHRONIC_PAIN:  { color: "#DC2626", label: "Douleur chr." },
+  OTHER:         { color: "#8A8A96", label: "Suivi" },
+}
+function getPathologyColor(caseType?: string | null): string {
+  return PATHOLOGY_CFG[caseType ?? ""]?.color ?? "#8A8A96"
+}
+function getPathologyLabel(caseType?: string | null): string {
+  return PATHOLOGY_CFG[caseType ?? ""]?.label ?? "Suivi"
 }
 
 const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -55,41 +74,297 @@ function FillBar({ ratio }: { ratio: number }) {
 }
 
 /* ═══════════════════════════════════════════
-   APPOINTMENT BLOCK
+   APPOINTMENT BLOCK — RICH
    ═══════════════════════════════════════════ */
-function ApptBlock({ appt, top, height, onClick, width, left, getColor }: {
-  appt: AgendaAppointment; top: number; height: number; onClick: (a: AgendaAppointment) => void; width?: string; left?: string; getColor: (a: AgendaAppointment) => string
+function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase, isNext }: {
+  appt: AgendaAppointment; top: number; height: number;
+  onClick: (a: AgendaAppointment) => void; width?: string; left?: string;
+  getColor: (a: AgendaAppointment) => string;
+  careCase?: CareCase | null;
+  isNext?: boolean;
 }) {
-  const color = getColor(appt)
-  const isShort = height < 38
-  const isPending = appt.status === "PENDING"
+  const [hovered, setHovered] = useState(false)
+  const bandColor = careCase ? getPathologyColor(careCase.caseType) : getColor(appt)
   const isCancelled = appt.status === "CANCELLED"
+  const isPending = appt.status === "PENDING"
+  const isVideo = appt.locationType === "VIDEO" || appt.locationType === "PHONE"
   const name = `${appt.patient.firstName} ${appt.patient.lastName}`
   const start = parseISO(appt.startAt)
+  const duration = getApptDuration(appt)
+  const isRich = height >= 72
+  const isMedium = height >= 40
+
+  const lastActivityLabel = careCase?.lastActivityAt
+    ? formatDistanceToNow(new Date(careCase.lastActivityAt), { locale: fr, addSuffix: true })
+    : null
 
   return (
-    <div onClick={() => onClick(appt)}
-      draggable={appt.status !== "CANCELLED"}
+    <div
+      draggable={!isCancelled}
       onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", appt.id) }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => !hovered || onClick(appt)}
       style={{
-        position: "absolute", top, left: left || "4px", width: width || "calc(100% - 8px)",
-        height: Math.max(height, 22), background: isCancelled ? "#f5f5f5" : color + "18",
-        borderLeft: `3px ${isPending ? "dashed" : "solid"} ${isCancelled ? "#ccc" : color}`,
-        borderRadius: "0 8px 8px 0", padding: isShort ? "2px 8px" : "6px 10px",
-        cursor: appt.status !== "CANCELLED" ? "grab" : "pointer", overflow: "hidden", transition: "box-shadow 0.15s", zIndex: 2,
-        opacity: isCancelled ? 0.5 : 1,
+        position: "absolute", top, left: left || "4px",
+        width: width || "calc(100% - 8px)",
+        height: Math.max(height, 24),
+        background: isCancelled ? "#f7f7f7" : "#FFFFFF",
+        borderLeft: `4px solid ${isCancelled ? "#ccc" : bandColor}`,
+        borderTop: `1px solid ${isCancelled ? "#e0e0e0" : bandColor + "30"}`,
+        borderRight: `1px solid ${isCancelled ? "#e0e0e0" : bandColor + "20"}`,
+        borderBottom: `1px solid ${isCancelled ? "#e0e0e0" : bandColor + "20"}`,
+        borderRadius: "0 10px 10px 0",
+        padding: isRich ? "7px 10px 6px" : isMedium ? "4px 8px" : "2px 8px",
+        cursor: "pointer", overflow: "hidden",
+        transition: "box-shadow 150ms, transform 120ms",
+        zIndex: hovered ? 10 : 2,
+        boxShadow: isNext
+          ? `0 0 0 2px ${bandColor}50, 0 4px 20px ${bandColor}25`
+          : hovered ? `0 4px 18px ${bandColor}35` : "0 1px 3px rgba(0,0,0,0.05)",
+        transform: hovered ? "translateX(1px) scale(1.01)" : "none",
+        opacity: isCancelled ? 0.45 : 1,
       }}
-      onMouseEnter={(e) => { if (!isCancelled) e.currentTarget.style.boxShadow = `0 2px 12px ${color}30` }}
-      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: isCancelled ? "#aaa" : color, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {isPending && <span style={{ fontSize: 10 }}>⏳</span>}
-        {name}
-      </div>
-      {!isShort && (
-        <div style={{ fontSize: 10, color: N.textSoft, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {appt.consultationType?.name ?? "Consultation"} · {format(start, "HH:mm")}
+    >
+      {/* Pathology badge + location icon */}
+      {isRich && careCase && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
+          <span style={{
+            fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 3,
+            background: `${bandColor}18`, color: bandColor, letterSpacing: "0.05em",
+            textTransform: "uppercase",
+          }}>
+            {getPathologyLabel(careCase.caseType)}
+          </span>
+          <span style={{ fontSize: 9, opacity: 0.6 }}>
+            {isVideo ? "📹" : "🏥"}
+          </span>
         </div>
       )}
+
+      {/* Patient name */}
+      <div style={{
+        fontSize: isRich ? 12 : 11, fontWeight: 700,
+        color: isCancelled ? "#aaa" : "#1A1A2E",
+        lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        display: "flex", alignItems: "center", gap: 4,
+      }}>
+        {isPending && <span style={{ fontSize: 9 }}>⏳</span>}
+        {isNext && <span style={{ width: 5, height: 5, borderRadius: "50%", background: bandColor, display: "inline-block", flexShrink: 0 }} />}
+        {name}
+      </div>
+
+      {/* Consultation type + time */}
+      {isMedium && (
+        <div style={{ fontSize: 10, color: N.textSoft, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {appt.consultationType?.name ?? "Consultation"} · {format(start, "HH:mm")}
+          {isRich && <span> · {duration}min</span>}
+        </div>
+      )}
+
+      {/* Last activity */}
+      {isRich && lastActivityLabel && (
+        <div style={{ fontSize: 9, color: "#AAAAAA", marginTop: 3 }}>
+          Dernière activité {lastActivityLabel}
+        </div>
+      )}
+
+      {/* Phase dots */}
+      {isRich && (
+        <div style={{ display: "flex", gap: 3, marginTop: 5 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} style={{
+              width: 4, height: 4, borderRadius: "50%",
+              background: i === 0 ? bandColor : i === 1 ? `${bandColor}55` : "#E8ECF4",
+            }} />
+          ))}
+        </div>
+      )}
+
+      {/* Hover action buttons */}
+      {hovered && isRich && !isCancelled && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: "absolute", bottom: 0, left: 0, right: 0,
+            background: `linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.97) 50%)`,
+            padding: "10px 6px 5px",
+            display: "flex", gap: 3,
+            animation: "apptBtnsIn 90ms ease both",
+          }}
+        >
+          <style>{`@keyframes apptBtnsIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }`}</style>
+          {appt.careCaseId && (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("nami-prep-mode", {
+                detail: { careCaseId: appt.careCaseId, patientName: name, time: format(start, "HH:mm") }
+              }))}
+              style={{ flex: 1, fontSize: 9, fontWeight: 700, padding: "4px 2px", borderRadius: 5,
+                border: "none", background: bandColor, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              🎯 Préparer
+            </button>
+          )}
+          <button
+            onClick={() => onClick(appt)}
+            style={{ flex: 1, fontSize: 9, fontWeight: 600, padding: "4px 2px", borderRadius: 5,
+              border: `1px solid ${bandColor}40`, background: "#fff", color: bandColor, cursor: "pointer", fontFamily: "inherit" }}
+          >
+            Dossier
+          </button>
+          <button
+            onClick={() => {
+              if (appt.careCaseId) window.dispatchEvent(new CustomEvent("nami-start-consultation", {
+                detail: { careCaseId: appt.careCaseId, patientName: name }
+              }))
+            }}
+            style={{ flex: 1, fontSize: 9, fontWeight: 700, padding: "4px 2px", borderRadius: 5,
+              border: "none", background: "#1A1A2E", color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
+          >
+            ▶ Démarrer
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════
+   SLOT CATCHER — click to create + "+" hover
+   ═══════════════════════════════════════════ */
+function SlotCatcher({ date, onSlotClick }: { date: Date; onSlotClick: (h: number, m: number) => void }) {
+  const plusRef = useRef<HTMLDivElement>(null)
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
+      {/* "+" indicator — positioned imperatively to avoid re-renders */}
+      <div ref={plusRef} style={{
+        position: "absolute", pointerEvents: "none",
+        width: 22, height: 22, borderRadius: "50%",
+        background: "rgba(91,78,196,0.1)", border: "1.5px dashed #5B4EC4",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 14, color: "#5B4EC4", fontWeight: 700,
+        opacity: 0, transform: "translate(-50%, -50%)",
+        transition: "opacity 80ms",
+        zIndex: 1,
+      }}>+</div>
+      {/* Click area */}
+      <div
+        style={{ position: "absolute", inset: 0, cursor: "cell" }}
+        onMouseMove={(e) => {
+          if (!plusRef.current) return
+          const rect = e.currentTarget.getBoundingClientRect()
+          plusRef.current.style.top = (e.clientY - rect.top) + "px"
+          plusRef.current.style.left = (e.clientX - rect.left) + "px"
+          plusRef.current.style.opacity = "0.85"
+        }}
+        onMouseLeave={() => { if (plusRef.current) plusRef.current.style.opacity = "0" }}
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect()
+          const rawH = MIN_H + (e.clientY - rect.top) / HOUR_H
+          const h = Math.floor(rawH)
+          const m = Math.round((rawH - h) * 4) * 15
+          onSlotClick(h, m)
+        }}
+      />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════
+   NOW LINE — real-time, pulsing
+   ═══════════════════════════════════════════ */
+function NowLine() {
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(id)
+  }, [])
+  const h = now.getHours() + now.getMinutes() / 60
+  if (h < MIN_H || h > MAX_H) return null
+  const top = (h - MIN_H) * HOUR_H
+  return (
+    <div style={{ position: "absolute", top, left: 0, right: 0, zIndex: 5, pointerEvents: "none" }}>
+      <style>{`
+        @keyframes nowGlow { 0%,100%{box-shadow:0 0 0 3px rgba(217,79,79,0.2)} 50%{box-shadow:0 0 0 7px rgba(217,79,79,0.08)} }
+        @keyframes nowLabel { from{opacity:0;transform:translateY(-3px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+      {/* Floating time label */}
+      <div style={{
+        position: "absolute", right: 4, top: -16,
+        fontSize: 9, fontWeight: 700, color: "#D94F4F",
+        background: "rgba(255,255,255,0.9)",
+        padding: "1px 5px", borderRadius: 4,
+        animation: "nowLabel 300ms ease both",
+        border: "1px solid rgba(217,79,79,0.2)",
+      }}>
+        {format(now, "HH:mm")}
+      </div>
+      {/* Dot */}
+      <div style={{
+        width: 10, height: 10, borderRadius: "50%",
+        background: "#D94F4F", position: "absolute", left: -5, top: -4,
+        animation: "nowGlow 2s ease infinite",
+      }} />
+      {/* Line */}
+      <div style={{
+        height: 2,
+        background: "linear-gradient(90deg, #D94F4F 0%, rgba(217,79,79,0.4) 60%, transparent 100%)",
+        borderRadius: 1,
+      }} />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════
+   DAY SUMMARY BAR
+   ═══════════════════════════════════════════ */
+function DaySummaryBar({ appointments }: { appointments: AgendaAppointment[] }) {
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const todayAppts = appointments.filter(a =>
+    isSameDay(parseISO(a.startAt), now) && a.status !== "CANCELLED"
+  )
+  if (todayAppts.length === 0) return null
+
+  const videoCount = todayAppts.filter(a => a.locationType === "VIDEO" || a.locationType === "PHONE").length
+  const inPersonCount = todayAppts.length - videoCount
+  const nextAppt = [...todayAppts]
+    .filter(a => parseISO(a.startAt) > now)
+    .sort((a, b) => parseISO(a.startAt).getTime() - parseISO(b.startAt).getTime())[0]
+  const nextInLabel = nextAppt
+    ? formatDistanceToNow(parseISO(nextAppt.startAt), { locale: fr, addSuffix: false })
+    : null
+  const bookedMin = todayAppts.reduce((s, a) => s + getApptDuration(a), 0)
+  const freeH = Math.max(0, Math.round((480 - bookedMin) / 60 * 2) / 2)
+
+  return (
+    <div style={{
+      background: "#F0EDF9", borderBottom: `1px solid ${N.border}`,
+      padding: "7px 24px", display: "flex", alignItems: "center", gap: 14,
+      fontSize: 12, flexShrink: 0, flexWrap: "wrap",
+    }}>
+      <span style={{ fontWeight: 700, color: N.primary }}>
+        {todayAppts.length} patient{todayAppts.length > 1 ? "s" : ""}
+      </span>
+      <span style={{ color: N.textSoft }}>·</span>
+      <span style={{ color: "#4A4A5A" }}>
+        {inPersonCount} consult{inPersonCount > 1 ? "s" : ""}
+        {videoCount > 0 ? ` + ${videoCount} téléconsult` : ""}
+      </span>
+      {nextInLabel && (
+        <>
+          <span style={{ color: N.textSoft }}>·</span>
+          <span style={{ color: "#4A4A5A" }}>
+            Prochain dans <strong style={{ color: N.primary }}>{nextInLabel}</strong>
+          </span>
+        </>
+      )}
+      <span style={{ color: N.textSoft }}>·</span>
+      <span style={{ color: N.textSoft }}>{freeH}h libres</span>
     </div>
   )
 }
@@ -240,6 +515,7 @@ const actionBtn: React.CSSProperties = { flex: 1, padding: 10, borderRadius: 8, 
    ═══════════════════════════════════════════ */
 export default function AgendaPage() {
   const agenda = useAgenda()
+  const { careCases } = agenda
   const [selectedAppt, setSelectedAppt] = useState<AgendaAppointment | null>(null)
   const [createCtx, setCreateCtx] = useState<{
     date: Date; hour: number; minute: number; location: ConsultationLocation | null
@@ -352,6 +628,16 @@ export default function AgendaPage() {
 
   const weekLabel = format(agenda.from, "MMMM yyyy", { locale: fr })
 
+  // ── Care case map: careCaseId → CareCase ──────────────────────
+  const caseMap = new Map<string, CareCase>()
+  for (const cc of careCases) caseMap.set(cc.id, cc)
+
+  // ── Next appointment today ─────────────────────────────────────
+  const nowTs = Date.now()
+  const nextApptId = agenda.appointments
+    .filter(a => isSameDay(parseISO(a.startAt), today) && a.status !== "CANCELLED" && parseISO(a.startAt).getTime() > nowTs)
+    .sort((a, b) => parseISO(a.startAt).getTime() - parseISO(b.startAt).getTime())[0]?.id ?? null
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: N.bg, fontFamily: "'Plus Jakarta Sans', 'DM Sans', -apple-system, sans-serif" }}>
       {/* TOOLBAR */}
@@ -371,6 +657,9 @@ export default function AgendaPage() {
           </Link>
         </div>
       </div>
+
+      {/* DAY SUMMARY */}
+      <DaySummaryBar appointments={agenda.appointments} />
 
       {/* GRID */}
       <div style={{ flex: 1, display: "flex", overflowX: "auto", overflowY: "auto" }}>
@@ -425,21 +714,14 @@ export default function AgendaPage() {
                 })}
 
                 {/* Click catcher — z:1 above lines, below appts (z:2) */}
-                <div
-                  style={{ position: "absolute", inset: 0, zIndex: 1, cursor: "pointer" }}
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect()
-                    const rawH = MIN_H + (e.clientY - rect.top) / HOUR_H
-                    const h = Math.floor(rawH)
-                    const m = Math.round((rawH - h) * 4) * 15
-                    const dayName = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][date.getDay()]
-                    const loc = agenda.locations.find(l => {
-                      const sched = l.schedule ?? {}
-                      return Array.isArray(sched[dayName]) && (sched[dayName] as Array<unknown>).length > 0
-                    }) ?? agenda.locations[0] ?? null
-                    setCreateCtx({ date, hour: h, minute: m, location: loc })
-                  }}
-                />
+                <SlotCatcher date={date} onSlotClick={(h, m) => {
+                  const dayName = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"][date.getDay()]
+                  const loc = agenda.locations.find(l => {
+                    const sched = l.schedule ?? {}
+                    return Array.isArray(sched[dayName]) && (sched[dayName] as Array<unknown>).length > 0
+                  }) ?? agenda.locations[0] ?? null
+                  setCreateCtx({ date, hour: h, minute: m, location: loc })
+                }} />
 
                 {/* Appointments */}
                 {appts.map((appt) => {
@@ -458,20 +740,11 @@ export default function AgendaPage() {
                     }
                   }
 
-                  return <ApptBlock key={appt.id} appt={appt} top={top} height={height} width={w} left={l} onClick={setSelectedAppt} getColor={agenda.getColor} />
+                  return <ApptBlock key={appt.id} appt={appt} top={top} height={height} width={w} left={l} onClick={setSelectedAppt} getColor={agenda.getColor} careCase={appt.careCaseId ? (caseMap.get(appt.careCaseId) ?? null) : null} isNext={appt.id === nextApptId} />
                 })}
 
-                {/* Now indicator */}
-                {isToday && (() => {
-                  const now = today.getHours() + today.getMinutes() / 60
-                  if (now < MIN_H || now > MAX_H) return null
-                  return (
-                    <div style={{ position: "absolute", top: (now - MIN_H) * HOUR_H, left: 0, right: 0, zIndex: 5 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: N.danger, position: "absolute", left: -4, top: -3 }} />
-                      <div style={{ height: 2, background: N.danger, borderRadius: 1 }} />
-                    </div>
-                  )
-                })()}
+                {/* Now line */}
+                {isToday && <NowLine />}
               </div>
             </div>
           )
