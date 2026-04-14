@@ -28,12 +28,18 @@ const ROUTE_LABELS: Record<string, string> = {
   upgrade: "Upgrade",
 }
 
+// IDs internes (>15 chars alphanumériques) → masqués pour UX + confidentialité
+function isInternalId(segment: string): boolean {
+  return segment.length > 15 && /^[a-z0-9]+$/i.test(segment)
+}
+
 function buildCrumbs(pathname: string) {
   const parts = pathname.split("/").filter(Boolean)
   const crumbs: { label: string; href: string }[] = []
 
   for (let i = 0; i < parts.length; i++) {
     const segment = parts[i]
+    if (isInternalId(segment)) continue  // ne pas afficher l'ID brut
     const href = "/" + parts.slice(0, i + 1).join("/")
     const label = ROUTE_LABELS[segment] ?? segment
     crumbs.push({ label, href })

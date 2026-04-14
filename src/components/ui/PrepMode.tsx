@@ -231,47 +231,99 @@ export function PrepMode() {
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px 20px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-              {/* Section 1 — Depuis la dernière consultation */}
+              {/* Section 1 — Résumé IA (clinicalSummary) ou activité récente */}
               <div style={{ animation: "prepSection 300ms 80ms both" }}>
                 <div style={{
                   background: "#FAFAF8", border: "1px solid #E8ECF4",
                   borderRadius: 14, padding: "14px 16px",
                 }}>
                   <div style={{
-                    fontSize: 10, fontWeight: 700, color: "#8A8A96",
-                    letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10,
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    marginBottom: 10,
                   }}>
-                    {lastConsultDate
-                      ? `DEPUIS VOTRE DERNIER RDV (${format(lastConsultDate, "d MMM", { locale: fr })} — il y a ${daysSince}j)`
-                      : "ACTIVITÉ RÉCENTE"}
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#8A8A96", letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                      Résumé
+                    </div>
+                    {careCase?.clinicalSummary ? (
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
+                        background: "#E8F5EC", color: "#059669",
+                        letterSpacing: "0.04em",
+                      }}>
+                        Résumé IA — à vérifier
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
+                        background: "#F0EDF9", color: "#5B4EC4",
+                        letterSpacing: "0.04em",
+                      }}>
+                        Activité récente
+                      </span>
+                    )}
                   </div>
 
-                  {eventsSince.length === 0 ? (
-                    <p style={{ fontSize: 12, color: "#8A8A96", fontStyle: "italic" }}>Aucune activité enregistrée depuis le dernier RDV.</p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      {eventsSince.map((a) => (
-                        <div key={a.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12 }}>
-                          <span style={{ fontSize: 14, flexShrink: 0, lineHeight: 1.2 }}>
-                            {activityIcon[a.activityType?.toUpperCase()] ?? "·"}
-                          </span>
-                          <div>
-                            <span style={{ color: "#1A1A2E", fontWeight: 500 }}>{a.title}</span>
-                            {a.summary && (
-                              <span style={{ color: "#8A8A96", marginLeft: 6 }}>— {a.summary.slice(0, 80)}{a.summary.length > 80 ? "…" : ""}</span>
-                            )}
+                  {careCase?.clinicalSummary ? (
+                    /* Résumé IA disponible → l'afficher en priorité */
+                    <div>
+                      <p style={{
+                        fontSize: 13, color: "#1A1A2E", lineHeight: 1.6,
+                        margin: 0, fontStyle: "italic",
+                      }}>
+                        &ldquo;{careCase.clinicalSummary.slice(0, 320)}{careCase.clinicalSummary.length > 320 ? "…" : ""}&rdquo;
+                      </p>
+                      {/* Activité récente condensée sous le résumé */}
+                      {eventsSince.length > 0 && (
+                        <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #E8ECF4" }}>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: "#8A8A96", marginBottom: 6 }}>
+                            {lastConsultDate
+                              ? `Depuis le ${format(lastConsultDate, "d MMM", { locale: fr })} (${daysSince}j)`
+                              : "Récemment"}
                           </div>
-                          <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 10, color: "#8A8A96" }}>
-                            {format(parseISO(a.occurredAt), "d MMM", { locale: fr })}
-                          </span>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            {eventsSince.slice(0, 3).map((a) => (
+                              <div key={a.id} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 11 }}>
+                                <span style={{ fontSize: 12, flexShrink: 0 }}>{activityIcon[a.activityType?.toUpperCase()] ?? "·"}</span>
+                                <span style={{ color: "#4A4A5A" }}>{a.title}</span>
+                                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 9, color: "#8A8A96" }}>
+                                  {format(parseISO(a.occurredAt), "d MMM", { locale: fr })}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      )}
+                    </div>
+                  ) : (
+                    /* Pas de résumé IA → activité récente comme fallback */
+                    <div>
+                      {eventsSince.length === 0 ? (
+                        <p style={{ fontSize: 12, color: "#8A8A96", fontStyle: "italic" }}>Aucune activité enregistrée depuis le dernier RDV.</p>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {eventsSince.map((a) => (
+                            <div key={a.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12 }}>
+                              <span style={{ fontSize: 14, flexShrink: 0, lineHeight: 1.2 }}>
+                                {activityIcon[a.activityType?.toUpperCase()] ?? "·"}
+                              </span>
+                              <div>
+                                <span style={{ color: "#1A1A2E", fontWeight: 500 }}>{a.title}</span>
+                                {a.summary && (
+                                  <span style={{ color: "#8A8A96", marginLeft: 6 }}>— {a.summary.slice(0, 80)}{a.summary.length > 80 ? "…" : ""}</span>
+                                )}
+                              </div>
+                              <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 10, color: "#8A8A96" }}>
+                                {format(parseISO(a.occurredAt), "d MMM", { locale: fr })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF4", fontSize: 10, color: "#8A8A96" }}>
+                        {eventsSince.length} événement{eventsSince.length !== 1 ? "s" : ""} · {daysSince !== null ? `${daysSince} jours depuis votre dernière consultation` : "Nouveau dossier"}
+                      </div>
                     </div>
                   )}
-
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF4", fontSize: 10, color: "#8A8A96" }}>
-                    {eventsSince.length} événement{eventsSince.length !== 1 ? "s" : ""} · {daysSince !== null ? `${daysSince} jours depuis votre dernière consultation` : "Nouveau dossier"}
-                  </div>
                 </div>
               </div>
 
