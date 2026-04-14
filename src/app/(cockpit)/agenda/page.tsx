@@ -197,12 +197,26 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
           </div>
         )}
 
-        {/* Fiche patient */}
+        {/* Fiche patient + Préparer */}
         {appt.careCaseId && (
-          <Link href={`/patients/${appt.careCaseId}`}
-            style={{ display: "block", padding: "10px 14px", borderRadius: 8, border: `1.5px solid ${N.border}`, fontSize: 13, fontWeight: 500, color: N.primary, textAlign: "center", textDecoration: "none" }}>
-            Voir la fiche patient →
-          </Link>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("nami-prep-mode", {
+                detail: {
+                  careCaseId: appt.careCaseId,
+                  patientName: `${appt.patient.firstName} ${appt.patient.lastName}`,
+                  time: format(parseISO(appt.startAt), "HH:mm"),
+                }
+              }))}
+              style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+            >
+              🎯 Préparer
+            </button>
+            <Link href={`/patients/${appt.careCaseId}`}
+              style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: `1.5px solid ${N.border}`, fontSize: 13, fontWeight: 500, color: N.primary, textAlign: "center", textDecoration: "none", display: "block" }}>
+              Fiche →
+            </Link>
+          </div>
         )}
       </div>
     </div>

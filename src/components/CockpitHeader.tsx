@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { useCockpitHeader } from "@/contexts/CockpitHeaderContext"
 import { cn } from "@/lib/utils"
+import { ActivityFeedBell } from "@/components/ui/ActivityFeed"
 
 // ─── Breadcrumb labels ────────────────────────────────────────────────────────
 
@@ -76,6 +77,9 @@ export function CockpitHeader() {
           )
         })}
       </nav>
+
+      {/* Activity bell */}
+      <ActivityFeedBell />
 
       {/* ⌘K hint */}
       <button

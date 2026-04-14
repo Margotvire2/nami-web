@@ -288,6 +288,16 @@ export default function DashboardPage() {
                                   Maintenant
                                 </motion.span>
                               )}
+                              {c.careCaseId && (
+                                <button
+                                  onClick={() => window.dispatchEvent(new CustomEvent("nami-prep-mode", {
+                                    detail: { careCaseId: c.careCaseId, patientName: c.patient, time: c.time }
+                                  }))}
+                                  className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#5B4EC4] text-[11px] font-semibold flex items-center gap-1 hover:bg-[#EDE9FC] transition-colors"
+                                >
+                                  <ClipboardList size={10} /> Préparer
+                                </button>
+                              )}
                               {imminent && c.careCaseId && (
                                 <button
                                   onClick={() => handleStartConsultation(c)}

@@ -60,7 +60,7 @@ function buildEvents(activities: Activity[], members: CareCaseMember[]): Lifelin
   // Build member specialty map
   const memberMap = new Map<string, { specialty: string; color: string }>()
   members.forEach((m) => {
-    const specialty = m.provider.specialties[0] ?? ""
+    const specialty = m.provider?.specialties?.[0] ?? ""
     memberMap.set(m.person.id, { specialty, color: getColor(specialty) })
   })
 
