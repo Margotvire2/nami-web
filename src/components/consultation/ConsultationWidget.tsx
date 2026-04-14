@@ -114,74 +114,86 @@ function FocusMode({ seconds, onPause, onStop, isPaused, onResume }: {
 }) {
   return (
     <div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-8"
-      style={{ background: "rgba(15, 15, 20, 0.96)", backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
+      style={{ background: "rgba(10, 10, 18, 0.97)", backdropFilter: "blur(8px)" }}
     >
-      {/* Subtle hint */}
-      <p className="text-[11px] text-white/30 uppercase tracking-widest font-semibold">
-        Enregistrement en cours
-      </p>
-
-      {/* Giant timer */}
-      <div className="flex flex-col items-center gap-3">
-        <div
-          className="text-white font-mono font-bold tabular-nums select-none"
-          style={{ fontSize: "clamp(4rem, 12vw, 7rem)", letterSpacing: "-0.04em", lineHeight: 1 }}
-        >
-          {formatTime(seconds)}
-        </div>
-
-        {/* Waveform */}
-        {!isPaused && (
-          <div className="flex items-center gap-[3px] h-5">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-[3px] rounded-full animate-pulse"
-                style={{
-                  background: "#2BA84A",
-                  height: `${35 + Math.random() * 65}%`,
-                  animationDelay: `${i * 70}ms`,
-                  animationDuration: `${350 + Math.random() * 300}ms`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-        {isPaused && (
-          <div className="text-amber-400 text-xs font-semibold tracking-wider uppercase">En pause</div>
+      {/* Status pill */}
+      <div className="flex items-center gap-2 mb-12">
+        {isPaused ? (
+          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-widest">En pause</span>
+        ) : (
+          <span className="flex items-center gap-2 text-[11px] font-semibold text-white/40 uppercase tracking-widest">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2BA84A] animate-pulse" />
+            Enregistrement en cours
+          </span>
         )}
       </div>
 
+      {/* 3 concentric rings + mic button */}
+      <div className="relative flex items-center justify-center mb-12" style={{ width: 180, height: 180 }}>
+        {/* Ring waves — only when recording (not paused) */}
+        {!isPaused && (
+          <>
+            <span className="nami-ring-wave absolute inset-0" style={{ color: "#2BA84A" }} />
+            <span className="nami-ring-wave absolute inset-0" style={{ color: "#2BA84A" }} />
+            <span className="nami-ring-wave absolute inset-0" style={{ color: "#2BA84A" }} />
+          </>
+        )}
+
+        {/* Mic circle */}
+        <div
+          className="relative z-10 flex items-center justify-center rounded-full"
+          style={{
+            width: 96,
+            height: 96,
+            background: isPaused
+              ? "rgba(255,255,255,0.08)"
+              : "linear-gradient(135deg, #2BA84A 0%, #22963F 100%)",
+            boxShadow: isPaused ? "none" : "0 0 48px rgba(43,168,74,0.40)",
+            transition: "background 400ms ease, box-shadow 400ms ease",
+          }}
+        >
+          <Mic size={36} className="text-white" strokeWidth={1.5} />
+        </div>
+      </div>
+
+      {/* Giant timer */}
+      <div
+        className="text-white font-mono font-bold tabular-nums select-none mb-10"
+        style={{ fontSize: "clamp(3.5rem, 10vw, 6rem)", letterSpacing: "-0.04em", lineHeight: 1 }}
+      >
+        {formatTime(seconds)}
+      </div>
+
       {/* Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {isPaused ? (
           <button
             onClick={onResume}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all"
           >
             <Play size={16} /> Reprendre
           </button>
         ) : (
           <button
             onClick={onPause}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/8 hover:bg-white/15 text-white/80 text-sm font-medium transition-all border border-white/10"
           >
-            <Pause size={16} /> Pause
+            <Pause size={15} /> Pause
           </button>
         )}
 
         <button
           onClick={onStop}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold transition-all"
+          className="flex items-center gap-2 px-7 py-3 rounded-2xl text-white text-sm font-semibold transition-all hover:brightness-110 active:scale-95"
           style={{ background: "linear-gradient(135deg, #2BA84A 0%, #22963F 100%)" }}
         >
-          <Square size={15} fill="white" /> Terminer
+          <Square size={14} fill="white" /> Terminer
         </button>
       </div>
 
-      <p className="text-[10px] text-white/20 text-center">
-        Appuyez sur Terminer pour générer le compte-rendu structuré
+      <p className="mt-6 text-[10px] text-white/20 text-center">
+        Terminer pour générer le compte-rendu structuré · ESC pour mettre en pause
       </p>
     </div>
   );
