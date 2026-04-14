@@ -539,6 +539,39 @@ export const PATHOLOGIES: PathologyMeta[] = [
     category: "psy",
     emoji: "🌡️",
   },
+  // ── Nouvelles fiches pédiatriques (créées 14 avril 2026) ──────────────────────
+  {
+    slug: "tdah-enfant",
+    title: "TDAH de l'enfant — Diagnostic, traitement et nutrition",
+    shortTitle: "TDAH de l'enfant",
+    description: "TDAH chez l'enfant et l'adolescent : critères DSM-5, méthylphénidate, impact nutritionnel et croissance, aménagements scolaires, parcours pluridisciplinaire.",
+    keywords: ["TDAH enfant", "hyperactivité enfant", "méthylphénidate", "Ritaline", "croissance sous traitement", "PAP", "PPS", "dyslexie TDAH"],
+    category: "pediatrie",
+    cim11: "6A05",
+    emoji: "⚡",
+  },
+  {
+    slug: "retard-staturo-ponderal",
+    title: "Retard staturo-pondéral — Évaluation et prise en charge nutritionnelle",
+    shortTitle: "Retard staturo-pondéral",
+    description: "RSP chez l'enfant : courbes de croissance OMS, Z-scores, bilan étiologique, nutrition de rattrapage, compléments nutritionnels, nutrition entérale nocturne.",
+    keywords: ["retard de croissance", "retard staturo-pondéral", "Z-score", "courbes OMS", "nutrition entérale enfant", "dénutrition pédiatrique", "CNO pédiatrique"],
+    category: "pediatrie",
+    cim11: "KA02",
+    cim11Aliases: ["5B70", "5B53"],
+    emoji: "📏",
+  },
+  {
+    slug: "diabulimie",
+    title: "Diabulimie — TCA et diabète de type 1 : restriction insulinique",
+    shortTitle: "Diabulimie",
+    description: "Diabulimie : restriction volontaire d'insuline pour contrôler le poids chez le DT1, complications métaboliques précoces (rétinopathie, néphropathie), prise en charge conjointe TCA+diabétologie.",
+    keywords: ["diabulimie", "diabète type 1 TCA", "restriction insuline", "HbA1c élevée", "acidocétose", "DEPS-R", "TCA diabète"],
+    category: "pediatrie",
+    cim11: "6B82.1",
+    cim11Aliases: ["5A10"],
+    emoji: "🩺",
+  },
 ]
 
 export function getPathologyBySlug(slug: string): PathologyMeta | undefined {
