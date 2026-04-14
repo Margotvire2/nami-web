@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/cockpit-tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -77,34 +78,34 @@
 
 :root {
   /* ── Surfaces ── */
-  --background: #F0F2FA;
+  --background: #FAFAF8;
   --foreground: #0F172A;
   --card: #FFFFFF;
   --card-foreground: #0F172A;
   --popover: #FFFFFF;
   --popover-foreground: #0F172A;
 
-  /* ── Primary — indigo doux ── */
-  --primary: #4F46E5;
+  /* ── Primary — violet Nami ── */
+  --primary: #5B4EC4;
   --primary-foreground: #FFFFFF;
 
   /* ── Secondaries ── */
-  --secondary: #EEF2FF;
-  --secondary-foreground: #4F46E5;
+  --secondary: #EEEDFB;
+  --secondary-foreground: #5B4EC4;
   --muted: #F1F5F9;
   --muted-foreground: #94A3B8;
-  --accent: #EEF2FF;
-  --accent-foreground: #4F46E5;
+  --accent: #EEEDFB;
+  --accent-foreground: #5B4EC4;
   --destructive: #DC2626;
 
   /* ── Borders & inputs ── */
   --border: #E8ECF4;
   --input: #E8ECF4;
-  --ring: #4F46E5;
+  --ring: #5B4EC4;
   --radius: 12px;
 
   /* ── Charts ── */
-  --chart-1: #4F46E5;
+  --chart-1: #5B4EC4;
   --chart-2: #059669;
   --chart-3: #D97706;
   --chart-4: #7C3AED;
@@ -113,12 +114,12 @@
   /* ── Sidebar ── */
   --sidebar: #FFFFFF;
   --sidebar-foreground: #64748B;
-  --sidebar-primary: #4F46E5;
+  --sidebar-primary: #5B4EC4;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EEF2FF;
-  --sidebar-accent-foreground: #4F46E5;
+  --sidebar-accent: #EEEDFB;
+  --sidebar-accent-foreground: #5B4EC4;
   --sidebar-border: #E8ECF4;
-  --sidebar-ring: #4F46E5;
+  --sidebar-ring: #5B4EC4;
 
   /* ── Severity — désaturé, jamais criard ── */
   --severity-critical: #DC2626;
@@ -200,7 +201,7 @@
 
   /* Focus visible */
   :focus-visible {
-    outline: 2px solid #4F46E5;
+    outline: 2px solid #5B4EC4;
     outline-offset: 2px;
     border-radius: inherit;
   }
@@ -226,9 +227,9 @@
     transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
   }
   .nami-card-interactive:hover {
-    box-shadow: 0 4px 16px rgba(79,70,229,0.10);
+    box-shadow: 0 4px 16px rgba(91,78,196,0.10);
     transform: translateY(-1px);
-    border-color: #D0D5DD;
+    border-color: rgba(91,78,196,0.2);
   }
 
   /* Typography */

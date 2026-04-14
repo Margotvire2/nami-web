@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
@@ -63,7 +64,7 @@ export function Sidebar() {
     <aside className="w-[220px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 h-[56px] flex items-center gap-2.5 shrink-0">
-        <div className="w-8 h-8 rounded-[10px] bg-[#4F46E5] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-[10px] flex items-center justify-center" style={{ background: "linear-gradient(135deg, #5B4EC4, #2BA89C)" }}>
           <span className="text-white text-xs font-extrabold">N</span>
         </div>
         <span className="text-[15px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
@@ -81,11 +82,11 @@ export function Sidebar() {
       {/* Legal footer */}
       <div className="px-4 py-2 shrink-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/cgu" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#4F46E5] transition-colors">CGU</Link>
+          <Link href="/cgu" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#5B4EC4] transition-colors">CGU</Link>
           <span className="text-[#E2E8F0] text-[10px]">·</span>
-          <Link href="/confidentialite" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#4F46E5] transition-colors">Confidentialité</Link>
+          <Link href="/confidentialite" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#5B4EC4] transition-colors">Confidentialité</Link>
           <span className="text-[#E2E8F0] text-[10px]">·</span>
-          <Link href="/mentions-legales" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#4F46E5] transition-colors">Mentions légales</Link>
+          <Link href="/mentions-legales" target="_blank" className="text-[10px] text-[#94A3B8] hover:text-[#5B4EC4] transition-colors">Mentions légales</Link>
         </div>
       </div>
 
@@ -93,10 +94,13 @@ export function Sidebar() {
       <div className="px-3 py-3 shrink-0 border-t border-[#F1F5F9]">
         <button
           onClick={() => router.push("/reglages")}
-          className="flex items-center gap-2.5 w-full px-2 py-2 rounded-[10px] hover:bg-[#F0F2FA] transition-all duration-150 group text-left"
+          className="flex items-center gap-2.5 w-full px-2 py-2 rounded-[10px] transition-all duration-150 group text-left"
+          style={{ }}
+          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = "rgba(91,78,196,0.05)"}
+          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = "transparent"}
           title="Réglages du profil"
         >
-          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
+          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)" }}>
             {user?.firstName?.[0]}{user?.lastName?.[0]}
           </div>
           <div className="flex-1 min-w-0">
@@ -110,30 +114,46 @@ export function Sidebar() {
   );
 }
 
+function NavItem({ href, label, icon: Icon, active }: { href: string; label: string; icon: React.ElementType; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      title={label}
+      className="flex items-center gap-2.5 h-9 rounded-[10px] text-[13px] transition-all duration-150"
+      style={{
+        fontFamily: "var(--font-jakarta)",
+        paddingLeft: active ? "9px" : "12px",
+        paddingRight: "12px",
+        fontWeight: active ? 600 : 400,
+        color: active ? "#5B4EC4" : "#64748B",
+        background: active ? "rgba(91,78,196,0.08)" : "transparent",
+        borderLeft: active ? "3px solid #5B4EC4" : "3px solid transparent",
+      }}
+      onMouseEnter={e => {
+        if (!active) {
+          (e.currentTarget as HTMLAnchorElement).style.background = "rgba(91,78,196,0.06)";
+          (e.currentTarget as HTMLAnchorElement).style.color = "#5B4EC4";
+        }
+      }}
+      onMouseLeave={e => {
+        if (!active) {
+          (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+          (e.currentTarget as HTMLAnchorElement).style.color = "#64748B";
+        }
+      }}
+    >
+      <Icon size={16} strokeWidth={1.75} className="shrink-0" />
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+}
+
 function NavGroup({ items, isActive }: { items: typeof NAV_ACTIVITY; isActive: (href: string) => boolean }) {
   return (
     <div className="space-y-0.5">
-      {items.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={item.label}
-            className={cn(
-              "flex items-center gap-2.5 px-3 h-9 rounded-[10px] text-[13px] transition-all duration-150",
-              active
-                ? "bg-[#EEF2FF] text-[#4F46E5] font-semibold border-l-[3px] border-[#4F46E5] pl-[9px]"
-                : "text-[#64748B] hover:bg-[#EEF2FF] hover:text-[#4F46E5]"
-            )}
-            style={{ fontFamily: "var(--font-jakarta)" }}
-          >
-            <Icon size={16} strokeWidth={1.75} className="shrink-0" />
-            <span className="truncate">{item.label}</span>
-          </Link>
-        );
-      })}
+      {items.map((item) => (
+        <NavItem key={item.href} href={item.href} label={item.label} icon={item.icon} active={isActive(item.href)} />
+      ))}
     </div>
   );
 }

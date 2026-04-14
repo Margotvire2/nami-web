@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAMI COCKPIT DESIGN TOKENS
+   Outil de travail soignant : densité contrôlée, hiérarchie claire,
+   accent ponctuel. Pas d'animations marketing, pas de fond sombre dominant.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Layout ── */
+  --cockpit-sidebar-width: 220px;
+  --cockpit-sidebar-collapsed: 64px;
+  --cockpit-header-height: 56px;
+  --cockpit-content-padding: 24px;
+
+  /* ── Backgrounds ── */
+  --cockpit-bg: #FAFAF8;
+  --cockpit-sidebar-bg: #FFFFFF;
+  --cockpit-header-bg: rgba(250, 250, 248, 0.92);
+  --cockpit-card-bg: #FFFFFF;
+  --cockpit-card-hover-bg: #F9F8F6;
+  --cockpit-input-bg: #F5F3EF;
+  --cockpit-section-alt: #F5F3EF;
+
+  /* ── Borders ── */
+  --cockpit-border: rgba(26, 26, 46, 0.06);
+  --cockpit-border-strong: rgba(26, 26, 46, 0.12);
+  --cockpit-border-active: rgba(91, 78, 196, 0.3);
+
+  /* ── Text ── */
+  --cockpit-text-primary: #1A1A2E;
+  --cockpit-text-secondary: #4A4A5A;
+  --cockpit-text-muted: #8A8A96;
+  --cockpit-text-placeholder: #B0B0BA;
+
+  /* ── Accent principal : violet Nami ── */
+  --cockpit-accent: #5B4EC4;
+  --cockpit-accent-dark: #4A3EA6;
+  --cockpit-accent-light: rgba(91, 78, 196, 0.08);
+  --cockpit-accent-medium: rgba(91, 78, 196, 0.15);
+  --cockpit-accent-glow: 0 0 0 3px rgba(91, 78, 196, 0.12);
+
+  /* ── Secondaire : teal ── */
+  --cockpit-teal: #2BA89C;
+  --cockpit-teal-light: rgba(43, 168, 156, 0.08);
+
+  /* ── Status (jamais "alerte clinique" — indicateurs organisationnels) ── */
+  --cockpit-success: #2BA84A;
+  --cockpit-success-bg: rgba(43, 168, 74, 0.08);
+  --cockpit-success-border: rgba(43, 168, 74, 0.2);
+
+  --cockpit-warning: #E6993E;
+  --cockpit-warning-bg: rgba(230, 153, 62, 0.08);
+  --cockpit-warning-border: rgba(230, 153, 62, 0.2);
+
+  --cockpit-error: #D94F4F;
+  --cockpit-error-bg: rgba(217, 79, 79, 0.08);
+  --cockpit-error-border: rgba(217, 79, 79, 0.2);
+
+  --cockpit-info: #2563EB;
+  --cockpit-info-bg: rgba(37, 99, 235, 0.08);
+  --cockpit-info-border: rgba(37, 99, 235, 0.2);
+
+  /* ── Shadows ── */
+  --cockpit-shadow-xs: 0 1px 2px rgba(26, 26, 46, 0.03);
+  --cockpit-shadow-sm: 0 1px 3px rgba(26, 26, 46, 0.05), 0 1px 2px rgba(26, 26, 46, 0.03);
+  --cockpit-shadow-md: 0 2px 8px rgba(26, 26, 46, 0.06), 0 1px 3px rgba(26, 26, 46, 0.04);
+  --cockpit-shadow-lg: 0 8px 24px rgba(26, 26, 46, 0.08), 0 2px 6px rgba(26, 26, 46, 0.04);
+  --cockpit-shadow-dropdown: 0 4px 16px rgba(26, 26, 46, 0.1), 0 1px 4px rgba(26, 26, 46, 0.06);
+  --cockpit-shadow-accent: 0 2px 10px rgba(91, 78, 196, 0.25);
+
+  /* ── Transitions ── */
+  --cockpit-transition: 0.2s ease;
+  --cockpit-transition-slow: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Radius ── */
+  --cockpit-radius-xs: 6px;
+  --cockpit-radius-sm: 8px;
+  --cockpit-radius-md: 12px;
+  --cockpit-radius-lg: 16px;
+  --cockpit-radius-xl: 20px;
+  --cockpit-radius-pill: 100px;
+}
+
+/* ── Cockpit card utility ── */
+.cockpit-card {
+  background: var(--cockpit-card-bg);
+  border: 1px solid var(--cockpit-border);
+  border-radius: var(--cockpit-radius-lg);
+  box-shadow: var(--cockpit-shadow-sm);
+  transition: box-shadow var(--cockpit-transition), border-color var(--cockpit-transition);
+}
+
+.cockpit-card:hover {
+  box-shadow: var(--cockpit-shadow-md);
+  border-color: var(--cockpit-border-strong);
+}
+
+/* ── Cockpit badge statuses ── */
+.cockpit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--cockpit-radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cockpit-badge-success { background: var(--cockpit-success-bg); color: var(--cockpit-success); }
+.cockpit-badge-warning { background: var(--cockpit-warning-bg); color: var(--cockpit-warning); }
+.cockpit-badge-error   { background: var(--cockpit-error-bg);   color: var(--cockpit-error);   }
+.cockpit-badge-info    { background: var(--cockpit-info-bg);     color: var(--cockpit-info);    }
+.cockpit-badge-accent  { background: var(--cockpit-accent-light); color: var(--cockpit-accent); }
+
+/* ── Focus visible global (cockpit inputs) ── */
+.cockpit-input {
+  background: var(--cockpit-input-bg);
+  border: 1px solid transparent;
+  border-radius: var(--cockpit-radius-sm);
+  transition: border-color var(--cockpit-transition), box-shadow var(--cockpit-transition);
+}
+
+.cockpit-input:focus {
+  border-color: var(--cockpit-border-active);
+  box-shadow: var(--cockpit-accent-glow);
+  outline: none;
+}
