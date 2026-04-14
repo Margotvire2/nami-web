@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 import {
   LayoutDashboard,
   Users,
@@ -19,6 +21,7 @@ import {
   Receipt,
   FlaskConical,
   Settings,
+  Shield,
 } from "lucide-react";
 
 /*
@@ -53,7 +56,18 @@ const NAV_NETWORK = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.roleType !== "ADMIN" || !accessToken) return;
+    fetch(`${API_URL}/admin/pending-count`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((d: { count: number }) => setPendingCount(d.count ?? 0))
+      .catch(() => {});
+  }, [user, accessToken]);
 
   function isActive(href: string) {
     if (href === "/aujourd-hui") return pathname === "/aujourd-hui" || pathname === "/dashboard";
@@ -77,6 +91,63 @@ export function Sidebar() {
         <NavGroup items={NAV_PATIENTS} isActive={isActive} />
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
         <NavGroup items={NAV_NETWORK} isActive={isActive} />
+
+        {/* Administration — ADMIN uniquement */}
+        {user?.roleType === "ADMIN" && (
+          <>
+            <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
+            <Link
+              href="/admin"
+              className="flex items-center gap-2.5 h-9 rounded-[10px] text-[13px] transition-all duration-150 mx-0"
+              style={{
+                fontFamily: "var(--font-jakarta)",
+                paddingLeft: pathname.startsWith("/admin") ? "9px" : "12px",
+                paddingRight: "12px",
+                fontWeight: pathname.startsWith("/admin") ? 600 : 400,
+                color: pathname.startsWith("/admin") ? "#5B4EC4" : "#64748B",
+                background: pathname.startsWith("/admin") ? "rgba(91,78,196,0.08)" : "transparent",
+                borderLeft: pathname.startsWith("/admin") ? "3px solid #5B4EC4" : "3px solid transparent",
+                textDecoration: "none",
+              }}
+              onMouseEnter={e => {
+                if (!pathname.startsWith("/admin")) {
+                  (e.currentTarget as HTMLAnchorElement).style.background = "rgba(91,78,196,0.06)";
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#5B4EC4";
+                }
+              }}
+              onMouseLeave={e => {
+                if (!pathname.startsWith("/admin")) {
+                  (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#64748B";
+                }
+              }}
+            >
+              <Shield size={16} strokeWidth={1.75} className="shrink-0" />
+              <span className="truncate flex-1">Administration</span>
+              {pendingCount > 0 && (
+                <span
+                  style={{
+                    minWidth: 18,
+                    height: 18,
+                    padding: "0 5px",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    background: "#D94F4F",
+                    color: "#fff",
+                    borderRadius: 9,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    animation: "pulse-badge 0.6s ease-out",
+                  }}
+                >
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          </>
+        )}
+        <style>{`@keyframes pulse-badge { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }`}</style>
       </nav>
 
       {/* Legal footer */}

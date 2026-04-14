@@ -1,315 +1,459 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
 import {
-  Users, TrendingUp, Activity,
-  BarChart2, BookOpen, ArrowUp, ArrowDown, Minus,
+  Users, FolderOpen, Clock, Database, Activity,
+  BookOpen, CheckCircle2, ExternalLink,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+interface AdminStats {
+  providers: { total: number; thisWeek: number };
+  patients:  { total: number; thisWeek: number };
+  careCases: { total: number; thisWeek: number };
+  pending: number;
+  knowledge: { entries: number; links: number; observations: number; notes: number; orgs: number };
+  recentActivity: { type: string; description: string; date: string }[];
+}
 
-interface AnalyticsData {
-  generatedAt: string;
-  activeUsers: { dau: number; wau: number; mau: number };
-  retention: { cohortSize: number; retainedW1: number; retentionW1Pct: number | null };
-  totals: { providers: number; patients: number; newLast30d: number };
-  dauTrend: { date: string; users: number }[];
-  newUsersTrend: { date: string; providers: number; patients: number }[];
-  featureUsage: { feature: string; count: number; icon: string }[];
-  blog: {
-    totalArticles: number;
-    totalViews: number;
-    topArticles: { slug: string; title: string; viewCount: number; category: string }[];
-  };
+// ─── AnimatedCounter ─────────────────────────────────────────────────────────
+function AnimatedCounter({ target, duration = 1500 }: { target: number; duration?: number }) {
+  const [value, setValue] = useState(0);
+  const startRef = useRef<number | null>(null);
+  const frameRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (target === 0) return;
+    const animate = (ts: number) => {
+      if (!startRef.current) startRef.current = ts;
+      const progress = Math.min((ts - startRef.current) / duration, 1);
+      // ease-out-quint
+      const eased = 1 - Math.pow(1 - progress, 5);
+      setValue(Math.round(eased * target));
+      if (progress < 1) frameRef.current = requestAnimationFrame(animate);
+    };
+    frameRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [target, duration]);
+
+  return <>{value.toLocaleString("fr-FR")}</>;
 }
 
 // ─── Sparkline ───────────────────────────────────────────────────────────────
+function Sparkline({ value, total }: { value: number; total: number }) {
+  // Génère une courbe simple basée sur la valeur/total
+  const pct = total > 0 ? value / total : 0;
+  const pts = Array.from({ length: 12 }, (_, i) => {
+    const t = i / 11;
+    const y = 28 - Math.pow(t, 0.5) * pct * 22 + Math.sin(t * Math.PI * 2) * 2;
+    return `${(t * 80).toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const length = 200; // approximation longueur stroke
 
-function Sparkline({ data, color = "#4F46E5" }: { data: number[]; color?: string }) {
-  if (data.length < 2) return null;
-  const max = Math.max(...data, 1);
-  const w = 120;
-  const h = 36;
-  const pts = data
-    .map((v, i) => `${(i / (data.length - 1)) * w},${h - (v / max) * h}`)
-    .join(" ");
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="opacity-70">
-      <polyline fill="none" stroke={color} strokeWidth="1.5" points={pts} strokeLinejoin="round" strokeLinecap="round" />
+    <svg width={80} height={28} viewBox="0 0 80 28" style={{ opacity: 0.6 }}>
+      <defs>
+        <linearGradient id="spark-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#5B4EC4" />
+          <stop offset="100%" stopColor="#2BA89C" />
+        </linearGradient>
+      </defs>
+      <polyline
+        fill="none"
+        stroke="url(#spark-grad)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={pts}
+        strokeDasharray={length}
+        strokeDashoffset={length}
+        style={{
+          animation: "spark-draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards",
+        }}
+      />
+      <style>{`@keyframes spark-draw { to { stroke-dashoffset: 0; } }`}</style>
     </svg>
   );
 }
 
-// ─── Stat card ───────────────────────────────────────────────────────────────
-
-function StatCard({
-  label, value, sub, trend, sparkData, icon: Icon, color = "text-[#4F46E5]",
+// ─── KPI Card ────────────────────────────────────────────────────────────────
+function KpiCard({
+  label, value, delta, icon: Icon, color, delay = 0, warning,
 }: {
   label: string;
-  value: string | number;
-  sub?: string;
-  trend?: number;
-  sparkData?: number[];
+  value: number;
+  delta?: number;
   icon: React.ElementType;
-  color?: string;
+  color: string;
+  delay?: number;
+  warning?: boolean;
 }) {
   return (
-    <div className="rounded-xl border bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs text-gray-500 font-medium">{label}</p>
-          <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
-          {sub && <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>}
+    <div
+      className="admin-card admin-stagger p-5 cursor-default"
+      style={{
+        animationDelay: `${delay}ms`,
+        borderLeft: warning ? "3px solid #E6993E" : undefined,
+      }}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: `${color}12`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icon size={18} style={{ color }} strokeWidth={1.75} />
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <Icon className="size-5 text-gray-300" />
-          {sparkData && <Sparkline data={sparkData} />}
-        </div>
+        <Sparkline value={delta ?? 0} total={value} />
       </div>
-      {trend !== undefined && (
-        <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trend > 0 ? "text-emerald-600" : trend < 0 ? "text-red-500" : "text-gray-400"}`}>
-          {trend > 0 ? <ArrowUp className="size-3" /> : trend < 0 ? <ArrowDown className="size-3" /> : <Minus className="size-3" />}
-          {Math.abs(trend)}% vs semaine préc.
+      <div
+        style={{ fontSize: 36, fontWeight: 800, color: "#1A1A2E", lineHeight: 1, letterSpacing: "-0.02em" }}
+      >
+        <AnimatedCounter target={value} />
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 500, color: "#8A8A96", marginTop: 4 }}>{label}</div>
+      {delta !== undefined && (
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: delta > 0 ? "#2BA84A" : "#8A8A96",
+            marginTop: 6,
+          }}
+        >
+          {delta > 0 ? `+${delta}` : delta} cette semaine
+        </div>
+      )}
+      {warning && (
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#E6993E",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <Clock size={11} />
+          À valider →{" "}
+          <a href="/admin/validations" style={{ color: "#E6993E", textDecoration: "underline" }}>
+            Voir
+          </a>
         </div>
       )}
     </div>
   );
 }
 
-// ─── Bar chart ───────────────────────────────────────────────────────────────
-
-function BarChart({ data, maxVal, color = "#4F46E5" }: { data: { label: string; value: number }[]; maxVal: number; color?: string }) {
+// ─── Activity icon ────────────────────────────────────────────────────────────
+function ActivityDot({ type }: { type: string }) {
+  const cfg: Record<string, { color: string; bg: string }> = {
+    pending:   { color: "#E6993E", bg: "rgba(230,153,62,0.12)" },
+    validated: { color: "#2BA84A", bg: "rgba(43,168,74,0.12)" },
+    case:      { color: "#5B4EC4", bg: "rgba(91,78,196,0.12)" },
+    default:   { color: "#8A8A96", bg: "rgba(138,138,150,0.12)" },
+  };
+  const { color, bg } = cfg[type] ?? cfg.default;
   return (
-    <div className="space-y-2">
-      {data.map(({ label, value }) => (
-        <div key={label} className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 w-40 shrink-0 truncate">{label}</span>
-          <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
-            <div
-              className="h-2 rounded-full transition-all"
-              style={{ width: `${maxVal > 0 ? (value / maxVal) * 100 : 0}%`, backgroundColor: color }}
-            />
-          </div>
-          <span className="text-xs font-semibold text-gray-700 w-8 text-right">{value}</span>
-        </div>
-      ))}
+    <div
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        background: bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      {type === "validated" ? (
+        <CheckCircle2 size={13} style={{ color }} />
+      ) : type === "case" ? (
+        <FolderOpen size={13} style={{ color }} />
+      ) : (
+        <Clock size={13} style={{ color }} />
+      )}
     </div>
   );
 }
 
-// ─── DAU trend chart ─────────────────────────────────────────────────────────
-
-function DauTrendChart({ data }: { data: { date: string; users: number }[] }) {
-  if (!data.length) return null;
-  const max = Math.max(...data.map((d) => d.users), 1);
-  const w = 100;
-  const h = 60;
-  const pts = data
-    .map((d, i) => `${(i / (data.length - 1)) * w},${h - (d.users / max) * h}`)
-    .join(" ");
-  const area = `0,${h} ${pts} ${w},${h}`;
-
-  return (
-    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full">
-      <defs>
-        <linearGradient id="dauGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#4F46E5" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon fill="url(#dauGrad)" points={area} />
-      <polyline fill="none" stroke="#4F46E5" strokeWidth="1.5" points={pts} strokeLinejoin="round" />
-    </svg>
-  );
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (h < 1) return "À l'instant";
+  if (h < 24) return `Il y a ${h}h`;
+  if (d === 1) return "Hier";
+  return `Il y a ${d}j`;
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
-export default function AdminPage() {
-  const { user, accessToken } = useAuthStore();
+// ─── Main ────────────────────────────────────────────────────────────────────
+export default function AdminDashboard() {
+  const { accessToken } = useAuthStore();
   const router = useRouter();
-  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [health, setHealth] = useState<{ status: string; db: string; redis: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !accessToken) return;
-    if (user.roleType !== "ADMIN") {
-      router.replace("/aujourd-hui");
-      return;
-    }
-
-    fetch(`${API_URL}/admin/analytics`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error(`Erreur ${r.status}`);
-        return r.json() as Promise<AnalyticsData>;
+    if (!accessToken) return;
+    Promise.all([
+      fetch(`${API_URL}/admin/stats`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) =>
+        r.ok ? (r.json() as Promise<AdminStats>) : null
+      ),
+      fetch(`${API_URL}/health`).then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([s, h]) => {
+        setStats(s);
+        setHealth(h);
       })
-      .then(setData)
-      .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [user, accessToken, router]);
+  }, [accessToken]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-sm text-gray-400">Chargement…</div>;
-  }
-  if (error || !data) {
-    return <div className="flex items-center justify-center h-64 text-sm text-red-500">{error ?? "Données indisponibles"}</div>;
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300 }}>
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            border: "2px solid #5B4EC4",
+            borderTopColor: "transparent",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
-  const dauValues = data.dauTrend.map((d) => d.users);
-  const maxFeature = Math.max(...data.featureUsage.map((f) => f.count), 1);
-  const retPct = data.retention.retentionW1Pct;
-  const retColor = retPct === null ? "text-gray-400" : retPct >= 40 ? "text-emerald-600" : retPct >= 20 ? "text-amber-600" : "text-red-500";
+  const today = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Dashboard admin</h1>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Généré le {new Date(data.generatedAt).toLocaleString("fr-FR")}
-          </p>
-        </div>
-        <span className="text-[10px] bg-indigo-50 text-indigo-600 font-semibold px-2.5 py-1 rounded-full">ADMIN ONLY</span>
-      </div>
+    <div style={{ maxWidth: 1100 }}>
+      {/* Date */}
+      <p style={{ fontSize: 12, color: "#8A8A96", marginBottom: 20 }}>{today}</p>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="DAU — Actifs aujourd'hui"
-          value={data.activeUsers.dau}
-          sub="utilisateurs uniques"
-          icon={Activity}
-          sparkData={dauValues}
-        />
-        <StatCard
-          label="WAU — 7 derniers jours"
-          value={data.activeUsers.wau}
-          icon={TrendingUp}
-          color="text-emerald-600"
-        />
-        <StatCard
-          label="MAU — 30 derniers jours"
-          value={data.activeUsers.mau}
+      {/* KPI grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 20 }}>
+        <KpiCard
+          label="Soignants actifs"
+          value={stats?.providers.total ?? 0}
+          delta={stats?.providers.thisWeek}
           icon={Users}
-          color="text-blue-600"
+          color="#5B4EC4"
+          delay={0}
         />
-        <StatCard
-          label="Rétention W1"
-          value={retPct !== null ? `${retPct}%` : "–"}
-          sub={`${data.retention.retainedW1} / ${data.retention.cohortSize} users`}
-          icon={BarChart2}
-          color={retColor}
+        <KpiCard
+          label="Patients suivis"
+          value={stats?.patients.total ?? 0}
+          delta={stats?.patients.thisWeek}
+          icon={Users}
+          color="#2BA89C"
+          delay={80}
         />
-      </div>
-
-      {/* Totaux + DAU trend */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-xs text-gray-500 font-medium mb-3">Utilisateurs totaux</p>
-          <div className="flex gap-6">
-            <div>
-              <p className="text-2xl font-bold text-[#4F46E5]">{data.totals.providers}</p>
-              <p className="text-[11px] text-gray-400">Soignants</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-blue-500">{data.totals.patients}</p>
-              <p className="text-[11px] text-gray-400">Patients</p>
-            </div>
-          </div>
-          <p className="text-[11px] text-emerald-600 mt-3 font-medium">
-            +{data.totals.newLast30d} inscrits (30j)
-          </p>
-        </div>
-
-        <div className="col-span-2 rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-xs text-gray-500 font-medium mb-3">Actifs journaliers — 30 derniers jours</p>
-          <DauTrendChart data={data.dauTrend} />
-          <div className="flex justify-between text-[10px] text-gray-300 mt-1">
-            <span>{data.dauTrend[0]?.date}</span>
-            <span>{data.dauTrend[data.dauTrend.length - 1]?.date}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Features + Blog */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-xs text-gray-500 font-medium mb-4">Features — 30 derniers jours</p>
-          <BarChart
-            data={data.featureUsage.map((f) => ({ label: `${f.icon} ${f.feature}`, value: f.count }))}
-            maxVal={maxFeature}
+        <KpiCard
+          label="Dossiers actifs"
+          value={stats?.careCases.total ?? 0}
+          delta={stats?.careCases.thisWeek}
+          icon={FolderOpen}
+          color="#5B4EC4"
+          delay={160}
+        />
+        {(stats?.pending ?? 0) > 0 ? (
+          <KpiCard
+            label="En attente de validation"
+            value={stats?.pending ?? 0}
+            icon={Clock}
+            color="#E6993E"
+            delay={240}
+            warning
           />
+        ) : (
+          <KpiCard
+            label="Comptes validés"
+            value={stats?.providers.total ?? 0}
+            icon={CheckCircle2}
+            color="#2BA84A"
+            delay={240}
+          />
+        )}
+      </div>
+
+      {/* Activité + Santé système */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+        {/* Activité récente */}
+        <div className="admin-card-static p-5">
+          <p style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 14 }}>
+            Activité récente
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {(stats?.recentActivity ?? []).map((act, i) => (
+              <div
+                key={i}
+                className="admin-stagger"
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  animationDelay: `${300 + i * 60}ms`,
+                }}
+              >
+                <ActivityDot type={act.type} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.4 }}>{act.description}</p>
+                  <p style={{ fontSize: 11, color: "#8A8A96", marginTop: 2 }}>{timeAgo(act.date)}</p>
+                </div>
+              </div>
+            ))}
+            {(!stats?.recentActivity?.length) && (
+              <p style={{ fontSize: 13, color: "#8A8A96" }}>Aucune activité récente</p>
+            )}
+          </div>
         </div>
 
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-xs text-gray-500 font-medium">Blog SEO</p>
-            <div className="text-right">
-              <p className="text-xl font-bold text-[#4F46E5]">{data.blog.totalArticles}</p>
-              <p className="text-[11px] text-gray-400">articles publiés</p>
-              <p className="text-[11px] text-emerald-600 font-medium">{data.blog.totalViews} vues</p>
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-400 font-medium mb-2">Top articles</p>
-          <div className="space-y-2">
-            {data.blog.topArticles.map((a, i) => (
-              <div key={a.slug} className="flex items-start gap-2">
-                <span className="text-[10px] text-gray-300 shrink-0 w-4 pt-0.5">{i + 1}.</span>
-                <p className="flex-1 text-[11px] text-gray-700 line-clamp-1 min-w-0">{a.title}</p>
-                <span className="text-[10px] font-semibold text-gray-500 shrink-0 flex items-center gap-0.5">
-                  <BookOpen className="size-3" /> {a.viewCount}
+        {/* Santé système */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="admin-card-static p-5">
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 14 }}>
+              Santé système
+            </p>
+            {[
+              { label: "Backend", status: health?.status === "ok" },
+              { label: "Base de données", status: health?.db === "connectee" },
+              { label: "Redis", status: health?.redis === "connecte" },
+            ].map(({ label, status }) => (
+              <div
+                key={label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 13, color: "#4A4A5A" }}>{label}</span>
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: status ? "#2BA84A" : "#D94F4F",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: status ? "#2BA84A" : "#D94F4F",
+                      display: "inline-block",
+                      animation: status ? "pulse-dot 2s ease-in-out infinite" : undefined,
+                    }}
+                  />
+                  {status ? "UP" : "DOWN"}
                 </span>
               </div>
             ))}
+            <a
+              href={`${API_URL}/health`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                marginTop: 10,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 11,
+                color: "#8A8A96",
+                textDecoration: "none",
+              }}
+            >
+              <ExternalLink size={11} /> Vérifier /health
+            </a>
+            <style>{`@keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }`}</style>
+          </div>
+
+          {/* Base documentaire */}
+          <div className="admin-card-static p-5">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <Database size={15} style={{ color: "#5B4EC4" }} />
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>Base de connaissances</p>
+            </div>
+            {[
+              { label: "Entrées knowledge", value: stats?.knowledge.entries ?? 0 },
+              { label: "Liens cliniques", value: stats?.knowledge.links ?? 0 },
+              { label: "Observations", value: stats?.knowledge.observations ?? 0 },
+              { label: "Notes cliniques", value: stats?.knowledge.notes ?? 0 },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 6,
+                }}
+              >
+                <span style={{ fontSize: 12, color: "#8A8A96" }}>{label}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#1A1A2E" }}>
+                  {value.toLocaleString("fr-FR")}
+                </span>
+              </div>
+            ))}
+            <a
+              href="/admin/donnees"
+              style={{
+                marginTop: 10,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 11,
+                color: "#5B4EC4",
+                textDecoration: "none",
+                fontWeight: 600,
+              }}
+            >
+              <BookOpen size={11} /> Voir les stats détaillées →
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Nouveaux inscrits */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
-        <p className="text-xs text-gray-500 font-medium mb-4">Nouveaux inscrits — 30 derniers jours</p>
-        <div className="flex gap-0.5 items-end h-16 w-full">
-          {data.newUsersTrend.map((d) => {
-            const maxNew = Math.max(...data.newUsersTrend.map((x) => x.providers + x.patients), 1);
-            const total = d.providers + d.patients;
-            const hPct = (total / maxNew) * 100;
-            return (
-              <div
-                key={d.date}
-                className="flex-1 flex flex-col items-center justify-end h-full"
-                title={`${d.date} — ${d.providers} soignants, ${d.patients} patients`}
-              >
-                {total > 0 && (
-                  <div className="w-full rounded-sm overflow-hidden flex flex-col justify-end" style={{ height: `${hPct}%` }}>
-                    <div className="w-full bg-blue-400" style={{ height: `${(d.patients / total) * 100}%` }} />
-                    <div className="w-full bg-[#4F46E5]" style={{ height: `${(d.providers / total) * 100}%` }} />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-4 mt-2">
-          <span className="flex items-center gap-1 text-[10px] text-gray-400">
-            <span className="size-2 rounded-sm bg-[#4F46E5] inline-block" /> Soignants
-          </span>
-          <span className="flex items-center gap-1 text-[10px] text-gray-400">
-            <span className="size-2 rounded-sm bg-blue-400 inline-block" /> Patients
-          </span>
-        </div>
+      {/* Quick actions */}
+      <div
+        className="admin-card-static p-5"
+        style={{ display: "flex", alignItems: "center", gap: 12 }}
+      >
+        <Activity size={16} style={{ color: "#5B4EC4", flexShrink: 0 }} />
+        <p style={{ fontSize: 13, color: "#4A4A5A", flex: 1 }}>
+          {(stats?.pending ?? 0) > 0
+            ? `${stats!.pending} compte${stats!.pending > 1 ? "s" : ""} en attente de validation professionnelle.`
+            : "Tous les comptes soignants sont validés."}
+        </p>
+        {(stats?.pending ?? 0) > 0 && (
+          <button
+            onClick={() => router.push("/admin/validations")}
+            className="admin-btn admin-btn-validate"
+          >
+            Valider maintenant →
+          </button>
+        )}
       </div>
-
-      <p className="text-[10px] text-gray-300 text-center pb-4">
-        DAU = logins uniques (RefreshToken). Features = créations 30j. Rétention W1 = cohorte inscrite J-37→J-7 et revenue J-7→J.
-      </p>
     </div>
   );
 }
