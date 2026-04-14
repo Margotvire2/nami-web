@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { PATHOLOGIES, CATEGORY_LABELS } from "@/lib/data/pathologies"
+import { PublicNavbar } from "@/components/public/PublicNavbar"
+import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const metadata: Metadata = {
   title: "Pathologies — Fiches cliniques et parcours de soins",
@@ -52,21 +54,11 @@ export default function PathologiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F2FA]">
+    <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
       {/* JSON-LD */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      {/* Navbar */}
-      <nav className="border-b bg-white">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold text-[#4F46E5]">nami</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/soignants" className="text-sm text-gray-500 hover:text-gray-700">Annuaire</Link>
-            <Link href="/login" className="rounded-lg bg-[#4F46E5] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity">
-              Se connecter
-            </Link>
-          </div>
-        </div>
-      </nav>
+
+      <PublicNavbar />
 
       <div className="mx-auto max-w-4xl px-4 py-10">
         {/* Header */}
@@ -122,18 +114,16 @@ export default function PathologiesPage() {
           })}
         </div>
 
-        {/* SEO footer text */}
+        {/* SEO note */}
         <div className="mt-16 border-t pt-8 text-center">
           <p className="text-xs text-gray-400 max-w-xl mx-auto leading-relaxed">
-            Ces fiches cliniques sont destin&eacute;es aux professionnels de sant&eacute; et sont bas&eacute;es sur les recommandations
-            de la Haute Autorit&eacute; de Sant&eacute; (HAS), la FFAB, l&apos;ESPGHAN, la SFP et les soci&eacute;t&eacute;s savantes.
-            Elles ne remplacent pas une consultation m&eacute;dicale.
-          </p>
-          <p className="text-xs text-gray-300 mt-2">
-            &copy; {new Date().getFullYear()} Nami — Coordination des parcours de soins complexes
+            Ces fiches sont destinées aux professionnels de santé et basées sur les recommandations
+            de la HAS, la FFAB, l&apos;ESPGHAN, la SFP et les sociétés savantes.
+            Elles ne remplacent pas une consultation médicale.
           </p>
         </div>
       </div>
+      <PublicFooter />
     </div>
   )
 }

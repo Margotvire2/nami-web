@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import BlogBrowser from "./BlogBrowser"
+import { PublicNavbar } from "@/components/public/PublicNavbar"
+import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const revalidate = 300
 
@@ -48,21 +50,10 @@ export default async function BlogPage() {
   const { articles, total } = await getInitialArticles()
 
   return (
-    <div className="min-h-screen bg-[#F0F2FA]">
+    <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <nav className="border-b bg-white sticky top-0 z-20">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold text-[#4F46E5]">nami</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/pathologies" className="text-sm text-gray-500 hover:text-gray-700">Pathologies</Link>
-            <Link href="/annuaire-public" className="text-sm text-gray-500 hover:text-gray-700">Annuaire</Link>
-            <Link href="/login" className="rounded-lg bg-[#4F46E5] px-4 py-2 text-sm font-medium text-white hover:opacity-90">
-              Se connecter
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       <div className="mx-auto max-w-5xl px-4 py-10">
         <div className="text-center mb-8">
@@ -76,6 +67,7 @@ export default async function BlogPage() {
 
         <BlogBrowser initialArticles={articles} initialTotal={total} apiUrl={API_URL} pageSize={PAGE_SIZE} />
       </div>
+      <PublicFooter />
     </div>
   )
 }

@@ -4,6 +4,8 @@ import {
   Search, GraduationCap, MapPin, Video,
   Shield, BadgeCheck, ChevronRight, Users,
 } from "lucide-react"
+import { PublicNavbar } from "@/components/public/PublicNavbar"
+import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const metadata: Metadata = {
   title: "Soignants spécialisés — Nami",
@@ -171,24 +173,11 @@ export default async function SoignantsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F2FA]">
+    <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
       {/* JSON-LD */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* Navbar */}
-      <nav className="border-b bg-white">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold text-[var(--color-primary,#4F46E5)]">
-            nami
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-lg bg-[var(--color-primary,#4F46E5)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-          >
-            Se connecter
-          </Link>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       {/* Hero */}
       <div className="bg-white border-b">
@@ -264,11 +253,7 @@ export default async function SoignantsPage() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t bg-white py-8 text-center text-xs text-gray-400">
-        <p>Nami — Système nerveux du parcours de soins complexes</p>
-        <p className="mt-1">Données RPPS vérifiées via l&apos;Annuaire Santé (ANS)</p>
-      </footer>
+      <PublicFooter />
     </div>
   )
 }
