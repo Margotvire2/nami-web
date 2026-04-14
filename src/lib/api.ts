@@ -891,6 +891,7 @@ export interface OnboardingProfile {
   rppsNumber: string | null
   adeliNumber: string | null
   onboardingStep: string
+  validatedStatus: boolean
   structures: unknown[]
   certifications: unknown[]
 }

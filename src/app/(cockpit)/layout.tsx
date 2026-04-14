@@ -36,6 +36,8 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
       .then(({ profile }) => {
         if (profile.onboardingStep !== "DONE") {
           router.replace("/onboarding");
+        } else if (!profile.validatedStatus) {
+          router.replace("/validation-en-cours");
         } else {
           setOnboardingChecked(true);
         }
