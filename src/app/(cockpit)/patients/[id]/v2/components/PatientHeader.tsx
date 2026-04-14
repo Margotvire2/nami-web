@@ -8,10 +8,11 @@ import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
 import { PATHOLOGIES } from "@/lib/data/pathologies";
 
-// CIM-11 code → pathology slug
-const CIM_TO_SLUG: Record<string, string> = Object.fromEntries(
-  PATHOLOGIES.filter((p) => p.cim11).map((p) => [p.cim11!, p.slug])
-);
+// CIM-11 code → pathology slug (code principal + aliases)
+const CIM_TO_SLUG: Record<string, string> = Object.fromEntries([
+  ...PATHOLOGIES.filter((p) => p.cim11).map((p) => [p.cim11!, p.slug]),
+  ...PATHOLOGIES.flatMap((p) => (p.cim11Aliases ?? []).map((alias) => [alias, p.slug])),
+]);
 
 interface Props {
   dashboard: PatientDashboard;

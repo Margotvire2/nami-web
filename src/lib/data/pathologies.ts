@@ -6,6 +6,7 @@ export interface PathologyMeta {
   keywords: string[]
   category: "tca" | "metabolique" | "pediatrie" | "psy" | "cardio"
   cim11?: string
+  cim11Aliases?: string[] // codes alternatifs ou sous-types (ex: XH3SP7 pour LLA-B, 5B70 pour dénutrition)
   emoji: string
 }
 
@@ -178,6 +179,7 @@ export const PATHOLOGIES: PathologyMeta[] = [
     keywords: ["dénutrition", "malnutrition", "albumine", "NRI", "compléments nutritionnels", "CNO", "nutrition entérale", "perte de poids involontaire"],
     category: "metabolique",
     cim11: "5B53",
+    cim11Aliases: ["5B70", "5B71", "5B72"], // sous-types dénutrition (underweight, légère, modérée)
     emoji: "🥣",
   },
   {
@@ -269,6 +271,7 @@ export const PATHOLOGIES: PathologyMeta[] = [
     keywords: ["LLA", "leucémie lymphoblastique aiguë", "leucémie enfant", "chimio pédiatrique", "dénutrition cancer", "rémission", "CNO", "nutrition oncologie"],
     category: "pediatrie",
     cim11: "2A70",
+    cim11Aliases: ["XH3SP7", "2A70.Z", "2A71"], // LLA-B (code extension CIM-11), variantes
     emoji: "🎗️",
   },
   {
