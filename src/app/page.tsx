@@ -115,10 +115,8 @@ export default function HomePage() {
             return (
               <div
                 key={p.title}
-                className="rounded-xl p-7 transition-all"
+                className="nami-pillar-card rounded-xl p-7"
                 style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.07)", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(91,78,196,0.09)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(91,78,196,0.2)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(26,26,46,0.04)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(26,26,46,0.07)"; }}
               >
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
