@@ -12,7 +12,8 @@ import { RecordingProvider } from "@/contexts/RecordingContext";
 import { RecordingWidget } from "@/components/RecordingWidget";
 import { ConsultationProvider } from "@/contexts/ConsultationContext";
 import { ConsultationWidget } from "@/components/consultation/ConsultationWidget";
-import { CockpitHeaderProvider } from "@/contexts/CockpitHeaderContext";
+import { CockpitHeaderProvider } from "@/contexts/CockpitHeaderContext"
+import { CommandPalette } from "@/components/ui/CommandPalette";
 
 export default function CockpitLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -77,6 +78,7 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
           </div>
           <RecordingWidget />
           <ConsultationWidget />
+          <CommandPalette />
         </CockpitHeaderProvider>
       </ConsultationProvider>
     </RecordingProvider>

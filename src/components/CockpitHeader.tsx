@@ -77,6 +77,20 @@ export function CockpitHeader() {
         })}
       </nav>
 
+      {/* ⌘K hint */}
+      <button
+        onClick={() => {
+          const e = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
+          window.dispatchEvent(e)
+        }}
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[#8A8A96] text-xs hover:border-[#5B4EC4] hover:text-[#5B4EC4] transition-colors shrink-0"
+        title="Recherche rapide (⌘K)"
+      >
+        <span className="text-xs">🔍</span>
+        <span className="font-medium" style={{ fontFamily: "var(--font-jakarta)" }}>Recherche</span>
+        <kbd className="text-[9px] bg-[#F1F5F9] border border-[#E2E8F0] rounded px-1 font-mono">⌘K</kbd>
+      </button>
+
       {/* Primary action */}
       {action && (
         <button

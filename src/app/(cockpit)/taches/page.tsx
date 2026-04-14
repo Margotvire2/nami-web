@@ -9,9 +9,10 @@ import { fr } from "date-fns/locale"
 import Link from "next/link"
 import { toast } from "sonner"
 import {
-  CheckSquare, Circle, Clock, AlertTriangle, User,
+  CheckSquare, Clock, AlertTriangle, User,
   Loader2,
 } from "lucide-react"
+import { TaskCheckbox } from "@/components/ui/TaskCheckbox"
 import { EmptyState } from "@/components/nami/EmptyState"
 import { NamiCard } from "@/components/ui/NamiCard"
 import { ShimmerCard } from "@/components/ui/shimmer"
@@ -130,17 +131,12 @@ export default function TachesPage() {
               >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   {/* Check button */}
-                  <button
-                    onClick={() => {
-                      if (isDone) return
-                      patchMutation.mutate({ task, status: "COMPLETED" })
-                    }}
-                    style={{ marginTop: 2, background: "none", border: "none", cursor: isDone ? "default" : "pointer", padding: 0 }}>
-                    {isDone
-                      ? <CheckSquare size={18} style={{ color: N.success }} />
-                      : <Circle size={18} style={{ color: N.border }} />
-                    }
-                  </button>
+                  <div style={{ marginTop: 1, flexShrink: 0 }}>
+                    <TaskCheckbox
+                      checked={isDone}
+                      onComplete={() => patchMutation.mutate({ task, status: "COMPLETED" })}
+                    />
+                  </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {/* Title */}

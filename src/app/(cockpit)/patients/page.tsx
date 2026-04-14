@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NamiCard } from "@/components/ui/NamiCard";
 import { ShimmerCard } from "@/components/ui/shimmer";
+import { CompletenessPlant, computeCompleteness } from "@/components/ui/CompletenessPlant";
 import Link from "next/link";
 import { Search, ChevronRight, Users, Plus, Upload, LayoutGrid, LayoutList, TrendingUp, TrendingDown, Minus, Download, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -451,9 +452,16 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
               <p className="text-[11px] text-muted-foreground truncate">{c.caseType}</p>
             </div>
           </div>
-          <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${RISK_BADGE[c.riskLevel]}`}>
-            {RISK_LABEL[c.riskLevel]}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <CompletenessPlant
+              percentage={computeCompleteness(c)}
+              size={36}
+              showTooltip={true}
+            />
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${RISK_BADGE[c.riskLevel]}`}>
+              {RISK_LABEL[c.riskLevel]}
+            </span>
+          </div>
         </div>
 
         {/* Sparkline poids */}
