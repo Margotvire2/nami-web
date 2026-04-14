@@ -419,6 +419,8 @@ const CONDITION_TYPE_STYLE: Record<string, { badge: string; label: string }> = {
   PRIMARY:     { badge: "bg-[#EDE9FC] text-[#5B4EC4] border-[#C4B5FD]",   label: "Principale" },
   COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",    label: "Comorbidité" },
   SUSPECTED:   { badge: "bg-amber-50 text-amber-700 border-amber-200",     label: "Suspectée" },
+  ALLERGY:     { badge: "bg-red-50 text-red-700 border-red-200",           label: "Allergie" },
+  BACKGROUND:  { badge: "bg-gray-50 text-gray-500 border-gray-200",        label: "Antécédent" },
 };
 
 const SEVERITY_STYLE: Record<string, string> = {
