@@ -114,7 +114,7 @@ export default async function PathologyPage({
   const meta = getPathologyBySlug(slug)
   if (!meta) notFound()
 
-  const categoryMeta = CATEGORY_LABELS[meta.category]
+  const categoryMeta = CATEGORY_LABELS[meta.category] ?? { label: "Autre", color: "slate" }
   const content = await getMarkdownContent(slug)
 
   // JSON-LD structured data
