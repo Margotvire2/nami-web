@@ -133,6 +133,9 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify({ refreshToken }),
     }),
+
+  verifyEmail: (token: string) =>
+    request<{ message: string }>(`/auth/verify-email?token=${encodeURIComponent(token)}`),
 };
 
 // ─── Care Cases ───────────────────────────────────────────────────────────────
@@ -502,6 +505,7 @@ export interface User {
   firstName: string;
   lastName: string;
   roleType: "PATIENT" | "PROVIDER" | "ADMIN" | "ORG_ADMIN";
+  emailVerifiedAt?: string | null;
   providerProfile?: { id: string; specialties: string[] };
 }
 
