@@ -54,6 +54,21 @@ function getPathologyLabel(caseType?: string | null): string {
 const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 const HOUR_H = 64; const MIN_H = 8; const MAX_H = 21
 
+const LOCATION_LABELS: Record<string, string> = {
+  IN_PERSON: "En cabinet",
+  VIDEO: "Téléconsultation",
+  PHONE: "Consultation téléphonique",
+  HOME_VISIT: "À domicile",
+  REMOTE: "À distance",
+}
+const ACTIVITY_CFG: Record<string, { emoji: string; color: string }> = {
+  APPOINTMENT_COMPLETED: { emoji: "✓", color: "#4E9A7C" },
+  NOTE_ADDED:            { emoji: "📝", color: "#5B4EC4" },
+  REFERRAL_ACCEPTED:     { emoji: "↗", color: "#2BA89C" },
+  CARE_PLAN_UPDATED:     { emoji: "📋", color: "#E6993E" },
+  APPOINTMENT_CREATED:   { emoji: "📅", color: "#4A90D9" },
+}
+
 function getApptDuration(appt: AgendaAppointment) {
   if (appt.consultationType?.durationMinutes) return appt.consultationType.durationMinutes
   return Math.round((new Date(appt.endAt).getTime() - new Date(appt.startAt).getTime()) / 60000)
@@ -376,6 +391,8 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
   appt: AgendaAppointment; onClose: () => void;
   onPatch: (id: string, data: { status?: string }) => void; isPatching: boolean; getColor: (a: AgendaAppointment) => string
 }) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
   const color = getColor(appt)
   const typeName = appt.consultationType?.name ?? "Consultation"
   const startDate = parseISO(appt.startAt)
@@ -383,6 +400,17 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
   const duration = getApptDuration(appt)
   const st = STATUS_CFG[appt.status] ?? STATUS_CFG.CONFIRMED
   const loc = appt.location
+
+  // Mini parcours de soin
+  const { data: timelineData } = useQuery({
+    queryKey: ["timeline", appt.careCaseId],
+    queryFn: () => api.careCases.timeline(appt.careCaseId!, 1, 20),
+    enabled: !!accessToken && !!appt.careCaseId,
+    staleTime: 60_000,
+  })
+  const recentActivities = (timelineData?.data ?? [])
+    .filter((a) => Object.keys(ACTIVITY_CFG).includes(a.activityType?.toUpperCase?.() ?? ""))
+    .slice(0, 6)
 
   return (
     <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 410, maxWidth: "92vw", background: N.card, boxShadow: "-8px 0 32px rgba(0,0,0,0.08)", zIndex: 100, display: "flex", flexDirection: "column", fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", borderLeft: `1px solid ${N.border}` }}>
@@ -429,7 +457,7 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
             <div style={dL}>Lieu</div>
             <div style={{ fontSize: 14, color: N.text, display: "flex", alignItems: "center", gap: 5 }}>
               {loc && <div style={{ width: 7, height: 7, borderRadius: "50%", background: loc.color ?? N.primary }} />}
-              {loc?.name ?? appt.locationType}
+              {loc?.name ?? LOCATION_LABELS[appt.locationType] ?? appt.locationType}
             </div>
           </div>
         </div>
@@ -491,6 +519,49 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
               style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: `1.5px solid ${N.border}`, fontSize: 13, fontWeight: 500, color: N.primary, textAlign: "center", textDecoration: "none", display: "block" }}>
               Fiche →
             </Link>
+          </div>
+        )}
+
+        {/* Mini parcours de soin */}
+        {recentActivities.length > 0 && (
+          <div>
+            <div style={dL}>Parcours de soin</div>
+            <div style={{ position: "relative", paddingLeft: 20 }}>
+              {/* Vertical line */}
+              <div style={{ position: "absolute", left: 7, top: 4, bottom: 4, width: 1, background: "#E8ECF4" }} />
+              {recentActivities.map((a, i) => {
+                const cfg = ACTIVITY_CFG[a.activityType?.toUpperCase?.() ?? ""] ?? { emoji: "·", color: "#8A8A96" }
+                return (
+                  <div key={a.id} style={{
+                    display: "flex", gap: 8, paddingBottom: 10,
+                    animation: `feedItemIn 200ms ${i * 50}ms both`,
+                  }}>
+                    <div style={{
+                      width: 14, height: 14, borderRadius: "50%",
+                      background: cfg.color, flexShrink: 0, zIndex: 1,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 7, color: "#fff", marginLeft: -20,
+                    }}>
+                      {cfg.emoji.length <= 1 ? cfg.emoji : "·"}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: N.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {a.title}
+                      </div>
+                      <div style={{ fontSize: 10, color: N.textSoft, marginTop: 1 }}>
+                        {a.person.firstName} {a.person.lastName} · {format(parseISO(a.occurredAt), "d MMM yyyy", { locale: fr })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            {appt.careCaseId && (
+              <Link href={`/patients/${appt.careCaseId}`}
+                style={{ fontSize: 11, color: N.primary, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                Voir tout le parcours →
+              </Link>
+            )}
           </div>
         )}
       </div>

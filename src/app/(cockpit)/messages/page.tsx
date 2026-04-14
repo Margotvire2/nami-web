@@ -16,6 +16,16 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/nami/EmptyState";
 
+// ─── Pathologie colors (same as agenda) ──────────────────────────────────────
+const PATHOLOGY_COLORS: Record<string, string> = {
+  TCA: "#5B4EC4", OBESITY: "#2BA89C", METABOLIC: "#E6993E",
+  MENTAL_HEALTH: "#7B6FD4", PEDIATRIC: "#2563EB", CHRONIC_PAIN: "#DC2626", OTHER: "#8A8A96",
+}
+const PATHOLOGY_LABELS: Record<string, string> = {
+  TCA: "TCA", OBESITY: "Obésité", METABOLIC: "Métabolisme",
+  MENTAL_HEALTH: "Santé mentale", PEDIATRIC: "Pédiatrie", CHRONIC_PAIN: "Douleur", OTHER: "Suivi",
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // PAGE MESSAGES — fil de coordination clinique par care case
 // ═════════════════════════════════════════════════════════════════════════════
@@ -192,17 +202,45 @@ function ConversationView({ careCaseId, currentUserId }: {
     <div className="flex flex-col h-full">
       {/* Header conversation */}
       {careCase && (
-        <div className="border-b bg-white px-5 py-3 shrink-0 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold">{careCase.patient.firstName} {careCase.patient.lastName}</p>
-              <span className="text-[10px] border rounded px-1.5 py-0.5 text-muted-foreground">{careCase.caseType}</span>
+        <div style={{ borderBottom: "1px solid #F1F5F9", background: "#FFFFFF", flexShrink: 0 }}>
+          {/* Bande couleur pathologie */}
+          <div style={{ height: 3, background: PATHOLOGY_COLORS[careCase.caseType] ?? "#5B4EC4", borderRadius: "0 0 0 0" }} />
+          <div className="px-5 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                background: `${PATHOLOGY_COLORS[careCase.caseType] ?? "#5B4EC4"}18`,
+                border: `2px solid ${PATHOLOGY_COLORS[careCase.caseType] ?? "#5B4EC4"}40`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700,
+                color: PATHOLOGY_COLORS[careCase.caseType] ?? "#5B4EC4",
+                flexShrink: 0,
+              }}>
+                {careCase.patient.firstName[0]}{careCase.patient.lastName[0]}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold">{careCase.patient.firstName} {careCase.patient.lastName}</p>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
+                    background: `${PATHOLOGY_COLORS[careCase.caseType] ?? "#5B4EC4"}15`,
+                    color: PATHOLOGY_COLORS[careCase.caseType] ?? "#5B4EC4",
+                    letterSpacing: "0.05em", textTransform: "uppercase" as const,
+                  }}>
+                    {PATHOLOGY_LABELS[careCase.caseType] ?? careCase.caseType}
+                  </span>
+                  {careCase.status === "ACTIVE" && (
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4E9A7C", display: "inline-block" }} />
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">{careCase.caseTitle}</p>
+              </div>
             </div>
-            <p className="text-[11px] text-muted-foreground">{careCase.caseTitle}</p>
+            <Link href={`/patients/${careCaseId}`} className="text-[11px] text-primary hover:underline flex items-center gap-1 shrink-0">
+              <FileText size={11} /> Ouvrir le dossier
+            </Link>
           </div>
-          <Link href={`/patients/${careCaseId}`} className="text-[11px] text-primary hover:underline flex items-center gap-1">
-            <FileText size={11} /> Ouvrir le dossier
-          </Link>
         </div>
       )}
 
