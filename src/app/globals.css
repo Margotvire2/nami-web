@@ -243,6 +243,22 @@
     box-shadow: 0 4px 16px rgba(91,78,196,0.09) !important;
     border-color: rgba(91,78,196,0.2) !important;
   }
+  .nami-patient-card {
+    transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  }
+  .nami-patient-card:hover {
+    box-shadow: 0 4px 14px rgba(91,78,196,0.10) !important;
+    transform: translateY(-1px);
+    border-color: rgba(91,78,196,0.18) !important;
+  }
+  @keyframes nami-fade-in-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .nami-stagger-item {
+    opacity: 0;
+    animation: nami-fade-in-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 
   /* Typography */
   .text-page-title {

@@ -7,6 +7,7 @@ import { apiWithToken, type PatientDocument } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { FileText, Download, Loader2 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const C = {
   primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
@@ -83,10 +84,11 @@ export default function DocumentsPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {filtered.map((doc) => {
+          {filtered.map((doc, idx) => {
             const typeInfo = DOC_TYPES[doc.documentType] ?? DOC_TYPES.AUTRE;
             return (
-              <div key={doc.id} style={{
+              <ScrollReveal key={doc.id} variant="fade-up" delay={idx * 0.06} duration={0.5}>
+              <div className="nami-patient-card" style={{
                 background: C.card, borderRadius: 14, border: `1px solid ${C.border}`,
                 padding: "14px 16px", display: "flex", alignItems: "center", gap: 14,
               }}>
@@ -120,6 +122,7 @@ export default function DocumentsPage() {
                   <Download size={16} strokeWidth={2} />
                 </a>
               </div>
+              </ScrollReveal>
             );
           })}
         </div>

@@ -280,8 +280,10 @@ export default function PatientsPage() {
           </div>
         ) : viewMode === "cards" ? (
           <div className="p-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.map((c) => (
-              <PatientCard key={c.id} careCase={c} />
+            {filtered.map((c, idx) => (
+              <div key={c.id} className="nami-stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
+                <PatientCard careCase={c} />
+              </div>
             ))}
           </div>
         ) : (

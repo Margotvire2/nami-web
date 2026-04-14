@@ -7,6 +7,7 @@ import { apiWithToken, type PatientAppointment } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar, MapPin, Clock, Loader2 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const C = {
   primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
@@ -29,7 +30,7 @@ function ApptCard({ appt }: { appt: PatientAppointment }) {
   const dur = Math.round((end.getTime() - start.getTime()) / 60000);
 
   return (
-    <div style={{ background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+    <div className="nami-patient-card" style={{ background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       {/* Date + statut */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
@@ -133,7 +134,11 @@ export default function RendezVousPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {items.map((appt) => <ApptCard key={appt.id} appt={appt} />)}
+          {items.map((appt, idx) => (
+            <ScrollReveal key={appt.id} variant="fade-up" delay={idx * 0.06} duration={0.5}>
+              <ApptCard appt={appt} />
+            </ScrollReveal>
+          ))}
         </div>
       )}
     </div>

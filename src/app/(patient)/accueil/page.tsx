@@ -7,6 +7,7 @@ import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar, FileText, Users, MessageCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const C = {
   primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)", primaryMid: "#2BA89C",
@@ -99,14 +100,17 @@ export default function AccueilPage() {
   return (
     <div style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 800, color: C.text, letterSpacing: "-0.04em", fontFamily: "var(--font-jakarta)" }}>
-          Bonjour {user?.firstName} 💙
-        </h1>
-        <p style={{ fontSize: 15, color: C.textSoft, marginTop: 6 }}>Votre parcours, au même endroit.</p>
-      </div>
+      <ScrollReveal variant="fade-up" delay={0} duration={0.6}>
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{ fontSize: 30, fontWeight: 800, color: C.text, letterSpacing: "-0.04em", fontFamily: "var(--font-jakarta)" }}>
+            Bonjour {user?.firstName} 💙
+          </h1>
+          <p style={{ fontSize: 15, color: C.textSoft, marginTop: 6 }}>Votre parcours, au même endroit.</p>
+        </div>
+      </ScrollReveal>
 
       {/* Prochain RDV */}
+      <ScrollReveal variant="fade-up" delay={0.08} duration={0.6}>
       <div style={{ marginBottom: 20 }}>
         <SectionTitle icon={Calendar} title="Prochain rendez-vous" />
         {nextAppt ? (
@@ -155,75 +159,82 @@ export default function AccueilPage() {
           </Card>
         )}
       </div>
+      </ScrollReveal>
 
       {/* Équipe soignante */}
       {team.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionTitle icon={Users} title="Mon équipe soignante" />
-          <Card style={{ padding: "14px 16px" }}>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {team.map((m) => (
-                <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 64 }}>
-                  <Avatar name={`${m.person.firstName} ${m.person.lastName}`} size={44} />
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{m.person.firstName}</div>
-                    {m.provider?.specialties?.[0] && (
-                      <div style={{ fontSize: 10, color: C.textSoft }}>{m.provider.specialties[0]}</div>
-                    )}
+        <ScrollReveal variant="fade-up" delay={0.16} duration={0.6}>
+          <div style={{ marginBottom: 20 }}>
+            <SectionTitle icon={Users} title="Mon équipe soignante" />
+            <Card style={{ padding: "14px 16px" }}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {team.map((m) => (
+                  <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 64 }}>
+                    <Avatar name={`${m.person.firstName} ${m.person.lastName}`} size={44} />
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{m.person.firstName}</div>
+                      {m.provider?.specialties?.[0] && (
+                        <div style={{ fontSize: 10, color: C.textSoft }}>{m.provider.specialties[0]}</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </ScrollReveal>
       )}
 
       {/* Messages */}
-      <div style={{ marginBottom: 20 }}>
-        <SectionTitle icon={MessageCircle} title="Messages" />
-        <Link href="/messages" style={{ textDecoration: "none" }}>
-          <Card style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <MessageCircle size={18} color={C.primary} strokeWidth={2} />
+      <ScrollReveal variant="fade-up" delay={0.24} duration={0.6}>
+        <div style={{ marginBottom: 20 }}>
+          <SectionTitle icon={MessageCircle} title="Messages" />
+          <Link href="/messages" style={{ textDecoration: "none" }}>
+            <Card style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <MessageCircle size={18} color={C.primary} strokeWidth={2} />
+                </div>
+                <span style={{ fontSize: 14, color: C.text }}>Messagerie avec mon équipe</span>
               </div>
-              <span style={{ fontSize: 14, color: C.text }}>Messagerie avec mon équipe</span>
-            </div>
-            <span style={{ fontSize: 18, color: C.textSoft }}>›</span>
-          </Card>
-        </Link>
-      </div>
+              <span style={{ fontSize: 18, color: C.textSoft }}>›</span>
+            </Card>
+          </Link>
+        </div>
+      </ScrollReveal>
 
       {/* Derniers documents */}
       {recentDocs.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <FileText size={16} strokeWidth={2} color={C.primary} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: "0.5px" }}>Derniers documents</span>
+        <ScrollReveal variant="fade-up" delay={0.32} duration={0.6}>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FileText size={16} strokeWidth={2} color={C.primary} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: "0.5px" }}>Derniers documents</span>
+              </div>
+              <Link href="/documents" style={{ fontSize: 13, color: C.primary, textDecoration: "none", fontWeight: 500 }}>Tout voir →</Link>
             </div>
-            <Link href="/documents" style={{ fontSize: 13, color: C.primary, textDecoration: "none", fontWeight: 500 }}>Tout voir →</Link>
-          </div>
-          <Card style={{ padding: 0, overflow: "hidden" }}>
-            {recentDocs.map((doc, i) => {
-              const typeInfo = DOC_TYPE[doc.documentType] ?? { icon: "📄", color: C.textSoft };
-              return (
-                <div key={doc.id} style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                  borderBottom: i < recentDocs.length - 1 ? `1px solid ${C.border}` : "none",
-                }}>
-                  <span style={{ fontSize: 20 }}>{typeInfo.icon}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</div>
-                    <div style={{ fontSize: 12, color: C.textSoft }}>
-                      {format(parseISO(doc.createdAt), "d MMM yyyy", { locale: fr })} · {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}
+            <Card style={{ padding: 0, overflow: "hidden" }}>
+              {recentDocs.map((doc, i) => {
+                const typeInfo = DOC_TYPE[doc.documentType] ?? { icon: "📄", color: C.textSoft };
+                return (
+                  <div key={doc.id} style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+                    borderBottom: i < recentDocs.length - 1 ? `1px solid ${C.border}` : "none",
+                  }}>
+                    <span style={{ fontSize: 20 }}>{typeInfo.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</div>
+                      <div style={{ fontSize: 12, color: C.textSoft }}>
+                        {format(parseISO(doc.createdAt), "d MMM yyyy", { locale: fr })} · {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </Card>
-        </div>
+                );
+              })}
+            </Card>
+          </div>
+        </ScrollReveal>
       )}
     </div>
   );
