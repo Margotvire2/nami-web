@@ -3,6 +3,52 @@
 @import "shadcn/tailwind.css";
 @import "../styles/cockpit-tokens.css";
 
+/* ── Shimmer loading ─────────────────────────────────────────────────────────── */
+@keyframes nami-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.nami-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 800px 100%;
+  animation: nami-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Recording pulse glow ────────────────────────────────────────────────────── */
+@keyframes nami-glow-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(43, 168, 74, 0.5), 0 8px 32px rgba(43,168,74,0.30); }
+  50%       { box-shadow: 0 0 0 16px rgba(43, 168, 74, 0), 0 12px 48px rgba(43,168,74,0.50); }
+}
+.nami-rec-pulse {
+  animation: nami-glow-breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ── Page fade transition ────────────────────────────────────────────────────── */
+@keyframes nami-page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.nami-page-enter {
+  animation: nami-page-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Card stagger ─────────────────────────────────────────────────────────────── */
+@keyframes nami-card-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.nami-card-stagger > * {
+  opacity: 0;
+  animation: nami-card-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.nami-card-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.nami-card-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.nami-card-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.nami-card-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.nami-card-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.nami-card-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.nami-card-stagger > *:nth-child(n+7) { animation-delay: 360ms; }
+
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════

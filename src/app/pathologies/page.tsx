@@ -21,7 +21,7 @@ export default function PathologiesPage() {
     return acc
   }, {} as Record<string, typeof PATHOLOGIES>)
 
-  const categoryOrder = ["tca", "metabolique", "psy", "cardio", "pediatrie"]
+  const categoryOrder = ["tca", "metabolique", "psy", "cardio", "pediatrie", "rhumatologie", "endocrinologie", "pneumologie", "neurologie", "oncologie", "nephrologie", "infectieux"]
 
   // JSON-LD — ItemList of MedicalCondition
   const jsonLd = {

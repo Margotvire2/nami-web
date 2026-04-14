@@ -61,7 +61,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col h-full">
+    <aside className="w-[250px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 h-[56px] flex items-center gap-2.5 shrink-0">
         <div className="w-8 h-8 rounded-[10px] flex items-center justify-center" style={{ background: "linear-gradient(135deg, #5B4EC4, #2BA89C)" }}>
