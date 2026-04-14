@@ -10,9 +10,9 @@ import { User, Phone, Mail, Calendar, Shield, Loader2, Check } from "lucide-reac
 import { toast } from "sonner";
 
 const C = {
-  primary: "#0F766E", primaryLight: "#CCFBF1",
-  text: "#1C2B2A", textSoft: "#6B7280", border: "#E5E7EB",
-  card: "#FFFFFF", bg: "#F8FAFB", danger: "#DC2626", dangerBg: "#FEF2F2",
+  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
+  text: "#1A1A2E", textSoft: "#8A8A96", border: "rgba(26,26,46,0.08)",
+  card: "#FFFFFF", bg: "#FAFAF8", danger: "#DC2626", dangerBg: "#FEF2F2",
 };
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {

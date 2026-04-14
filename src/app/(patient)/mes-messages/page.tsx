@@ -9,9 +9,9 @@ import { fr } from "date-fns/locale";
 import { Send, Loader2, MessageCircle } from "lucide-react";
 
 const C = {
-  primary: "#0F766E", primaryLight: "#CCFBF1", primaryMid: "#14B8A6",
-  text: "#1C2B2A", textSoft: "#6B7280", border: "#E5E7EB",
-  card: "#FFFFFF", bg: "#F8FAFB",
+  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
+  text: "#1A1A2E", textSoft: "#8A8A96", border: "rgba(26,26,46,0.08)",
+  card: "#FFFFFF", bg: "#FAFAF8",
 };
 
 function Avatar({ name, size = 32 }: { name: string; size?: number }) {
@@ -92,6 +92,14 @@ export default function MessagesPage() {
             Conversation avec votre équipe soignante · {teamNames}
           </p>
         )}
+      </div>
+
+      {/* Disclaimer urgences */}
+      <div style={{ background: "#FFFBEB", borderBottom: "1px solid #FDE68A", padding: "8px 24px", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 13 }}>⚠️</span>
+        <p style={{ fontSize: 12, color: "#92400E" }}>
+          Ce canal n&apos;est pas destiné aux urgences médicales. En cas d&apos;urgence, appelez le <strong>15</strong> ou le <strong>112</strong>.
+        </p>
       </div>
 
       {/* Messages */}

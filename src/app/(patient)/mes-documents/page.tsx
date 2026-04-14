@@ -9,9 +9,9 @@ import { fr } from "date-fns/locale";
 import { FileText, Download, Loader2 } from "lucide-react";
 
 const C = {
-  primary: "#0F766E", primaryLight: "#CCFBF1",
-  text: "#1C2B2A", textSoft: "#6B7280", border: "#E5E7EB",
-  card: "#FFFFFF", bg: "#F8FAFB",
+  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
+  text: "#1A1A2E", textSoft: "#8A8A96", border: "rgba(26,26,46,0.08)",
+  card: "#FFFFFF", bg: "#FAFAF8",
 };
 
 const DOC_TYPES: Record<string, { icon: string; label: string; color: string; bg: string }> = {
@@ -53,7 +53,7 @@ export default function DocumentsPage() {
   }, [docs, filter]);
 
   return (
-    <div style={{ padding: "28px 24px 80px", maxWidth: 640, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
+    <div style={{ padding: "28px 24px 80px", maxWidth: 720, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, marginBottom: 20, letterSpacing: "-0.4px" }}>
         Mes documents
       </h1>

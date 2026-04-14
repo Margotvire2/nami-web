@@ -160,7 +160,7 @@ export default function DashboardPage() {
               </Link>
             )}
             {nextConsult && (
-              <button onClick={() => setSelectedId(nextConsult.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4F46E5] text-white text-[13px] font-medium hover:bg-[#4338CA] transition-colors">
+              <button onClick={() => setSelectedId(nextConsult.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#5B4EC4] text-white text-[13px] font-medium hover:bg-[#4A3EA6] transition-colors">
                 <Clock size={14} /> Prochain · {nextConsult.patient} · {nextConsult.time}
               </button>
             )}
@@ -169,7 +169,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto bg-[#F0F2FA]">
+      <div className="flex-1 overflow-y-auto bg-[#FAFAF8]">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex gap-6 items-start flex-col lg:flex-row">
 
@@ -183,7 +183,7 @@ export default function DashboardPage() {
 
                   {isLoading && (
                     <div className="flex items-center justify-center h-40">
-                      <div className="w-5 h-5 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-[#5B4EC4] border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                   {isError && (
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                               "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-150 group",
                               isPast ? "opacity-50" : "",
                               isNext ? "bg-indigo-50/50" : "hover:bg-[#F8FAFC]",
-                              selectedId === c.id ? "ring-2 ring-[#4F46E5] bg-indigo-50/30" : ""
+                              selectedId === c.id ? "ring-2 ring-[#5B4EC4] bg-indigo-50/30" : ""
                             )}
                           >
                             {/* Heure */}
@@ -246,13 +246,13 @@ export default function DashboardPage() {
                             {isPast ? (
                               <div className="w-5 h-5 rounded-full bg-[#CBD5E1] flex items-center justify-center shrink-0"><Check size={10} className="text-white" /></div>
                             ) : isNext ? (
-                              <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-5 h-5 rounded-full bg-[#4F46E5] shrink-0" />
+                              <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-5 h-5 rounded-full bg-[#5B4EC4] shrink-0" />
                             ) : (
-                              <div className="w-5 h-5 rounded-full border-2 border-[#4F46E5] shrink-0" />
+                              <div className="w-5 h-5 rounded-full border-2 border-[#5B4EC4] shrink-0" />
                             )}
 
                             {/* Avatar */}
-                            <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 cursor-pointer hover:ring-2 hover:ring-[#4F46E5]", avatarColor(c.patient))}
+                            <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 cursor-pointer hover:ring-2 hover:ring-[#5B4EC4]", avatarColor(c.patient))}
                               onClick={() => c.careCaseId && router.push(`/patients/${c.careCaseId}`)}>
                               {c.initials}
                             </div>
@@ -291,7 +291,7 @@ export default function DashboardPage() {
                               {imminent && c.careCaseId && (
                                 <button
                                   onClick={() => handleStartConsultation(c)}
-                                  className="h-7 px-2.5 rounded-lg bg-[#4F46E5] text-white text-[11px] font-semibold flex items-center gap-1 hover:bg-[#4338CA] transition-colors"
+                                  className="h-7 px-2.5 rounded-lg bg-[#5B4EC4] text-white text-[11px] font-semibold flex items-center gap-1 hover:bg-[#4A3EA6] transition-colors"
                                 >
                                   <Play size={10} fill="currentColor" /> Démarrer
                                 </button>
@@ -322,7 +322,7 @@ export default function DashboardPage() {
                         <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ADRESSAGES EN ATTENTE</p>
                         <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold flex items-center justify-center">{pendingOutgoing.length}</span>
                       </div>
-                      <Link href="/adressages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir</Link>
+                      <Link href="/adressages" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir</Link>
                     </div>
                     <div className="space-y-2">
                       {pendingOutgoing.slice(0, 3).map((ref) => {
@@ -367,7 +367,7 @@ export default function DashboardPage() {
                   <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ACTUALITÉS</p>
-                      <button className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</button>
+                      <button className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir →</button>
                     </div>
                     <div className="divide-y divide-[#F1F5F9]">
                       {NEWS_ITEMS.map((item) => (
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <p className="text-[11px] font-semibold text-[#94A3B8]">{item.entity}</p>
-                              {item.isNew && <span className="text-[9px] font-bold text-[#4F46E5] bg-indigo-50 px-1.5 py-0.5 rounded-full">Nouveau</span>}
+                              {item.isNew && <span className="text-[9px] font-bold text-[#5B4EC4] bg-indigo-50 px-1.5 py-0.5 rounded-full">Nouveau</span>}
                             </div>
                             <p className="text-[13px] font-medium text-[#0F172A] mt-0.5 truncate">{item.title}</p>
                             <p className="text-[11px] text-[#94A3B8] mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>{item.meta}</p>
@@ -431,7 +431,7 @@ export default function DashboardPage() {
               </div>
               <div className="px-5 py-4 border-t border-[#E8ECF4] shrink-0 space-y-2">
                 {selected.careCaseId && (
-                  <button onClick={() => handleStartConsultation(selected)} className="w-full h-9 rounded-xl bg-[#4F46E5] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4338CA] transition-colors">
+                  <button onClick={() => handleStartConsultation(selected)} className="w-full h-9 rounded-xl bg-[#5B4EC4] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4A3EA6] transition-colors">
                     <Play size={12} fill="currentColor" /> Démarrer la consultation
                   </button>
                 )}
@@ -487,7 +487,7 @@ function TachesSection({ tasks, api }: { tasks: TaskWithContext[]; api: ReturnTy
             <ClipboardList size={14} className="text-[#94A3B8]" />
             <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>À FAIRE</p>
           </div>
-          <Link href="/taches" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</Link>
+          <Link href="/taches" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir →</Link>
         </div>
         <div className="space-y-1">
           {tasks.map((t) => {
@@ -501,7 +501,7 @@ function TachesSection({ tasks, api }: { tasks: TaskWithContext[]; api: ReturnTy
                   disabled={isCompleting}
                   className={cn(
                     "mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
-                    isCompleting ? "bg-emerald-100 border-emerald-300" : "border-[#CBD5E1] hover:border-[#4F46E5]"
+                    isCompleting ? "bg-emerald-100 border-emerald-300" : "border-[#CBD5E1] hover:border-[#5B4EC4]"
                   )}
                 >
                   {isCompleting && <Check size={9} className="text-emerald-500" />}
@@ -513,7 +513,7 @@ function TachesSection({ tasks, api }: { tasks: TaskWithContext[]; api: ReturnTy
                   {t.careCase?.patient && (
                     <button
                       onClick={() => router.push(`/patients/${t.careCase.id}`)}
-                      className="text-[11px] text-[#4F46E5] hover:underline truncate block text-left"
+                      className="text-[11px] text-[#5B4EC4] hover:underline truncate block text-left"
                     >
                       {t.careCase.patient.firstName} {t.careCase.patient.lastName}
                     </button>
@@ -565,7 +565,7 @@ function IncomingRequestsSection() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>
               DEMANDES DE PATIENTS
             </p>
-            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#4F46E5] text-white text-[10px] font-semibold flex items-center justify-center">
+            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#5B4EC4] text-white text-[10px] font-semibold flex items-center justify-center">
               {pending.length}
             </span>
           </div>
@@ -622,7 +622,7 @@ function RequestCard({ cr, accessToken, qc }: { cr: ConnectionRequest; accessTok
         <button
           onClick={() => acceptMut.mutate()}
           disabled={acceptMut.isPending}
-          className="h-7 px-3 rounded-lg bg-[#4F46E5] text-white text-[11px] font-medium hover:bg-[#4338CA] transition-colors disabled:opacity-50"
+          className="h-7 px-3 rounded-lg bg-[#5B4EC4] text-white text-[11px] font-medium hover:bg-[#4A3EA6] transition-colors disabled:opacity-50"
         >
           Accepter
         </button>
@@ -812,7 +812,7 @@ function IncomingReferralsSection() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>
             DEMANDES DE COORDINATION ({pending.length})
           </p>
-          <Link href="/adressages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir</Link>
+          <Link href="/adressages" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir</Link>
         </div>
         <div className="space-y-3">
           {pending.map((ref: any) => (
@@ -853,7 +853,7 @@ function IncomingReferralsSection() {
               ) : (
                 <div className="flex gap-2">
                   <button onClick={() => acceptRefMut.mutate(ref.id)} disabled={acceptRefMut.isPending}
-                    className="h-7 px-3 rounded-lg bg-[#4F46E5] text-white text-[11px] font-medium hover:bg-[#4338CA] transition-colors disabled:opacity-50">
+                    className="h-7 px-3 rounded-lg bg-[#5B4EC4] text-white text-[11px] font-medium hover:bg-[#4A3EA6] transition-colors disabled:opacity-50">
                     {acceptRefMut.isPending ? "…" : "Accepter"}</button>
                   <button onClick={() => setDeclRefId(ref.id)}
                     className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors">Décliner</button>
@@ -923,10 +923,10 @@ function ProMessagesSection() {
           <div className="flex items-center gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>MESSAGES</p>
             {unreadTotal > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#4F46E5] text-white text-[10px] font-semibold flex items-center justify-center">{unreadTotal}</span>
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#5B4EC4] text-white text-[10px] font-semibold flex items-center justify-center">{unreadTotal}</span>
             )}
           </div>
-          <Link href="/messages" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir →</Link>
+          <Link href="/messages" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir →</Link>
         </div>
         <div className="space-y-1">
           {sorted.map((conv) => (
@@ -942,7 +942,7 @@ function ProMessagesSection() {
                   </div>
                   <p className="text-[12px] text-[#475569] mt-0.5 truncate">{conv.lastMessage?.content ?? ""}</p>
                   {conv.unreadCount > 0 && (
-                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded-full">{conv.unreadCount} non lu{conv.unreadCount > 1 ? "s" : ""}</span>
+                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#5B4EC4] bg-indigo-50 px-2 py-0.5 rounded-full">{conv.unreadCount} non lu{conv.unreadCount > 1 ? "s" : ""}</span>
                   )}
                 </div>
                 <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />

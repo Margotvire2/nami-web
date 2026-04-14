@@ -9,9 +9,9 @@ import { fr } from "date-fns/locale";
 import { Calendar, MapPin, Clock, Loader2 } from "lucide-react";
 
 const C = {
-  primary: "#0F766E", primaryLight: "#CCFBF1",
-  text: "#1C2B2A", textSoft: "#6B7280", border: "#E5E7EB",
-  card: "#FFFFFF", bg: "#F8FAFB",
+  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
+  text: "#1A1A2E", textSoft: "#8A8A96", border: "rgba(26,26,46,0.08)",
+  card: "#FFFFFF", bg: "#FAFAF8",
 };
 
 const STATUS: Record<string, { label: string; color: string; bg: string }> = {
@@ -96,13 +96,13 @@ export default function RendezVousPage() {
   const loading = tab === "upcoming" ? loadingUp : loadingPast;
 
   return (
-    <div style={{ padding: "28px 24px 80px", maxWidth: 640, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
+    <div style={{ padding: "28px 24px 80px", maxWidth: 720, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, marginBottom: 20, letterSpacing: "-0.4px" }}>
         Mes rendez-vous
       </h1>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, background: "#ECEAF5", borderRadius: 10, padding: 3, marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 4, background: "rgba(91,78,196,0.07)", borderRadius: 10, padding: 3, marginBottom: 20 }}>
         {(["upcoming", "past"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} style={{
             flex: 1, padding: "8px 0", borderRadius: 8, border: "none",
