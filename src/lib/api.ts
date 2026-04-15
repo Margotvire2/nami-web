@@ -456,6 +456,24 @@ export const intelligenceApi = {
 
   knowledgeEntry: (token: string, id: string) =>
     request<KnowledgeEntryDetail>(`/intelligence/knowledge/${id}`, {}, token),
+
+  evaluationStats: (token: string) =>
+    request<{
+      totalEvaluations: number;
+      avgOverallScore: number | null;
+      avgSourceCoverage: number | null;
+      avgHallucinationRate: number | null;
+      avgCompleteness: number | null;
+      avgActionability: number | null;
+      avgConsistency: number | null;
+      scoreDistribution: { bucket: string; count: number }[];
+      trend: { date: string; avgScore: number; count: number }[];
+      pipelineContext: {
+        rerankerEnabled: boolean;
+        avgRagChunks: number | null;
+        avgGraphRelations: number | null;
+      };
+    }>(`/intelligence/evaluation-stats`, {}, token),
 };
 
 export interface SemanticSearchResult {
@@ -2062,6 +2080,7 @@ export function apiWithToken(token: string) {
       knowledgeEntry: (id: string) => intelligenceApi.knowledgeEntry(token, id),
       knowledgeSearch: (q: string, opts?: { limit?: number; source?: string; category?: string }) =>
         intelligenceApi.knowledgeSearch(token, q, opts),
+      evaluationStats: () => intelligenceApi.evaluationStats(token),
     },
     onboarding: {
       me: () => onboardingApi.me(token),
