@@ -89,10 +89,23 @@ export function PitchTraction() {
         </div>
 
         <ScrollReveal variant="fade-up" delay={0.35} duration={0.6}>
-          <p style={{ fontSize: 12, color: "#8A8A96", maxWidth: 560, lineHeight: 1.6, fontStyle: "italic" }}>
-            Pipeline institutionnel construit en 10 jours sur la légitimité clinique de la fondatrice — diététicienne spécialisée TCA, première utilisatrice de Nami.
-            Aucun engagement formel à ce stade — c&apos;est exactement à ça que sert un seed.
-          </p>
+          <div style={{
+            marginTop: 12,
+            padding: "20px 24px",
+            background: "rgba(91,78,196,0.05)",
+            borderRadius: 14,
+            border: "1px solid rgba(91,78,196,0.10)",
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5B4EC4", marginBottom: 8 }}>
+              LE CHANGEMENT DE PARADIGME
+            </div>
+            <p style={{ fontSize: 14, color: "#1A1A2E", lineHeight: 1.65, margin: 0, fontWeight: 500 }}>
+              Ce qui prend 18 mois à une équipe de 5 a pris 10 jours à une fondatrice assistée par IA — parce qu&apos;elle est simultanément le clinicien expert, le développeur et l&apos;utilisatrice finale.
+            </p>
+            <p style={{ fontSize: 13, color: "#8A8A96", lineHeight: 1.6, margin: "8px 0 0" }}>
+              Ce n&apos;est pas une exception. C&apos;est le nouveau standard pour les fondateurs qui combinent expertise terrain et IA.
+            </p>
+          </div>
         </ScrollReveal>
       </div>
     </section>

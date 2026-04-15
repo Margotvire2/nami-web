@@ -242,10 +242,10 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
         </ScrollReveal>
         <div
           className="pricing-tiers-grid"
-          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, alignItems: "stretch" }}
         >
           {TIERS.map((tier, i) => (
-            <ScrollReveal key={tier.name} variant="fade-up" delay={0.1 + i * 0.08} duration={0.6}>
+            <ScrollReveal key={tier.name} variant="fade-up" delay={0.1 + i * 0.08} duration={0.6} style={{ height: "100%" }}>
               <div style={{
                 background: tier.highlight ? "#fff" : "rgba(255,255,255,0.7)",
                 borderRadius: 16,
@@ -253,6 +253,8 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 padding: "20px 18px",
                 display: "flex",
                 flexDirection: "column",
+                height: "100%",
+                boxSizing: "border-box",
                 boxShadow: tier.highlight ? "0 8px 32px rgba(91,78,196,0.12)" : "none",
                 position: "relative",
               }}>

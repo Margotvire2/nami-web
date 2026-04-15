@@ -63,12 +63,30 @@ export function PitchFounder({ variant = "light" }: Props) {
                 justifyContent: "center",
                 flexShrink: 0,
                 boxShadow: "0 12px 40px rgba(91,78,196,0.30)",
+                overflow: "hidden",
+                padding: 0,
               }}>
+                <img
+                  src="/margot-vire.jpg"
+                  alt="Margot Vire"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                  onError={(e) => {
+                    const t = e.currentTarget
+                    t.style.display = "none"
+                    const fallback = t.nextElementSibling as HTMLElement | null
+                    if (fallback) fallback.style.display = "flex"
+                  }}
+                />
                 <span style={{
+                  display: "none",
                   fontSize: isDark ? 28 : 36,
                   fontWeight: 900,
                   color: "#fff",
                   fontFamily: "var(--font-jakarta)",
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}>
                   MV
                 </span>
@@ -90,11 +108,12 @@ export function PitchFounder({ variant = "light" }: Props) {
                 <div style={{ fontSize: isDark ? 22 : 26, fontWeight: 800, color: text, letterSpacing: "-0.02em", marginBottom: 6, fontFamily: "var(--font-jakarta)" }}>
                   Margot Vire
                 </div>
-                <div style={{ fontSize: 14, color: body }}>
-                  Diététicienne spécialisée TCA · Hôpital Américain de Paris
+                <div style={{ fontSize: 14, color: body, lineHeight: 1.5 }}>
+                  Diététicienne spécialisée TCA, pédiatrie, obésité, PMA et infertilité<br />
+                  Hôpital Américain de Paris · AP-HP
                 </div>
-                <div style={{ fontSize: 13, color: muted, marginTop: 2 }}>
-                  Master Santé Publique AP-HP · ESSEC · 8 réseaux cliniques
+                <div style={{ fontSize: 13, color: muted, marginTop: 4 }}>
+                  Master de recherche Santé Publique — Paris-Saclay · ESSEC · 8 réseaux cliniques
                 </div>
               </div>
 
@@ -109,7 +128,7 @@ export function PitchFounder({ variant = "light" }: Props) {
                 color: quoteColor,
                 lineHeight: 1.65,
               }}>
-                &ldquo;J&apos;ai vu une patiente de 16 ans perdre 4 mois parce que
+                &ldquo;J&apos;ai vu une patiente de 10 ans perdre 4 mois parce que
                 ses 5 soignants n&apos;avaient aucun outil commun.
                 J&apos;ai décidé de le construire.&rdquo;
               </blockquote>
@@ -119,8 +138,7 @@ export function PitchFounder({ variant = "light" }: Props) {
                 {[
                   "Première utilisatrice",
                   "26 500 lignes en 10 jours",
-                  "Recherche terrain publiée",
-                  "Seule",
+                  "Publication terrain en cours — télésurveillance & parcours chroniques",
                 ].map((tag) => (
                   <span key={tag} style={{
                     fontSize: 11,

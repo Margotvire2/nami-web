@@ -52,7 +52,7 @@ export function PitchMarket() {
         </ScrollReveal>
 
         {/* Giant counters */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 40, marginBottom: 52 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "48px 56px", marginBottom: 52 }}>
           {STATS.map((s, i) => (
             <ScrollReveal key={s.label} variant="fade-up" delay={i * 0.1} duration={0.65}>
               <div>
