@@ -32,10 +32,10 @@ const MOATS = [
     color: "#5B4EC4",
   },
   {
-    label: "Effet réseau B2B",
-    metric: "582 000",
-    unit: "soignants référencés",
-    body: "Quand un soignant adresse via Nami, le destinataire doit y être. Même mécanique que Doctolib — mais entre soignants, pas patient→soignant. Plus sticky, plus difficile à déloger.",
+    label: "Extraction documentaire IA",
+    metric: "Auto",
+    unit: "structuration multi-format",
+    body: "Bilans biologiques, impédancemétrie, DXA, ostéodensitométrie, ECG — chaque document importé est analysé et ses données extraites, structurées et versées au dossier de coordination.",
     color: "#2BA89C",
   },
 ]
