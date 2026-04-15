@@ -21,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 import { AnimatedTabs } from "@/components/ui/AnimatedTabs"
-import { CareLifeline } from "@/components/ui/CareLifeline";
 
 type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination";
 
@@ -296,14 +295,6 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           onDismiss={() => setAnalysisNote(null)}
         />
       )}
-
-      {/* Ligne de vie */}
-      <CareLifeline
-        careCaseId={id}
-        members={careCase.members ?? []}
-        startDate={careCase.startDate}
-        caseTitle={careCase.caseTitle}
-      />
 
       {/* Tab bar */}
       <AnimatedTabs

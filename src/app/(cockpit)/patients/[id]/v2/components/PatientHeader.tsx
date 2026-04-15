@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { ChevronLeft, Command, Mic } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api, PatientCondition } from "@/lib/api";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
 import { PATHOLOGIES } from "@/lib/data/pathologies";
+import { CompletenessPlant, computeCompleteness } from "@/components/ui/CompletenessPlant";
 
 // CIM-11 code → pathology slug (code principal + aliases)
 const CIM_TO_SLUG: Record<string, string> = Object.fromEntries([
@@ -31,15 +32,9 @@ export function PatientHeader({
   dashboard,
   careCase,
   careCaseId,
-  onAddNote,
-  onReferral,
-  onTask,
   onRecord,
-  onStartConsultation,
-  onAiSummarize,
-  aiStreaming,
 }: Props) {
-  const { pathway, indicators } = dashboard;
+  const { indicators } = dashboard;
   const c = careCase;
 
   const { data: conditions = [] } = useQuery<PatientCondition[]>({
@@ -58,235 +53,103 @@ export function PatientHeader({
     ? Math.floor((Date.now() - new Date(c.patient.birthDate).getTime()) / (365.25 * 24 * 3600000))
     : null;
 
-  return (
-    <div className="py-6 px-6 sm:px-8">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-            {c.patient.firstName} {c.patient.lastName}
-          </h1>
-          {/* Ligne démographique */}
-          <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
-            {age && <span>{age} ans</span>}
-            {c.patient.sex && (
-              <span>
-                •{" "}
-                {c.patient.sex === "F" || c.patient.sex === "FEMALE"
-                  ? "Femme"
-                  : c.patient.sex === "M" || c.patient.sex === "MALE"
-                  ? "Homme"
-                  : c.patient.sex}
-              </span>
-            )}
-            {poids?.value && (
-              <>
-                <span>•</span>
-                <span>
-                  {poids.value} {poids.unit}
-                  {poids.delta ? (
-                    <span className={`ml-0.5 text-xs ${poids.delta > 0 ? "text-green-600" : "text-red-500"}`}>
-                      ({poids.delta > 0 ? "+" : ""}{poids.delta.toFixed(1)})
-                    </span>
-                  ) : null}
-                </span>
-              </>
-            )}
-            {imc?.value && (
-              <>
-                <span>•</span>
-                <span>IMC {imc.value}</span>
-              </>
-            )}
-          </div>
-          {/* Conditions pathologiques avec liens fiches */}
-          {conditions.length > 0 && (
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              {conditions.slice(0, 4).map((cond) => {
-                const slug = CIM_TO_SLUG[cond.conditionCode];
-                const isPrimary = cond.conditionType === "PRIMARY";
-                const badge = (
-                  <span
-                    key={cond.id}
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
-                      isPrimary
-                        ? "bg-[#EDE9FC] text-[#5B4EC4] hover:bg-[#DDD9F9]"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    } ${slug ? "cursor-pointer" : ""}`}
-                  >
-                    {cond.conditionLabel}
-                    {slug && <span className="ml-1 opacity-50 text-[9px]">↗</span>}
-                  </span>
-                );
-                return slug ? (
-                  <Link key={cond.id} href={`/pathologies/${slug}`} target="_blank" rel="noopener noreferrer">
-                    {badge}
-                  </Link>
-                ) : (
-                  <span key={cond.id}>{badge}</span>
-                );
-              })}
-            </div>
-          )}
+  const sexLabel =
+    c.patient.sex === "F" || c.patient.sex === "FEMALE"
+      ? "F"
+      : c.patient.sex === "M" || c.patient.sex === "MALE"
+      ? "M"
+      : null;
 
-          {/* Badges parcours — ligne séparée */}
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            {pathway && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EDE9FC] text-[#5B4EC4]">
-                {pathway.label}
-              </span>
-            )}
-            {c.careStage && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                {c.careStage}
-              </span>
-            )}
-            {c.leadProvider && (
-              <span className="text-xs text-gray-400">
-                Lead : {c.leadProvider.person.firstName} {c.leadProvider.person.lastName}
-              </span>
-            )}
-            {c.nextStepSummary && (
-              <span className="text-xs text-gray-400">→ {c.nextStepSummary}</span>
-            )}
-          </div>
-        </div>
+  const primaryCondition = conditions.find((cond) => cond.conditionType === "PRIMARY") ?? conditions[0];
 
-        <div className="flex items-center gap-4 shrink-0">
-          {/* Équipe */}
-          <div className="hidden sm:flex items-center gap-1.5">
-            <TeamAvatars careCaseId={careCaseId} />
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            <ActionButton label="Note" icon="✏️" onClick={onAddNote} />
-            <ActionButton label="Tâche" icon="☑️" onClick={onTask} />
-            <ActionButton label="Adresser" icon="↗️" onClick={onReferral} />
-            <ActionButton label="Enregistrer" icon="🎙️" onClick={onRecord} />
-            {onStartConsultation && (
-              <ActionButton label="Consultation" icon="🩺" accent onClick={onStartConsultation} />
-            )}
-            <ActionButton
-              label={aiStreaming ? "Génération…" : "Synthèse"}
-              icon="✨"
-              onClick={onAiSummarize}
-              disabled={aiStreaming}
-            />
-            <ExportPdfButton careCaseId={careCaseId} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ActionButton({
-  label,
-  icon,
-  accent,
-  onClick,
-  disabled,
-}: {
-  label: string;
-  icon: string;
-  accent?: boolean;
-  onClick?: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-        transition-colors duration-150 disabled:opacity-50
-        ${
-          accent
-            ? "bg-[#5B4EC4] text-white hover:bg-[#4A3DB3]"
-            : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300"
-        }
-      `}
-    >
-      <span className="text-base">{icon}</span>
-      <span className="hidden sm:inline">{label}</span>
-    </button>
-  );
-}
-
-function TeamAvatars({ careCaseId }: { careCaseId: string }) {
-  const { data: team } = useQuery({
-    queryKey: ["team", careCaseId],
-    queryFn: async () => {
-      const res = await api.get(`/care-cases/${careCaseId}/team`);
-      return res.data;
-    },
-  });
-
-  const members: any[] = team?.members || team || [];
-  const visible = members.slice(0, 4);
-
-  if (visible.length === 0) return null;
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex -space-x-2">
-        {visible.map((m: any, i: number) => {
-          const p = m.person || m;
-          const initials = `${p.firstName?.[0] || "?"}${p.lastName?.[0] || ""}`.toUpperCase();
-          return (
-            <div
-              key={m.id || i}
-              className="w-7 h-7 rounded-full border-2 border-white bg-[#EDE9FC] flex items-center justify-center text-[9px] font-semibold text-[#5B4EC4]"
-              title={`${p.firstName || ""} ${p.lastName || ""}`.trim()}
-            >
-              {initials}
-            </div>
-          );
-        })}
-      </div>
-      {members.length > 0 && (
-        <span className="text-xs text-gray-400">{members.length}</span>
-      )}
-    </div>
-  );
-}
-
-function ExportPdfButton({ careCaseId }: { careCaseId: string }) {
-  const [loading, setLoading] = useState(false);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
-  async function handleExport() {
-    setLoading(true);
-    try {
-      const token = (() => {
-        try { const s = localStorage.getItem("nami-auth"); return s ? JSON.parse(s)?.state?.accessToken : null; } catch { return null; }
-      })();
-      const res = await fetch(`${API_URL}/care-cases/${careCaseId}/export/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Erreur export");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `rapport-${careCaseId.slice(0, 8)}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      // silent fail — user sees nothing downloaded
-    } finally {
-      setLoading(false);
-    }
+  function openCommandPalette() {
+    window.dispatchEvent(new CustomEvent("nami-command-palette"));
   }
 
   return (
-    <button
-      onClick={handleExport}
-      disabled={loading}
-      title="Exporter en PDF"
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors duration-150 disabled:opacity-50"
-    >
-      {loading ? "⏳" : "📄"} Export
-    </button>
+    <div className="px-6 sm:px-8 py-2.5 border-b border-gray-100 bg-white">
+      {/* Row 1: back + name + actions */}
+      <div className="flex items-center gap-3">
+        <Link href="/patients" className="text-gray-400 hover:text-gray-600 transition-colors shrink-0">
+          <ChevronLeft className="w-4 h-4" />
+        </Link>
+
+        <h1 className="text-base font-semibold text-gray-900 truncate flex-1 min-w-0">
+          {c.patient.firstName} {c.patient.lastName}
+        </h1>
+
+        {/* Demographics inline — row 2 on large screens, collapsed here on small */}
+        <div className="hidden md:flex items-center gap-1.5 text-sm text-gray-500 shrink-0">
+          {age && <span>{age} ans</span>}
+          {sexLabel && <><span>·</span><span>{sexLabel}</span></>}
+          {poids?.value && (
+            <>
+              <span>·</span>
+              <span>
+                {poids.value} {poids.unit}
+                {poids.delta ? (
+                  <span className={`ml-0.5 text-xs ${poids.delta > 0 ? "text-green-600" : "text-red-500"}`}>
+                    ({poids.delta > 0 ? "+" : ""}{poids.delta.toFixed(1)})
+                  </span>
+                ) : null}
+              </span>
+            </>
+          )}
+          {imc?.value && <><span>·</span><span>IMC {imc.value}</span></>}
+          <CompletenessPlant percentage={computeCompleteness(c)} size={16} />
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={openCommandPalette}
+            title="Palette de commandes (⌘K)"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+          >
+            <Command className="w-3 h-3" />
+            <span className="hidden sm:inline text-[10px] text-gray-400">⌘K</span>
+          </button>
+          <button
+            onClick={onRecord}
+            title="Dicter une note"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] transition-colors"
+          >
+            <Mic className="w-3 h-3" />
+            <span className="hidden sm:inline">Dicter</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Row 2: demographics (mobile) */}
+      <div className="flex md:hidden items-center gap-1.5 text-xs text-gray-500 mt-0.5 ml-7">
+        {age && <span>{age} ans</span>}
+        {sexLabel && <><span>·</span><span>{sexLabel}</span></>}
+        {poids?.value && (
+          <>
+            <span>·</span>
+            <span>{poids.value} {poids.unit}</span>
+          </>
+        )}
+        {imc?.value && <><span>·</span><span>IMC {imc.value}</span></>}
+        <CompletenessPlant percentage={computeCompleteness(c)} size={16} />
+      </div>
+
+      {/* Row 3: primary condition badge */}
+      {primaryCondition && (() => {
+        const slug = CIM_TO_SLUG[primaryCondition.conditionCode];
+        const badge = (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#EDE9FC] text-[#5B4EC4] mt-0.5 ml-7">
+            {primaryCondition.conditionLabel}
+            {slug && <span className="ml-1 opacity-50 text-[9px]">↗</span>}
+          </span>
+        );
+        return slug ? (
+          <Link href={`/pathologies/${slug}`} target="_blank" rel="noopener noreferrer">
+            {badge}
+          </Link>
+        ) : (
+          <span>{badge}</span>
+        );
+      })()}
+    </div>
   );
 }
