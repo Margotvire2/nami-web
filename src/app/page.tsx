@@ -116,13 +116,18 @@ const FEATURES = [
 ];
 
 export default function HomePage() {
-  /* ── Navbar scroll ── */
+  /* ── Navbar scroll + mobile menu ── */
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenuOpen]);
 
   /* ── Sticky problem/solution section ── */
   const stickyRef = useRef<HTMLDivElement>(null);
@@ -217,6 +222,33 @@ export default function HomePage() {
         .hero-sub { animation: fadeIn 0.8s var(--ease-expo) 0.8s both; }
         .hero-cta { animation: fadeIn 0.8s var(--ease-expo) 1.0s both; }
         .hero-scroll { animation: fadeIn 0.8s var(--ease-expo) 1.4s both; }
+
+        /* ─ Responsive ─ */
+        @media (max-width: 767px) {
+          .landing-nav-links, .landing-nav-auth { display: none !important; }
+          .landing-nav-burger { display: flex !important; }
+          .landing-sticky-grid { grid-template-columns: 1fr !important; gap: 24px !important; padding: 0 20px !important; }
+          .landing-sticky-right { display: none !important; }
+          .landing-features-grid { grid-template-columns: 1fr !important; }
+          .landing-stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 28px !important; }
+          .landing-steps-grid { grid-template-columns: 1fr !important; }
+          .landing-specialties-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .landing-security-grid { grid-template-columns: 1fr !important; }
+          .landing-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .landing-footer-bottom { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
+          .landing-cta-btns { flex-direction: column !important; align-items: stretch !important; }
+          .landing-cta-btns a { justify-content: center !important; }
+          .landing-hero-cta { flex-direction: column !important; align-items: stretch !important; }
+          .landing-hero-cta a { justify-content: center !important; }
+        }
+        @media (min-width: 768px) {
+          .landing-nav-burger { display: none !important; }
+          .landing-nav-mobile { display: none !important; }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .landing-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .landing-specialties-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
       `}</style>
 
       <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif", background: "var(--nami-white)", color: "var(--nami-text)" }}>
@@ -236,13 +268,11 @@ export default function HomePage() {
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* Logo */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#5B4EC4,#2BA89C)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ color: "#fff", fontSize: 13, fontWeight: 900 }}>N</span>
-              </div>
+              <img src="/nami-mascot.png" alt="Nami" style={{ width: 34, height: 34, borderRadius: 10, objectFit: "contain" }} />
               <span style={{ color: "var(--nami-text)", fontSize: 17, fontWeight: 800, letterSpacing: "-0.02em" }}>Nami</span>
             </div>
-            {/* Links */}
-            <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+            {/* Desktop links */}
+            <div className="landing-nav-links" style={{ display: "flex", alignItems: "center", gap: 32 }}>
               {[
                 { l: "Fonctionnalités", h: "#features" },
                 { l: "Annuaire", h: "/trouver-un-soignant" },
@@ -254,6 +284,9 @@ export default function HomePage() {
                   onMouseLeave={e => (e.currentTarget.style.color = "var(--nami-text-3)")}
                 >{l}</Link>
               ))}
+            </div>
+            {/* Desktop auth */}
+            <div className="landing-nav-auth" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Link href="/login"
                 style={{ color: "var(--nami-text-2)", fontSize: 14, fontWeight: 500, transition: "color 0.2s", textDecoration: "none" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "var(--nami-primary)")}
@@ -263,8 +296,37 @@ export default function HomePage() {
                 style={{ background: "var(--nami-primary)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 22px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 10px rgba(91,78,196,0.25)" }}
               >Démarrer</Link>
             </div>
+            {/* Burger — mobile only */}
+            <button
+              className="landing-nav-burger"
+              onClick={() => setMobileMenuOpen(o => !o)}
+              style={{ display: "none", background: "none", border: "1px solid rgba(91,78,196,0.2)", borderRadius: 10, padding: "8px", cursor: "pointer", color: "var(--nami-text)", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44 }}
+              aria-label="Menu"
+            >
+              {mobileMenuOpen
+                ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+              }
+            </button>
           </div>
         </nav>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="landing-nav-mobile" style={{ position: "fixed", inset: 0, zIndex: 99 }}>
+            <div onClick={() => setMobileMenuOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(26,26,46,0.35)", backdropFilter: "blur(4px)" }} />
+            <div style={{ position: "relative", background: "#FAFAF8", padding: "80px 24px 32px", display: "flex", flexDirection: "column", gap: 8, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+              {[{ l: "Fonctionnalités", h: "#features" }, { l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Blog", h: "/blog" }].map(({ l, h }) => (
+                <Link key={l} href={h} onClick={() => setMobileMenuOpen(false)}
+                  style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text)", textDecoration: "none", minHeight: 44 }}
+                >{l}</Link>
+              ))}
+              <div style={{ height: 1, background: "rgba(26,26,46,0.07)", margin: "8px 0" }} />
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text-2)", textDecoration: "none", minHeight: 44 }}>Connexion</Link>
+              <Link href="/signup" onClick={() => setMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 700, color: "#fff", background: "var(--nami-primary)", textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.30)", minHeight: 44 }}>Créer un compte →</Link>
+            </div>
+          </div>
+        )}
 
         {/* ═══ HERO ════════════════════════════════════════════════════════ */}
         <section style={{
@@ -298,7 +360,7 @@ export default function HomePage() {
             </p>
 
             {/* CTAs */}
-            <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <div className="hero-cta landing-hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/signup" className="btn-primary"
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "var(--nami-primary)", color: "#fff", fontSize: 15, fontWeight: 700, padding: "15px 38px", borderRadius: 100, textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.3)" }}
               >
@@ -322,7 +384,7 @@ export default function HomePage() {
         {/* Dark contrast section — 1 of 2 */}
         <div ref={stickyRef} style={{ height: "320vh", position: "relative" }}>
           <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--nami-dark)" }}>
-            <div style={{ maxWidth: 1100, width: "100%", padding: "0 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+            <div className="landing-sticky-grid" style={{ maxWidth: 1100, width: "100%", padding: "0 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
 
               {/* Left — text panels */}
               <div style={{ position: "relative", minHeight: 280 }}>
@@ -365,7 +427,7 @@ export default function HomePage() {
               </div>
 
               {/* Right — progress + visual card */}
-              <div style={{ position: "relative" }}>
+              <div className="landing-sticky-right" style={{ position: "relative" }}>
                 <div style={{ position: "absolute", left: -28, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 10 }}>
                   {[0, 1, 2].map(i => (
                     <div key={i} style={{ width: 3, height: panel === i ? 44 : 22, borderRadius: 2, background: panel === i ? "#7B6FD4" : "rgba(238,236,234,0.12)", transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)" }} />
@@ -440,7 +502,7 @@ export default function HomePage() {
             </h2>
           </Reveal>
 
-          <div style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
+          <div className="landing-features-grid" style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
             {FEATURES.map((f, i) => (
               <Reveal key={f.tag} delay={i * 80} from="scale">
                 <div className="card-hover" style={{ background: "#fff", borderRadius: 22, border: `1px solid ${f.border}`, padding: "36px 32px", height: "100%", cursor: "default", boxShadow: "0 1px 4px rgba(26,26,46,0.05)" }}>
@@ -461,7 +523,7 @@ export default function HomePage() {
           <Reveal>
             <p style={{ textAlign: "center", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--nami-text-3)", textTransform: "uppercase", marginBottom: 60 }}>Infrastructure de coordination réelle — pas des mocks</p>
           </Reveal>
-          <div style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 40, textAlign: "center" }}>
+          <div className="landing-stats-grid" style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 40, textAlign: "center" }}>
             {[
               { ref: c1, suffix: "+", label: "Soignants\nen annuaire", color: "var(--nami-primary)" },
               { ref: c2, suffix: "", label: "Fiches de\nréférence", color: "var(--nami-secondary)" },
@@ -487,7 +549,7 @@ export default function HomePage() {
               <span className="nami-gradient-text">Une équipe coordonnée.</span>
             </h2>
           </Reveal>
-          <div style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+          <div className="landing-steps-grid" style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
             {[
               { n: "01", tag: "INVITEZ", title: "Constituez l'équipe", body: "Ajoutez vos confrères et votre patient au dossier de coordination. Chaque rôle voit ce qui le concerne." },
               { n: "02", tag: "DOCUMENTEZ", title: "Centralisez tout", body: "Dictez, l'IA structure le brouillon. Partagez bilans et comptes-rendus. Tout est en un seul endroit." },
@@ -532,7 +594,7 @@ export default function HomePage() {
               <span className="nami-gradient-text">demandent une équipe.</span>
             </h2>
           </Reveal>
-          <div style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div className="landing-specialties-grid" style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {[
               { icon: "🌱", label: "TCA", sub: "Anorexie · Boulimie · ARFID · BED" },
               { icon: "⚖️", label: "Obésité", sub: "Pédiatrique · Grade II/III · PCR" },
@@ -565,7 +627,7 @@ export default function HomePage() {
                 Construits pour la conformité<br />
                 <span className="nami-gradient-text">dès le jour 1.</span>
               </h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, textAlign: "left" }}>
+              <div className="landing-security-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, textAlign: "left" }}>
                 {[
                   { icon: "🇪🇺", label: "Hébergement en Europe", sub: "Migration HDS en cours" },
                   { icon: "🔒", label: "Chiffrement bout en bout", sub: "Données en transit et au repos" },
@@ -597,7 +659,7 @@ export default function HomePage() {
               <p style={{ fontSize: "1.15rem", color: "rgba(238,236,234,0.5)", marginBottom: 44, lineHeight: 1.65 }}>
                 Rejoignez les premiers soignants sur Nami.<br />Accès gratuit. Aucune carte de crédit.
               </p>
-              <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+              <div className="landing-cta-btns" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
                 <Link href="/signup" className="btn-primary"
                   style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "var(--nami-primary)", color: "#fff", fontSize: 16, fontWeight: 700, padding: "17px 44px", borderRadius: 100, textDecoration: "none", boxShadow: "0 4px 24px rgba(91,78,196,0.4)" }}
                 >
@@ -616,12 +678,10 @@ export default function HomePage() {
 
         {/* ═══ FOOTER ══════════════════════════════════════════════════════ */}
         <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "56px 24px 36px", background: "var(--nami-dark-2)" }}>
-          <div style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 44, marginBottom: 44 }}>
+          <div className="landing-footer-grid" style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 44, marginBottom: 44 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg,#5B4EC4,#2BA89C)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ color: "#fff", fontSize: 11, fontWeight: 900 }}>N</span>
-                </div>
+                <img src="/nami-mascot.png" alt="Nami" style={{ width: 30, height: 30, borderRadius: 8, objectFit: "contain" }} />
                 <span style={{ color: "#EEECEA", fontSize: 16, fontWeight: 800, letterSpacing: "-0.02em" }}>Nami</span>
               </div>
               <p style={{ color: "rgba(238,236,234,0.35)", fontSize: 13, lineHeight: 1.7, maxWidth: 240 }}>
@@ -647,7 +707,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="landing-footer-bottom" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "rgba(238,236,234,0.2)" }}>© 2026 Nami — Margot Vire</span>
             <span style={{ fontSize: 12, color: "rgba(238,236,234,0.15)" }}>Coordination des parcours de soins complexes</span>
           </div>

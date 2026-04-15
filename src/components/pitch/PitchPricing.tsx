@@ -78,11 +78,31 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
   return (
     <section style={{
       background: "#F5F3EF",
-      minHeight: "100vh",
+      minHeight: "100dvh",
       display: "flex",
       alignItems: "flex-start",
-      padding: "80px clamp(24px, 5vw, 80px)",
+      padding: "80px clamp(20px, 5vw, 80px)",
+      overflowX: "hidden",
     }}>
+      <style>{`
+        @media (max-width: 639px) {
+          .pricing-comparison {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .pricing-vs-divider {
+            display: none !important;
+          }
+          .pricing-tiers-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .pricing-tiers-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <ScrollReveal variant="fade-up" duration={0.7}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5B4EC4", marginBottom: 14 }}>
@@ -107,13 +127,16 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
         {/* Nuclear comparison — Doctolib vs Nami */}
         {variant === "vc" && (
           <ScrollReveal variant="fade-up" delay={0.1} duration={0.7}>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto 1fr",
-              gap: 16,
-              alignItems: "stretch",
-              marginBottom: 56,
-            }}>
+            <div
+              className="pricing-comparison"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr",
+                gap: 16,
+                alignItems: "stretch",
+                marginBottom: 56,
+              }}
+            >
               {/* Doctolib card */}
               <div style={{
                 background: "rgba(26,26,46,0.04)",
@@ -122,14 +145,13 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 padding: "28px 24px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 0,
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8A8A96", marginBottom: 10 }}>
                   Doctolib
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
                   <span style={{
-                    fontSize: "clamp(2.5rem, 5vw, 4rem)",
+                    fontSize: "clamp(2rem, 5vw, 4rem)",
                     fontWeight: 800,
                     letterSpacing: "-0.04em",
                     color: "#8A8A96",
@@ -156,7 +178,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
               </div>
 
               {/* VS divider */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px" }}>
+              <div className="pricing-vs-divider" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px" }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#8A8A96", letterSpacing: "0.05em" }}>VS</span>
               </div>
 
@@ -168,7 +190,6 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 padding: "28px 24px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 0,
                 boxShadow: "0 8px 40px rgba(91,78,196,0.12)",
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5B4EC4", marginBottom: 10 }}>
@@ -176,7 +197,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
                   <span style={{
-                    fontSize: "clamp(2.5rem, 5vw, 4rem)",
+                    fontSize: "clamp(2rem, 5vw, 4rem)",
                     fontWeight: 800,
                     letterSpacing: "-0.04em",
                     background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)",
@@ -203,10 +224,10 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
             </div>
 
             <div style={{ textAlign: "center", marginBottom: 48, padding: "16px", background: "rgba(91,78,196,0.06)", borderRadius: 12, border: "1px solid rgba(91,78,196,0.12)" }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E" }}>
+              <span style={{ fontSize: "clamp(13px, 1.4vw, 15px)", fontWeight: 700, color: "#1A1A2E" }}>
                 Ce que Doctolib facture 149€/mois, Nami l&apos;offre.{" "}
               </span>
-              <span style={{ fontSize: 15, color: "#5B4EC4", fontWeight: 600 }}>
+              <span style={{ fontSize: "clamp(13px, 1.4vw, 15px)", color: "#5B4EC4", fontWeight: 600 }}>
                 Et tout ce que Doctolib facture 307€ avec les options, Nami le fait pour 19€.
               </span>
             </div>
@@ -219,7 +240,10 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
             Les 5 tiers
           </div>
         </ScrollReveal>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+        <div
+          className="pricing-tiers-grid"
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}
+        >
           {TIERS.map((tier, i) => (
             <ScrollReveal key={tier.name} variant="fade-up" delay={0.1 + i * 0.08} duration={0.6}>
               <div style={{
@@ -229,7 +253,6 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 padding: "20px 18px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 0,
                 boxShadow: tier.highlight ? "0 8px 32px rgba(91,78,196,0.12)" : "none",
                 position: "relative",
               }}>
@@ -255,7 +278,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 16 }}>
                   <span style={{
-                    fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
+                    fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
                     fontWeight: 800,
                     letterSpacing: "-0.03em",
                     color: "#1A1A2E",

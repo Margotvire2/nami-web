@@ -38,9 +38,32 @@ export function PublicFooter() {
         fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
       }}
     >
+      <style>{`
+        @media (max-width: 767px) {
+          .footer-grid {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          .footer-bottom-bar {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 4px !important;
+          }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .footer-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 28px !important;
+          }
+        }
+      `}</style>
+
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 44, marginBottom: 44 }}>
+        <div
+          className="footer-grid"
+          style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 44, marginBottom: 44 }}
+        >
           {/* Brand column */}
           <div>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", marginBottom: 14 }}>
@@ -71,7 +94,10 @@ export function PublicFooter() {
 
         {/* Bottom bar */}
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 22, display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            className="footer-bottom-bar"
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          >
             <span style={{ fontSize: 12, color: "rgba(238,236,234,0.2)" }}>© 2026 Nami — Margot Vire</span>
             <span style={{ fontSize: 12, color: "rgba(238,236,234,0.15)" }}>Coordination des parcours de soins complexes</span>
           </div>

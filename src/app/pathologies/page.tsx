@@ -79,6 +79,10 @@ export default function PathologiesPage() {
         .nami-grad { background: linear-gradient(135deg,#5B4EC4,#2BA89C); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
         .stat-card { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1); }
         .stat-card:hover { transform: translateY(-2px); }
+        @media (max-width: 639px) {
+          .patho-cta-btns { flex-direction: column !important; align-items: stretch !important; }
+          .patho-cta-btns a { justify-content: center !important; }
+        }
       `}</style>
 
       <PublicNavbar />
@@ -157,7 +161,7 @@ export default function PathologiesPage() {
       <section style={{ padding: "80px 24px", background: "#F5F3EF", borderTop: "1px solid rgba(26,26,46,0.06)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#B0B0BA", marginBottom: 48 }}>Pourquoi la coordination ?</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: 24 }}>
             {[
               { value: "269", label: "structures PCR Obésité\nen France", color: "#5B4EC4" },
               { value: "5+", label: "soignants par parcours\nen moyenne", color: "#2BA89C" },
@@ -183,7 +187,7 @@ export default function PathologiesPage() {
           <p style={{ fontSize: "1rem", color: "rgba(238,236,234,0.5)", marginBottom: 40, lineHeight: 1.65 }}>
             Accès gratuit. Rejoignez les premiers soignants sur Nami.
           </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="patho-cta-btns" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/signup" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#5B4EC4", color: "#fff", fontSize: 15, fontWeight: 700, padding: "15px 38px", borderRadius: 100, textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.35)" }}>
               Créer un compte gratuit
             </Link>

@@ -42,27 +42,34 @@ export function PitchHero({ variant }: Props) {
     return () => clearTimeout(timer)
   }, [])
 
-  const allWords = c.lines.flatMap(l => l.split(" "))
   let wordIdx = 0
 
   return (
     <section style={{
       background: "#FAFAF8",
-      minHeight: "100vh",
+      minHeight: "100dvh",
       display: "flex",
       flexDirection: "column",
-      padding: "0 clamp(24px, 5vw, 80px)",
+      padding: "0 clamp(20px, 5vw, 80px)",
+      overflowX: "hidden",
     }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 80, paddingBottom: 60 }}>
+      <style>{`
+        @media (max-width: 639px) {
+          .pitch-hero-ctas {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .pitch-hero-cta-primary {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+        }
+      `}</style>
+      <div ref={ref} style={{ maxWidth: 1200, margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 72, paddingBottom: 48 }}>
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 72 }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 11,
-            background: "linear-gradient(135deg, #5B4EC4, #2BA89C)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <span style={{ color: "#fff", fontSize: 14, fontWeight: 900 }}>N</span>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 56 }}>
+          <img src="/nami-mascot.png" alt="Nami" style={{ width: 34, height: 34, borderRadius: 11, objectFit: "contain" }} />
           <span style={{ fontSize: 17, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.02em" }}>Nami</span>
         </div>
 
@@ -79,12 +86,12 @@ export function PitchHero({ variant }: Props) {
 
         {/* Title — word by word */}
         <h1 style={{
-          fontSize: "clamp(2.8rem, 7.5vw, 5.8rem)",
+          fontSize: "clamp(2.2rem, 7.5vw, 5.8rem)",
           fontWeight: 800,
           letterSpacing: "-0.04em",
-          lineHeight: 1.05,
+          lineHeight: 1.08,
           color: "#1A1A2E",
-          margin: "0 0 28px",
+          margin: "0 0 24px",
           fontFamily: "var(--font-jakarta)",
         }}>
           {c.lines.map((line, li) => (
@@ -119,11 +126,11 @@ export function PitchHero({ variant }: Props) {
 
         {/* Subtitle */}
         <p style={{
-          fontSize: "clamp(15px, 1.8vw, 18px)",
+          fontSize: "clamp(14px, 1.8vw, 18px)",
           color: "#4A4A5A",
           lineHeight: 1.65,
           maxWidth: 560,
-          margin: "0 0 36px",
+          margin: "0 0 32px",
           opacity: visible ? 1 : 0,
           transform: visible ? "none" : "translateY(20px)",
           transition: "opacity 0.6s ease 600ms, transform 0.6s ease 600ms",
@@ -132,43 +139,57 @@ export function PitchHero({ variant }: Props) {
         </p>
 
         {/* CTAs */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 18,
-          flexWrap: "wrap",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "none" : "translateY(16px)",
-          transition: "opacity 0.6s ease 760ms, transform 0.6s ease 760ms",
-        }}>
-          <a href={c.ctaHref} style={{
-            display: "inline-flex",
+        <div
+          className="pitch-hero-ctas"
+          style={{
+            display: "flex",
             alignItems: "center",
-            padding: "14px 30px",
-            borderRadius: 100,
-            background: "#5B4EC4",
-            color: "#fff",
-            fontSize: 15,
-            fontWeight: 700,
-            textDecoration: "none",
-            fontFamily: "inherit",
-            boxShadow: "0 4px 20px rgba(91,78,196,0.30)",
-          }}>
+            gap: 18,
+            flexWrap: "wrap",
+            opacity: visible ? 1 : 0,
+            transform: visible ? "none" : "translateY(16px)",
+            transition: "opacity 0.6s ease 760ms, transform 0.6s ease 760ms",
+          }}
+        >
+          <a
+            href={c.ctaHref}
+            className="pitch-hero-cta-primary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "14px 30px",
+              borderRadius: 100,
+              background: "#5B4EC4",
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 700,
+              textDecoration: "none",
+              fontFamily: "inherit",
+              boxShadow: "0 4px 20px rgba(91,78,196,0.30)",
+              minHeight: 48,
+            }}
+          >
             {c.cta}
           </a>
-          <a href={c.ctaSecondary.startsWith("mailto") || c.ctaSecondary.startsWith("#") ? c.ctaSecondary : "#demo"} style={{
-            fontSize: 14,
-            color: "#8A8A96",
-            textDecoration: "none",
-            fontFamily: "inherit",
-          }}>
+          <a
+            href={c.ctaSecondary.startsWith("mailto") || c.ctaSecondary.startsWith("#") ? c.ctaSecondary : "#demo"}
+            style={{
+              fontSize: 14,
+              color: "#8A8A96",
+              textDecoration: "none",
+              fontFamily: "inherit",
+              minHeight: 44,
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
             {c.ctaSecondary}
           </a>
         </div>
 
         {/* Footer note */}
         <div style={{
-          marginTop: 40,
+          marginTop: 32,
           fontSize: 11,
           color: "#8A8A96",
           opacity: visible ? 1 : 0,
@@ -179,10 +200,11 @@ export function PitchHero({ variant }: Props) {
 
         {/* Mockup */}
         <div style={{
-          marginTop: 56,
+          marginTop: 48,
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(40px)",
           transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 500ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 500ms",
+          width: "100%",
         }}>
           <PitchMockup />
         </div>

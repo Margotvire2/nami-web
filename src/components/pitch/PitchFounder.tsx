@@ -16,11 +16,22 @@ export function PitchFounder({ variant = "light" }: Props) {
   return (
     <section style={{
       background: isDark ? "transparent" : "#FAFAF8",
-      padding: isDark ? "0" : "80px clamp(24px, 5vw, 80px)",
-      minHeight: isDark ? undefined : "80vh",
+      padding: isDark ? "0" : "80px clamp(20px, 5vw, 80px)",
+      minHeight: isDark ? undefined : "80dvh",
       display: "flex",
       alignItems: "center",
     }}>
+      <style>{`
+        @media (max-width: 639px) {
+          .founder-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          .founder-avatar {
+            align-items: flex-start !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%" }}>
         {!isDark && (
           <ScrollReveal variant="fade-up" duration={0.7}>
@@ -31,17 +42,20 @@ export function PitchFounder({ variant = "light" }: Props) {
         )}
 
         <ScrollReveal variant="fade-up" delay={isDark ? 0 : 0.1} duration={0.75}>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "auto 1fr",
-            gap: 40,
-            alignItems: "flex-start",
-          }}>
+          <div
+            className="founder-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "auto 1fr",
+              gap: 40,
+              alignItems: "flex-start",
+            }}
+          >
             {/* Avatar */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <div className="founder-avatar" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
               <div style={{
-                width: isDark ? 96 : 140,
-                height: isDark ? 96 : 140,
+                width: isDark ? 96 : 120,
+                height: isDark ? 96 : 120,
                 borderRadius: "50%",
                 background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)",
                 display: "flex",
@@ -51,7 +65,7 @@ export function PitchFounder({ variant = "light" }: Props) {
                 boxShadow: "0 12px 40px rgba(91,78,196,0.30)",
               }}>
                 <span style={{
-                  fontSize: isDark ? 28 : 40,
+                  fontSize: isDark ? 28 : 36,
                   fontWeight: 900,
                   color: "#fff",
                   fontFamily: "var(--font-jakarta)",
@@ -73,7 +87,7 @@ export function PitchFounder({ variant = "light" }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* Name */}
               <div>
-                <div style={{ fontSize: isDark ? 22 : 28, fontWeight: 800, color: text, letterSpacing: "-0.02em", marginBottom: 6, fontFamily: "var(--font-jakarta)" }}>
+                <div style={{ fontSize: isDark ? 22 : 26, fontWeight: 800, color: text, letterSpacing: "-0.02em", marginBottom: 6, fontFamily: "var(--font-jakarta)" }}>
                   Margot Vire
                 </div>
                 <div style={{ fontSize: 14, color: body }}>
@@ -91,7 +105,7 @@ export function PitchFounder({ variant = "light" }: Props) {
                 borderLeft: "3px solid #5B4EC4",
                 fontFamily: "Georgia, 'Times New Roman', serif",
                 fontStyle: "italic",
-                fontSize: "clamp(1rem, 1.8vw, 1.4rem)",
+                fontSize: "clamp(0.95rem, 1.8vw, 1.35rem)",
                 color: quoteColor,
                 lineHeight: 1.65,
               }}>
