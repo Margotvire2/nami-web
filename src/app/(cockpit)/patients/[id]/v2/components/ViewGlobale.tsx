@@ -54,6 +54,14 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const [streamText, setStreamText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
+
+  const feedbackMutation = useMutation({
+    mutationFn: (r: number) => api.post("/intelligence/summary-feedback", { careCaseId, rating: r }),
+    onSuccess: () => toast.success("Merci pour votre retour"),
+    onError: () => toast.error("Erreur lors de l'envoi du feedback"),
+  });
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   useEffect(() => {
@@ -72,6 +80,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     if (!token) return;
     setIsStreaming(true);
     setStreamText("");
+    setRating(null);
 
     const es = new EventSource(
       `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(token)}`
@@ -163,6 +172,25 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
         <div className="px-5 pb-4 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
           <div className="lg:col-span-2">
             <AiDisclaimer variant="inline" className="mb-2" />
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] text-gray-400">Qualité de la synthèse :</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  disabled={feedbackMutation.isPending}
+                  onClick={() => { setRating(star); feedbackMutation.mutate(star); }}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(null)}
+                  className="text-base leading-none transition-transform hover:scale-110 disabled:opacity-50"
+                  aria-label={`${star} étoile${star > 1 ? "s" : ""}`}
+                >
+                  {star <= (hoverRating ?? rating ?? 0) ? "★" : "☆"}
+                </button>
+              ))}
+              {rating !== null && (
+                <span className="text-[11px] text-[#5B4EC4] ml-1">Merci !</span>
+              )}
+            </div>
           </div>
           {sections.map((s, i) => (
             <div key={i} className="rounded-lg bg-gray-50/70 p-3 border border-gray-100">
