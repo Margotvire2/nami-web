@@ -9,11 +9,35 @@ const TIMELINE = [
   { date: "Mai 2026", label: "Premiers pilotes tarifés" },
 ]
 
-const PIPELINE = [
-  { name: "Hôpital Paul-Brousse (AP-HP)", status: "Présentation programmée — 23 avril", specialty: "TCA — référence nationale", color: "#5B4EC4" },
-  { name: "Hôpital Américain de Paris", status: "Présentation programmée — 23 avril", specialty: "Pédiatrie · Réseau ville-hôpital", color: "#2BA89C" },
-  { name: "Hôpital Foch", status: "Contact établi — Direction de l'Innovation", specialty: "CE IIa · Parcours pluridisciplinaire", color: "#5B4EC4" },
-  { name: "Catalyseur Santé (Suresnes)", status: "Contact en cours", specialty: "Parcours ambulatoire obésité", color: "#2BA89C" },
+const MOATS = [
+  {
+    label: "Graphe clinique propriétaire",
+    metric: "116 201",
+    unit: "relations typées",
+    body: "HAS, DSM-5, FFAB, ESPGHAN, Orphanet — chaque relation a un grade de preuve. Irréproductible sans clinicien expert à temps plein.",
+    color: "#5B4EC4",
+  },
+  {
+    label: "Évaluation IA mesurée",
+    metric: "0,6 %",
+    unit: "taux d'hallucination",
+    body: "5 métriques quantitatives sur chaque résumé. Score moyen 95%. Aucun concurrent dans la coordination santé ne mesure ses outputs.",
+    color: "#2BA89C",
+  },
+  {
+    label: "Compliance MDR native",
+    metric: "0",
+    unit: "mot interdit dans le code",
+    body: "Structuration documentaire, indicateurs de complétude — jamais de détection, diagnostic ou alerte clinique. Dans le nommage, pas en surcouche.",
+    color: "#5B4EC4",
+  },
+  {
+    label: "Founder-market fit",
+    metric: "∅",
+    unit: "équivalent en France",
+    body: "Diététicienne en exercice · Master AP-HP · 8 réseaux cliniques · pipeline RAG+graphe+éval TypeScript. Temps de reproduction : irréproductible.",
+    color: "#2BA89C",
+  },
 ]
 
 export function PitchTraction() {
@@ -67,22 +91,29 @@ export function PitchTraction() {
           </div>
         </ScrollReveal>
 
-        {/* Pipeline cards */}
+        {/* MOAT cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 28 }}>
-          {PIPELINE.map((card, i) => (
-            <ScrollReveal key={card.name} variant="fade-up" delay={i * 0.1} duration={0.6}>
+          {MOATS.map((card, i) => (
+            <ScrollReveal key={card.label} variant="fade-up" delay={i * 0.1} duration={0.6}>
               <div style={{
                 background: "#fff",
                 borderRadius: 16,
                 border: "1px solid rgba(26,26,46,0.07)",
-                padding: "20px 22px",
-                borderLeft: `4px solid ${card.color}`,
+                padding: "22px 22px",
+                borderTop: `3px solid ${card.color}`,
                 boxShadow: "0 2px 10px rgba(26,26,46,0.04)",
-                transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease",
+                height: "100%",
+                boxSizing: "border-box",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
               }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 6 }}>{card.name}</div>
-                <div style={{ fontSize: 12, color: card.color, fontWeight: 600, marginBottom: 4 }}>{card.status}</div>
-                <div style={{ fontSize: 12, color: "#8A8A96" }}>{card.specialty}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: card.color, letterSpacing: "0.04em", textTransform: "uppercase" }}>{card.label}</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                  <span style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.03em", fontFamily: "var(--font-jakarta)" }}>{card.metric}</span>
+                  <span style={{ fontSize: 12, color: "#8A8A96", fontWeight: 500 }}>{card.unit}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "#4A4A5A", lineHeight: 1.6, flex: 1 }}>{card.body}</div>
               </div>
             </ScrollReveal>
           ))}
