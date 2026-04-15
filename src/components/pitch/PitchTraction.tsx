@@ -39,10 +39,10 @@ export function PitchTraction() {
             margin: "0 0 14px",
             fontFamily: "var(--font-jakarta)",
           }}>
-            10 jours de build.<br />Un pipeline institutionnel.
+            Construit de l&apos;intérieur.<br />Validé par les institutions.
           </h2>
-          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 52, maxWidth: 480, lineHeight: 1.6 }}>
-            Première ligne de code : 4 avril 2026. En production le 14 avril.
+          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 52, maxWidth: 520, lineHeight: 1.6 }}>
+            Nami réunit dans un seul outil les frictions du quotidien soignant — agenda, coordination d&apos;équipe, adressage, messagerie, intelligence documentaire. Conçu par une professionnelle de santé qui les a toutes vécues.
           </p>
         </ScrollReveal>
 
@@ -89,9 +89,28 @@ export function PitchTraction() {
         </div>
 
         <ScrollReveal variant="fade-up" delay={0.35} duration={0.6}>
-          <p style={{ fontSize: 13, color: "#8A8A96", maxWidth: 560, lineHeight: 1.7, fontStyle: "italic" }}>
-            Ce pipeline n&apos;a pas été construit avec des slides. Margot est diététicienne spécialisée TCA, première utilisatrice de Nami. Elle connaît les dossiers incomplets, les réunions sans trace, les patients qui coordonnent seuls leur parcours. La légitimité clinique de la fondatrice n&apos;est pas une anecdote — c&apos;est l&apos;avantage compétitif.
-          </p>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 12,
+            marginTop: 8,
+          }}>
+            {[
+              { label: "Un seul outil", body: "Agenda, coordination, IA, base documentaire, adressage, messagerie — pas une collection d'outils intégrés." },
+              { label: "Terrain d'abord", body: "Chaque feature répond à un pain point documenté sur le terrain par une diététicienne en exercice." },
+              { label: "La tech au service du soin", body: "Dictée → note structurée. Dossier incomplet → indicateur de complétude. Réseau inconnu → adressage sécurisé." },
+            ].map((item) => (
+              <div key={item.label} style={{
+                padding: "16px 18px",
+                background: "rgba(91,78,196,0.04)",
+                borderRadius: 12,
+                border: "1px solid rgba(91,78,196,0.09)",
+              }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#5B4EC4", marginBottom: 6 }}>{item.label}</div>
+                <div style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.6 }}>{item.body}</div>
+              </div>
+            ))}
+          </div>
         </ScrollReveal>
       </div>
     </section>
