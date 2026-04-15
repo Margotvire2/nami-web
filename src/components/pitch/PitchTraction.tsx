@@ -32,10 +32,10 @@ const MOATS = [
     color: "#5B4EC4",
   },
   {
-    label: "Founder-market fit",
-    metric: "∅",
-    unit: "équivalent en France",
-    body: "Diététicienne en exercice · Master AP-HP · 8 réseaux cliniques · pipeline RAG+graphe+éval TypeScript. Temps de reproduction : irréproductible.",
+    label: "Effet réseau B2B",
+    metric: "582 000",
+    unit: "soignants référencés",
+    body: "Quand un soignant adresse via Nami, le destinataire doit y être. Même mécanique que Doctolib — mais entre soignants, pas patient→soignant. Plus sticky, plus difficile à déloger.",
     color: "#2BA89C",
   },
 ]
