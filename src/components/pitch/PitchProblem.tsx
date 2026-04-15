@@ -5,18 +5,19 @@ import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 
 const LINES_VC = [
-  '\u201C5 soignants. 8 outils.',
-  ' 0 espace commun.\u201D',
+  '\u201CLe virage ambulatoire ne marche',
+  ' que si les libéraux se coordonnent.',
+  ' Aujourd\u2019hui, ils ne peuvent pas.\u201D',
 ]
 
 const LINES_HOSPITAL = [
-  '\u201CGabrielle a 16 ans.',
-  ' 5 soignants. 0 espace commun.\u201D',
+  '\u201CVos patients sortent plus tôt.',
+  ' Le relais en ville est toujours cassé.\u201D',
 ]
 
 const STATS_VC = [
-  { value: 47, suffix: "j", label: "de délai moyen entre détection et prise en charge spécialisée", source: "HAS 2023", color: "#5B4EC4" },
-  { value: 63, suffix: "%", label: "d'informations perdues entre deux consultations", source: "Coord. ville-hôpital 2023", color: "#2BA89C" },
+  { value: 100, suffix: "Md€", label: "dépensés chaque année en hospitalisation — que le virage ambulatoire veut réduire", source: "Comptes de la santé 2024", color: "#5B4EC4" },
+  { value: 63, suffix: "%", label: "d'informations perdues entre deux consultations en ville-hôpital", source: "Coord. ville-hôpital 2023", color: "#2BA89C" },
   { static: "5,2", label: "soignants en moyenne par parcours complexe sans outil commun", source: "Étude terrain 2025", color: "#5B4EC4" },
 ] as const
 
@@ -35,7 +36,8 @@ export function PitchProblem({ variant }: Props) {
   const stats = variant === "vc" ? STATS_VC : STATS_HOSPITAL
 
   const quoteRef = useRef<HTMLDivElement>(null)
-  const [lineVisible, setLineVisible] = useState([false, false])
+  const lineCount = lines.length
+  const [lineVisible, setLineVisible] = useState<boolean[]>(Array(lineCount).fill(false))
 
   useEffect(() => {
     const el = quoteRef.current
@@ -43,8 +45,13 @@ export function PitchProblem({ variant }: Props) {
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setLineVisible([true, false])
-          setTimeout(() => setLineVisible([true, true]), 400)
+          lines.forEach((_, idx) => {
+            setTimeout(() => setLineVisible(prev => {
+              const next = [...prev]
+              next[idx] = true
+              return next
+            }), idx * 400)
+          })
           obs.disconnect()
         }
       },
@@ -89,7 +96,7 @@ export function PitchProblem({ variant }: Props) {
               color: "#5B4EC4",
               textAlign: "center",
             }}>
-              Ce n&apos;est pas un manque de compétence. C&apos;est un défaut d&apos;infrastructure.
+              Nami n&apos;est pas un outil dans un marché existant. Nami est l&apos;infrastructure qui crée le marché du parcours ambulatoire coordonné.
             </p>
             {variant === "hospital" && (
               <p style={{ marginTop: 12, fontSize: 15, color: "#4A4A5A", maxWidth: 560, margin: "12px auto 0", lineHeight: 1.65, textAlign: "center" }}>

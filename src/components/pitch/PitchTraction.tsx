@@ -10,9 +10,10 @@ const TIMELINE = [
 ]
 
 const PIPELINE = [
-  { name: "Hôpital Paul-Brousse (AP-HP)", status: "Présentation programmée", specialty: "TCA — référence nationale", color: "#5B4EC4" },
-  { name: "Hôpital Américain de Paris", status: "Présentation programmée", specialty: "Pédiatrie · Réseau ville-hôpital", color: "#2BA89C" },
-  { name: "Hôpital Foch", status: "Contact établi — Direction de l'Innovation", specialty: "Pluridisciplinaire", color: "#5B4EC4" },
+  { name: "Hôpital Paul-Brousse (AP-HP)", status: "Présentation programmée — 23 avril", specialty: "TCA — référence nationale", color: "#5B4EC4" },
+  { name: "Hôpital Américain de Paris", status: "Présentation programmée — 23 avril", specialty: "Pédiatrie · Réseau ville-hôpital", color: "#2BA89C" },
+  { name: "Hôpital Foch", status: "Contact établi — Direction de l'Innovation", specialty: "CE IIa · Parcours pluridisciplinaire", color: "#5B4EC4" },
+  { name: "Catalyseur Santé (Suresnes)", status: "Contact en cours", specialty: "Parcours ambulatoire obésité", color: "#2BA89C" },
 ]
 
 export function PitchTraction() {
@@ -89,8 +90,8 @@ export function PitchTraction() {
 
         <ScrollReveal variant="fade-up" delay={0.35} duration={0.6}>
           <p style={{ fontSize: 12, color: "#8A8A96", maxWidth: 560, lineHeight: 1.6, fontStyle: "italic" }}>
-            Pipeline construit en 10 jours sur la légitimité clinique de la fondatrice, pas sur du marketing.
-            Aucun engagement formel à ce stade — c&apos;est à ça que sert un seed.
+            Pipeline institutionnel construit en 10 jours sur la légitimité clinique de la fondatrice — diététicienne spécialisée TCA, première utilisatrice de Nami.
+            Aucun engagement formel à ce stade — c&apos;est exactement à ça que sert un seed.
           </p>
         </ScrollReveal>
       </div>

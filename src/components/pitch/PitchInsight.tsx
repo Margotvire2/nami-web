@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 
 const QUOTE_LINES = [
-  "Tous les outils médicaux améliorent les pratiques.",
-  "Aucun ne rend du temps.",
+  "Chaque nouveau logiciel coûte du temps ETP.",
+  "Nami en restitue.",
 ]
 
 export function PitchInsight() {
@@ -68,9 +68,9 @@ export function PitchInsight() {
           opacity: lineVisible[1] ? 1 : 0,
           transition: "opacity 0.6s ease 300ms",
         }}>
-          — Projet de recherche 2025 · Interviews de médecins, infirmiers et chefs de service
+          — Terrain 2025 · Interviews de soignants libéraux, coordinateurs de MSP et CPTS
           <br />
-          sur la coordination des pathologies chroniques
+          sur le coût organisationnel de la fragmentation ambulatoire
         </p>
 
         {/* Body */}
@@ -84,9 +84,9 @@ export function PitchInsight() {
           opacity: lineVisible[1] ? 1 : 0,
           transition: "opacity 0.6s ease 500ms",
         }}>
-          Chaque nouveau logiciel coûte du temps ETP supplémentaire.
-          Nami est conçu pour restituer du temps, pas en consommer.
-          C&apos;est la thèse fondatrice.
+          Le virage ambulatoire pousse les patients hors de l&apos;hôpital.
+          Mais il ne fonctionne que si les libéraux se coordonnent aussi bien qu&apos;une équipe hospitalière.
+          Aujourd&apos;hui, ils n&apos;ont aucun outil commun. Nami est ce couloir.
         </p>
       </div>
     </section>

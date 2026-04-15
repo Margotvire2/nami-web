@@ -64,7 +64,8 @@ export function PitchArchitecture() {
             Ce n&apos;est pas un modèle.<br />C&apos;est un système.
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
-            Quatre couches indépendantes et assemblées. Chaque couche seule est reproductible. L&apos;assemblage câblé sur des parcours de soins réels, non.
+            Quatre couches indépendantes et assemblées. Chaque couche seule est reproductible. L&apos;assemblage câblé sur des parcours ambulatoires réels, non.{" "}
+            <span style={{ color: "rgba(255,255,255,0.25)" }}>Temps de reproduction par une équipe de 5 : 18-24 mois.</span>
           </p>
         </ScrollReveal>
 
@@ -147,6 +148,41 @@ export function PitchArchitecture() {
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.40)", marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
+          </div>
+        </ScrollReveal>
+
+        {/* Data flywheel */}
+        <ScrollReveal variant="fade-up" delay={0.75} duration={0.6}>
+          <div style={{
+            marginTop: 40,
+            padding: "24px 28px",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 16,
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(91,78,196,0.7)", marginBottom: 12 }}>
+              DATA FLYWHEEL
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              {[
+                "Plus de parcours",
+                "Plus de feedbacks soignants",
+                "Meilleure pertinence",
+                "Plus de confiance",
+                "Plus de parcours",
+              ].map((step, i, arr) => (
+                <span key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: i === arr.length - 1 ? 700 : 400, color: i === arr.length - 1 ? "#5B4EC4" : "rgba(255,255,255,0.55)" }}>
+                    {step}
+                  </span>
+                  {i < arr.length - 1 && <span style={{ color: "rgba(255,255,255,0.20)", fontSize: 12 }}>→</span>}
+                </span>
+              ))}
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#2BA89C" }}>BOUCLE</span>
+            </div>
+            <p style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.30)", lineHeight: 1.5 }}>
+              Coût marginal par patient : tend vers zéro. Chaque parcours enrichit le système. Rendements d&apos;échelle croissants.
+            </p>
           </div>
         </ScrollReveal>
       </div>

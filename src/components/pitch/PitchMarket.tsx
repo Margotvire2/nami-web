@@ -14,8 +14,9 @@ const STATS = [
 const TAILWINDS = [
   "PCR Obésité Complexe adulte — 269 structures ARS, candidatures 5 mai 2026",
   "Plan 4 000 MSP — objectif gouvernemental 2027",
-  "CPTS 100% couverture territoire — budget ACI coordination",
-  "Pénurie soignants — la coordination fait plus avec moins",
+  "CPTS 100% couverture territoire — budget ACI pour la coordination ambulatoire",
+  "Pénurie soignants — 7M de Français sans médecin traitant, coordination = faire plus avec moins",
+  "Article 51 — cadre réglementaire pour financer des parcours ambulatoires innovants",
 ]
 
 export function PitchMarket() {
@@ -40,11 +41,14 @@ export function PitchMarket() {
             letterSpacing: "-0.03em",
             color: "#fff",
             lineHeight: 1.1,
-            margin: "0 0 52px",
+            margin: "0 0 16px",
             fontFamily: "var(--font-jakarta)",
           }}>
-            Un marché structurel,<br />pas conjoncturel.
+            Le virage ambulatoire :<br />100 milliards€/an à coordonner.
           </h2>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.40)", marginBottom: 52, maxWidth: 560, lineHeight: 1.65 }}>
+            SAM France : ~100M€/an · TAM Europe (×5-8) : 500-800M€
+          </p>
         </ScrollReveal>
 
         {/* Giant counters */}
