@@ -64,7 +64,7 @@ export function PitchArchitecture() {
             Ce n&apos;est pas un modèle.<br />C&apos;est un système.
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
-            Quatre couches indépendantes et assemblées. Chaque couche seule est reproductible. L&apos;assemblage câblé sur des parcours ambulatoires réels, non.{" "}
+            Quatre couches indépendantes et assemblées. Chaque couche seule est reproductible. L&apos;assemblage câblé sur des parcours ambulatoires réels ne l&apos;est pas.{" "}
             <span style={{ color: "rgba(255,255,255,0.25)" }}>Temps de reproduction par une équipe de 5 : 18-24 mois.</span>
           </p>
         </ScrollReveal>
