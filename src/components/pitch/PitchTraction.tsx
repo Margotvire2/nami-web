@@ -2,13 +2,6 @@
 
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 
-const TIMELINE = [
-  { date: "4 avril", label: "Première ligne de code" },
-  { date: "14 avril", label: "26 500 lignes · 260 endpoints · 67 modèles · En production" },
-  { date: "23 avril", label: "Présentations institutionnelles programmées" },
-  { date: "Mai 2026", label: "Premiers pilotes tarifés" },
-]
-
 const MOATS = [
   {
     label: "Graphe clinique propriétaire",
@@ -19,7 +12,7 @@ const MOATS = [
   },
   {
     label: "Évaluation IA mesurée",
-    metric: "0,6 %",
+    metric: "0,6%",
     unit: "taux d'hallucination",
     body: "5 métriques quantitatives sur chaque résumé. Score moyen 95%. Aucun concurrent dans la coordination santé ne mesure ses outputs.",
     color: "#2BA89C",
@@ -63,32 +56,11 @@ export function PitchTraction() {
             margin: "0 0 14px",
             fontFamily: "var(--font-jakarta)",
           }}>
-            Construit de l&apos;intérieur.<br />Validé par les institutions.
+            Pas un claim.<br />Des preuves.
           </h2>
           <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 52, maxWidth: 520, lineHeight: 1.6 }}>
             Nami réunit dans un seul outil les frictions du quotidien soignant — agenda, coordination d&apos;équipe, adressage, messagerie, intelligence documentaire. Conçu par une professionnelle de santé qui les a toutes vécues.
           </p>
-        </ScrollReveal>
-
-        {/* Timeline */}
-        <ScrollReveal variant="fade-up" delay={0.1} duration={0.7}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 52, overflowX: "auto", paddingBottom: 8 }}>
-            {TIMELINE.map((step, i) => (
-              <div key={step.date} style={{ display: "flex", alignItems: "center", flex: "1 0 auto", minWidth: 0 }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 120, flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: 10 }}>
-                    {i > 0 && <div style={{ flex: 1, height: 2, background: "rgba(91,78,196,0.20)" }} />}
-                    <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#5B4EC4", flexShrink: 0 }} />
-                    {i < TIMELINE.length - 1 && <div style={{ flex: 1, height: 2, background: "rgba(91,78,196,0.20)" }} />}
-                  </div>
-                  <div style={{ padding: "0 12px", textAlign: "center" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#5B4EC4", marginBottom: 4 }}>{step.date}</div>
-                    <div style={{ fontSize: 12, color: "#4A4A5A", lineHeight: 1.4 }}>{step.label}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </ScrollReveal>
 
         {/* MOAT cards */}
