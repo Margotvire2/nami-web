@@ -160,11 +160,30 @@ function CustomTooltip({
 
 // ─── Graphique ───────────────────────────────────────────────────────────────
 
+/** Interpolation linéaire des percentiles pour un age non couvert par le LMS */
+function interpolateRef(age: number, sorted: ReferenceCurve[]): ReferenceCurve | undefined {
+  if (sorted.length === 0) return undefined;
+  if (age <= sorted[0].ageMonths) return sorted[0];
+  if (age >= sorted[sorted.length - 1].ageMonths) return sorted[sorted.length - 1];
+  const hi = sorted.findIndex((r) => r.ageMonths >= age);
+  if (hi <= 0) return sorted[0];
+  const lo = hi - 1;
+  const t = (age - sorted[lo].ageMonths) / (sorted[hi].ageMonths - sorted[lo].ageMonths);
+  const lerp = (a: number, b: number) => Math.round((a + (b - a) * t) * 100) / 100;
+  return {
+    ageMonths: age,
+    P3:  lerp(sorted[lo].P3,  sorted[hi].P3),
+    P10: lerp(sorted[lo].P10, sorted[hi].P10),
+    P50: lerp(sorted[lo].P50, sorted[hi].P50),
+    P90: lerp(sorted[lo].P90, sorted[hi].P90),
+    P97: lerp(sorted[lo].P97, sorted[hi].P97),
+  };
+}
+
 function GrowthChart({ data, unit }: { data: GrowthCurveResult; unit: string }) {
-  // Fusionner points patient + courbes de référence dans un seul tableau
-  const refByAge = new Map<number, ReferenceCurve>(
-    data.referenceCurves.map((r) => [r.ageMonths, r])
-  );
+  // Courbes de référence triées (pour interpolation)
+  const sortedRef = [...data.referenceCurves].sort((a, b) => a.ageMonths - b.ageMonths);
+  const refByAge = new Map<number, ReferenceCurve>(sortedRef.map((r) => [r.ageMonths, r]));
 
   // Tous les ages : référence + patient
   const allAges = new Set<number>([
@@ -175,7 +194,8 @@ function GrowthChart({ data, unit }: { data: GrowthCurveResult; unit: string }) 
   const sortedAges = Array.from(allAges).sort((a, b) => a - b);
 
   const chartData = sortedAges.map((age) => {
-    const ref = refByAge.get(age);
+    // Pour les ages patient sans entrée LMS exacte, interpoler les percentiles
+    const ref = refByAge.get(age) ?? interpolateRef(age, sortedRef);
     const patientPt = data.points.find((p) => p.ageMonths === age);
 
     const entry: Record<string, number | string | undefined> = {
@@ -222,32 +242,23 @@ function GrowthChart({ data, unit }: { data: GrowthCurveResult; unit: string }) 
         />
         <Tooltip content={<CustomTooltip unit={unit} />} />
 
-        {/* Zone P3-P97 — fond gris clair */}
+        {/* Zone P3-P97 — fond gris très léger, sans white-override qui masque les courbes */}
         <Area
           type="monotone"
           dataKey="P97"
           stroke="none"
           fill={BAND_FILL}
-          fillOpacity={0.5}
-          legendType="none"
-          isAnimationActive={false}
-        />
-        <Area
-          type="monotone"
-          dataKey="P3"
-          stroke="none"
-          fill="#FFFFFF"
-          fillOpacity={1}
+          fillOpacity={0.35}
           legendType="none"
           isAnimationActive={false}
         />
 
-        {/* Courbes de référence */}
+        {/* Courbes de référence — rendues avant la courbe patient */}
         <Line
           type="monotone"
           dataKey="P3"
           stroke={REF_GRAY}
-          strokeWidth={1}
+          strokeWidth={1.5}
           dot={false}
           strokeDasharray="4 2"
           isAnimationActive={false}
@@ -269,6 +280,7 @@ function GrowthChart({ data, unit }: { data: GrowthCurveResult; unit: string }) 
           stroke={REF_MEDIAN}
           strokeWidth={1.5}
           dot={false}
+          strokeDasharray="5 3"
           isAnimationActive={false}
           legendType="none"
         />
@@ -286,18 +298,19 @@ function GrowthChart({ data, unit }: { data: GrowthCurveResult; unit: string }) 
           type="monotone"
           dataKey="P97"
           stroke={REF_GRAY}
-          strokeWidth={1}
+          strokeWidth={1.5}
           dot={false}
           strokeDasharray="4 2"
           isAnimationActive={false}
           legendType="none"
         />
 
-        {/* Courbe patient */}
+        {/* Courbe patient — rendue EN DERNIER (z-index maximal), sans fill */}
         <Line
           type="monotone"
           dataKey="value"
           stroke={NAMI_PRIMARY}
+          fill="none"
           strokeWidth={2.5}
           dot={(props: any) => {
             const { cx, cy, payload } = props;
@@ -311,12 +324,12 @@ function GrowthChart({ data, unit }: { data: GrowthCurveResult; unit: string }) 
                 r={5}
                 fill={outRange ? POINT_OUT_OF_RANGE : NAMI_PRIMARY}
                 stroke="white"
-                strokeWidth={1.5}
+                strokeWidth={2}
               />
             );
           }}
-          activeDot={{ r: 6, fill: NAMI_PRIMARY, stroke: "white", strokeWidth: 2 }}
-          connectNulls={false}
+          activeDot={{ r: 7, fill: NAMI_PRIMARY, stroke: "white", strokeWidth: 2 }}
+          connectNulls={true}
           isAnimationActive={false}
         />
 
