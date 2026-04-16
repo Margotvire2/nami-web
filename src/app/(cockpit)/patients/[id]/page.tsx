@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 import { AnimatedTabs } from "@/components/ui/AnimatedTabs"
+import { useCareSocket } from "@/hooks/useCareSocket"
 
 type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination" | "journal";
 
@@ -191,6 +192,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [analysisNote, setAnalysisNote] = useState<{ noteId: string; careCaseId: string } | null>(null);
   const [aiStreaming, setAiStreaming] = useState(false);
+
+  // Temps réel — notes, journal, observations, messages du dossier
+  useCareSocket(id);
 
   const { data: careCase, isLoading: careCaseLoading } = useQuery({
     queryKey: ["care-case", id],
