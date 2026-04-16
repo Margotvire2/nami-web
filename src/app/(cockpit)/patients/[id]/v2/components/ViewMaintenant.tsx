@@ -538,7 +538,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState<string | null>(null);
-  const esRef = useRef<EventSource | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: careCase } = useQuery<{ clinicalSummary: string | null }>({
     queryKey: ["care-case-summary", careCaseId],
@@ -554,50 +554,48 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const displayText = streamText ?? savedSummary;
   const sections = displayText ? parseMarkdownSections(displayText) : [];
 
-  const startStream = () => {
+  const startStream = async () => {
     if (streaming) return;
     const token = getPersistedToken();
     if (!token) return;
     setStreaming(true);
-    setStreamText("");
+    setStreamText(null);
 
-    const es = new EventSource(
-      `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(token)}`
-    );
-    esRef.current = es;
+    try {
+      const res = await fetch(`${API_URL}/intelligence/summarize-job/${careCaseId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erreur lors de la génération");
+      const { jobId } = await res.json() as { jobId: string };
 
-    let buffer = "";
-    es.onmessage = (e) => {
-      try {
-        const payload = JSON.parse(e.data);
-        if (payload.error) {
+      const deadline = Date.now() + 5 * 60 * 1000;
+      const poll = async (): Promise<void> => {
+        if (Date.now() > deadline) { setStreaming(false); return; }
+        const statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!statusRes.ok) { setStreaming(false); return; }
+        const { status } = await statusRes.json() as { status: string };
+        if (status === "completed") {
+          // Recharge le résumé depuis la DB
+          const { data } = await api.get<{ clinicalSummary: string | null }>(`/care-cases/${careCaseId}`);
+          setStreamText(data.clinicalSummary ?? "");
           setStreaming(false);
-          es.close();
-          return;
-        }
-        if (payload.done) {
+        } else if (status === "failed") {
           setStreaming(false);
-          es.close();
-          return;
+        } else {
+          pollTimerRef.current = setTimeout(poll, 3000) as unknown as ReturnType<typeof setTimeout>;
         }
-        if (payload.text) {
-          buffer += payload.text;
-          setStreamText(buffer);
-        }
-      } catch {
-        buffer += e.data;
-        setStreamText(buffer);
-      }
-    };
-
-    es.onerror = () => {
+      };
+      pollTimerRef.current = setTimeout(poll, 3000) as unknown as ReturnType<typeof setTimeout>;
+    } catch {
       setStreaming(false);
-      es.close();
-    };
+    }
   };
 
   useEffect(() => {
-    return () => { esRef.current?.close(); };
+    return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current); };
   }, []);
 
   if (!displayText && !streaming) {

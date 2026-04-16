@@ -104,7 +104,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     }).catch(() => {});
   }, [careCaseId]);
 
-  const generate = useCallback(() => {
+  const generate = useCallback(async () => {
     const token = (() => {
       try { const s = localStorage.getItem("nami-auth"); return s ? JSON.parse(s)?.state?.accessToken : null; } catch { return null; }
     })();
@@ -113,40 +113,47 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     setStreamText("");
     setRating(null);
 
-    const es = new EventSource(
-      `${API_URL}/intelligence/summarize-stream/${careCaseId}?token=${encodeURIComponent(token)}`
-    );
+    try {
+      const res = await fetch(`${API_URL}/intelligence/summarize-job/${careCaseId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erreur lors de la génération");
+      const { jobId } = await res.json() as { jobId: string };
 
-    es.onmessage = (e) => {
-      if (e.data === "[DONE]") {
-        es.close();
-        setIsStreaming(false);
-        qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
-        qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
-        qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
-        qc.invalidateQueries({ queryKey: ["dashboard"] });
-        toast.success("Synthèse clinique générée");
-        // Recharger le résumé depuis la DB
-        api.get(`/care-cases/${careCaseId}`).then((res) => {
-          if (res.data?.clinicalSummary) {
-            setSections(parseSummary(res.data.clinicalSummary));
-            setLastUpdated(new Date().toISOString());
-          }
-        }).catch(() => {});
-        return;
-      }
-      try {
-        const { text, error } = JSON.parse(e.data);
-        if (error) { toast.error(error); es.close(); setIsStreaming(false); return; }
-        if (text) setStreamText((prev) => prev + text);
-      } catch { /* ignore parse errors */ }
-    };
-
-    es.onerror = () => {
-      es.close();
+      const deadline = Date.now() + 5 * 60 * 1000;
+      const poll = async (): Promise<void> => {
+        if (Date.now() > deadline) { setIsStreaming(false); toast.error("La génération a pris trop de temps"); return; }
+        const statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!statusRes.ok) { setIsStreaming(false); return; }
+        const { status } = await statusRes.json() as { status: string };
+        if (status === "completed") {
+          setIsStreaming(false);
+          qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+          qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+          qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
+          qc.invalidateQueries({ queryKey: ["dashboard"] });
+          toast.success("Synthèse clinique générée");
+          api.get(`/care-cases/${careCaseId}`).then((r) => {
+            if (r.data?.clinicalSummary) {
+              setSections(parseSummary(r.data.clinicalSummary));
+              setLastUpdated(new Date().toISOString());
+            }
+          }).catch(() => {});
+        } else if (status === "failed") {
+          setIsStreaming(false);
+          toast.error("Erreur lors de la génération de la synthèse");
+        } else {
+          setTimeout(poll, 3000);
+        }
+      };
+      setTimeout(poll, 3000);
+    } catch {
       setIsStreaming(false);
       toast.error("Erreur de connexion à la synthèse clinique");
-    };
+    }
   }, [careCaseId, qc, API_URL]);
 
   function parseSummary(text: string): { title: string; content: string }[] {

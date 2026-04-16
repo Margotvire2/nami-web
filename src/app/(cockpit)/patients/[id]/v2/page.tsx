@@ -191,27 +191,56 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  const handleAiSummarize = useCallback(() => {
+  const handleAiSummarize = useCallback(async () => {
     if (!accessToken) return;
     setAiStreaming(true);
-    const es = new EventSource(
-      `${API_URL}/intelligence/summarize-stream/${id}?token=${encodeURIComponent(accessToken)}`
-    );
-    es.onmessage = (e) => {
-      if (e.data === "[DONE]") {
-        es.close();
-        setAiStreaming(false);
-        qc.invalidateQueries({ queryKey: ["care-case", id] });
-        qc.invalidateQueries({ queryKey: ["notes", id] });
-        qc.invalidateQueries({ queryKey: ["timeline", id] });
-        toast.success("Synthèse clinique générée");
+    try {
+      // Enfile le job (pas de SSE — Railway timeout fix)
+      const res = await fetch(`${API_URL}/intelligence/summarize-job/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as any).error ?? "Erreur lors de la génération");
       }
-    };
-    es.onerror = () => {
-      es.close();
+      const { jobId } = await res.json() as { jobId: string };
+
+      // Poll toutes les 3s, timeout 5 min
+      const deadline = Date.now() + 5 * 60 * 1000;
+      const poll = async (): Promise<void> => {
+        if (Date.now() > deadline) {
+          setAiStreaming(false);
+          toast.error("La génération a pris trop de temps");
+          return;
+        }
+        const statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!statusRes.ok) {
+          setAiStreaming(false);
+          toast.error("Erreur lors de la génération");
+          return;
+        }
+        const { status } = await statusRes.json() as { status: string };
+        if (status === "completed") {
+          setAiStreaming(false);
+          qc.invalidateQueries({ queryKey: ["care-case", id] });
+          qc.invalidateQueries({ queryKey: ["notes", id] });
+          qc.invalidateQueries({ queryKey: ["timeline", id] });
+          toast.success("Synthèse clinique générée");
+        } else if (status === "failed") {
+          setAiStreaming(false);
+          toast.error("Erreur lors de la génération");
+        } else {
+          setTimeout(poll, 3000);
+        }
+      };
+      setTimeout(poll, 3000);
+    } catch (err: any) {
       setAiStreaming(false);
-      toast.error("Erreur lors de la génération");
-    };
+      toast.error(err.message ?? "Erreur lors de la génération");
+    }
   }, [accessToken, id, qc, API_URL]);
 
   if (!accessToken || careCaseLoading) {
