@@ -10,6 +10,7 @@ import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboar
 import { CareCaseDetail } from "@/lib/api";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
+import { GrowthCharts } from "@/components/patient/GrowthCharts";
 
 interface Props {
   dashboard: PatientDashboard;
@@ -21,6 +22,27 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
   const { indicators, questionnaires, actions, alerts, screenings } = dashboard;
   const profile: ClinicalProfile = getClinicalProfile(careCase);
 
+  // Calcul isMinor / isInfant depuis birthDate (côté frontend uniquement pour l'affichage)
+  let patientAgeMonths = 0;
+  let isMinor = false;
+  let isInfant = false;
+  if (careCase?.patient?.birthDate) {
+    const birth = new Date(careCase.patient.birthDate);
+    const now = new Date();
+    patientAgeMonths =
+      (now.getFullYear() - birth.getFullYear()) * 12 +
+      (now.getMonth() - birth.getMonth());
+    isMinor = patientAgeMonths < 216; // < 18 ans
+    isInfant = patientAgeMonths <= 36; // ≤ 3 ans (PC disponible)
+  }
+
+  const patientSex =
+    careCase?.patient?.sex?.toUpperCase() === "F" ||
+    careCase?.patient?.sex?.toUpperCase() === "FEMALE" ||
+    careCase?.patient?.sex?.toUpperCase() === "FEMME"
+      ? ("F" as const)
+      : ("M" as const);
+
   return (
     <div className="space-y-5">
       <ClinicalSummaryCard careCaseId={careCaseId} />
@@ -28,8 +50,16 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
       <ProtocolBanner careCaseId={careCaseId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 space-y-5">
           <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} />
+          {isMinor && careCase && (
+            <GrowthCharts
+              patientId={careCase.patient.id}
+              sex={patientSex}
+              ageMonths={patientAgeMonths}
+              isInfant={isInfant}
+            />
+          )}
         </div>
         <div className="space-y-4">
           <ActionsPanel actions={actions} />
