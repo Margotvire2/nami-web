@@ -1676,7 +1676,36 @@ export const observationsApi = {
       `/care-cases/${careCaseId}/observations/sessions?prefix=${encodeURIComponent(prefix)}&sessions=${maxSessions}`,
       {}, token
     ),
+
+  trajectory: (token: string, careCaseId: string, opts?: { window?: number; threshold?: number }) => {
+    const qs = new URLSearchParams();
+    if (opts?.window) qs.set("window", String(opts.window));
+    if (opts?.threshold) qs.set("threshold", String(opts.threshold));
+    const q = qs.toString();
+    return request<{
+      computedAt: string;
+      window: number;
+      threshold: number;
+      deviations: TrajectoryMetric[];
+      stable: TrajectoryMetric[];
+    }>(`/care-cases/${careCaseId}/observations/trajectory${q ? `?${q}` : ""}`, {}, token);
+  },
 };
+
+export interface TrajectoryMetric {
+  metricKey: string;
+  metricLabel: string;
+  unit: string | null;
+  domain: string | null;
+  zScore: number;
+  direction: "up" | "down";
+  currentValue: number;
+  mean: number;
+  stddev: number;
+  deviationLabel: string;
+  spark: { value: number; date: string }[];
+  n: number;
+}
 
 // ─── Pathway ────────────────────────────────────────────────────────────────
 
@@ -2056,6 +2085,7 @@ export function apiWithToken(token: string) {
       list: (careCaseId: string, params?: { metricKey?: string; domain?: string; from?: string; to?: string; limit?: number; offset?: number }) => observationsApi.list(token, careCaseId, params),
       latest: (careCaseId: string) => observationsApi.latest(token, careCaseId),
       sessions: (careCaseId: string, prefix?: string, maxSessions?: number) => observationsApi.sessions(token, careCaseId, prefix, maxSessions),
+      trajectory: (careCaseId: string, opts?: { window?: number; threshold?: number }) => observationsApi.trajectory(token, careCaseId, opts),
     },
     recordings: {
       upload: (audioBlob: Blob, duration?: number) => recordingsApi.upload(token, audioBlob, duration),
