@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { getCareType } from "@/lib/caseType";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -345,7 +346,9 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
           <p className="text-[18px] font-bold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>
             {r.careCase?.caseTitle || "Dossier"}
           </p>
-          <p className="text-[13px] text-[#64748B] mt-0.5">{r.careCase?.caseType}</p>
+          {r.careCase?.caseType && (() => { const ct = getCareType(r.careCase.caseType); return (
+            <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: ct.bg, color: ct.color, display: "inline-block", marginTop: 2 }}>{ct.label}</span>
+          ); })()}
           <div className="flex items-center gap-2 mt-2">
             <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full border", statusMeta.badgeClass)}>
               {statusMeta.label}

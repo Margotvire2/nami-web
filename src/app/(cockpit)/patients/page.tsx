@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getCareType } from "@/lib/caseType";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, CareCase, type ObservationRecord } from "@/lib/api";
@@ -346,7 +347,9 @@ function PatientRow({ careCase: c }: { careCase: CareCase }) {
       </td>
       <td className="px-4 py-3">
         <Link href={`/patients/${c.id}`}>
-          <span className="text-xs text-muted-foreground">{c.caseType}</span>
+          {(() => { const ct = getCareType(c.caseType); return (
+            <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: ct.bg, color: ct.color }}>{ct.label}</span>
+          ); })()}
         </Link>
       </td>
       <td className="px-4 py-3">
@@ -449,7 +452,9 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-sm truncate">{c.patient.firstName} {c.patient.lastName}</p>
-              <p className="text-[11px] text-muted-foreground truncate">{c.caseType}</p>
+              {(() => { const ct = getCareType(c.caseType); return (
+                <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: ct.bg, color: ct.color, display: "inline-block", marginTop: 1 }}>{ct.label}</span>
+              ); })()}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">

@@ -40,14 +40,7 @@ const TYPE_PILL: Record<string, { bg: string; text: string }> = {
   teleconsult: { bg: "bg-sky-50",    text: "text-sky-600" },
 };
 
-const CASE_TYPE_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  TCA:          { bg: "bg-rose-50",   text: "text-rose-600",   label: "TCA" },
-  OBESITY:      { bg: "bg-teal-50",   text: "text-teal-600",   label: "Obésité" },
-  METABOLIC:    { bg: "bg-orange-50", text: "text-orange-600", label: "Métabolique" },
-  MENTAL_HEALTH:{ bg: "bg-violet-50", text: "text-violet-600", label: "Santé mentale" },
-  PEDIATRIC:    { bg: "bg-sky-50",    text: "text-sky-600",    label: "Pédiatrie" },
-  CHRONIC_PAIN: { bg: "bg-amber-50",  text: "text-amber-600",  label: "Douleur" },
-};
+import { getCareType } from "@/lib/caseType";
 
 const PRIORITY_ORDER: Record<string, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
@@ -204,7 +197,7 @@ export default function DashboardPage() {
                       const isNext = c.status === "next";
                       const imminent = isImminent(c);
                       const alertCount = c.careCaseId ? (taskAlertByCase.get(c.careCaseId) ?? 0) : 0;
-                      const caseBadge = c.caseType ? CASE_TYPE_BADGE[c.caseType] : null;
+                      const caseBadge = c.caseType ? getCareType(c.caseType) : null;
 
                       // Gap avant ce RDV
                       const prevEndMin = i > 0 ? (() => {
@@ -262,7 +255,7 @@ export default function DashboardPage() {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-[14px] font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-jakarta)" }}>{c.patient}</p>
                                 {caseBadge && (
-                                  <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", caseBadge.bg, caseBadge.text)}>
+                                  <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: caseBadge.bg, color: caseBadge.color }}>
                                     {caseBadge.label}
                                   </span>
                                 )}

@@ -32,24 +32,9 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; ico
   NO_SHOW: { label: "Absent", color: N.danger, bg: N.dangerBg, icon: "✕" },
 }
 
-/* ═══════════════════════════════════════════
-   PATHOLOGY COLORS
-   ═══════════════════════════════════════════ */
-const PATHOLOGY_CFG: Record<string, { color: string; label: string }> = {
-  TCA:           { color: "#5B4EC4", label: "TCA" },
-  OBESITY:       { color: "#2BA89C", label: "Obésité" },
-  METABOLIC:     { color: "#E6993E", label: "Métabolisme" },
-  MENTAL_HEALTH: { color: "#7B6FD4", label: "Santé mentale" },
-  PEDIATRIC:     { color: "#2563EB", label: "Pédiatrie" },
-  CHRONIC_PAIN:  { color: "#DC2626", label: "Douleur chr." },
-  OTHER:         { color: "#8A8A96", label: "Suivi" },
-}
-function getPathologyColor(caseType?: string | null): string {
-  return PATHOLOGY_CFG[caseType ?? ""]?.color ?? "#8A8A96"
-}
-function getPathologyLabel(caseType?: string | null): string {
-  return PATHOLOGY_CFG[caseType ?? ""]?.label ?? "Suivi"
-}
+import { getCareType, getCareTypeColor, getCareTypeLabel } from "@/lib/caseType"
+const getPathologyColor = getCareTypeColor
+const getPathologyLabel = getCareTypeLabel
 
 const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 const HOUR_H = 64; const MIN_H = 8; const MAX_H = 21
