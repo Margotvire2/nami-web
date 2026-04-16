@@ -12,8 +12,8 @@
  * Wording MDR safe : "à documenter" — jamais "alerte clinique", "danger", "risque"
  */
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import {
   ComposedChart,
@@ -76,6 +76,7 @@ interface GrowthCurveResult {
 
 interface GrowthChartsProps {
   patientId: string;
+  careCaseId?: string;
   sex: "M" | "F";
   ageMonths: number;
   isInfant: boolean;
@@ -366,16 +367,183 @@ function LastMeasureSummary({
   );
 }
 
+// ─── Types import carnet ─────────────────────────────────────────────────────
+
+type ImportStep = "idle" | "reading" | "classifying" | "extracting" | "done" | "error";
+
+interface ImportStepConfig {
+  label: string;
+  active: ImportStep[];
+}
+
+const IMPORT_STEPS: ImportStepConfig[] = [
+  { label: "Lecture de l'image...", active: ["reading"] },
+  { label: "Identification de la page...", active: ["classifying"] },
+  { label: "Extraction des mesures...", active: ["extracting"] },
+];
+
+// ─── Composant import carnet ──────────────────────────────────────────────────
+
+function CarnetImportButton({
+  patientId,
+  careCaseId,
+  accessToken,
+  onSuccess,
+}: {
+  patientId: string;
+  careCaseId: string | null;
+  accessToken: string | null;
+  onSuccess: (count: number) => void;
+}) {
+  const [step, setStep] = useState<ImportStep>("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [lastCount, setLastCount] = useState<number>(0);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !careCaseId) return;
+
+    // Reset
+    setErrorMsg(null);
+    setStep("reading");
+
+    try {
+      // Lire le fichier en base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Enlever le préfixe data:image/...;base64,
+          const b64 = result.split(",")[1];
+          if (!b64) reject(new Error("Fichier illisible"));
+          else resolve(b64);
+        };
+        reader.onerror = () => reject(new Error("Erreur lecture fichier"));
+        reader.readAsDataURL(file);
+      });
+
+      setStep("classifying");
+
+      // Petit délai visuel pour que l'utilisateur voit l'étape
+      await new Promise((r) => setTimeout(r, 400));
+
+      setStep("extracting");
+
+      const res = await fetch(`${API_URL}/patients/${patientId}/growth/import-carnet`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType: file.type || "image/jpeg",
+          careCaseId,
+        }),
+      });
+
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setErrorMsg(body.error ?? `Erreur ${res.status}`);
+        setStep("error");
+        return;
+      }
+
+      const count: number = body.observationsCreated ?? 0;
+      setLastCount(count);
+      setStep("done");
+      onSuccess(count);
+
+      // Reset après 4s
+      setTimeout(() => setStep("idle"), 4000);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Erreur inconnue");
+      setStep("error");
+    } finally {
+      // Reset input file pour permettre re-sélection du même fichier
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  if (step === "done") {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+        <span>✓</span>
+        <span>{lastCount} mesure{lastCount > 1 ? "s" : ""} ajoutée{lastCount > 1 ? "s" : ""} — à vérifier</span>
+      </div>
+    );
+  }
+
+  if (step === "error") {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-amber-600">{errorMsg}</span>
+        <button
+          onClick={() => { setStep("idle"); setErrorMsg(null); }}
+          className="text-gray-400 hover:text-gray-600 underline"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  const activeStepLabel =
+    step !== "idle"
+      ? IMPORT_STEPS.find((s) => s.active.includes(step))?.label ?? "Traitement..."
+      : null;
+
+  if (activeStepLabel) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="w-3.5 h-3.5 rounded-full border-2 border-[#5B4EC4] border-t-transparent animate-spin shrink-0" />
+        <span>{activeStepLabel}</span>
+      </div>
+    );
+  }
+
+  // idle
+  return (
+    <>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+        disabled={!careCaseId}
+      />
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={!careCaseId}
+        className="flex items-center gap-1.5 text-xs text-[#5B4EC4] hover:text-[#4a3eb3] font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        title="Importer depuis le carnet de santé"
+      >
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 2v8M5 7l3 3 3-3M2 13h12" />
+        </svg>
+        Importer carnet
+      </button>
+    </>
+  );
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 
-export function GrowthCharts({ patientId, sex: _sex, ageMonths, isInfant }: GrowthChartsProps) {
+export function GrowthCharts({ patientId, careCaseId: propCareCaseId, sex: _sex, ageMonths, isInfant }: GrowthChartsProps) {
   const { accessToken } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const availableMetrics: GrowthMetric[] = isInfant
     ? ["weight", "height", "bmi", "head_circumference"]
     : ["weight", "height", "bmi"];
 
   const [activeMetric, setActiveMetric] = useState<GrowthMetric>("weight");
+  const careCaseId = propCareCaseId ?? null;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -395,7 +563,7 @@ export function GrowthCharts({ patientId, sex: _sex, ageMonths, isInfant }: Grow
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `Erreur ${res.status}`);
       }
-      return res.json();
+      return res.json() as Promise<GrowthCurveResult>;
     },
     enabled: !!accessToken,
     staleTime: 5 * 60 * 1000,
@@ -408,9 +576,19 @@ export function GrowthCharts({ patientId, sex: _sex, ageMonths, isInfant }: Grow
       {/* En-tête */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-900">Courbes de croissance</h3>
-        <span className="text-[10px] text-gray-400 font-medium">
-          Référence OMS / AFPA-CRESS-INSERM-SFP 2018
-        </span>
+        <div className="flex items-center gap-4">
+          <CarnetImportButton
+            patientId={patientId}
+            careCaseId={careCaseId}
+            accessToken={accessToken}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["growth-curve", patientId] });
+            }}
+          />
+          <span className="text-[10px] text-gray-400 font-medium hidden sm:block">
+            OMS / AFPA-CRESS-INSERM-SFP 2018
+          </span>
+        </div>
       </div>
 
       {/* Onglets métriques */}
