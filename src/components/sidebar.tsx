@@ -17,11 +17,13 @@ import {
   BellDot,
   UsersRound,
   BookOpen,
+  ClipboardList,
   CheckSquare,
   Receipt,
   FlaskConical,
   Settings,
   Shield,
+  MessageSquare,
 } from "lucide-react";
 
 /*
@@ -41,12 +43,13 @@ const NAV_PATIENTS = [
   { href: "/patients",    label: "Patients",     icon: Users },
   { href: "/alertes",     label: "Rappels",      icon: BellDot },
   { href: "/taches",      label: "Tâches",       icon: CheckSquare },
-  { href: "/protocoles",  label: "Références",   icon: BookOpen },
+  { href: "/protocoles",  label: "Références",   icon: ClipboardList },
   { href: "/intelligence", label: "Base documentaire", icon: FlaskConical },
   { href: "/documents",   label: "Documents",    icon: FileText },
 ];
 
 const NAV_NETWORK = [
+  { href: "/messages",      label: "Messages",      icon: MessageSquare },
   { href: "/adressages",    label: "Adressages",    icon: ArrowLeftRight },
   { href: "/collaboration", label: "Réseau",        icon: Radio },
   { href: "/equipe",        label: "Équipe",        icon: UsersRound },

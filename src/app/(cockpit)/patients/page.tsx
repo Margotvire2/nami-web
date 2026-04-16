@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getCareType } from "@/lib/caseType";
+import { getCareType, getCareTypeLabel } from "@/lib/caseType";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, CareCase, type ObservationRecord } from "@/lib/api";
@@ -46,7 +46,7 @@ const STATUS_LABEL: Record<string, string> = {
 const TABS = [
   { key: "all",      label: "Tous",                 filter: (c: CareCase) => true },
   { key: "active",   label: "Actifs",                filter: (c: CareCase) => c.status === "ACTIVE" },
-  { key: "critical", label: "À surveiller",          filter: (c: CareCase) => ["CRITICAL", "HIGH"].includes(c.riskLevel) && c.status === "ACTIVE" },
+  { key: "critical", label: "Prioritaires",           filter: (c: CareCase) => ["CRITICAL", "HIGH"].includes(c.riskLevel) && c.status === "ACTIVE" },
   { key: "paused",   label: "En pause",              filter: (c: CareCase) => c.status === "PAUSED" },
   { key: "closed",   label: "Fermés",                filter: (c: CareCase) => c.status === "CLOSED" || c.status === "ARCHIVED" },
 ];
@@ -94,7 +94,7 @@ export default function PatientsPage() {
         c.patient.firstName.toLowerCase().includes(q) ||
         c.patient.lastName.toLowerCase().includes(q) ||
         c.caseTitle.toLowerCase().includes(q) ||
-        c.caseType.toLowerCase().includes(q)
+        getCareTypeLabel(c.caseType).toLowerCase().includes(q)
       );
     })
     .sort((a, b) =>

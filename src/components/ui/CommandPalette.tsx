@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken } from "@/lib/api"
 import { useQuery } from "@tanstack/react-query"
+import { getCareTypeLabel } from "@/lib/caseType"
 import {
   Search, X, User, Calendar, CheckSquare,
   MessageSquare, FileText, Settings, Mic,
@@ -85,7 +86,7 @@ export function CommandPalette() {
         c.patient.firstName.toLowerCase().includes(q) ||
         c.patient.lastName.toLowerCase().includes(q) ||
         c.caseTitle.toLowerCase().includes(q) ||
-        c.caseType.toLowerCase().includes(q)
+        getCareTypeLabel(c.caseType).toLowerCase().includes(q)
       )
     })
     .slice(0, query ? 8 : 3)

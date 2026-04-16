@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { parseISO, format, isSameDay, addDays, formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useAgenda, type AgendaAppointment, type AppointmentStatus } from "./hooks/useAgenda"
@@ -578,6 +578,7 @@ export default function AgendaPage() {
   } | null>(null)
   const [dragAppt, setDragAppt] = useState<AgendaAppointment | null>(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   // Open create modal from ?newAppt=true (e.g. from patient page "planifier")
   useEffect(() => {
@@ -630,7 +631,7 @@ export default function AgendaPage() {
   if (needsSetup) {
     return (
       <div className="flex flex-col h-full overflow-hidden">
-        <AgendaSetup onComplete={() => window.location.reload()} />
+        <AgendaSetup onComplete={() => router.refresh()} />
       </div>
     )
   }
