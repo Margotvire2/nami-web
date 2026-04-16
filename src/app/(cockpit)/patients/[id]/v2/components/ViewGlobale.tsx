@@ -55,6 +55,7 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
           {isMinor && careCase && (
             <GrowthCharts
               patientId={careCase.patient.id}
+              careCaseId={careCaseId}
               sex={patientSex}
               ageMonths={patientAgeMonths}
               isInfant={isInfant}

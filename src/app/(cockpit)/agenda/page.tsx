@@ -32,7 +32,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; ico
   NO_SHOW: { label: "Absent", color: N.danger, bg: N.dangerBg, icon: "✕" },
 }
 
-import { getCareType, getCareTypeColor, getCareTypeLabel } from "@/lib/caseType"
+import { getCareTypeColor, getCareTypeLabel } from "@/lib/caseType"
 const getPathologyColor = getCareTypeColor
 const getPathologyLabel = getCareTypeLabel
 
