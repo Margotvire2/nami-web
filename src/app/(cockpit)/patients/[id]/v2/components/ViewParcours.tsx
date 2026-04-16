@@ -25,7 +25,7 @@ interface Phase {
   key: string;
   label: string;
   order: number;
-  exercises: Exercise[];
+  exercises?: Exercise[];
 }
 
 interface TeamMember {
@@ -183,7 +183,7 @@ function PathwayView({
   // Section D — extraire les questionnaires uniques des phases
   const questionnairesMap = new Map<string, Exercise>();
   for (const phase of phases) {
-    for (const ex of phase.exercises) {
+    for (const ex of (phase.exercises ?? [])) {
       if (ex.type === "questionnaire" && !questionnairesMap.has(ex.title)) {
         questionnairesMap.set(ex.title, ex);
       }
@@ -495,10 +495,10 @@ function PhaseCard({
               {phase.label}
             </span>
           </div>
-          {phase.exercises.length > 0 && (
+          {(phase.exercises ?? []).length > 0 && (
             <p className="text-[10px] text-neutral-400 mt-0.5">
-              {phase.exercises.length} activité
-              {phase.exercises.length > 1 ? "s" : ""}
+              {(phase.exercises ?? []).length} activité
+              {(phase.exercises ?? []).length > 1 ? "s" : ""}
             </p>
           )}
         </div>
@@ -514,10 +514,10 @@ function PhaseCard({
         )}
       </button>
 
-      {open && phase.exercises.length > 0 && (
+      {open && (phase.exercises ?? []).length > 0 && (
         <div className="px-4 pb-4 pt-1 border-t border-neutral-100">
           <div className="space-y-2">
-            {phase.exercises.map((ex) => (
+            {(phase.exercises ?? []).map((ex) => (
               <div
                 key={ex.id}
                 className="flex items-start gap-2 py-1.5 px-2 rounded-lg bg-white border border-neutral-50"
@@ -546,7 +546,7 @@ function PhaseCard({
         </div>
       )}
 
-      {open && phase.exercises.length === 0 && (
+      {open && (phase.exercises ?? []).length === 0 && (
         <div className="px-4 pb-3 pt-1 border-t border-neutral-100">
           <p className="text-[11px] text-neutral-400 italic">
             Aucune activité définie pour cette phase.
