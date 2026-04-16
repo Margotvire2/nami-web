@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useConsultation } from "@/contexts/ConsultationContext";
 import {
   Mic, MicOff, Pause, Play, Square, X,
@@ -98,102 +98,6 @@ function BigRecordButton({ onStart, micDenied }: { onStart: () => void; micDenie
       </button>
       <p className="text-xs text-gray-500 text-center leading-relaxed">
         Appuyez pour enregistrer<br />la consultation
-      </p>
-    </div>
-  );
-}
-
-// ─── FOCUS MODE (fullscreen while recording) ──────────────────────────────────
-
-function FocusMode({ seconds, onPause, onStop, isPaused, onResume }: {
-  seconds: number;
-  onPause: () => void;
-  onStop: () => void;
-  isPaused: boolean;
-  onResume: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
-      style={{ background: "rgba(10, 10, 18, 0.97)", backdropFilter: "blur(8px)" }}
-    >
-      {/* Status pill */}
-      <div className="flex items-center gap-2 mb-12">
-        {isPaused ? (
-          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-widest">En pause</span>
-        ) : (
-          <span className="flex items-center gap-2 text-[11px] font-semibold text-white/40 uppercase tracking-widest">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2BA84A] animate-pulse" />
-            Enregistrement en cours
-          </span>
-        )}
-      </div>
-
-      {/* 3 concentric rings + mic button */}
-      <div className="relative flex items-center justify-center mb-12" style={{ width: 180, height: 180 }}>
-        {/* Ring waves — only when recording (not paused) */}
-        {!isPaused && (
-          <>
-            <span className="nami-ring-wave absolute inset-0" style={{ color: "#2BA84A" }} />
-            <span className="nami-ring-wave absolute inset-0" style={{ color: "#2BA84A" }} />
-            <span className="nami-ring-wave absolute inset-0" style={{ color: "#2BA84A" }} />
-          </>
-        )}
-
-        {/* Mic circle */}
-        <div
-          className="relative z-10 flex items-center justify-center rounded-full"
-          style={{
-            width: 96,
-            height: 96,
-            background: isPaused
-              ? "rgba(255,255,255,0.08)"
-              : "linear-gradient(135deg, #2BA84A 0%, #22963F 100%)",
-            boxShadow: isPaused ? "none" : "0 0 48px rgba(43,168,74,0.40)",
-            transition: "background 400ms ease, box-shadow 400ms ease",
-          }}
-        >
-          <Mic size={36} className="text-white" strokeWidth={1.5} />
-        </div>
-      </div>
-
-      {/* Giant timer */}
-      <div
-        className="text-white font-mono font-bold tabular-nums select-none mb-10"
-        style={{ fontSize: "clamp(3.5rem, 10vw, 6rem)", letterSpacing: "-0.04em", lineHeight: 1 }}
-      >
-        {formatTime(seconds)}
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center gap-3">
-        {isPaused ? (
-          <button
-            onClick={onResume}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all"
-          >
-            <Play size={16} /> Reprendre
-          </button>
-        ) : (
-          <button
-            onClick={onPause}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/8 hover:bg-white/15 text-white/80 text-sm font-medium transition-all border border-white/10"
-          >
-            <Pause size={15} /> Pause
-          </button>
-        )}
-
-        <button
-          onClick={onStop}
-          className="flex items-center gap-2 px-7 py-3 rounded-2xl text-white text-sm font-semibold transition-all hover:brightness-110 active:scale-95"
-          style={{ background: "linear-gradient(135deg, #2BA84A 0%, #22963F 100%)" }}
-        >
-          <Square size={14} fill="white" /> Terminer
-        </button>
-      </div>
-
-      <p className="mt-6 text-[10px] text-white/20 text-center">
-        Terminer pour générer le compte-rendu structuré · ESC pour mettre en pause
       </p>
     </div>
   );
@@ -402,7 +306,64 @@ function MainWidget() {
   const isPaused = audioStatus === "paused";
   const isDone = audioStatus === "done";
 
-  // Key-press ESC to exit focus mode
+  // ── Drag state ──
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const dragState = useRef<{
+    dragging: boolean;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+  } | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  function handleHeaderMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+    if ((e.target as HTMLElement).closest("button")) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    dragState.current = {
+      dragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: rect.left,
+      originY: rect.top,
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "grabbing";
+  }
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      const s = dragState.current;
+      if (!s?.dragging) return;
+      const dx = e.clientX - s.startX;
+      const dy = e.clientY - s.startY;
+      const newX = s.originX + dx;
+      const newY = s.originY + dy;
+      const maxX = window.innerWidth - 200;
+      const maxY = window.innerHeight - 40;
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    }
+    function onUp() {
+      if (dragState.current?.dragging) {
+        dragState.current.dragging = false;
+        document.body.style.userSelect = "";
+        document.body.style.cursor = "";
+      }
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
+
+  // Key-press ESC to pause
   const handleEsc = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape" && isRecording) {
       pauseRecording();
@@ -414,24 +375,22 @@ function MainWidget() {
     return () => document.removeEventListener("keydown", handleEsc);
   }, [handleEsc]);
 
-  // Focus mode: fullscreen overlay during recording or paused
-  if (isRecording || isPaused) {
-    return (
-      <FocusMode
-        seconds={recordingSeconds}
-        isPaused={isPaused}
-        onPause={pauseRecording}
-        onResume={resumeRecording}
-        onStop={stopRecording}
-      />
-    );
-  }
-
   return (
-    <div className="fixed bottom-0 right-6 z-[100] w-[420px] bg-white rounded-t-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden" style={{ maxHeight: "80vh" }}>
+    <div
+      ref={panelRef}
+      className="fixed z-[100] w-[420px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+      style={
+        position
+          ? { left: position.x, top: position.y, right: "auto", bottom: "auto", maxHeight: "80vh" }
+          : { right: 24, bottom: 24, maxHeight: "80vh" }
+      }
+    >
 
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#5B4EC4] shrink-0">
+      {/* Header draggable */}
+      <div
+        onMouseDown={handleHeaderMouseDown}
+        className="flex items-center justify-between px-4 py-3 bg-[#5B4EC4] shrink-0 cursor-move select-none"
+      >
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-white truncate">{appointmentTitle || "Consultation"}</p>
           <p className="text-xs text-indigo-200 truncate">{patientName}</p>
@@ -466,6 +425,62 @@ function MainWidget() {
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-green-50 border border-green-200">
               <Check size={14} className="text-green-600 shrink-0" />
               <span className="text-[11px] text-green-700 font-medium">Audio enregistré — {formatTime(recordingSeconds)}</span>
+            </div>
+          ) : (isRecording || isPaused) ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 space-y-2.5">
+              {/* Status + chrono + waveform */}
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isRecording ? "bg-red-500 animate-pulse" : "bg-amber-400"
+                  }`}
+                />
+                <span className="text-[11px] font-bold text-gray-800 uppercase tracking-wide">
+                  {isRecording ? "REC" : "Pause"}
+                </span>
+                <span className="text-sm font-mono font-semibold text-gray-800 tabular-nums">
+                  {formatTime(recordingSeconds)}
+                </span>
+                {isRecording && (
+                  <div className="ml-auto flex items-center gap-[2px] h-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-[2px] bg-red-400 rounded-full animate-pulse"
+                        style={{
+                          height: `${40 + ((i * 17) % 60)}%`,
+                          animationDelay: `${i * 90}ms`,
+                          animationDuration: `${350 + ((i * 50) % 300)}ms`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Contrôles */}
+              <div className="flex items-center gap-2">
+                {isRecording ? (
+                  <button
+                    onClick={pauseRecording}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-white border border-gray-200 text-gray-700 text-xs font-medium hover:bg-gray-50 transition"
+                  >
+                    <Pause size={12} /> Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={resumeRecording}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-medium hover:bg-indigo-100 transition"
+                  >
+                    <Play size={12} /> Reprendre
+                  </button>
+                )}
+                <button
+                  onClick={stopRecording}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition"
+                >
+                  <Square size={12} /> Terminer
+                </button>
+              </div>
             </div>
           ) : audioStatus === "idle" ? (
             <BigRecordButton onStart={startRecording} micDenied={micDenied} />
