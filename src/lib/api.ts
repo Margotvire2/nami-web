@@ -122,6 +122,7 @@ export const authApi = {
     phone?: string;
     rppsNumber?: string;
     specialties?: string[];
+    professionType?: string;
   }) =>
     request<{ accessToken: string; refreshToken: string }>("/auth/signup", {
       method: "POST",

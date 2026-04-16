@@ -16,6 +16,15 @@ const SPECIALTIES = [
   "Infirmier(ère)", "Kinésithérapeute", "Endocrinologue", "Cardiologue", "Autre",
 ];
 
+const PROFESSION_TYPES: { value: string; label: string; emoji: string }[] = [
+  { value: "PHYSICIAN",       label: "Médecin",       emoji: "🩺" },
+  { value: "DIETITIAN",       label: "Diét./Nutritio.", emoji: "🥗" },
+  { value: "PSYCHOLOGIST",    label: "Psy./Psychiatre", emoji: "🧠" },
+  { value: "PEDIATRICIAN",    label: "Pédiatre",      emoji: "👶" },
+  { value: "ENDOCRINOLOGIST", label: "Endocrino.",    emoji: "⚗️" },
+  { value: "OTHER",           label: "Autre soignant", emoji: "🏥" },
+];
+
 export default function SignupPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -29,6 +38,7 @@ export default function SignupPage() {
     roleType: "PROVIDER" as "PROVIDER" | "PATIENT",
     rppsNumber: "",
     specialties: [] as string[],
+    professionType: "" as string,
   });
 
   function set(field: string, value: string) {
@@ -60,6 +70,7 @@ export default function SignupPage() {
         roleType: form.roleType,
         rppsNumber: form.rppsNumber || undefined,
         specialties: form.specialties.length ? form.specialties : undefined,
+        professionType: form.roleType === "PROVIDER" && form.professionType ? form.professionType : undefined,
       });
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
@@ -169,6 +180,25 @@ export default function SignupPage() {
             {/* Provider-only fields */}
             {form.roleType === "PROVIDER" && (
               <>
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Je pratique en tant que…</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PROFESSION_TYPES.map((pt) => (
+                      <button key={pt.value} type="button"
+                        onClick={() => setForm((f) => ({ ...f, professionType: f.professionType === pt.value ? "" : pt.value }))}
+                        className="spec-card rounded-xl py-2.5 px-2 border text-xs font-semibold text-center transition-all"
+                        style={{
+                          borderColor: form.professionType === pt.value ? "#5B4EC4" : "rgba(26,26,46,0.1)",
+                          background: form.professionType === pt.value ? "rgba(91,78,196,0.05)" : "#fff",
+                          color: form.professionType === pt.value ? "#5B4EC4" : "#4A4A5A",
+                          boxShadow: form.professionType === pt.value ? "0 0 0 2px rgba(91,78,196,0.15)" : "none",
+                        }}>
+                        <div style={{ fontSize: 16, marginBottom: 2 }}>{pt.emoji}</div>
+                        {pt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="rpps" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>
                     RPPS <span style={{ color: "#B0B0BA", fontWeight: 400 }}>(optionnel)</span>
