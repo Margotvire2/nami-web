@@ -1,7 +1,7 @@
 "use client";
 
 import { useRecording } from "@/contexts/RecordingContext";
-import { Pause, Play, Square, X, FileText, Loader2 } from "lucide-react";
+import { Pause, Play, Square, X, FileText, Loader2, ClipboardList } from "lucide-react";
 import Link from "next/link";
 
 function formatTime(s: number) {
@@ -114,6 +114,7 @@ export function RecordingWidget() {
 
   // ── DONE ──
   if (rec.status === "done") {
+    const hasPrescriptionDraft = rec.result?.hasPrescriptionDraft ?? false;
     return (
       <div className="fixed bottom-6 right-6 z-[100] w-[300px] bg-white rounded-2xl shadow-2xl border border-green-200 overflow-hidden">
         <div className="px-4 py-3">
@@ -126,9 +127,20 @@ export function RecordingWidget() {
               <X size={14} />
             </button>
           </div>
-          <p className="text-[11px] text-gray-500 mb-3">
+          <p className="text-[11px] text-gray-500 mb-2">
             {rec.patientName} &middot; {formatTime(rec.seconds)}
           </p>
+
+          {/* Prescription draft notification */}
+          {hasPrescriptionDraft && (
+            <div className="flex items-start gap-2 px-2.5 py-2 mb-2 rounded-lg bg-violet-50 border border-violet-100">
+              <ClipboardList size={13} className="mt-0.5 text-violet-600 shrink-0" />
+              <p className="text-[11px] text-violet-800 leading-snug">
+                Brouillon d&apos;ordonnance généré — à vérifier avant signature
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <Link
               href={`/patients/${rec.careCaseId}`}

@@ -1836,6 +1836,7 @@ export interface RecordingUploadResult {
 
 export interface RecordingAnalysisResult {
   noteId: string;
+  transcriptDocId: string | null;
   summary: string;
   motif: string;
   examenClinique: string;
@@ -1845,6 +1846,38 @@ export interface RecordingAnalysisResult {
   suggestedTasks: { title: string; priority: string; dueInDays: number }[];
   keyPoints: string[];
   followUpDate: string | null;
+  hasPrescriptionDraft: boolean;
+}
+
+export interface PrescriptionDraft {
+  id: string;
+  careCaseId: string;
+  patientId: string;
+  prescriberId: string;
+  clinicalNoteId: string | null;
+  sourceTranscriptDocId: string | null;
+  status: "DRAFT" | "REVIEWED" | "SIGNED" | "CANCELLED";
+  content: {
+    medications: {
+      name: string; genericName: string | null; brandName: string | null;
+      dosage: string; form: string; route: string; frequency: string;
+      duration: string; startDate: string | null; instructions: string | null;
+      confidence: number; sourceSpan: string;
+    }[];
+    complementaryActs: {
+      type: string; description: string; urgency: string | null;
+      confidence: number; sourceSpan: string;
+    }[];
+    warnings: string[];
+  };
+  extractionConfidence: number | null;
+  prescriberNotes: string | null;
+  signedAt: string | null;
+  signatureMethod: string | null;
+  signatureHash: string | null;
+  pdfDocumentId: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const recordingsApi = {
@@ -1870,6 +1903,26 @@ export const recordingsApi = {
       method: "POST",
       body: JSON.stringify(data),
     }, token),
+};
+
+// ─── Prescription Drafts ─────────────────────────────────────────────────────
+
+export const prescriptionDraftsApi = {
+  list: (token: string, careCaseId?: string) =>
+    request<{ drafts: PrescriptionDraft[]; count: number }>(
+      `/prescription-drafts${careCaseId ? `?careCaseId=${careCaseId}&status=DRAFT` : ""}`,
+      {}, token
+    ),
+  get: (token: string, id: string) =>
+    request<PrescriptionDraft>(`/prescription-drafts/${id}`, {}, token),
+  patch: (token: string, id: string, data: { content?: PrescriptionDraft["content"]; prescriberNotes?: string }) =>
+    request<PrescriptionDraft>(`/prescription-drafts/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+  sign: (token: string, id: string) =>
+    request<{ ok: boolean; draft: PrescriptionDraft; pdfUrl: string; pdfDocumentId: string; signedAt: string }>(
+      `/prescription-drafts/${id}/sign`, { method: "POST", body: JSON.stringify({ signatureMethod: "INTERNAL" }) }, token
+    ),
+  cancel: (token: string, id: string) =>
+    request<{ ok: boolean }>(`/prescription-drafts/${id}`, { method: "DELETE" }, token),
 };
 
 // Helper pour les requêtes avec token depuis le store
@@ -2111,6 +2164,14 @@ export function apiWithToken(token: string) {
       knowledgeSearch: (q: string, opts?: { limit?: number; source?: string; category?: string }) =>
         intelligenceApi.knowledgeSearch(token, q, opts),
       evaluationStats: () => intelligenceApi.evaluationStats(token),
+    },
+    prescriptionDrafts: {
+      list: (careCaseId?: string) => prescriptionDraftsApi.list(token, careCaseId),
+      get: (id: string) => prescriptionDraftsApi.get(token, id),
+      patch: (id: string, data: { content?: PrescriptionDraft["content"]; prescriberNotes?: string }) =>
+        prescriptionDraftsApi.patch(token, id, data),
+      sign: (id: string) => prescriptionDraftsApi.sign(token, id),
+      cancel: (id: string) => prescriptionDraftsApi.cancel(token, id),
     },
     onboarding: {
       me: () => onboardingApi.me(token),

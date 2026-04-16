@@ -6,13 +6,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
+import { PrescriptionDraftEditor } from "@/components/PrescriptionDraftEditor";
 
 interface Props {
   careCaseId: string;
   careCase?: CareCaseDetail;
 }
 
-type DossierTab = "notes" | "journal" | "timeline" | "documents";
+type DossierTab = "notes" | "journal" | "timeline" | "documents" | "ordonnances";
 
 export function ViewDossier({ careCaseId, careCase }: Props) {
   const [activeTab, setActiveTab] = useState<DossierTab>("notes");
@@ -25,6 +26,7 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
           { key: "journal" as const, label: "Journal patient", icon: "📱" },
           { key: "timeline" as const, label: "Ligne de vie", icon: "🕐" },
           { key: "documents" as const, label: "Documents", icon: "📄" },
+          { key: "ordonnances" as const, label: "Ordonnances", icon: "💊" },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -43,6 +45,7 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
       {activeTab === "journal" && <JournalPanel careCaseId={careCaseId} careCase={careCase} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
       {activeTab === "documents" && <DocumentsPanel careCaseId={careCaseId} />}
+      {activeTab === "ordonnances" && <PrescriptionDraftEditor careCaseId={careCaseId} />}
     </div>
   );
 }
