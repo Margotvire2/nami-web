@@ -7,7 +7,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboard";
-import { CareCaseDetail } from "@/lib/api";
+import { CareCaseDetail, type TrajectoryMetric } from "@/lib/api";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
 import { GrowthCharts } from "@/components/patient/GrowthCharts";
@@ -47,6 +47,10 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
     <div className="space-y-5">
       <ClinicalSummaryCard careCaseId={careCaseId} />
       <DeltaTickerBanner indicators={indicators} questionnaires={questionnaires} profile={profile} />
+      <TrajectoryDeviationBanner
+        careCaseId={careCaseId}
+        patientFirstName={careCase?.patient?.firstName ?? ""}
+      />
       <ProtocolBanner careCaseId={careCaseId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
@@ -69,6 +73,146 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
           <CareTeamCard careCaseId={careCaseId} />
           <FlagsBanner alerts={alerts} screenings={screenings} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════
+// TRAJECTORY DEVIATION BANNER
+// ══════════════════════════════════════════════════════
+
+function TrajSparkMini({ spark, stdResidual, zScore }: {
+  spark: { value: number; predicted: number; date: string }[];
+  stdResidual: number;
+  zScore: number;
+}) {
+  if (spark.length < 2) return null;
+  const W = 80, H = 28;
+  const std = stdResidual || 0.001;
+  const predFirst = spark[0].predicted;
+  const predLast  = spark[spark.length - 1].predicted;
+  const allVals = [
+    ...spark.map((p) => p.value),
+    predFirst + 2 * std, predFirst - 2 * std,
+    predLast + 2 * std, predLast - 2 * std,
+  ];
+  const min = Math.min(...allVals), max = Math.max(...allVals);
+  const range = max - min || 1;
+  const xi = (i: number) => (i / (spark.length - 1)) * W;
+  const yv = (v: number) => H - ((v - min) / range) * (H - 4) - 2;
+  const linePts = spark.map((p, i) => `${xi(i)},${yv(p.value)}`).join(" ");
+  const absZ = Math.abs(zScore);
+  const dotColor = absZ >= 3 ? "#DC2626" : "#D97706";
+  const lx = xi(spark.length - 1), ly = yv(spark[spark.length - 1].value);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: 80, height: 28 }} preserveAspectRatio="none">
+      <line x1={0} y1={yv(predFirst)} x2={W} y2={yv(predLast)}
+        stroke="currentColor" strokeOpacity="0.3" strokeWidth="1" strokeDasharray="3,2" />
+      <polyline points={linePts} fill="none" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx={lx} cy={ly} r={4} fill={dotColor} fillOpacity="0.25" />
+      <circle cx={lx} cy={ly} r={2.5} fill={dotColor} />
+    </svg>
+  );
+}
+
+function TrajectoryDeviationBanner({
+  careCaseId,
+  patientFirstName,
+}: {
+  careCaseId: string;
+  patientFirstName: string;
+}) {
+  const [dismissed, setDismissed] = useState<string[]>([]);
+
+  const { data } = useQuery({
+    queryKey: ["obs-trajectory", careCaseId],
+    queryFn: async () => {
+      const { data } = await api.get<{
+        deviations: TrajectoryMetric[]; stable: TrajectoryMetric[];
+      }>(`/care-cases/${careCaseId}/observations/trajectory`);
+      return data;
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const deviations = (data?.deviations ?? []).filter(
+    (m) => !dismissed.includes(m.metricKey)
+  );
+
+  if (deviations.length === 0) return null;
+
+  const topN = deviations.slice(0, 3);
+  const name = patientFirstName || "Le patient";
+
+  return (
+    <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <p className="text-xs font-semibold text-amber-800">
+            Écarts de trajectoire détectés
+          </p>
+          <p className="text-[11px] text-amber-600 mt-0.5">
+            Régression linéaire OLS · brouillon indicatif — à vérifier par le soignant
+          </p>
+        </div>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 shrink-0">
+          {deviations.length} métrique{deviations.length > 1 ? "s" : ""}
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        {topN.map((m) => {
+          const absZ       = Math.abs(m.zScore);
+          const isCritical = absZ >= 3;
+          const arrow      = m.direction === "up" ? "↑" : "↓";
+          const diff       = m.currentValue - m.predictedValue;
+          const diffStr    = `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}${m.unit ? ` ${m.unit}` : ""}`;
+          return (
+            <div
+              key={m.metricKey}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 border ${
+                isCritical ? "bg-red-50 border-red-200" : "bg-white border-amber-100"
+              }`}
+            >
+              {/* Mini sparkline */}
+              <div className="shrink-0 text-amber-600">
+                <TrajSparkMini spark={m.spark} stdResidual={m.stdResidual} zScore={m.zScore} />
+              </div>
+
+              {/* Narrative */}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-gray-800">
+                  <span className="text-amber-700">{name}</span>
+                  {" · "}
+                  {m.metricLabel} a dévié de sa trajectoire de{" "}
+                  <strong className={isCritical ? "text-red-700" : "text-amber-700"}>
+                    {arrow} {m.deviationLabel}
+                  </strong>
+                </p>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  {m.currentValue.toFixed(1)}{m.unit ? ` ${m.unit}` : ""} mesuré
+                  · attendu {m.predictedValue.toFixed(1)}{m.unit ? ` ${m.unit}` : ""}
+                  {" "}({diffStr})
+                  {m.trendSlopeLabel && m.trendSlopeLabel !== "stable" && (
+                    <span className="ml-1 text-gray-400">· tendance {m.trendSlopeLabel}</span>
+                  )}
+                </p>
+              </div>
+
+              {/* Dismiss */}
+              <button
+                onClick={() => setDismissed((d) => [...d, m.metricKey])}
+                className="shrink-0 text-amber-300 hover:text-amber-600 transition-colors"
+                title="Masquer"
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

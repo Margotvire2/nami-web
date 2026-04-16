@@ -322,8 +322,13 @@ export const METRIC_CATALOG: MetricDef[] = [
   // ══ PSYCHIATRIE ══
   { key: "phq9_score", label: "PHQ-9", unit: "", examType: "PSYCHIATRY_SCALES", category: "Dépression", aliases: ["phq-9","phq9"], ranges: [{max:4,label:"Minimal"}] },
   { key: "gad7_score", label: "GAD-7", unit: "", examType: "PSYCHIATRY_SCALES", category: "Anxiété", aliases: ["gad-7","gad7"], ranges: [{max:4,label:"Minimal"}] },
-  { key: "eat26_score", label: "EAT-26", unit: "", examType: "PSYCHIATRY_SCALES", category: "TCA", aliases: ["eat-26","eat26"], ranges: [{max:20,label:"Normal"}] },
-  { key: "scoff_score", label: "SCOFF", unit: "", examType: "PSYCHIATRY_SCALES", category: "TCA", aliases: ["scoff"], ranges: [{max:1,label:"Négatif"}] },
+  { key: "eat26_score",         label: "EAT-26",                      unit: "", examType: "PSYCHIATRY_SCALES", category: "TCA",      aliases: ["eat-26","eat26"],            ranges: [{max:20,label:"Normal"}] },
+  { key: "scoff_score",         label: "SCOFF",                       unit: "", examType: "PSYCHIATRY_SCALES", category: "TCA",      aliases: ["scoff"],                    ranges: [{max:1, label:"Négatif"}] },
+  { key: "edeq_global",         label: "EDE-Q (global)",              unit: "/6", examType: "PSYCHIATRY_SCALES", category: "TCA",    aliases: ["ede-q","edeq","ede_q global"], ranges: [{max:1.74,label:"Normal"}] },
+  { key: "edeq_restraint",      label: "EDE-Q — Restriction",         unit: "/6", examType: "PSYCHIATRY_SCALES", category: "TCA",    aliases: ["edeq restriction"],         ranges: [{max:1.74,label:"Normal"}] },
+  { key: "edeq_eating_concern", label: "EDE-Q — Préocc. alimentaire", unit: "/6", examType: "PSYCHIATRY_SCALES", category: "TCA",    aliases: ["edeq eating concern"],      ranges: [{max:1.74,label:"Normal"}] },
+  { key: "edeq_shape_concern",  label: "EDE-Q — Préocc. corporelle",  unit: "/6", examType: "PSYCHIATRY_SCALES", category: "TCA",    aliases: ["edeq shape concern"],       ranges: [{max:1.74,label:"Normal"}] },
+  { key: "edeq_weight_concern", label: "EDE-Q — Préocc. pondérale",   unit: "/6", examType: "PSYCHIATRY_SCALES", category: "TCA",    aliases: ["edeq weight concern"],      ranges: [{max:1.74,label:"Normal"}] },
 
   // ══ GASTRO ══
   { key: "fibroscan_kpa", label: "FibroScan", unit: "kPa", examType: "GASTRO", category: "Fibrose hépatique", aliases: ["fibroscan","élastographie hépatique"], ranges: [{max:7,label:"F0-F1"}], criticalHigh: 12 },

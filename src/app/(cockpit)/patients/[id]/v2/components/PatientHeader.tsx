@@ -8,7 +8,7 @@ import { api, PatientCondition } from "@/lib/api";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
 import { PATHOLOGIES } from "@/lib/data/pathologies";
-import { CompletenessPlant, computeCompleteness } from "@/components/ui/CompletenessPlant";
+
 
 // CIM-11 code → pathology slug (code principal + aliases)
 const CIM_TO_SLUG: Record<string, string> = Object.fromEntries([
@@ -99,7 +99,6 @@ export function PatientHeader({
                 </>
               )}
               {imc?.value && <><span>·</span><span>IMC {imc.value}</span></>}
-              <CompletenessPlant percentage={computeCompleteness(c)} size={16} />
             </div>
           </div>
 

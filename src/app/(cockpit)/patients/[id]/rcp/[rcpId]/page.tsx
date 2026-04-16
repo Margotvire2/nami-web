@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
   ChevronLeft, Clock, Users, AlertTriangle, Zap, CheckCircle2,
-  MessageSquare, Sparkles, X, Plus, Activity, FileText, Lock,
+  MessageSquare, Sparkles, X, Plus, Activity, FileText, Lock, FileEdit,
 } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 
@@ -60,14 +60,16 @@ function CloseRcpModal({
   rcpId,
   onClose,
   onClosed,
+  initialDecision: defaultDecision = "",
 }: {
   rcpId: string;
   onClose: () => void;
   onClosed: () => void;
+  initialDecision?: string;
 }) {
   const { accessToken } = useAuthStore();
   type ActionItem = { title: string; description?: string; priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT" };
-  const [decision, setDecision]       = useState("");
+  const [decision, setDecision]       = useState(defaultDecision);
   const [decisionType, setDecisionType] = useState<CloseRcpInput["decisionType"]>("CONSENSUS");
   const [actions, setActions]         = useState<ActionItem[]>([]);
   const [newAction, setNewAction]     = useState<ActionItem>({ title: "", description: "", priority: "MEDIUM" });
@@ -182,6 +184,50 @@ function CloseRcpModal({
   );
 }
 
+// ─── Draft CR Modal ───────────────────────────────────────────────────────────
+
+function DraftCrModal({
+  draft,
+  onClose,
+  onUseDraft,
+}: {
+  draft: string;
+  onClose: () => void;
+  onUseDraft: (text: string) => void;
+}) {
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileEdit className="w-4 h-4 text-indigo-600" />
+            Brouillon CR — à vérifier et valider
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700 flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 shrink-0" />
+          Brouillon IA — validation humaine obligatoire avant tout usage
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-lg p-4 text-sm text-slate-800 whitespace-pre-line font-mono leading-relaxed">
+          {draft}
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose}>Fermer</Button>
+          <Button
+            onClick={() => { onUseDraft(draft); onClose(); }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Utiliser comme décision
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Opinion Form ─────────────────────────────────────────────────────────────
 
 function OpinionForm({ rcpId, myOpinionGiven, onSubmitted }: { rcpId: string; myOpinionGiven: boolean; onSubmitted: () => void }) {
@@ -253,6 +299,9 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
   const qc                        = useQueryClient();
   const [showClose, setShowClose] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
+  const [draftingCr, setDraftingCr] = useState(false);
+  const [showDraft, setShowDraft] = useState(false);
+  const [initialDecision, setInitialDecision] = useState("");
 
   const { data: rcp, isLoading } = useQuery<RcpDetail>({
     queryKey: ["rcp", rcpId],
@@ -272,6 +321,19 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
       toast.error("Erreur lors de la synthèse clinique");
     } finally {
       setSummarizing(false);
+    }
+  }
+
+  async function handleDraftCr() {
+    setDraftingCr(true);
+    try {
+      await apiWithToken(accessToken!).rcps.draftCr(rcpId);
+      await qc.invalidateQueries({ queryKey: ["rcp", rcpId] });
+      setShowDraft(true);
+    } catch {
+      toast.error("Erreur lors de la génération du brouillon");
+    } finally {
+      setDraftingCr(false);
     }
   }
 
@@ -375,6 +437,18 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
               <Sparkles className="w-3.5 h-3.5 mr-1.5" />
               {summarizing ? "Génération..." : "Synthèse clinique"}
             </Button>
+            {rcp.canClose && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={rcp.draftCr ? () => setShowDraft(true) : handleDraftCr}
+                disabled={draftingCr}
+                className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+              >
+                <FileEdit className="w-3.5 h-3.5 mr-1.5" />
+                {draftingCr ? "Brouillon…" : rcp.draftCr ? "Voir brouillon CR" : "Brouillon CR IA"}
+              </Button>
+            )}
             {rcp.canClose && (
               <Button size="sm" variant="outline" onClick={handleCancel} className="text-slate-500">
                 <X className="w-3.5 h-3.5 mr-1.5" />
@@ -593,6 +667,18 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
           rcpId={rcpId}
           onClose={() => setShowClose(false)}
           onClosed={() => { setShowClose(false); invalidate(); }}
+          initialDecision={initialDecision}
+        />
+      )}
+      {showDraft && rcp.draftCr && (
+        <DraftCrModal
+          draft={rcp.draftCr}
+          onClose={() => setShowDraft(false)}
+          onUseDraft={(text) => {
+            setInitialDecision(text);
+            setShowDraft(false);
+            setShowClose(true);
+          }}
         />
       )}
     </div>

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useConsultation } from "@/contexts/ConsultationContext";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Mic, MicOff, Pause, Play, Square, X,
   ChevronUp, Minimize2, FileText, Loader2, Check,
-  ExternalLink, Edit3, ChevronDown,
+  ExternalLink, Edit3, ChevronDown, ClipboardList,
 } from "lucide-react";
 import Link from "next/link";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -105,11 +106,12 @@ function BigRecordButton({ onStart, micDenied }: { onStart: () => void; micDenie
 
 // ─── STRUCTURED REPORT (completed state) ──────────────────────────────────────
 
-function StructuredReport({ summary, patientName, careCaseId, generatedNoteId, onClose }: {
+function StructuredReport({ summary, patientName, careCaseId, generatedNoteId, hasPrescriptionDraft, onClose }: {
   summary: string | null;
   patientName: string;
   careCaseId: string | null;
   generatedNoteId: string | null;
+  hasPrescriptionDraft: boolean;
   onClose: () => void;
 }) {
   const sections = parseSections(summary);
@@ -158,6 +160,16 @@ function StructuredReport({ summary, patientName, careCaseId, generatedNoteId, o
           Brouillon IA — à vérifier et valider par le professionnel de santé
         </p>
       </div>
+
+      {/* Prescription draft notification */}
+      {hasPrescriptionDraft && (
+        <div className="px-4 py-2 shrink-0 bg-violet-50 border-b border-violet-100 flex items-center gap-2">
+          <ClipboardList size={11} className="text-violet-600 shrink-0" />
+          <p className="text-[10px] text-violet-800 font-semibold">
+            Brouillon d&apos;ordonnance généré — à vérifier dans l&apos;onglet Ordonnances
+          </p>
+        </div>
+      )}
 
       {/* Sections */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
@@ -522,7 +534,18 @@ function MainWidget() {
 // ─── Root export ──────────────────────────────────────────────────────────────
 
 export function ConsultationWidget() {
-  const { isActive, isMinimized, status, aiSummary, patientName, careCaseId, generatedNoteId, dismissCompleted } = useConsultation();
+  const { isActive, isMinimized, status, aiSummary, patientName, careCaseId, generatedNoteId, hasPrescriptionDraft, dismissCompleted } = useConsultation();
+  const qc = useQueryClient();
+
+  // Invalidate queries when consultation completes
+  useEffect(() => {
+    if (status === "completed" && careCaseId) {
+      qc.invalidateQueries({ queryKey: ["documents", careCaseId] });
+      qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+      qc.invalidateQueries({ queryKey: ["prescription-drafts", careCaseId] });
+      qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
+    }
+  }, [status, careCaseId, qc]);
 
   if (!isActive) return null;
   if (isMinimized) return <MinimizedBar />;
@@ -536,6 +559,7 @@ export function ConsultationWidget() {
         patientName={patientName}
         careCaseId={careCaseId}
         generatedNoteId={generatedNoteId}
+        hasPrescriptionDraft={hasPrescriptionDraft}
         onClose={dismissCompleted}
       />
     );

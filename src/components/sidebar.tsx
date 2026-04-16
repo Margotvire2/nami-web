@@ -24,7 +24,9 @@ import {
   Settings,
   Shield,
   MessageSquare,
+  Network,
 } from "lucide-react";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 /*
   Sidebar Nami 2.0 — 3 blocs mentaux :
@@ -51,7 +53,8 @@ const NAV_PATIENTS = [
 const NAV_NETWORK = [
   { href: "/messages",      label: "Messages",      icon: MessageSquare },
   { href: "/adressages",    label: "Adressages",    icon: ArrowLeftRight },
-  { href: "/collaboration", label: "Réseau",        icon: Radio },
+  { href: "/reseau",        label: "Vue réseau",    icon: Network },
+  { href: "/collaboration", label: "Collaboration", icon: Radio },
   { href: "/equipe",        label: "Équipe",        icon: UsersRound },
   { href: "/annuaire",      label: "Annuaire",      icon: BookOpen },
 ];
@@ -82,7 +85,8 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-5 h-[56px] flex items-center gap-2.5 shrink-0">
         <img src="/nami-mascot.png" alt="Nami" className="w-8 h-8" style={{ borderRadius: 10, objectFit: "contain" }} />
-        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
+        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight flex-1" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
+        <NotificationCenter />
       </div>
 
       {/* Navigation — 3 blocs */}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatShortDate } from "@/lib/date-utils";
@@ -19,6 +20,144 @@ interface Observation {
   valueText: string | null;
   unit: string | null;
   effectiveAt: string;
+}
+
+interface BIASessions {
+  sessions: { date: string; values: Record<string, number> }[];
+  metricKeys: Record<string, { label: string; unit: string }>;
+}
+
+// ─── BIA — DELTA_POLARITY ─────────────────────────────────────────────────────
+
+const DELTA_POLARITY: Record<string, "higher_is_better" | "lower_is_better" | "neutral"> = {
+  bia_fat_mass_kg: "lower_is_better",
+  bia_fat_mass_percent: "lower_is_better",
+  bia_fmi: "lower_is_better",
+  bia_cardiovascular_risk_score: "lower_is_better",
+  bia_metabolic_risk_score: "lower_is_better",
+  bia_ecw_tbw_ratio: "lower_is_better",
+  bia_ecm_bcm_ratio: "lower_is_better",
+  bia_fat_mass_gap: "neutral",
+  bia_muscle_mass_gap: "neutral",
+  bia_water_volume_gap: "neutral",
+  bia_skeletal_muscle_mass: "higher_is_better",
+  bia_appendicular_smm: "higher_is_better",
+  bia_body_cell_mass: "higher_is_better",
+  bia_fat_free_mass_kg: "higher_is_better",
+  bia_soft_lean_mass: "higher_is_better",
+  bia_dry_fat_free_mass: "higher_is_better",
+  bia_phase_angle: "higher_is_better",
+  bia_total_body_water: "higher_is_better",
+  bia_intracellular_water: "higher_is_better",
+  bia_fat_free_hydration_level: "higher_is_better",
+  bia_ffmi: "higher_is_better",
+  bia_asmi: "higher_is_better",
+  bia_smi: "higher_is_better",
+  bia_total_protein_mass: "higher_is_better",
+  bia_metabolic_protein_mass: "higher_is_better",
+  bia_bone_mineral_content: "higher_is_better",
+};
+
+// ─── BIA — sous-catégories ────────────────────────────────────────────────────
+
+const BIA_CATEGORIES: { label: string; keys: string[]; collapsible?: boolean }[] = [
+  {
+    label: "Composition corporelle",
+    keys: [
+      "bia_fat_mass_kg", "bia_fat_mass_percent",
+      "bia_fat_free_mass_kg", "bia_skeletal_muscle_mass", "bia_appendicular_smm",
+      "bia_body_cell_mass", "bia_dry_fat_free_mass", "bia_soft_lean_mass",
+      "bia_total_protein_mass", "bia_metabolic_protein_mass",
+      "bia_total_minerals", "bia_bone_mineral_content", "bia_extracellular_solids",
+    ],
+  },
+  {
+    label: "Indices corporels",
+    keys: ["bia_fmi", "bia_ffmi", "bia_asmi", "bia_smi"],
+  },
+  {
+    label: "Hydratation",
+    keys: [
+      "bia_total_body_water", "bia_extracellular_water", "bia_intracellular_water",
+      "bia_ecw_tbw_ratio", "bia_fat_free_hydration_level", "bia_hydration_level",
+    ],
+  },
+  {
+    label: "Métabolisme",
+    keys: [
+      "bia_basal_metabolic_rate", "bia_basal_metabolic_rate_ref",
+      "bia_total_energy_expenditure",
+      "bia_recommended_intake_min", "bia_recommended_intake_max",
+    ],
+  },
+  {
+    label: "Ratios et marqueurs",
+    keys: [
+      "bia_phase_angle", "bia_impedance_ratio",
+      "bia_smm_weight_ratio", "bia_ecm_bcm_ratio",
+      "bia_e_i_ratio", "bia_tbw_ffm_ratio",
+    ],
+  },
+  {
+    label: "Écarts de référence",
+    keys: ["bia_fat_mass_gap", "bia_muscle_mass_gap", "bia_water_volume_gap"],
+  },
+  {
+    label: "Scores de risque",
+    keys: ["bia_cardiovascular_risk_score", "bia_metabolic_risk_score"],
+  },
+  {
+    label: "Impédances brutes",
+    keys: [
+      "bia_z5_impedance", "bia_z20_impedance", "bia_z50_impedance",
+      "bia_z100_impedance", "bia_z200_impedance", "bia_z500_impedance",
+    ],
+    collapsible: true,
+  },
+];
+
+const BIA_CATEGORY_ORDER: Record<string, number> = {};
+BIA_CATEGORIES.forEach((cat, ci) => cat.keys.forEach((k, ki) => { BIA_CATEGORY_ORDER[k] = ci * 100 + ki; }));
+
+// ─── Bio — panels ─────────────────────────────────────────────────────────────
+
+const BIO_PANEL_ORDER = [
+  "NFS", "Hémostase", "Biochimie", "Hépatique",
+  "Lipides", "Martial", "Vitamines", "Endocrinologie", "Immunologie",
+];
+
+function getBioPanel(key: string): string {
+  if (/^(hb$|rbc|wbc|neutrophil|lymphocyte|monocyte|eosinophil|basophil|platelet|mcv|mch|mchc|rdw|mpv|hematocrit|reticulocyte)/.test(key)) return "NFS";
+  if (/^(pt_|aptt|fibrinogen|d_dimer|anti_xa|vwf|antithrombin|protein_c$|protein_s$)/.test(key)) return "Hémostase";
+  if (/^(alt$|ast$|ggt$|alp$|bili|albumin$|prealbumin|protein_total)/.test(key)) return "Hépatique";
+  if (/^(ldl|hdl|tg_|cholesterol|triglycerid)/.test(key)) return "Lipides";
+  if (/^(ferritin|iron_|serum_iron|transferrin|tibc|saturation_transferrin)/.test(key)) return "Martial";
+  if (/^(vit_d|vit_b12|folate|vit_a|vit_e|zinc|selenium)/.test(key)) return "Vitamines";
+  if (/^(tsh|ft3|ft4|t3_|t4_|fsh$|lh$|estradiol|testosterone|igf1|insulin$|homa|dheas|cortisol|prolactin)/.test(key)) return "Endocrinologie";
+  if (/^(crp|il6|ana$|anca|complement|igg$|iga$|igm$|ige$)/.test(key)) return "Immunologie";
+  return "Biochimie";
+}
+
+const ANTHROPOMETRY_KEYS = new Set([
+  "weight_kg", "height_cm", "bmi",
+  "waist_cm", "hip_cm", "neck_cm",
+  "mid_arm_circumference", "calf_circumference", "arm_circumference",
+  "weight_lean_target", "weight_fat_target",
+]);
+
+const EXTRA_ANTHROPOMETRY_KEYS = new Set([
+  "waist_cm", "hip_cm", "neck_cm",
+  "mid_arm_circumference", "calf_circumference", "arm_circumference",
+]);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function deltaColor(key: string, delta: number): string {
+  if (delta === 0) return "text-gray-500";
+  const polarity = DELTA_POLARITY[key] ?? "neutral";
+  if (polarity === "neutral") return "text-gray-500";
+  const isGood = (polarity === "higher_is_better" && delta > 0) || (polarity === "lower_is_better" && delta < 0);
+  return isGood ? "text-emerald-600" : "text-red-500";
 }
 
 // ─── Weight curve ────────────────────────────────────────────────────────────
@@ -90,76 +229,420 @@ function WeightCurveCard({ observations }: { observations: Observation[] }) {
   );
 }
 
-// ─── Bio N vs N-1 ────────────────────────────────────────────────────────────
+// ─── BIA section ─────────────────────────────────────────────────────────────
 
-function BioComparisonCard({ observations }: { observations: Observation[] }) {
-  // Regrouper par métrique, garder les 2 dernières valeurs pour chaque
-  const byMetric = new Map<string, { label: string; unit: string | null; values: { v: number; date: string }[] }>();
+function BIASection({ careCaseId }: { careCaseId: string }) {
+  const [expandedCategory, setExpandedCategory] = useState<string | null>("Composition corporelle");
+  const [showComparison, setShowComparison] = useState(false);
 
-  for (const o of observations) {
-    if (o.valueNumeric === null) continue;
-    const id = o.metricId;
-    if (!byMetric.has(id)) {
-      byMetric.set(id, {
-        label: o.metric?.label ?? id,
-        unit: o.unit ?? o.metric?.unit ?? null,
-        values: [],
-      });
-    }
-    byMetric.get(id)!.values.push({ v: o.valueNumeric, date: o.effectiveAt });
-  }
+  const { data: sessionsData, isLoading } = useQuery<BIASessions>({
+    queryKey: ["bia-sessions", careCaseId],
+    queryFn: async () => {
+      const { data } = await api.get<BIASessions>(
+        `/care-cases/${careCaseId}/observations/sessions?prefix=bia_&sessions=10`
+      );
+      return data;
+    },
+    staleTime: 60_000,
+  });
 
-  const rows: { label: string; unit: string | null; current: number; previous: number | null; date: string }[] = [];
-  for (const [, m] of byMetric) {
-    const sorted = m.values.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    if (sorted.length === 0) continue;
-    rows.push({
-      label: m.label,
-      unit: m.unit,
-      current: sorted[0].v,
-      previous: sorted[1]?.v ?? null,
-      date: sorted[0].date,
-    });
-  }
-
-  if (rows.length === 0) {
+  if (isLoading) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Bilan biologique</h3>
-        <p className="text-sm text-gray-400 italic text-center py-6">Aucune mesure</p>
+        <div className="h-4 w-44 bg-gray-100 rounded animate-pulse mb-3" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />)}
+        </div>
       </div>
     );
   }
 
+  const sessions = sessionsData?.sessions ?? [];
+  const metricKeys = sessionsData?.metricKeys ?? {};
+
+  if (sessions.length === 0) return null;
+
+  const latestSession = sessions[sessions.length - 1];
+  const prevSession = sessions.length > 1 ? sessions[sessions.length - 2] : null;
+
+  // Key metrics summary row
+  const KEY_METRICS = [
+    { key: "bia_skeletal_muscle_mass", label: "Masse musc." },
+    { key: "bia_fat_mass_percent", label: "Graisse %" },
+    { key: "bia_phase_angle", label: "Angle de phase" },
+    { key: "bia_total_body_water", label: "Eau totale" },
+  ].filter((m) => latestSession.values[m.key] !== undefined);
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Bilan — N vs N‑1</h3>
-      <div className="divide-y divide-gray-50">
-        {rows.slice(0, 12).map((row) => {
-          const delta = row.previous !== null ? row.current - row.previous : null;
-          return (
-            <div key={row.label} className="flex items-center justify-between py-2">
-              <div className="min-w-0 flex-1">
-                <span className="text-xs font-medium text-gray-700">{row.label}</span>
-                <span className="text-[10px] text-gray-400 ml-1">
-                  {formatShortDate(row.date)}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                {row.previous !== null && (
-                  <span className="text-xs text-gray-400 line-through">
-                    {fmtVal(row.previous)}{row.unit ? ` ${row.unit}` : ""}
-                  </span>
-                )}
-                <span className="text-sm font-semibold text-gray-900">
-                  {fmtVal(row.current)}{row.unit ? ` ${row.unit}` : ""}
-                </span>
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">Impédancemétrie (BIA)</h3>
+          <p className="text-[11px] text-gray-400 mt-0.5">
+            {sessions.length} mesure{sessions.length > 1 ? "s" : ""} · dernière le {formatShortDate(latestSession.date)}
+          </p>
+        </div>
+        {sessions.length > 1 && (
+          <button
+            onClick={() => setShowComparison(!showComparison)}
+            className="text-xs text-[#5B4EC4] hover:underline font-medium"
+          >
+            {showComparison ? "Vue synthèse" : "Tableau comparatif"}
+          </button>
+        )}
+      </div>
+
+      {/* Key metrics summary */}
+      {!showComparison && KEY_METRICS.length > 0 && (
+        <div className="px-5 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 border-b border-gray-50">
+          {KEY_METRICS.map(({ key, label }) => {
+            const current = latestSession.values[key];
+            const previous = prevSession?.values[key];
+            const delta = previous !== undefined ? current - previous : null;
+            const meta = metricKeys[key];
+            return (
+              <div key={key} className="bg-gray-50/60 rounded-lg p-3">
+                <p className="text-[10px] text-gray-500 mb-1 truncate">{meta?.label ?? label}</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-base font-bold text-gray-900">{fmtVal(current)}</span>
+                  {meta?.unit && <span className="text-[10px] text-gray-400">{meta.unit}</span>}
+                </div>
                 {delta !== null && delta !== 0 && (
-                  <span className={`text-[10px] font-medium ${delta < 0 ? "text-emerald-600" : "text-amber-600"}`}>
+                  <span className={`text-[10px] font-semibold ${deltaColor(key, delta)}`}>
                     {delta > 0 ? "+" : ""}{fmtVal(delta)}
                   </span>
                 )}
               </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Comparison table */}
+      {showComparison && (
+        <BIAComparisonTable sessions={sessions} metricKeys={metricKeys} />
+      )}
+
+      {/* Sub-categories accordion */}
+      {!showComparison && (
+        <div className="divide-y divide-gray-50">
+          {BIA_CATEGORIES.map((cat) => {
+            const catValues = cat.keys
+              .map((k) => ({
+                key: k,
+                value: latestSession.values[k],
+                prevValue: prevSession?.values[k],
+                meta: metricKeys[k],
+              }))
+              .filter((v) => v.value !== undefined);
+
+            if (catValues.length === 0) return null;
+
+            const isExpanded = expandedCategory === cat.label;
+
+            return (
+              <div key={cat.label}>
+                <button
+                  onClick={() => setExpandedCategory(isExpanded ? null : cat.label)}
+                  className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/60 transition-colors text-left"
+                >
+                  <span className="text-xs font-semibold text-gray-700">{cat.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-gray-400">{catValues.length} valeur{catValues.length > 1 ? "s" : ""}</span>
+                    <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
+                  </div>
+                </button>
+                {isExpanded && (
+                  <div className="px-5 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {catValues.map(({ key, value, prevValue, meta }) => {
+                      const delta = prevValue !== undefined ? value - prevValue : null;
+                      return (
+                        <div key={key} className="bg-gray-50/60 rounded-lg p-2.5">
+                          <p className="text-[10px] text-gray-500 mb-0.5 truncate">{meta?.label ?? key}</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-sm font-semibold text-gray-800">{fmtVal(value)}</span>
+                            {meta?.unit && <span className="text-[9px] text-gray-400">{meta.unit}</span>}
+                          </div>
+                          {delta !== null && delta !== 0 && (
+                            <span className={`text-[9px] font-medium ${deltaColor(key, delta)}`}>
+                              {delta > 0 ? "+" : ""}{fmtVal(delta)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── BIA comparison table ─────────────────────────────────────────────────────
+
+function BIAComparisonTable({
+  sessions,
+  metricKeys,
+}: {
+  sessions: { date: string; values: Record<string, number> }[];
+  metricKeys: Record<string, { label: string; unit: string }>;
+}) {
+  const displaySessions = sessions.slice(-5);
+
+  // Keys present in ≥2 sessions (show progression)
+  const allKeys = new Set<string>();
+  for (const s of displaySessions) Object.keys(s.values).forEach((k) => allKeys.add(k));
+  const keysWithMultiple = [...allKeys].filter(
+    (k) => displaySessions.filter((s) => s.values[k] !== undefined).length >= 2
+  );
+
+  if (keysWithMultiple.length === 0) {
+    return (
+      <div className="p-5 text-center text-sm text-gray-400 italic">
+        Pas assez de mesures pour la comparaison
+      </div>
+    );
+  }
+
+  keysWithMultiple.sort((a, b) => (BIA_CATEGORY_ORDER[a] ?? 999) - (BIA_CATEGORY_ORDER[b] ?? 999));
+
+  const latest = displaySessions[displaySessions.length - 1];
+  const prev = displaySessions[displaySessions.length - 2];
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-100">
+            <th className="text-left px-5 py-2.5 font-semibold text-gray-600 min-w-[140px]">Métrique</th>
+            {displaySessions.map((s) => (
+              <th key={s.date} className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">
+                {formatShortDate(s.date)}
+              </th>
+            ))}
+            <th className="text-right px-5 py-2.5 font-semibold text-gray-600">Δ</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {keysWithMultiple.map((key) => {
+            const meta = metricKeys[key];
+            const currentVal = latest.values[key];
+            const prevVal = prev.values[key];
+            const delta =
+              currentVal !== undefined && prevVal !== undefined ? currentVal - prevVal : null;
+            return (
+              <tr key={key} className="hover:bg-gray-50/40">
+                <td className="px-5 py-2 text-gray-700 font-medium truncate max-w-[150px]">
+                  {meta?.label ?? key}
+                  {meta?.unit && (
+                    <span className="text-gray-400 font-normal ml-1">({meta.unit})</span>
+                  )}
+                </td>
+                {displaySessions.map((s) => (
+                  <td key={s.date} className="px-3 py-2 text-right text-gray-600 tabular-nums">
+                    {s.values[key] !== undefined ? (
+                      fmtVal(s.values[key])
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
+                  </td>
+                ))}
+                <td className="px-5 py-2 text-right font-semibold tabular-nums">
+                  {delta !== null ? (
+                    <span className={deltaColor(key, delta)}>
+                      {delta > 0 ? "+" : ""}{fmtVal(delta)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300">—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Bio section (bilan sanguin par panels) ───────────────────────────────────
+
+function BioSection({ observations }: { observations: Observation[] }) {
+  const [expandedPanel, setExpandedPanel] = useState<string | null>(null);
+
+  const bioObs = observations.filter(
+    (o) =>
+      !o.metricId.startsWith("bia_") &&
+      !ANTHROPOMETRY_KEYS.has(o.metricId) &&
+      o.valueNumeric !== null
+  );
+
+  if (bioObs.length === 0) return null;
+
+  // Group by panel → metric
+  const panelMap = new Map<
+    string,
+    Map<string, { label: string; unit: string | null; values: { v: number; date: string }[] }>
+  >();
+
+  for (const o of bioObs) {
+    const panel = getBioPanel(o.metricId);
+    if (!panelMap.has(panel)) panelMap.set(panel, new Map());
+    const metricMap = panelMap.get(panel)!;
+    if (!metricMap.has(o.metricId)) {
+      metricMap.set(o.metricId, {
+        label: o.metric?.label ?? o.metricId,
+        unit: o.unit ?? o.metric?.unit ?? null,
+        values: [],
+      });
+    }
+    metricMap.get(o.metricId)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
+  }
+
+  const panels = BIO_PANEL_ORDER.filter((p) => panelMap.has(p));
+  if (panels.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900">Bilan biologique</h3>
+        <p className="text-[11px] text-gray-400 mt-0.5">
+          {panels.length} panel{panels.length > 1 ? "s" : ""} · {bioObs.length} valeur{bioObs.length > 1 ? "s" : ""}
+        </p>
+      </div>
+
+      <div className="divide-y divide-gray-50">
+        {panels.map((panel) => {
+          const metricMap = panelMap.get(panel)!;
+          const rows: {
+            id: string; label: string; unit: string | null;
+            current: number; previous: number | null; date: string;
+          }[] = [];
+
+          for (const [id, m] of metricMap) {
+            const sorted = m.values.sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+            if (sorted.length === 0) continue;
+            rows.push({
+              id,
+              label: m.label,
+              unit: m.unit,
+              current: sorted[0].v,
+              previous: sorted[1]?.v ?? null,
+              date: sorted[0].date,
+            });
+          }
+
+          if (rows.length === 0) return null;
+          const isExpanded = expandedPanel === panel;
+
+          return (
+            <div key={panel}>
+              <button
+                onClick={() => setExpandedPanel(isExpanded ? null : panel)}
+                className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/60 transition-colors text-left"
+              >
+                <span className="text-xs font-semibold text-gray-700">{panel}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400">
+                    {rows.length} marqueur{rows.length > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
+                </div>
+              </button>
+              {isExpanded && (
+                <div className="px-5 pb-4 divide-y divide-gray-50">
+                  {rows.map((row) => {
+                    const delta = row.previous !== null ? row.current - row.previous : null;
+                    return (
+                      <div key={row.id} className="flex items-center justify-between py-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-medium text-gray-700">{row.label}</span>
+                          <span className="text-[10px] text-gray-400 ml-1">
+                            {formatShortDate(row.date)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          {row.previous !== null && (
+                            <span className="text-xs text-gray-400 line-through">
+                              {fmtVal(row.previous)}{row.unit ? ` ${row.unit}` : ""}
+                            </span>
+                          )}
+                          <span className="text-sm font-semibold text-gray-900">
+                            {fmtVal(row.current)}{row.unit ? ` ${row.unit}` : ""}
+                          </span>
+                          {delta !== null && delta !== 0 && (
+                            <span className={`text-[10px] font-medium ${delta < 0 ? "text-emerald-600" : "text-amber-600"}`}>
+                              {delta > 0 ? "+" : ""}{fmtVal(delta)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Anthropométrie complémentaire ────────────────────────────────────────────
+
+function AnthropometryCard({ observations }: { observations: Observation[] }) {
+  const anthrObs = observations
+    .filter((o) => EXTRA_ANTHROPOMETRY_KEYS.has(o.metricId) && o.valueNumeric !== null)
+    .sort((a, b) => new Date(b.effectiveAt).getTime() - new Date(a.effectiveAt).getTime());
+
+  if (anthrObs.length === 0) return null;
+
+  // Latest + previous per metric
+  const byMetric = new Map<
+    string,
+    { label: string; unit: string | null; current: number; previous: number | null; date: string }
+  >();
+  for (const o of anthrObs) {
+    if (!byMetric.has(o.metricId)) {
+      byMetric.set(o.metricId, {
+        label: o.metric?.label ?? o.metricId,
+        unit: o.unit ?? o.metric?.unit ?? null,
+        current: o.valueNumeric!,
+        previous: null,
+        date: o.effectiveAt,
+      });
+    } else {
+      const m = byMetric.get(o.metricId)!;
+      if (m.previous === null) m.previous = o.valueNumeric!;
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">Anthropométrie</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[...byMetric.entries()].map(([id, m]) => {
+          const delta = m.previous !== null ? m.current - m.previous : null;
+          return (
+            <div key={id} className="bg-gray-50/60 rounded-lg p-3">
+              <p className="text-[10px] text-gray-500 mb-0.5 truncate">{m.label}</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-semibold text-gray-800">{fmtVal(m.current)}</span>
+                {m.unit && <span className="text-[10px] text-gray-400">{m.unit}</span>}
+              </div>
+              {delta !== null && delta !== 0 && (
+                <span className={`text-[10px] font-medium ${delta < 0 ? "text-emerald-600" : "text-amber-600"}`}>
+                  {delta > 0 ? "+" : ""}{fmtVal(delta)}
+                </span>
+              )}
             </div>
           );
         })}
@@ -361,19 +844,25 @@ export function ViewSuivi({ careCaseId, dashboard }: Props) {
       {/* Trajectoires z-score */}
       <TrajectoryInsightsCard careCaseId={careCaseId} />
 
-      {/* Ligne 1 : courbe de poids + bilan N vs N-1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <WeightCurveCard observations={obs} />
-        <BioComparisonCard observations={obs} />
-      </div>
+      {/* Courbe de poids */}
+      <WeightCurveCard observations={obs} />
 
-      {/* Ligne 2 : alimentation + santé mentale */}
+      {/* Impédancemétrie BIA */}
+      <BIASection careCaseId={careCaseId} />
+
+      {/* Bilan biologique (panneaux) */}
+      <BioSection observations={obs} />
+
+      {/* Anthropométrie complémentaire */}
+      <AnthropometryCard observations={obs} />
+
+      {/* Alimentation + Santé mentale */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <AlimentationHeatmap careCaseId={careCaseId} />
         <MentalHealthCard dashboard={dashboard} />
       </div>
 
-      {/* Ligne 3 : activité physique */}
+      {/* Activité physique */}
       <ActivityCard careCaseId={careCaseId} />
     </div>
   );
@@ -381,56 +870,70 @@ export function ViewSuivi({ careCaseId, dashboard }: Props) {
 
 // ─── Trajectory Insights ─────────────────────────────────────────────────────
 
-function ZSparkline({ spark, mean, stddev, zScore }: {
-  spark: { value: number; date: string }[];
-  mean: number;
-  stddev: number;
+function ZSparkline({ spark, stdResidual, zScore }: {
+  spark: { value: number; predicted: number; date: string }[];
+  stdResidual: number;
   zScore: number;
 }) {
   if (spark.length < 2) return null;
-  const W = 160, H = 36;
-  const vals = spark.map((p) => p.value);
-  const allVals = [...vals, mean + 2 * stddev, mean - 2 * stddev];
-  const min = Math.min(...allVals);
-  const max = Math.max(...allVals);
-  const range = max - min || 1;
-  const x = (i: number) => (i / (spark.length - 1)) * W;
-  const y = (v: number) => H - ((v - min) / range) * (H - 6) - 3;
+  const W = 160, H = 40;
 
-  const linePts = spark.map((p, i) => `${x(i)},${y(p.value)}`).join(" ");
+  // y-range includes actual values + ±2σ bands around the regression line
+  const predFirst = spark[0].predicted;
+  const predLast  = spark[spark.length - 1].predicted;
+  const allVals = [
+    ...spark.map((p) => p.value),
+    predFirst + 2 * stdResidual, predFirst - 2 * stdResidual,
+    predLast  + 2 * stdResidual, predLast  - 2 * stdResidual,
+  ];
+  const min   = Math.min(...allVals);
+  const max   = Math.max(...allVals);
+  const range = max - min || 1;
+
+  const xi  = (i: number) => (i / (spark.length - 1)) * W;
+  const yv  = (v: number) => H - ((v - min) / range) * (H - 6) - 3;
+
+  // OLS line endpoints
+  const olsY0 = yv(spark[0].predicted);
+  const olsY1 = yv(spark[spark.length - 1].predicted);
+
+  // ±1σ bands around OLS line (parallelogram)
+  const topBand = [
+    `0,${yv(spark[0].predicted + stdResidual)}`,
+    `${W},${yv(spark[spark.length - 1].predicted + stdResidual)}`,
+    `${W},${yv(spark[spark.length - 1].predicted - stdResidual)}`,
+    `0,${yv(spark[0].predicted - stdResidual)}`,
+  ].join(" ");
+
+  const linePts = spark.map((p, i) => `${xi(i)},${yv(p.value)}`).join(" ");
   const fillPts = [
-    ...spark.map((p, i) => `${x(i)},${y(p.value)}`),
+    ...spark.map((p, i) => `${xi(i)},${yv(p.value)}`),
     `${W},${H}`, `0,${H}`,
   ].join(" ");
 
-  const bandTop = y(mean + stddev);
-  const bandBot = y(mean - stddev);
-  const meanY = y(mean);
-
-  const absZ = Math.abs(zScore);
+  const absZ     = Math.abs(zScore);
   const dotColor = absZ >= 3 ? "#DC2626" : "#D97706";
-  const lastX = x(spark.length - 1);
-  const lastY = y(spark[spark.length - 1].value);
+  const lastX    = xi(spark.length - 1);
+  const lastY    = yv(spark[spark.length - 1].value);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 36 }} preserveAspectRatio="none">
-      {/* ±1σ band */}
-      <rect x={0} y={Math.min(bandTop, bandBot)} width={W} height={Math.abs(bandBot - bandTop)}
-        fill="#5B4EC4" fillOpacity="0.07" />
-      {/* mean line dashed */}
-      <line x1={0} y1={meanY} x2={W} y2={meanY}
-        stroke="#5B4EC4" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="3,3" />
-      {/* area fill */}
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 40 }} preserveAspectRatio="none">
+      {/* ±1σ band around regression line */}
+      <polygon points={topBand} fill="#5B4EC4" fillOpacity="0.07" />
+      {/* OLS regression line */}
+      <line x1={0} y1={olsY0} x2={W} y2={olsY1}
+        stroke="#5B4EC4" strokeOpacity="0.5" strokeWidth="1.2" strokeDasharray="4,3" />
+      {/* actual data area fill */}
       <polygon points={fillPts} fill="#6B7280" fillOpacity="0.06" />
-      {/* line */}
+      {/* actual data line */}
       <polyline points={linePts} fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinejoin="round" />
-      {/* dots — all small gray */}
+      {/* historic dots */}
       {spark.slice(0, -1).map((p, i) => (
-        <circle key={i} cx={x(i)} cy={y(p.value)} r={1.5} fill="#D1D5DB" />
+        <circle key={i} cx={xi(i)} cy={yv(p.value)} r={1.5} fill="#D1D5DB" />
       ))}
-      {/* last point — highlighted */}
-      <circle cx={lastX} cy={lastY} r={4} fill={dotColor} fillOpacity="0.2" />
-      <circle cx={lastX} cy={lastY} r={2.5} fill={dotColor} />
+      {/* last point — deviation highlight */}
+      <circle cx={lastX} cy={lastY} r={5} fill={dotColor} fillOpacity="0.18" />
+      <circle cx={lastX} cy={lastY} r={2.8} fill={dotColor} />
     </svg>
   );
 }
@@ -494,8 +997,10 @@ function TrajectoryInsightsCard({ careCaseId }: { careCaseId: string }) {
             const absZ = Math.abs(m.zScore);
             const isCritical = absZ >= 3;
             const accentColor = isCritical ? "border-red-200 bg-red-50/40" : "border-amber-200 bg-amber-50/40";
-            const badgeColor = isCritical ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
+            const badgeColor  = isCritical ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
             const arrow = m.direction === "up" ? "↑" : "↓";
+            const diff  = m.currentValue - m.predictedValue;
+            const diffStr = `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}${m.unit ? ` ${m.unit}` : ""}`;
             return (
               <div key={m.metricKey} className={`rounded-xl border p-3 ${accentColor}`}>
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -507,12 +1012,15 @@ function TrajectoryInsightsCard({ careCaseId }: { careCaseId: string }) {
                       </span>
                     </p>
                     <p className="text-[11px] text-gray-500 mt-0.5">
-                      a évolué de <strong>{m.deviationLabel}</strong> par rapport à sa tendance — {m.currentValue.toFixed(1)}{m.unit ? ` ${m.unit}` : ""} · tendance {m.mean.toFixed(1)} ± {m.stddev.toFixed(1)}
+                      Écart vs trajectoire attendue : <strong>{diffStr}</strong> · attendu {m.predictedValue.toFixed(1)}{m.unit ? ` ${m.unit}` : ""}
+                      {m.trendSlopeLabel !== "stable" && (
+                        <span className="ml-1 text-gray-400">· tendance {m.trendSlopeLabel}</span>
+                      )}
                     </p>
                   </div>
                   <span className="text-[10px] text-gray-400 shrink-0">{m.n} pts</span>
                 </div>
-                <ZSparkline spark={m.spark} mean={m.mean} stddev={m.stddev} zScore={m.zScore} />
+                <ZSparkline spark={m.spark} stdResidual={m.stdResidual} zScore={m.zScore} />
               </div>
             );
           })}
@@ -532,7 +1040,7 @@ function TrajectoryInsightsCard({ careCaseId }: { careCaseId: string }) {
                   <span className="text-xs font-semibold text-gray-700">{m.currentValue.toFixed(1)}{m.unit ? ` ${m.unit}` : ""}</span>
                   <span className="text-[9px] text-gray-400 ml-auto">{m.deviationLabel}</span>
                 </div>
-                <ZSparkline spark={m.spark} mean={m.mean} stddev={m.stddev} zScore={m.zScore} />
+                <ZSparkline spark={m.spark} stdResidual={m.stdResidual} zScore={m.zScore} />
               </div>
             ))}
           </div>

@@ -169,13 +169,105 @@ export const SCOFF: QuestionnaireDefinition = {
   ],
 };
 
+// ─── EDE-Q ───────────────────────────────────────────────────────────────────
+// Score global = moyenne des 4 sous-échelles (0-6).
+// Fairburn & Beglin, 1994 — version française Carrard et al., 2015
+
+export interface EdeqSubscaleScores {
+  global: number;
+  restraint: number;       // Restriction
+  eatingConcern: number;   // Préoccupation alimentaire
+  shapeConcern: number;    // Préoccupation corporelle
+  weightConcern: number;   // Préoccupation pondérale
+}
+
+export interface EdeqQuestionnaireDefinition extends QuestionnaireDefinition {
+  subscales: {
+    key: string;
+    label: string;
+    metricKey: string;
+    itemIndices: number[];
+  }[];
+}
+
+export const EDEQ: EdeqQuestionnaireDefinition = {
+  key: "edeq",
+  metricKey: "edeq_global",
+  label: "EDE-Q — Examen des troubles alimentaires",
+  shortLabel: "EDE-Q",
+  source: "Fairburn & Beglin, 1994 — version française Carrard et al., 2015",
+  maxScore: 6,
+  itemCount: 28,
+  scale: "likert4",
+  scaleLabels: ["Aucun jour", "1–5 jours", "6–12 jours", "13–15 jours", "16–22 jours", "23–27 jours", "Tous les jours"],
+  bands: [
+    { label: "Normal",          min: 0,    max: 1.74, color: "green",  description: "Score dans la norme communautaire" },
+    { label: "Sous-clinique",   min: 1.75, max: 2.49, color: "yellow", description: "Attitudes alimentaires légèrement perturbées" },
+    { label: "Clinique modéré", min: 2.50, max: 3.99, color: "orange", description: "Score cliniquement significatif" },
+    { label: "Clinique sévère", min: 4.00, max: 6.00, color: "red",    description: "Score élevé — TCA probable" },
+  ],
+  subscales: [
+    { key: "restraint",      label: "Restriction",              metricKey: "edeq_restraint",      itemIndices: [0, 1, 2, 3, 4] },
+    { key: "eating_concern", label: "Préoccupation alimentaire", metricKey: "edeq_eating_concern", itemIndices: [6, 7, 8, 17, 20] },
+    { key: "shape_concern",  label: "Préoccupation corporelle",  metricKey: "edeq_shape_concern",  itemIndices: [5, 10, 11, 22, 23, 24, 25, 26] },
+    { key: "weight_concern", label: "Préoccupation pondérale",   metricKey: "edeq_weight_concern", itemIndices: [9, 12, 21, 24, 27] },
+  ],
+  items: [
+    "Avez-vous délibérément essayé de limiter la quantité de nourriture que vous mangez pour influencer votre silhouette ou votre poids ?",
+    "Avez-vous essayé de rester longtemps sans manger (8 heures d'éveil ou plus) pour influencer votre silhouette ou votre poids ?",
+    "Avez-vous essayé d'exclure de votre alimentation certains aliments que vous aimez pour influencer votre silhouette ou votre poids ?",
+    "Avez-vous essayé de suivre des règles strictes concernant votre alimentation pour influencer votre silhouette ou votre poids ?",
+    "Avez-vous eu le désir ferme d'avoir l'estomac vide dans le but d'influencer votre silhouette ou votre poids ?",
+    "Avez-vous eu le désir ferme d'avoir un ventre plat ?",
+    "La peur de perdre le contrôle sur votre alimentation vous a-t-elle préoccupé(e) ?",
+    "Vous est-il arrivé de manger en cachette ?",
+    "Le sentiment de culpabilité vis-à-vis de l'alimentation vous a-t-il préoccupé(e) ?",
+    "La peur de prendre du poids vous a-t-elle préoccupé(e) ?",
+    "Vous êtes-vous senti(e) gros(se) ?",
+    "Avez-vous eu un fort désir de perdre du poids ?",
+    "Votre poids a-t-il influencé la façon dont vous vous jugez en tant que personne ?",
+    "Combien de fois avez-vous mangé une quantité de nourriture que d'autres considéreraient comme anormalement grande ?",
+    "Combien de ces épisodes étaient accompagnés d'un sentiment de perte de contrôle ?",
+    "Combien de jours ces épisodes de suralimentation se sont-ils produits ?",
+    "Vous êtes-vous fait vomir pour contrôler votre silhouette ou votre poids ?",
+    "Avez-vous pris des laxatifs pour contrôler votre silhouette ou votre poids ?",
+    "Avez-vous fait de l'exercice de manière excessive pour contrôler votre silhouette ou votre poids ?",
+    "Combien de jours avez-vous fait de l'exercice excessif ?",
+    "Manger, même en petite quantité, vous a-t-il fait vous sentir gros(se) ?",
+    "Votre silhouette a-t-elle influencé la façon dont vous vous jugez en tant que personne ?",
+    "À quel point cela vous aurait-il dérangé(e) si l'on vous avait demandé de vous peser une fois par semaine ?",
+    "Vous êtes-vous senti(e) insatisfait(e) de votre silhouette ?",
+    "Votre silhouette vous a-t-elle préoccupé(e) ?",
+    "Vous êtes-vous senti(e) mal à l'aise de voir votre corps ?",
+    "Vous êtes-vous senti(e) mal à l'aise que d'autres voient votre silhouette ?",
+    "Votre poids vous a-t-il préoccupé(e) ?",
+  ],
+  note: "Score global = moyenne des 4 sous-échelles (0-6). Norme communautaire féminine ≈ 1.55 (Fairburn & Beglin, 2008). Ne constitue pas un diagnostic.",
+};
+
+export function computeEdeqScores(answers: Record<number, number>): EdeqSubscaleScores {
+  const avg = (indices: number[]) => {
+    const vals = indices.map((i) => answers[i] ?? 0);
+    return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+  };
+  const restraint      = avg([0, 1, 2, 3, 4]);
+  const eatingConcern  = avg([6, 7, 8, 17, 20]);
+  const shapeConcern   = avg([5, 10, 11, 22, 23, 24, 25, 26]);
+  const weightConcern  = avg([9, 12, 21, 24, 27]);
+  const global = Math.round(
+    ((restraint + eatingConcern + shapeConcern + weightConcern) / 4) * 100
+  ) / 100;
+  return { global, restraint, eatingConcern, shapeConcern, weightConcern };
+}
+
 // ─── Catalog ─────────────────────────────────────────────────────────────────
 
-export const QUESTIONNAIRE_CATALOG: Record<string, QuestionnaireDefinition> = {
+export const QUESTIONNAIRE_CATALOG: Record<string, QuestionnaireDefinition | EdeqQuestionnaireDefinition> = {
   phq9: PHQ9,
   gad7: GAD7,
   eat26: EAT26,
   scoff: SCOFF,
+  edeq: EDEQ,
 };
 
 // ─── Moteur de scoring ────────────────────────────────────────────────────────

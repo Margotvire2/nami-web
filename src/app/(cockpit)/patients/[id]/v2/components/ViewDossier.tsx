@@ -469,6 +469,73 @@ const UPLOAD_TYPES = [
   { label: "Autre", type: "OTHER" },
 ];
 
+// ─── TranscriptionModal ───────────────────────────────────────────────────────
+
+function TranscriptionModal({ doc, onClose }: { doc: any; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  function copyText() {
+    if (!doc.textContent) return;
+    navigator.clipboard.writeText(doc.textContent).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between shrink-0">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">🎙️</span>
+              <h3 className="text-sm font-semibold text-gray-900">{doc.title || "Transcription"}</h3>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">🔒 Privé — visible par vous uniquement</span>
+              {doc.createdAt && (
+                <span className="text-[11px] text-gray-400">{new Date(doc.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })} à {new Date(doc.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+              )}
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0 ml-4">✕</button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {doc.textContent ? (
+            <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">{doc.textContent}</pre>
+          ) : (
+            <p className="text-sm text-gray-400 italic text-center py-8">Contenu de la transcription non disponible.</p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-gray-100 shrink-0 flex items-center justify-between gap-2">
+          <p className="text-[11px] text-gray-400">
+            {doc.sizeBytes ? `${Math.round(doc.sizeBytes / 1024)} ko` : ""}
+            {doc.textContent ? ` · ${doc.textContent.split(/\s+/).length} mots` : ""}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={copyText}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+            >
+              {copied ? "✓ Copié" : "📋 Copier"}
+            </button>
+            <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] transition">
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DocumentsPanel ───────────────────────────────────────────────────────────
+
 function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -502,6 +569,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   const [validationDocId, setValidationDocId] = useState<string | null>(null);
   const [extractionDate, setExtractionDate] = useState<string>("");
   const [extractionExamType, setExtractionExamType] = useState<string | null>(null);
+  const [transcriptionModalDoc, setTranscriptionModalDoc] = useState<any | null>(null);
 
   async function handleUpload(file: File, docType: string) {
     setUploading(true);
@@ -741,25 +809,38 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
             const isExtracted = doc.bioExtracted === true;
             const isExtracting = extractingDocId === doc.id;
             return (
-              <div key={doc.id} className="rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer group">
+              <div
+                key={doc.id}
+                className="rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer group"
+                onClick={() => { if (doc.documentType === "TRANSCRIPTION" && doc.textContent) setTranscriptionModalDoc(doc); }}
+              >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{docTypeIcons[doc.documentType] || "📄"}</span>
                     <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">{docTypeLabels[doc.documentType] || doc.documentType || "Document"}</span>
                   </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                    doc.category === "mine" ? "bg-gray-100 text-gray-500" :
-                    doc.category === "patient" ? "bg-purple-50 text-purple-600" :
-                    doc.category === "transcriptions" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
-                  }`}>
-                    {doc.category === "mine" ? "Privé" : doc.category === "patient" ? "Patient" : doc.category === "transcriptions" ? "Audio" : "Partagé"}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    {doc.isSharedWithTeam === false && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500" title="Visible uniquement par vous">🔒 Privé</span>
+                    )}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                      doc.category === "mine" ? "bg-gray-100 text-gray-500" :
+                      doc.category === "patient" ? "bg-purple-50 text-purple-600" :
+                      doc.category === "transcriptions" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
+                    }`}>
+                      {doc.category === "mine" ? "Privé" : doc.category === "patient" ? "Patient" : doc.category === "transcriptions" ? "Audio" : "Partagé"}
+                    </span>
+                  </div>
                 </div>
                 <p className="text-sm font-medium text-gray-900 truncate">{doc.title || doc.fileName || "Sans titre"}</p>
                 <div className="flex items-center gap-2 mt-1.5 text-[10px] text-gray-400">
                   <span>{formatDate(doc.createdAt)}</span>
-                  {doc.fileSize && <span>• {formatFileSize(doc.fileSize)}</span>}
+                  {doc.sizeBytes && <span>• {formatFileSize(doc.sizeBytes)}</span>}
                 </div>
+                {/* Aperçu transcription */}
+                {doc.documentType === "TRANSCRIPTION" && doc.textContent && (
+                  <p className="text-[11px] text-gray-500 mt-2 line-clamp-2 leading-relaxed">{doc.textContent}</p>
+                )}
                 <div className="flex gap-1.5 mt-2 items-center flex-wrap">
                   {isExtracted && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium border border-emerald-100">🧪 Bio extraite</span>
@@ -776,7 +857,16 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
                   )}
                 </div>
                 <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={(e) => { e.stopPropagation(); handleDownload(doc.id); }} className="text-xs text-[#5B4EC4] hover:underline">Télécharger</button>
+                  {doc.documentType === "TRANSCRIPTION" ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setTranscriptionModalDoc(doc); }}
+                      className="text-xs text-[#5B4EC4] hover:underline font-medium"
+                    >
+                      🎙️ Voir la transcription
+                    </button>
+                  ) : (
+                    <button onClick={(e) => { e.stopPropagation(); handleDownload(doc.id); }} className="text-xs text-[#5B4EC4] hover:underline">Télécharger</button>
+                  )}
                   {isBioDoc(doc) && !isExtracted && !isExtracting && (
                     <button onClick={(e) => { e.stopPropagation(); handleExtract(doc.id); }} className="text-xs text-emerald-600 hover:underline font-medium">
                       🧪 Extraire les données
@@ -790,6 +880,14 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
             );
           })}
         </div>
+      )}
+
+      {/* Modal transcription */}
+      {transcriptionModalDoc && (
+        <TranscriptionModal
+          doc={transcriptionModalDoc}
+          onClose={() => setTranscriptionModalDoc(null)}
+        />
       )}
 
       {/* Modal validation bio */}

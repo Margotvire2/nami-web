@@ -93,18 +93,26 @@ const NAP_OPTIONS = [
 ]
 
 const QUESTIONNAIRE_CONFIG: Record<string, string[]> = {
-  "tca.anorexia": ["eat26_score", "phq9_score", "gad7_score"],
-  "tca.bulimia": ["eat26_score", "phq9_score", "gad7_score"],
-  "tca": ["eat26_score", "phq9_score", "gad7_score"],
-  "obesity": ["phq9_score"],
-  default: ["phq9_score"],
+  "tca.anorexia": ["edeq_global", "eat26_score", "phq9_score", "gad7_score"],
+  "tca.bulimia":  ["edeq_global", "eat26_score", "phq9_score", "gad7_score"],
+  "tca":          ["edeq_global", "eat26_score", "phq9_score", "gad7_score"],
+  "obesity":      ["phq9_score"],
+  default:        ["phq9_score"],
 }
 
-const QUESTIONNAIRE_LABELS: Record<string, { name: string; maxScore: number; code: string }> = {
-  phq9_score: { name: "PHQ-9", maxScore: 27, code: "phq9" },
-  gad7_score: { name: "GAD-7", maxScore: 21, code: "gad7" },
-  eat26_score: { name: "EAT-26", maxScore: 78, code: "eat26" },
+const QUESTIONNAIRE_LABELS: Record<string, { name: string; maxScore: number; code: string; isFloat?: boolean }> = {
+  edeq_global:  { name: "EDE-Q", maxScore: 6,  code: "edeq", isFloat: true },
+  phq9_score:   { name: "PHQ-9", maxScore: 27, code: "phq9" },
+  gad7_score:   { name: "GAD-7", maxScore: 21, code: "gad7" },
+  eat26_score:  { name: "EAT-26", maxScore: 78, code: "eat26" },
 }
+
+const EDEQ_SUBSCALES: { key: string; label: string }[] = [
+  { key: "edeq_restraint",      label: "Restriction" },
+  { key: "edeq_eating_concern", label: "Préocc. alimentaire" },
+  { key: "edeq_shape_concern",  label: "Préocc. corporelle" },
+  { key: "edeq_weight_concern", label: "Préocc. pondérale" },
+]
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -358,12 +366,35 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
             const val = numVal(o)
             if (val == null || !cfg) return null
             const scoring = getQuestionnaireScoring(cfg.code, val)
+            const displayVal = cfg.isFloat ? val.toFixed(1) : String(val)
+            const isEdeq = key === "edeq_global"
             return (
-              <div key={key} className="flex items-center gap-3 text-sm">
-                <span className="font-semibold w-16">{cfg.name}</span>
-                <span className="font-bold">{val}/{cfg.maxScore}</span>
-                {scoring && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${scoring.colorClass}`}>{scoring.label}</span>}
-                <span className="text-xs text-muted-foreground ml-auto">{o?.effectiveAt ? format(parseISO(o.effectiveAt), "d MMM yyyy", { locale: fr }) : ""}</span>
+              <div key={key}>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="font-semibold w-16">{cfg.name}</span>
+                  <span className="font-bold">{displayVal}/{cfg.maxScore}</span>
+                  {scoring && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${scoring.colorClass}`}>{scoring.label}</span>}
+                  <span className="text-xs text-muted-foreground ml-auto">{o?.effectiveAt ? format(parseISO(o.effectiveAt), "d MMM yyyy", { locale: fr }) : ""}</span>
+                </div>
+                {/* EDE-Q : afficher les 4 sous-échelles si disponibles */}
+                {isEdeq && (
+                  <div className="mt-1.5 ml-4 grid grid-cols-2 gap-x-4 gap-y-1">
+                    {EDEQ_SUBSCALES.map(({ key: sk, label }) => {
+                      const sv = numVal(obs.get(sk))
+                      if (sv == null) return null
+                      const sScoring = getQuestionnaireScoring("edeq", sv)
+                      return (
+                        <div key={sk} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span className="truncate">{label}</span>
+                          <span className="font-semibold text-foreground">{sv.toFixed(1)}</span>
+                          {sScoring && sScoring.severity !== "none" && (
+                            <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${sScoring.colorClass}`}>{sScoring.label}</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )
           })}

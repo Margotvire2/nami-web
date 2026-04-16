@@ -1047,6 +1047,104 @@ export interface CreateDocumentInput {
   isSharedWithTeam?: boolean;
 }
 
+// ─── Summary diff ────────────────────────────────────────────────────────────
+
+export interface SummaryDiffObs {
+  valueNumeric: number | null;
+  valueText: string | null;
+  unit: string | null;
+  effectiveAt: string;
+  metric: { key: string; label: string };
+}
+
+export interface SummaryDiffNote {
+  noteType: string;
+  title: string | null;
+  createdAt: string;
+  author: { firstName: string; lastName: string };
+}
+
+export interface SummaryDiffAlert {
+  alertType: string;
+  title: string;
+  severity: string;
+  createdAt: string;
+}
+
+export interface SummaryDiff {
+  lastSummaryAt: string | null;
+  hasChanges: boolean;
+  newNotes: SummaryDiffNote[];
+  newObservations: SummaryDiffObs[];
+  newAlerts: SummaryDiffAlert[];
+  counts: { notes: number; observations: number; alerts: number };
+}
+
+export const summaryDiffApi = {
+  get: (token: string, careCaseId: string) =>
+    request<SummaryDiff>(`/intelligence/summary-diff/${careCaseId}`, {}, token),
+};
+
+// ─── Notifications in-app ────────────────────────────────────────────────────
+
+export interface NotificationItem {
+  id: string;
+  activityType: string;
+  title: string;
+  summary: string | null;
+  payload: Record<string, unknown>;
+  occurredAt: string;
+  careCase: {
+    id: string;
+    patient: { id: string; firstName: string; lastName: string };
+  };
+  person: { id: string; firstName: string; lastName: string };
+}
+
+export const notificationsApi = {
+  list: (token: string, since?: string) => {
+    const qs = since ? `?since=${encodeURIComponent(since)}` : "";
+    return request<{ items: NotificationItem[]; total: number }>(`/notifications${qs}`, {}, token);
+  },
+};
+
+// ─── Network Overview ────────────────────────────────────────────────────────
+
+export interface NetworkOverviewStats {
+  totalActive: number;
+  tasksOverdue: number;
+  appointmentsToday: number;
+  openAlerts: number;
+}
+
+export interface NetworkPatient {
+  careCaseId: string;
+  caseTitle: string;
+  caseType: string;
+  status: string;
+  riskLevel: string;
+  careStage: string | null;
+  patient: { id: string; firstName: string; lastName: string; birthDate: string | null };
+  pendingTasksCount: number;
+  overdueTasksCount: number;
+  openAlertsCount: number;
+  teamSize: number;
+  nextAppointment: { id: string; startAt: string; locationType: string } | null;
+  updatedAt: string;
+}
+
+export interface NetworkOverview {
+  stats: NetworkOverviewStats;
+  patients: NetworkPatient[];
+}
+
+export const networkApi = {
+  overview: (token: string) =>
+    request<NetworkOverview>("/provider/network-overview", {}, token),
+};
+
+// ─── Documents ───────────────────────────────────────────────────────────────
+
 export const documentsApi = {
   list: (token: string, careCaseId: string) =>
     request<Document[]>(`/care-cases/${careCaseId}/documents`, {}, token),
@@ -1701,11 +1799,18 @@ export interface TrajectoryMetric {
   zScore: number;
   direction: "up" | "down";
   currentValue: number;
-  mean: number;
-  stddev: number;
+  predictedValue: number;
+  trendSlope: number;
+  trendSlopeLabel: string;
+  residual: number;
+  stdResidual: number;
   deviationLabel: string;
-  spark: { value: number; date: string }[];
+  spark: { value: number; predicted: number; date: string }[];
   n: number;
+  usedOLS: boolean;
+  // legacy fallback (may be absent on OLS results)
+  mean?: number;
+  stddev?: number;
 }
 
 // ─── Pathway ────────────────────────────────────────────────────────────────
@@ -1943,6 +2048,7 @@ export interface Rcp {
   decision: string | null;
   decisionType: "CONSENSUS" | "MAJORITY" | "INITIATOR_DECISION" | null;
   aiSummary: string | null;
+  draftCr: string | null;
   conclusionNoteId: string | null;
   conversationId: string | null;
   taskIds: string[];
@@ -2278,6 +2384,7 @@ export function apiWithToken(token: string) {
       patch:     (rcpId: string, data: Partial<CreateRcpInput>) =>
         request<Rcp>(`/rcps/${rcpId}`, { method: "PATCH", body: JSON.stringify(data) }, token),
       summarize: (rcpId: string) => request<{ aiSummary: string }>(`/rcps/${rcpId}/summarize`, { method: "POST" }, token),
+      draftCr:   (rcpId: string) => request<{ draft: string }>(`/rcps/${rcpId}/draft-cr`, { method: "POST" }, token),
     },
     billing: {
       tariffs: (params?: { q?: string; category?: string; nomenclature?: string }) => {

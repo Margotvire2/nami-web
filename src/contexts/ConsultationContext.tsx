@@ -57,6 +57,8 @@ interface ConsultationState {
   status: ConsultationStatus;
   aiSummary: string | null;
   generatedNoteId: string | null;
+  hasPrescriptionDraft: boolean;
+  transcriptDocId: string | null;
   error: string | null;
   micDenied: boolean;
 }
@@ -153,6 +155,8 @@ const INITIAL_STATE: ConsultationState = {
   status: "idle",
   aiSummary: null,
   generatedNoteId: null,
+  hasPrescriptionDraft: false,
+  transcriptDocId: null,
   error: null,
   micDenied: false,
 };
@@ -470,7 +474,7 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
         throw new Error(err.error || "Erreur génération résumé");
       }
 
-      const { consultation, note } = await res.json();
+      const { consultation, note, hasPrescriptionDraft, transcriptDocId } = await res.json();
 
       clearSession();
       setState((s) => ({
@@ -478,6 +482,8 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
         status: "completed",
         aiSummary: consultation.aiSummary,
         generatedNoteId: note.id,
+        hasPrescriptionDraft: hasPrescriptionDraft ?? false,
+        transcriptDocId: transcriptDocId ?? null,
         error: null,
       }));
     } catch (err) {

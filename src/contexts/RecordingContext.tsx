@@ -51,6 +51,7 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const careCaseIdRef = useRef<string | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -130,6 +131,7 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
       mediaRecorder.start(1000);
       mediaRecorderRef.current = mediaRecorder;
 
+      careCaseIdRef.current = careCaseId;
       setState({
         status: "recording",
         careCaseId,
@@ -165,9 +167,9 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
   // ── Stop + Analyze ──
 
   const stopAndAnalyze = useCallback(() => {
-    if (!mediaRecorderRef.current || !state.careCaseId || !accessToken) return;
+    const careCaseId = careCaseIdRef.current;
+    if (!mediaRecorderRef.current || !careCaseId || !accessToken) return;
 
-    const careCaseId = state.careCaseId;
     const duration = state.seconds;
 
     mediaRecorderRef.current.onstop = async () => {
@@ -203,7 +205,7 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
     mediaRecorderRef.current.stop();
     stopTimer();
     setState((s) => ({ ...s, status: "uploading" }));
-  }, [state.careCaseId, state.seconds, accessToken, stopTimer]);
+  }, [state.seconds, accessToken, stopTimer]);
 
   // ── Dismiss ──
 
@@ -213,6 +215,7 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     }
     stopTimer();
+    careCaseIdRef.current = null;
     setState({
       status: "idle",
       careCaseId: null,

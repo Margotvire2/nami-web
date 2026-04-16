@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, summaryDiffApi, type SummaryDiff } from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   PatientDashboard,
   DashboardIndicator,
@@ -540,6 +542,17 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const [streamText, setStreamText] = useState<string | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const { data: diff } = useQuery<SummaryDiff>({
+    queryKey: ["summary-diff", careCaseId],
+    queryFn: async () => {
+      const token = getPersistedToken();
+      return summaryDiffApi.get(token, careCaseId);
+    },
+    enabled: !!careCaseId,
+    staleTime: 120_000,
+    refetchInterval: 120_000,
+  });
+
   const { data: careCase } = useQuery<{ clinicalSummary: string | null }>({
     queryKey: ["care-case-summary", careCaseId],
     queryFn: async () => {
@@ -636,9 +649,12 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
           {!streaming && (
             <button
               onClick={startStream}
-              className="text-xs text-[#5B4EC4] hover:underline font-medium"
+              className="relative text-xs text-[#5B4EC4] hover:underline font-medium"
             >
               {savedSummary ? "Actualiser" : "Générer"}
+              {diff?.hasChanges && (
+                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-amber-500" />
+              )}
             </button>
           )}
           <button
@@ -652,6 +668,46 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
           </button>
         </div>
       </div>
+
+      {/* Diff banner */}
+      {diff?.hasChanges && !collapsed && (
+        <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100 flex items-start gap-2.5">
+          <span className="text-amber-500 text-sm mt-0.5 flex-shrink-0">Δ</span>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-semibold text-amber-700">
+              Nouveautés depuis la dernière synthèse
+              {diff.lastSummaryAt && (
+                <span className="font-normal text-amber-600 ml-1">
+                  ({formatDistanceToNow(new Date(diff.lastSummaryAt), { addSuffix: true, locale: fr })})
+                </span>
+              )}
+            </span>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+              {diff.counts.notes > 0 && (
+                <span className="text-[11px] text-amber-700">
+                  {diff.counts.notes} nouvelle{diff.counts.notes > 1 ? "s" : ""} note{diff.counts.notes > 1 ? "s" : ""}
+                </span>
+              )}
+              {diff.newObservations.slice(0, 3).map((obs) => (
+                <span key={obs.metric.key} className="text-[11px] text-amber-700">
+                  {obs.metric.label} : <strong>{obs.valueNumeric ?? obs.valueText}</strong>{obs.unit ? ` ${obs.unit}` : ""}
+                </span>
+              ))}
+              {diff.counts.observations > 3 && (
+                <span className="text-[11px] text-amber-600">
+                  +{diff.counts.observations - 3} mesure{diff.counts.observations - 3 > 1 ? "s" : ""}
+                </span>
+              )}
+              {diff.counts.alerts > 0 && (
+                <span className="text-[11px] text-amber-700">
+                  {diff.counts.alerts} rappel{diff.counts.alerts > 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+          </div>
+          <span className="text-[10px] text-amber-500 flex-shrink-0 mt-0.5 italic">Actualiser pour intégrer</span>
+        </div>
+      )}
 
       {/* Body */}
       {!collapsed && (

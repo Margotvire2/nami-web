@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRecording } from "@/contexts/RecordingContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { Pause, Play, Square, X, FileText, Loader2, ClipboardList } from "lucide-react";
 import Link from "next/link";
 
@@ -12,6 +14,18 @@ function formatTime(s: number) {
 
 export function RecordingWidget() {
   const rec = useRecording();
+  const qc = useQueryClient();
+
+  // Invalidate relevant queries when recording analysis completes
+  useEffect(() => {
+    if (rec.status === "done" && rec.careCaseId) {
+      const id = rec.careCaseId;
+      qc.invalidateQueries({ queryKey: ["documents", id] });
+      qc.invalidateQueries({ queryKey: ["notes", id] });
+      qc.invalidateQueries({ queryKey: ["prescription-drafts", id] });
+      qc.invalidateQueries({ queryKey: ["timeline", id] });
+    }
+  }, [rec.status, rec.careCaseId, qc]);
 
   if (rec.status === "idle") return null;
 

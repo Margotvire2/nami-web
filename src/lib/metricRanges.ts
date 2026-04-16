@@ -77,6 +77,21 @@ const R: Record<string, Record<string, Resolver>> = {
   eat26_score: {
     default: () => ({ green: { min: 0, max: 20 }, orange: { min: 20, max: 30 }, red: { min: 30, max: 78 } }),
   },
+  edeq_global: {
+    default: () => ({ green: { min: 0, max: 1.74 }, orange: { min: 1.75, max: 3.99 }, red: { min: 4, max: 6 } }),
+  },
+  edeq_restraint: {
+    default: () => ({ green: { min: 0, max: 1.74 }, orange: { min: 1.75, max: 3.99 }, red: { min: 4, max: 6 } }),
+  },
+  edeq_eating_concern: {
+    default: () => ({ green: { min: 0, max: 1.74 }, orange: { min: 1.75, max: 3.99 }, red: { min: 4, max: 6 } }),
+  },
+  edeq_shape_concern: {
+    default: () => ({ green: { min: 0, max: 1.74 }, orange: { min: 1.75, max: 3.99 }, red: { min: 4, max: 6 } }),
+  },
+  edeq_weight_concern: {
+    default: () => ({ green: { min: 0, max: 1.74 }, orange: { min: 1.75, max: 3.99 }, red: { min: 4, max: 6 } }),
+  },
   gad7_score: {
     default: () => ({ green: { min: 0, max: 5 }, orange: { min: 5, max: 10 }, red: { min: 10, max: 21 } }),
   },
@@ -130,6 +145,12 @@ const SCORING: Record<string, ScoreRange[]> = {
   scoff: [
     { min: 0, max: 1, label: "Dépistage négatif", severity: "none" },
     { min: 2, max: 5, label: "Dépistage TCA positif", severity: "severe" },
+  ],
+  edeq: [
+    { min: 0,    max: 1.74, label: "Normal",          severity: "none" },
+    { min: 1.75, max: 2.49, label: "Sous-clinique",   severity: "mild" },
+    { min: 2.50, max: 3.99, label: "Clinique modéré", severity: "moderate" },
+    { min: 4.00, max: 6.00, label: "Clinique sévère", severity: "severe" },
   ],
 };
 

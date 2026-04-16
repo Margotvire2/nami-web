@@ -9,22 +9,22 @@ interface Props {
 
 const CONTENT = {
   vc: {
-    eyebrow: "SEED 2026",
-    lines: ["Le système nerveux", "de vos parcours de soins."],
-    gradientWords: ["système", "nerveux"],
+    eyebrow: "SEED 2026 · VIRAGE AMBULATOIRE",
+    lines: ["L'hôpital a des couloirs.", "Les libéraux n'en ont pas."],
+    gradientWords: ["couloirs."],
     subtitle:
-      "Nami coordonne les équipes pluridisciplinaires autour de chaque patient. TCA, obésité, pédiatrie, épilepsie, maladies chroniques — un moteur d'intelligence clinique pour structurer, documenter et communiquer.",
+      "La France pousse les patients hors de l'hôpital. Mais le virage ambulatoire ne fonctionne que si 5 libéraux se coordonnent aussi bien qu'une équipe hospitalière. Aujourd'hui, ils n'ont aucun outil commun. Nami est ce couloir.",
     cta: "Demander un meeting →",
     ctaHref: "mailto:contact@namipourlavie.com",
     ctaSecondary: "contact@namipourlavie.com",
-    footer: "Conforme RGPD · Art. L.1110-12 CSP",
+    footer: "Conforme RGPD · Art. L.1110-12 CSP · Hors DM au sens du règlement (UE) 2017/745",
   },
   hospital: {
-    eyebrow: "COORDINATION DES PARCOURS COMPLEXES",
-    lines: ["Quand votre patient voit 5 soignants,", "chacun sait ce que les autres ont fait."],
-    gradientWords: ["chacun", "sait"],
+    eyebrow: "PARCOURS AMBULATOIRE COORDONNÉ",
+    lines: ["Vos patients sortent plus tôt.", "Le relais en ville, lui, est toujours cassé."],
+    gradientWords: ["cassé."],
     subtitle:
-      "Nami est l'espace commun de votre équipe pluridisciplinaire. Un dossier de coordination partagé, structuré, sécurisé.",
+      "5 libéraux prennent le relais à la sortie. Aucun outil commun. Chacun travaille en silo. Nami crée le couloir ambulatoire — dossier partagé, synthèses IA traçables, coordination structurée.",
     cta: "Demander une démo →",
     ctaHref: "mailto:contact@namipourlavie.com",
     ctaSecondary: "Voir en 3 minutes ↓",
