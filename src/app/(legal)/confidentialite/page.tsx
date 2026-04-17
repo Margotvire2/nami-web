@@ -113,11 +113,14 @@ export default function ConfidentialitePage() {
           </table>
         </div>
 
-        <h3 className="text-sm font-semibold text-gray-800 mb-2">Anonymisation préalable</h3>
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Pseudonymisation préalable</h3>
         <p className="text-sm text-gray-600 leading-relaxed mb-6">
-          Avant tout envoi vers ces services, les données sont anonymisées : les noms, prénoms et dates de
-          naissance sont remplacés par des identifiants génériques (ex : [PATIENT_0], [SOIGNANT_0]).
-          Les fichiers audio sont supprimés immédiatement après transcription.
+          Avant tout envoi vers ces services, les données sont <strong>pseudonymisées</strong> au sens de
+          l&apos;article 4(5) du RGPD : les noms, prénoms et dates de naissance sont remplacés par des
+          identifiants génériques (ex : [PATIENT_0], [SOIGNANT_0]) avant transmission.
+          Les fichiers audio sont supprimés de nos serveurs immédiatement après transcription.
+          Anthropic et OpenAI <strong>ne ré-entraînent pas leurs modèles</strong> sur les données transmises
+          via API, conformément à leurs contrats de traitement de données (DPA).
         </p>
 
         <h3 className="text-sm font-semibold text-gray-800 mb-2">Droit d&apos;opposition</h3>
