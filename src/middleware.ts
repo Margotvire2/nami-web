@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/pathologies",
   "/soignants",
   "/soignants-liberaux",
+  "/shared",
   "/pitch",
   "/decouvrir",
   "/landing-page",

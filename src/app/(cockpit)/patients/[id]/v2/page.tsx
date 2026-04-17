@@ -243,6 +243,22 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
     }
   }, [accessToken, id, qc, API_URL]);
 
+  const handleShare = useCallback(async () => {
+    if (!accessToken) return;
+    try {
+      const res = await fetch(`${API_URL}/care-cases/${id}/share-link`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) throw new Error("Erreur lors de la création du lien");
+      const { url } = await res.json() as { url: string };
+      await navigator.clipboard.writeText(url);
+      toast.success("Lien copié — valide 7 jours");
+    } catch {
+      toast.error("Impossible de générer le lien de partage");
+    }
+  }, [accessToken, id, API_URL]);
+
   if (!accessToken || careCaseLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -282,6 +298,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)
         }
         onAiSummarize={handleAiSummarize}
+        onShare={handleShare}
         aiStreaming={aiStreaming}
       />
 
