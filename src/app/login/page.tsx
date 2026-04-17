@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authApi } from "@/lib/api";
+import { authApi, mfaApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,23 +60,57 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // MFA step
+  const [mfaStep, setMfaStep] = useState(false);
+  const [mfaPendingToken, setMfaPendingToken] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const totpInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (searchParams.get("verified") === "true") {
       toast.success("Email vérifié. Vous pouvez maintenant vous connecter.");
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (mfaStep) totpInputRef.current?.focus();
+  }, [mfaStep]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const tokens = await authApi.login(email, password);
-      const user = await authApi.me(tokens.accessToken);
-      setAuth(user, tokens.accessToken, tokens.refreshToken);
+      const res = await authApi.login(email, password);
+      if (res.mfaRequired) {
+        setMfaPendingToken(res.mfaPendingToken);
+        setMfaStep(true);
+        return;
+      }
+      const user = await authApi.me(res.accessToken);
+      setAuth(user, res.accessToken, res.refreshToken);
       track.login({ method: "email" });
       router.push(user.roleType === "PATIENT" ? "/accueil" : "/aujourd-hui");
     } catch {
       toast.error("Email ou mot de passe incorrect");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleMfaSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (totpCode.length !== 6) return;
+    setLoading(true);
+    try {
+      const tokens = await mfaApi.validate(mfaPendingToken, totpCode);
+      const user = await authApi.me(tokens.accessToken);
+      setAuth(user, tokens.accessToken, tokens.refreshToken);
+      track.login({ method: "email_mfa" });
+      router.push(user.roleType === "PATIENT" ? "/accueil" : "/aujourd-hui");
+    } catch {
+      toast.error("Code incorrect. Réessayez.");
+      setTotpCode("");
+      totpInputRef.current?.focus();
     } finally {
       setLoading(false);
     }
@@ -103,69 +137,135 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="email"
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: "#4A4A5A" }}
+          {/* Form — étape 1 : email/mot de passe */}
+          {!mfaStep && (
+            <>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="email"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                    style={{ color: "#4A4A5A" }}
+                  >
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vous@exemple.com"
+                    className="h-11 rounded-xl border-0 text-sm"
+                    style={{ background: "#F5F3EF", color: "#1A1A2E" }}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="password"
+                    className="text-xs font-semibold uppercase tracking-wider"
+                    style={{ color: "#4A4A5A" }}
+                  >
+                    Mot de passe
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-11 rounded-xl border-0 text-sm"
+                    style={{ background: "#F5F3EF", color: "#1A1A2E" }}
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 rounded-xl text-sm font-semibold text-white border-0"
+                  style={{ background: "#5B4EC4", boxShadow: "0 2px 10px rgba(91,78,196,0.3)" }}
+                  disabled={loading}
+                >
+                  {loading ? "Connexion…" : "Se connecter"}
+                </Button>
+              </form>
+
+              <p className="text-center text-sm mt-8" style={{ color: "#8A8A96" }}>
+                Pas encore de compte ?{" "}
+                <Link
+                  href="/signup"
+                  className="font-semibold hover:underline underline-offset-2"
+                  style={{ color: "#5B4EC4" }}
+                >
+                  Créer un compte
+                </Link>
+              </p>
+            </>
+          )}
+
+          {/* Form — étape 2 : code TOTP */}
+          {mfaStep && (
+            <form onSubmit={handleMfaSubmit} className="space-y-6">
+              <div
+                className="rounded-xl p-4 text-center space-y-1"
+                style={{ background: "#F5F3EF" }}
               >
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vous@exemple.com"
-                className="h-11 rounded-xl border-0 text-sm"
-                style={{ background: "#F5F3EF", color: "#1A1A2E" }}
-                required
-              />
-            </div>
+                <p className="text-2xl">🔐</p>
+                <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
+                  Vérification en deux étapes
+                </p>
+                <p className="text-xs" style={{ color: "#8A8A96" }}>
+                  Entrez le code à 6 chiffres de votre application authenticator
+                </p>
+              </div>
 
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="password"
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: "#4A4A5A" }}
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="totp"
+                  className="text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: "#4A4A5A" }}
+                >
+                  Code à 6 chiffres
+                </Label>
+                <Input
+                  id="totp"
+                  ref={totpInputRef}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="_ _ _ _ _ _"
+                  className="h-14 rounded-xl border-0 text-2xl text-center tracking-[0.5em] font-mono"
+                  style={{ background: "#F5F3EF", color: "#1A1A2E" }}
+                  autoComplete="one-time-code"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-11 rounded-xl text-sm font-semibold text-white border-0"
+                style={{ background: "#5B4EC4", boxShadow: "0 2px 10px rgba(91,78,196,0.3)" }}
+                disabled={loading || totpCode.length !== 6}
               >
-                Mot de passe
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11 rounded-xl border-0 text-sm"
-                style={{ background: "#F5F3EF", color: "#1A1A2E" }}
-                required
-              />
-            </div>
+                {loading ? "Vérification…" : "Vérifier"}
+              </Button>
 
-            <Button
-              type="submit"
-              className="w-full h-11 rounded-xl text-sm font-semibold text-white border-0"
-              style={{ background: "#5B4EC4", boxShadow: "0 2px 10px rgba(91,78,196,0.3)" }}
-              disabled={loading}
-            >
-              {loading ? "Connexion…" : "Se connecter"}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm mt-8" style={{ color: "#8A8A96" }}>
-            Pas encore de compte ?{" "}
-            <Link
-              href="/signup"
-              className="font-semibold hover:underline underline-offset-2"
-              style={{ color: "#5B4EC4" }}
-            >
-              Créer un compte
-            </Link>
-          </p>
+              <p className="text-center text-xs" style={{ color: "#8A8A96" }}>
+                Le code expire toutes les 30 secondes •{" "}
+                <button
+                  type="button"
+                  onClick={() => { setMfaStep(false); setTotpCode(""); }}
+                  className="underline"
+                >
+                  Retour
+                </button>
+              </p>
+            </form>
+          )}
         </div>
       </div>
 

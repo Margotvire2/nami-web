@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useAuthStore } from "@/lib/store"
-import { authApi } from "@/lib/api"
+import { authApi, mfaApi } from "@/lib/api"
 import { EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
 import { ShimmerCard } from "@/components/ui/shimmer"
 import {
   User, Mail, Phone, BadgeCheck, Loader2, Save,
   Plus, Trash2, LogOut, ChevronDown, ChevronUp,
   Building2, GraduationCap, Stethoscope, Globe, Settings,
+  Download, Shield,
 } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
@@ -194,6 +195,14 @@ export default function ReglagesPage() {
   const [certModal, setCertModal] = useState(false)
   const [certForm, setCertForm] = useState({ name: "", organism: "", year: "" })
 
+  // MFA
+  const [totpEnabled, setTotpEnabled] = useState(false)
+  const [mfaSetup, setMfaSetup] = useState<{ qrCodeDataUrl: string; secret: string } | null>(null)
+  const [mfaCode, setMfaCode] = useState("")
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaDisableMode, setMfaDisableMode] = useState(false)
+  const [mfaDisableCode, setMfaDisableCode] = useState("")
+
   // ─── Load ────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
@@ -204,6 +213,7 @@ export default function ReglagesPage() {
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
+      setTotpEnabled(data.totpEnabled ?? false)
       setProfile({
         firstName: data.person?.firstName ?? "",
         lastName: data.person?.lastName ?? "",
@@ -370,6 +380,56 @@ export default function ReglagesPage() {
       await load()
     } catch {
       toast.error("Erreur")
+    }
+  }
+
+  // ─── MFA handlers ────────────────────────────────────────────────────────
+
+  async function handleMfaSetup() {
+    if (!accessToken) return
+    setMfaLoading(true)
+    try {
+      const res = await mfaApi.setup(accessToken)
+      setMfaSetup(res)
+      setMfaCode("")
+    } catch {
+      toast.error("Erreur lors de la configuration MFA")
+    } finally {
+      setMfaLoading(false)
+    }
+  }
+
+  async function handleMfaEnable() {
+    if (!accessToken || !mfaSetup || mfaCode.length !== 6) return
+    setMfaLoading(true)
+    try {
+      await mfaApi.enable(accessToken, mfaCode)
+      setTotpEnabled(true)
+      setMfaSetup(null)
+      setMfaCode("")
+      toast.success("Double authentification activée")
+    } catch {
+      toast.error("Code incorrect. Réessayez.")
+      setMfaCode("")
+    } finally {
+      setMfaLoading(false)
+    }
+  }
+
+  async function handleMfaDisable() {
+    if (!accessToken || mfaDisableCode.length !== 6) return
+    setMfaLoading(true)
+    try {
+      await mfaApi.disable(accessToken, mfaDisableCode)
+      setTotpEnabled(false)
+      setMfaDisableMode(false)
+      setMfaDisableCode("")
+      toast.success("Double authentification désactivée")
+    } catch {
+      toast.error("Code incorrect. Réessayez.")
+      setMfaDisableCode("")
+    } finally {
+      setMfaLoading(false)
     }
   }
 
@@ -619,7 +679,142 @@ export default function ReglagesPage() {
           </button>
         </Section>
 
-        {/* ── Section 7 : Compte ──────────────────────────────────────────── */}
+        {/* ── Section 7 : Sécurité ─────────────────────────────────────────── */}
+        <Section title="Sécurité" icon={<Shield size={16} />} defaultOpen={false}>
+          <div className="space-y-4">
+
+            {/* État 1 : non activé */}
+            {!totpEnabled && !mfaSetup && (
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FCD34D]">
+                  <p className="text-[12px] text-[#92400E] leading-relaxed">
+                    La double authentification n&apos;est pas activée. Recommandée pour les comptes accédant à des données sensibles.
+                  </p>
+                </div>
+                <button
+                  onClick={handleMfaSetup}
+                  disabled={mfaLoading}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#4F46E5] hover:bg-[#EEF2FF] hover:border-[#C7D2FE] transition-colors disabled:opacity-60"
+                >
+                  {mfaLoading ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
+                  Activer la double authentification (TOTP)
+                </button>
+              </div>
+            )}
+
+            {/* État 2 : setup QR */}
+            {!totpEnabled && mfaSetup && (
+              <div className="space-y-4">
+                <p className="text-[12px] text-[#64748B]">
+                  Scannez ce QR code avec votre application authenticator (Google Authenticator, Authy…), puis entrez le code à 6 chiffres pour confirmer.
+                </p>
+                <div className="flex justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mfaSetup.qrCodeDataUrl} alt="QR Code TOTP" className="w-40 h-40 rounded-xl border border-[#E8ECF4]" />
+                </div>
+                <div className="p-2 rounded-lg bg-[#F8F9FC] border border-[#E8ECF4]">
+                  <p className="text-[10px] text-[#94A3B8] uppercase tracking-wide mb-0.5">Clé manuelle</p>
+                  <p className="text-[12px] font-mono text-[#64748B] break-all">{mfaSetup.secret}</p>
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Code de vérification</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={mfaCode}
+                    onChange={e => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="_ _ _ _ _ _"
+                    className="mt-1 w-full px-3 py-3 rounded-lg border border-[#E8ECF4] text-[18px] text-center tracking-[0.5em] font-mono outline-none focus:border-[#4F46E5]"
+                    autoComplete="one-time-code"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setMfaSetup(null); setMfaCode("") }}
+                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-[#64748B] border border-[#E8ECF4] hover:bg-[#F1F5F9]"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleMfaEnable}
+                    disabled={mfaLoading || mfaCode.length !== 6}
+                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] disabled:opacity-60 flex items-center justify-center gap-1.5"
+                  >
+                    {mfaLoading && <Loader2 size={13} className="animate-spin" />}
+                    Confirmer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* État 3 : activé */}
+            {totpEnabled && !mfaDisableMode && (
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#D1FAE5] flex items-center justify-center shrink-0">
+                    <Shield size={14} className="text-[#059669]" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-[#065F46]">Double authentification activée</p>
+                    <p className="text-[11px] text-[#34D399]">Votre compte est protégé par TOTP (RFC 6238)</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMfaDisableMode(true)}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#64748B] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] hover:text-[#EF4444] transition-colors"
+                >
+                  Désactiver la double authentification
+                </button>
+              </div>
+            )}
+
+            {/* État 4 : confirmation désactivation */}
+            {totpEnabled && mfaDisableMode && (
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA]">
+                  <p className="text-[12px] text-[#991B1B] leading-relaxed">
+                    Entrez un code de votre application authenticator pour confirmer la désactivation.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Code de confirmation</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={mfaDisableCode}
+                    onChange={e => setMfaDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="_ _ _ _ _ _"
+                    className="mt-1 w-full px-3 py-3 rounded-lg border border-[#E8ECF4] text-[18px] text-center tracking-[0.5em] font-mono outline-none focus:border-[#4F46E5]"
+                    autoComplete="one-time-code"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setMfaDisableMode(false); setMfaDisableCode("") }}
+                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-[#64748B] border border-[#E8ECF4] hover:bg-[#F1F5F9]"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleMfaDisable}
+                    disabled={mfaLoading || mfaDisableCode.length !== 6}
+                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-white bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-60 flex items-center justify-center gap-1.5"
+                  >
+                    {mfaLoading && <Loader2 size={13} className="animate-spin" />}
+                    Désactiver
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </Section>
+
+        {/* ── Section 8 : Compte ──────────────────────────────────────────── */}
         <Section title="Compte" icon={<Mail size={16} />} defaultOpen={false}>
           <div className="space-y-3">
             <div className="p-3 rounded-xl bg-[#F8F9FC] border border-[#E8ECF4]">
@@ -633,6 +828,56 @@ export default function ReglagesPage() {
             >
               <LogOut size={14} /> Se déconnecter
             </button>
+          </div>
+        </Section>
+
+        {/* ── Section 9 : Confidentialité & RGPD ──────────────────────────── */}
+        <Section title="Confidentialité & RGPD" icon={<Shield size={16} />} defaultOpen={false}>
+          <div className="space-y-4">
+            <div className="p-3 rounded-xl bg-[#EEF2FF] border border-[#C7D2FE]">
+              <p className="text-[12px] text-[#4338CA] leading-relaxed">
+                Conformément aux articles 15 et 20 du RGPD, vous pouvez télécharger
+                l&apos;intégralité de vos données personnelles dans un format structuré et lisible.
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={async () => {
+                  if (!user?.personId || !accessToken) return;
+                  try {
+                    const res = await fetch(`${API_URL}/persons/${user.personId}/data-export`, {
+                      headers: { Authorization: `Bearer ${accessToken}` },
+                    });
+                    if (!res.ok) throw new Error("Erreur export");
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `export_rgpd_${new Date().toISOString().slice(0, 10)}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    toast.success("Export RGPD téléchargé");
+                  } catch {
+                    toast.error("Erreur lors de l'export");
+                  }
+                }}
+                className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#4F46E5] hover:bg-[#EEF2FF] hover:border-[#C7D2FE] transition-colors"
+              >
+                <Download size={14} /> Exporter mes données (Art. 15 &amp; 20 RGPD)
+              </button>
+              <p className="mt-1.5 text-[11px] text-[#94A3B8]">
+                Télécharge un fichier JSON contenant vos données personnelles, notes, observations,
+                consentements et historique d&apos;activité. Les fichiers binaires (documents) ne sont pas inclus.
+              </p>
+            </div>
+            <div className="border-t border-[#E8ECF4] pt-3">
+              <p className="text-[11px] text-[#94A3B8]">
+                Pour toute demande RGPD (rectification, effacement, opposition) :{" "}
+                <a href="mailto:dpo@namipourlavie.com" className="text-[#4F46E5] hover:underline">
+                  dpo@namipourlavie.com
+                </a>
+              </p>
+            </div>
           </div>
         </Section>
 

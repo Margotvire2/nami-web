@@ -97,9 +97,13 @@ async function request<T>(
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
+export type LoginResponse =
+  | { accessToken: string; refreshToken: string; mfaRequired?: false }
+  | { mfaRequired: true; mfaPendingToken: string };
+
 export const authApi = {
   login: (email: string, password: string) =>
-    request<{ accessToken: string; refreshToken: string }>("/auth/login", {
+    request<LoginResponse>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
@@ -137,6 +141,29 @@ export const authApi = {
 
   verifyEmail: (token: string) =>
     request<{ message: string }>(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+};
+
+export const mfaApi = {
+  setup: (token: string) =>
+    request<{ qrCodeDataUrl: string; secret: string }>("/auth/mfa/setup", { method: "POST" }, token),
+
+  enable: (token: string, totp: string) =>
+    request<{ message: string }>("/auth/mfa/enable", {
+      method: "POST",
+      body: JSON.stringify({ totp }),
+    }, token),
+
+  validate: (mfaPendingToken: string, totp: string) =>
+    request<{ accessToken: string; refreshToken: string }>("/auth/mfa/validate", {
+      method: "POST",
+      body: JSON.stringify({ mfaPendingToken, totp }),
+    }),
+
+  disable: (token: string, totp: string) =>
+    request<{ message: string }>("/auth/mfa/disable", {
+      method: "POST",
+      body: JSON.stringify({ totp }),
+    }, token),
 };
 
 // ─── Care Cases ───────────────────────────────────────────────────────────────
@@ -520,12 +547,18 @@ export interface KnowledgeEntryDetail {
 
 export interface User {
   id: string;
+  personId?: string;
   email: string;
   firstName: string;
   lastName: string;
   roleType: "PATIENT" | "PROVIDER" | "ADMIN" | "ORG_ADMIN";
   emailVerifiedAt?: string | null;
-  providerProfile?: { id: string; specialties: string[] };
+  providerProfile?: {
+    id: string;
+    specialties: string[];
+    totpEnabled?: boolean;
+    subscriptionTier?: string;
+  };
 }
 
 export interface CareCase {
@@ -1102,8 +1135,11 @@ export interface NotificationItem {
 }
 
 export const notificationsApi = {
-  list: (token: string, since?: string) => {
-    const qs = since ? `?since=${encodeURIComponent(since)}` : "";
+  list: (token: string, since?: string, limit?: number) => {
+    const params = new URLSearchParams();
+    if (since) params.set("since", since);
+    if (limit) params.set("limit", String(limit));
+    const qs = params.size > 0 ? `?${params.toString()}` : "";
     return request<{ items: NotificationItem[]; total: number }>(`/notifications${qs}`, {}, token);
   },
 };
