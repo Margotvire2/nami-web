@@ -17,7 +17,7 @@ interface AuthState {
 function syncCookie(token: string | null) {
   if (typeof document === "undefined") return;
   if (token) {
-    document.cookie = `nami-access-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    document.cookie = `nami-access-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax; Secure`;
   } else {
     document.cookie = "nami-access-token=; path=/; max-age=0";
   }

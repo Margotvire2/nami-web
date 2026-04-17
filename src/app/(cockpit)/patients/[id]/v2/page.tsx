@@ -250,7 +250,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      if (!res.ok) throw new Error("Erreur lors de la création du lien");
+      if (!res.ok) throw new Error();
       const { url } = await res.json() as { url: string };
       await navigator.clipboard.writeText(url);
       toast.success("Lien copié — valide 7 jours");
