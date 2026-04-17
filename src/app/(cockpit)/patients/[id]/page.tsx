@@ -17,6 +17,7 @@ import { SuiviTab } from "@/components/patient/SuiviTab";
 import { PatientJournalView } from "./PatientJournalView";
 import { ReferralModal } from "./referral-modal";
 import { QuickTaskModal } from "./QuickTaskModal";
+import { ScheduleQuestionnaireModal } from "./ScheduleQuestionnaireModal";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -190,6 +191,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const [noteOpen, setNoteOpen] = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [questionnaireModalOpen, setQuestionnaireModalOpen] = useState(false);
   const [analysisNote, setAnalysisNote] = useState<{ noteId: string; careCaseId: string } | null>(null);
   const [aiStreaming, setAiStreaming] = useState(false);
 
@@ -207,27 +209,47 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  const handleAiSummarize = useCallback(() => {
+  const handleAiSummarize = useCallback(async () => {
     if (!accessToken) return;
     setAiStreaming(true);
-    const es = new EventSource(
-      `${API_URL}/intelligence/summarize-stream/${id}?token=${encodeURIComponent(accessToken)}`
-    );
-    es.onmessage = (e) => {
-      if (e.data === "[DONE]") {
-        es.close();
-        setAiStreaming(false);
-        qc.invalidateQueries({ queryKey: ["care-case", id] });
-        qc.invalidateQueries({ queryKey: ["notes", id] });
-        qc.invalidateQueries({ queryKey: ["timeline", id] });
-        toast.success("Synthèse clinique générée");
-      }
-    };
-    es.onerror = () => {
-      es.close();
+    try {
+      const res = await fetch(`${API_URL}/intelligence/summarize-job/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) throw new Error("Erreur lors de la génération");
+      const { jobId } = await res.json() as { jobId: string };
+
+      const deadline = Date.now() + 5 * 60 * 1000;
+      const poll = async (): Promise<void> => {
+        if (Date.now() > deadline) {
+          setAiStreaming(false);
+          toast.error("La génération a pris trop de temps");
+          return;
+        }
+        const statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!statusRes.ok) { setAiStreaming(false); return; }
+        const { status } = await statusRes.json() as { status: string };
+        if (status === "completed") {
+          setAiStreaming(false);
+          qc.invalidateQueries({ queryKey: ["care-case", id] });
+          qc.invalidateQueries({ queryKey: ["notes", id] });
+          qc.invalidateQueries({ queryKey: ["timeline", id] });
+          toast.success("Synthèse clinique générée");
+        } else if (status === "failed") {
+          setAiStreaming(false);
+          toast.error("Erreur lors de la génération de la synthèse");
+        } else {
+          setTimeout(poll, 3000);
+        }
+      };
+      setTimeout(poll, 3000);
+    } catch {
       setAiStreaming(false);
-      toast.error("Erreur lors de la génération");
-    };
+      toast.error("Erreur de connexion à la synthèse clinique");
+    }
   }, [accessToken, id, qc, API_URL]);
 
   if (!accessToken || careCaseLoading) {
@@ -265,6 +287,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         onAddNote={() => setNoteOpen(true)}
         onReferral={() => setReferralOpen(true)}
         onTask={() => setTaskModalOpen(true)}
+        onQuestionnaire={() => setQuestionnaireModalOpen(true)}
         onRecord={() =>
           startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)
         }
@@ -368,6 +391,13 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           careCaseId={id}
           patientName={`${careCase.patient.firstName} ${careCase.patient.lastName}`}
           onClose={() => setTaskModalOpen(false)}
+        />
+      )}
+      {questionnaireModalOpen && (
+        <ScheduleQuestionnaireModal
+          careCaseId={id}
+          patientFirstName={careCase.patient.firstName}
+          onClose={() => setQuestionnaireModalOpen(false)}
         />
       )}
     </div>

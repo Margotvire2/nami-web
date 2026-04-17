@@ -7,8 +7,9 @@ import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 import {
   ClipboardList, FileText, CheckCircle, X, AlertTriangle,
-  ChevronDown, ChevronUp, Loader2, Pen, Plus, Trash2, FlaskConical,
+  ChevronDown, ChevronUp, Loader2, Pen, Plus, Trash2, FlaskConical, Camera,
 } from "lucide-react";
+import { useRef } from "react";
 import { expandLabPanel, findDuplicatePanel } from "@/lib/lab-panel-dictionary";
 
 // ─── Local types ─────────────────────────────────────────────────────────────
@@ -54,15 +55,16 @@ function StatusBadge({ status }: { status: PrescriptionDraft["status"] }) {
 // ─── MedicationRow ────────────────────────────────────────────────────────────
 
 function MedicationRow({
-  med, index, isReadOnly, onChange, onDelete,
+  med, index, isReadOnly, defaultEditing, onChange, onDelete,
 }: {
   med: Medication;
   index: number;
   isReadOnly: boolean;
+  defaultEditing?: boolean;
   onChange: (i: number, updated: Medication) => void;
   onDelete: (i: number) => void;
 }) {
-  const [editing, setEditing]           = useState(false);
+  const [editing, setEditing]           = useState(defaultEditing ?? false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [draft, setDraft]               = useState<Medication>(med);
 
@@ -161,20 +163,21 @@ function MedicationRow({
     );
   }
 
+  const summaryParts = [med.dosage, med.form, med.frequency, med.duration].filter(Boolean).join(" · ");
+
   return (
-    <div className="flex flex-col gap-0.5 px-3 py-2 rounded-lg bg-violet-50/50 border border-violet-100/60">
+    <div className="flex flex-col gap-1 px-3 py-2.5 rounded-lg bg-white" style={{ border: "1px solid #DDD6FE", borderLeft: "3px solid #5B4EC4" }}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold text-gray-900">
-            {med.name.toUpperCase()}{med.dosage ? ` ${med.dosage}` : ""}{med.form ? ` — ${med.form}` : ""}
-          </span>
+          <span className="text-sm">💊</span>
+          <span className="text-xs font-bold text-gray-900">{med.name || <em className="text-gray-400 font-normal">Nouveau médicament</em>}</span>
           <ConfidenceBadge confidence={med.confidence} sourceSpan={med.sourceSpan} />
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-1 shrink-0">
             {confirmDelete ? (
               <div className="flex items-center gap-1">
-                <span className="text-[10px] text-red-600">Supprimer ?</span>
+                <span className="text-[10px] text-red-600">Supprimer {med.name || "ce médicament"} ?</span>
                 <button onClick={() => onDelete(index)} className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[10px] font-medium hover:bg-red-700">Oui</button>
                 <button onClick={() => setConfirmDelete(false)} className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] hover:bg-gray-200">Non</button>
               </div>
@@ -187,12 +190,10 @@ function MedicationRow({
           </div>
         )}
       </div>
-      {med.route     && <span className="text-[11px] text-gray-600">Voie : {med.route}</span>}
-      {med.frequency && <span className="text-[11px] text-gray-600">Posologie : {med.frequency}</span>}
-      {med.duration  && <span className="text-[11px] text-gray-600">Durée : {med.duration}</span>}
+      {summaryParts && <span className="text-[11px] text-gray-600 leading-snug">{summaryParts}</span>}
       {med.instructions && <span className="text-[11px] text-violet-700 italic">{med.instructions}</span>}
       {!isManualEntry(med.confidence, med.sourceSpan) && med.sourceSpan && (
-        <span className="text-[10px] text-gray-400 mt-0.5 italic">&ldquo;{med.sourceSpan}&rdquo;</span>
+        <span className="text-[10px] text-gray-400 italic">&ldquo;{med.sourceSpan}&rdquo;</span>
       )}
     </div>
   );
@@ -201,16 +202,17 @@ function MedicationRow({
 // ─── ActRow ───────────────────────────────────────────────────────────────────
 
 function ActRow({
-  act, index, isReadOnly, allActDescriptions, onChange, onDelete,
+  act, index, isReadOnly, defaultEditing, allActDescriptions, onChange, onDelete,
 }: {
   act: ComplementaryAct;
   index: number;
   isReadOnly: boolean;
+  defaultEditing?: boolean;
   allActDescriptions: string[];
   onChange: (i: number, updated: ComplementaryAct) => void;
   onDelete: (i: number) => void;
 }) {
-  const [editing, setEditing]           = useState(false);
+  const [editing, setEditing]           = useState(defaultEditing ?? false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [draft, setDraft]               = useState<ComplementaryAct>(act);
 
@@ -345,6 +347,8 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
   const [medications, setMedications]       = useState<Medication[]>(draft.content.medications);
   const [acts, setActs]                     = useState<ComplementaryAct[]>(draft.content.complementaryActs);
   const [hasUnsavedChanges, setDirty]       = useState(false);
+  const [newMedIdx, setNewMedIdx]           = useState<number | null>(null);
+  const [newActIdx, setNewActIdx]           = useState<number | null>(null);
 
   const api        = apiWithToken(accessToken!);
   const isSigned   = draft.status === "SIGNED";
@@ -399,11 +403,14 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
   };
   const addMed = () => {
     const empty: Medication = {
-      name: "Nouveau médicament", genericName: null, brandName: null,
+      name: "", genericName: null, brandName: null,
       dosage: "", form: "", route: "", frequency: "", duration: "",
       startDate: null, instructions: null, confidence: 0, sourceSpan: "",
     };
-    setMedications((prev) => [...prev, empty]);
+    setMedications((prev) => {
+      setNewMedIdx(prev.length);
+      return [...prev, empty];
+    });
     setDirty(true);
   };
 
@@ -417,9 +424,12 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
   };
   const addAct = () => {
     const empty: ComplementaryAct = {
-      type: "LAB_TEST", description: "Nouvel acte", urgency: null, confidence: 0, sourceSpan: "",
+      type: "LAB_TEST", description: "", urgency: null, confidence: 0, sourceSpan: "",
     };
-    setActs((prev) => [...prev, empty]);
+    setActs((prev) => {
+      setNewActIdx(prev.length);
+      return [...prev, empty];
+    });
     setDirty(true);
   };
 
@@ -456,6 +466,11 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
           <ClipboardList size={15} className={isSigned ? "text-green-600" : "text-violet-600"} />
           <span className="text-sm font-semibold text-gray-900">Brouillon d&apos;ordonnance</span>
           <StatusBadge status={draft.status} />
+          {(draft.content as any).source === "PHOTO_SCAN" && (
+            <span className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+              <Camera size={9} />📷 Scanné
+            </span>
+          )}
           {draft.extractionConfidence != null && !isSigned && (
             <span className="text-[10px] text-gray-400">IA {Math.round(draft.extractionConfidence * 100)}%</span>
           )}
@@ -476,10 +491,26 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
             <div className="flex items-start gap-2 p-2.5 mt-3 mb-3 rounded-lg bg-amber-50 border border-amber-100">
               <AlertTriangle size={13} className="mt-0.5 text-amber-600 shrink-0" />
               <p className="text-[11px] text-amber-800 leading-snug">
-                Brouillon extrait automatiquement depuis la transcription — à vérifier avant signature. Chaque ligne est modifiable.
+                {(draft.content as any).source === "PHOTO_SCAN"
+                  ? "Extraction automatique depuis une photo d'ordonnance — outil de structuration documentaire, pas d'aide à la prescription. À vérifier intégralement avant signature."
+                  : "Brouillon extrait automatiquement depuis la transcription — à vérifier avant signature. Chaque ligne est modifiable."}
               </p>
             </div>
           )}
+
+          {/* ── Infos prescripteur scanné ──────────────────────────────────── */}
+          {(draft.content as any).source === "PHOTO_SCAN" && (() => {
+            const info = (draft.content as any).prescriberInfo as { name?: string; specialty?: string } | undefined;
+            const date = (draft.content as any).prescriptionDate as string | undefined;
+            if (!info?.name && !date) return null;
+            return (
+              <div className="flex items-center gap-3 mb-3 px-2.5 py-1.5 rounded-lg bg-violet-50 border border-violet-100 text-[11px] text-violet-700">
+                <Camera size={11} className="shrink-0" />
+                {info?.name && <span className="font-medium">{info.name}{info.specialty ? ` — ${info.specialty}` : ""}</span>}
+                {date && <span className="text-violet-400">· {new Date(date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</span>}
+              </div>
+            );
+          })()}
 
           {/* ── Warnings ───────────────────────────────────────────────────── */}
           {draft.content.warnings.length > 0 && (
@@ -505,15 +536,16 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
                   med={med}
                   index={i}
                   isReadOnly={isReadOnly}
-                  onChange={updateMed}
-                  onDelete={deleteMed}
+                  defaultEditing={newMedIdx === i}
+                  onChange={(idx, updated) => { updateMed(idx, updated); setNewMedIdx(null); }}
+                  onDelete={(idx) => { deleteMed(idx); setNewMedIdx(null); }}
                 />
               ))}
             </div>
             {!isReadOnly && (
               <button
                 onClick={addMed}
-                className="mt-2 flex items-center gap-1.5 text-[11px] text-violet-600 hover:text-violet-800 hover:bg-violet-50 rounded-lg px-2 py-1 transition"
+                className="mt-2 w-full flex items-center justify-center gap-1.5 text-[11px] text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg px-2 py-2 transition border border-dashed border-violet-300 hover:border-violet-400"
               >
                 <Plus size={11} /> Ajouter un médicament
               </button>
@@ -533,19 +565,25 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
                   act={act}
                   index={i}
                   isReadOnly={isReadOnly}
+                  defaultEditing={newActIdx === i}
                   allActDescriptions={actDescriptions}
-                  onChange={updateAct}
-                  onDelete={deleteAct}
+                  onChange={(idx, updated) => { updateAct(idx, updated); setNewActIdx(null); }}
+                  onDelete={(idx) => { deleteAct(idx); setNewActIdx(null); }}
                 />
               ))}
             </div>
             {!isReadOnly && (
               <button
                 onClick={addAct}
-                className="mt-2 flex items-center gap-1.5 text-[11px] text-violet-600 hover:text-violet-800 hover:bg-violet-50 rounded-lg px-2 py-1 transition"
+                className="mt-2 w-full flex items-center justify-center gap-1.5 text-[11px] text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg px-2 py-2 transition border border-dashed border-violet-300 hover:border-violet-400"
               >
                 <Plus size={11} /> Ajouter un acte
               </button>
+            )}
+            {acts.some((a) => a.type === "LAB_TEST") && (
+              <p className="mt-1 text-[9px] text-gray-400 italic">
+                Décomposition nomenclature NABM — Nami ne recommande pas d&apos;examens complémentaires.
+              </p>
             )}
           </div>
 
@@ -676,6 +714,9 @@ function DraftCard({ draft, onRefresh }: { draft: PrescriptionDraft; onRefresh: 
 
 export function PrescriptionDraftEditor({ careCaseId }: Props) {
   const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
+  const scanInputRef = useRef<HTMLInputElement>(null);
+  const [scanning, setScanning] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["prescription-drafts", careCaseId],
@@ -686,6 +727,73 @@ export function PrescriptionDraftEditor({ careCaseId }: Props) {
 
   const drafts       = data?.drafts ?? [];
   const activeDrafts = drafts.filter((d) => d.status !== "CANCELLED");
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  async function handleScanFile(file: File) {
+    setScanning(true);
+    try {
+      const form = new FormData();
+      form.append("image", file);
+      const res = await fetch(`${API_URL}/care-cases/${careCaseId}/scan-prescription`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+      });
+      const json = await res.json() as { draft: unknown; scan: { medications: unknown[] }; warning?: string };
+      if (!res.ok) {
+        toast.error((json as any).error ?? "Erreur lors du scan");
+        return;
+      }
+      if (json.draft) {
+        const count = json.scan.medications.length;
+        toast.success(`${count} médicament${count > 1 ? "s" : ""} détecté${count > 1 ? "s" : ""} — brouillon créé`);
+        qc.invalidateQueries({ queryKey: ["prescription-drafts", careCaseId] });
+        refetch();
+      } else {
+        toast.error(json.warning ?? "Aucun médicament détecté sur cette image");
+      }
+    } catch {
+      toast.error("Erreur lors du scan");
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  // ── Bouton Scanner (réutilisé dans l'état vide + l'en-tête) ─────────────────
+  const ScanButton = () => (
+    <>
+      <input
+        ref={scanInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleScanFile(file);
+          e.target.value = "";
+        }}
+      />
+      <button
+        onClick={() => scanInputRef.current?.click()}
+        disabled={scanning}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-violet-300 text-xs text-violet-600 hover:bg-violet-50 disabled:opacity-50 transition-colors"
+      >
+        {scanning ? (
+          <>
+            <Loader2 size={12} className="animate-spin" />
+            Analyse en cours…
+          </>
+        ) : (
+          <>
+            <Camera size={12} />
+            Scanner une ordonnance
+          </>
+        )}
+      </button>
+    </>
+  );
 
   if (isLoading) {
     return (
@@ -698,18 +806,24 @@ export function PrescriptionDraftEditor({ careCaseId }: Props) {
 
   if (activeDrafts.length === 0) {
     return (
-      <div className="py-6 text-center text-sm text-gray-400">
+      <div className="py-6 text-center text-sm text-gray-400 space-y-3">
         <ClipboardList size={24} className="mx-auto mb-2 opacity-40" />
-        Aucun brouillon d&apos;ordonnance
-        <p className="text-[11px] mt-1 text-gray-400">
-          Les brouillons sont générés automatiquement depuis l&apos;enregistrement audio des consultations.
+        <p>Aucun brouillon d&apos;ordonnance</p>
+        <p className="text-[11px] text-gray-400">
+          Les brouillons sont générés depuis l&apos;enregistrement audio ou via le scan d&apos;une ordonnance papier.
         </p>
+        <div className="flex justify-center">
+          <ScanButton />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      <div className="flex justify-end mb-1">
+        <ScanButton />
+      </div>
       {activeDrafts.map((draft) => (
         <DraftCard key={draft.id} draft={draft} onRefresh={() => refetch()} />
       ))}

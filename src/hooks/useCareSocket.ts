@@ -113,20 +113,50 @@ export function useCareSocket(careCaseId: string | null | undefined): void {
       }
     };
 
-    socket.on("note_created",  onNoteCreated);
-    socket.on("note_updated",  onNoteUpdated);
-    socket.on("note_deleted",  onNoteDeleted);
-    socket.on("journal_entry", onJournalEntry);
-    socket.on("observation",   onObservation);
-    socket.on("message",       onMessage);
+    // ── prescription_draft_created ────────────────────────────────────────────
+    const onPrescriptionDraft = (data: any) => {
+      const count = data.medicationCount ?? 0;
+      toast.success(
+        `Brouillon d'ordonnance prêt — ${count} médicament${count > 1 ? "s" : ""} détecté${count > 1 ? "s" : ""}`,
+        { duration: 5000 }
+      );
+      queryClient.invalidateQueries({ queryKey: ["prescription-drafts", careCaseId] });
+    };
+
+    // ── bio_extracted ─────────────────────────────────────────────────────────
+    const onBioExtracted = (data: any) => {
+      const typeLabel =
+        data.documentType === "BIA"
+          ? "impédancemétrie"
+          : data.documentType === "DXA"
+          ? "densitométrie"
+          : "bilan biologique";
+      toast.success(
+        `${data.metricsExtracted} métriques importées depuis votre ${typeLabel}`,
+        { duration: 5000 }
+      );
+      queryClient.invalidateQueries({ queryKey: ["observations", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["suivi", careCaseId] });
+    };
+
+    socket.on("note_created",               onNoteCreated);
+    socket.on("note_updated",               onNoteUpdated);
+    socket.on("note_deleted",               onNoteDeleted);
+    socket.on("journal_entry",              onJournalEntry);
+    socket.on("observation",                onObservation);
+    socket.on("message",                    onMessage);
+    socket.on("prescription_draft_created", onPrescriptionDraft);
+    socket.on("bio_extracted",              onBioExtracted);
 
     return () => {
-      socket.off("note_created",  onNoteCreated);
-      socket.off("note_updated",  onNoteUpdated);
-      socket.off("note_deleted",  onNoteDeleted);
-      socket.off("journal_entry", onJournalEntry);
-      socket.off("observation",   onObservation);
-      socket.off("message",       onMessage);
+      socket.off("note_created",               onNoteCreated);
+      socket.off("note_updated",               onNoteUpdated);
+      socket.off("note_deleted",               onNoteDeleted);
+      socket.off("journal_entry",              onJournalEntry);
+      socket.off("observation",                onObservation);
+      socket.off("message",                    onMessage);
+      socket.off("prescription_draft_created", onPrescriptionDraft);
+      socket.off("bio_extracted",              onBioExtracted);
     };
   }, [accessToken, careCaseId, queryClient, user?.id]);
 

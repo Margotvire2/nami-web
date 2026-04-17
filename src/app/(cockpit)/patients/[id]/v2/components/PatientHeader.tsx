@@ -27,6 +27,7 @@ interface Props {
   onStartConsultation?: () => void;
   onAiSummarize: () => void;
   onShare?: () => void;
+  onQuestionnaire?: () => void;
   aiStreaming: boolean;
 }
 
@@ -40,6 +41,7 @@ export function PatientHeader({
   onStartConsultation,
   onAiSummarize,
   onShare,
+  onQuestionnaire,
   aiStreaming,
 }: Props) {
   const { indicators } = dashboard;
@@ -127,6 +129,7 @@ export function PatientHeader({
         <div className="flex items-center gap-1.5 shrink-0">
           <ActionButton label="Note" icon="✏️" onClick={onAddNote} />
           <ActionButton label="Tâche" icon="☑️" onClick={onTask} />
+          <ActionButton label="Questionnaire" icon="📋" onClick={onQuestionnaire} />
           <ActionButton label="Adresser" icon="↗️" onClick={onReferral} />
           {onStartConsultation && (
             <ActionButton label="Enregistrer" icon="🎙️" accent onClick={onStartConsultation} />

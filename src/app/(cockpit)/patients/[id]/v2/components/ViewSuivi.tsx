@@ -6,6 +6,8 @@ import { api } from "@/lib/api";
 import { formatShortDate } from "@/lib/date-utils";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import type { TrajectoryMetric } from "@/lib/api";
+import { KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog";
+import type { MetricDef } from "@/lib/metricCatalog";
 
 interface Props {
   careCaseId: string;
@@ -119,23 +121,83 @@ const BIA_CATEGORIES: { label: string; keys: string[]; collapsible?: boolean }[]
 const BIA_CATEGORY_ORDER: Record<string, number> = {};
 BIA_CATEGORIES.forEach((cat, ci) => cat.keys.forEach((k, ki) => { BIA_CATEGORY_ORDER[k] = ci * 100 + ki; }));
 
-// ─── Bio — panels ─────────────────────────────────────────────────────────────
+// ─── Bio — groupement par examType (MetricCatalog) ───────────────────────────
 
-const BIO_PANEL_ORDER = [
-  "NFS", "Hémostase", "Biochimie", "Hépatique",
-  "Lipides", "Martial", "Vitamines", "Endocrinologie", "Immunologie",
+const BLOOD_EXAM_ORDER = [
+  "BLOOD_HEMATOLOGY", "BLOOD_HEMOSTASIS", "BLOOD_BIOCHEMISTRY",
+  "BLOOD_HEPATIC", "BLOOD_LIPID", "BLOOD_IRON",
+  "BLOOD_VITAMINS", "BLOOD_ENDOCRINE", "BLOOD_IMMUNOLOGY",
 ];
 
-function getBioPanel(key: string): string {
-  if (/^(hb$|rbc|wbc|neutrophil|lymphocyte|monocyte|eosinophil|basophil|platelet|mcv|mch|mchc|rdw|mpv|hematocrit|reticulocyte)/.test(key)) return "NFS";
-  if (/^(pt_|aptt|fibrinogen|d_dimer|anti_xa|vwf|antithrombin|protein_c$|protein_s$)/.test(key)) return "Hémostase";
-  if (/^(alt$|ast$|ggt$|alp$|bili|albumin$|prealbumin|protein_total)/.test(key)) return "Hépatique";
-  if (/^(ldl|hdl|tg_|cholesterol|triglycerid)/.test(key)) return "Lipides";
-  if (/^(ferritin|iron_|serum_iron|transferrin|tibc|saturation_transferrin)/.test(key)) return "Martial";
-  if (/^(vit_d|vit_b12|folate|vit_a|vit_e|zinc|selenium)/.test(key)) return "Vitamines";
-  if (/^(tsh|ft3|ft4|t3_|t4_|fsh$|lh$|estradiol|testosterone|igf1|insulin$|homa|dheas|cortisol|prolactin)/.test(key)) return "Endocrinologie";
-  if (/^(crp|il6|ana$|anca|complement|igg$|iga$|igm$|ige$)/.test(key)) return "Immunologie";
-  return "Biochimie";
+const BLOOD_EXAM_SET = new Set(BLOOD_EXAM_ORDER);
+
+const OTHER_EXAM_ORDER = [
+  "ECG", "DXA_BODY", "DXA_BONE", "CALORIMETRY",
+  "EFFORT_TEST", "EFR", "PSG", "ECHO_CARDIAC",
+  "GASTRO", "PSYCHIATRY_SCALES",
+];
+
+const OTHER_EXAM_SET = new Set(OTHER_EXAM_ORDER);
+
+type BioRow = {
+  id: string;
+  label: string;
+  unit: string | null;
+  current: number;
+  previous: number | null;
+  date: string;
+  metricDef: MetricDef | undefined;
+};
+
+function buildBioPanels(observations: Observation[]) {
+  const map = new Map<string, Map<string, {
+    label: string; unit: string | null;
+    values: { v: number; date: string }[];
+    metricDef: MetricDef | undefined;
+  }>>();
+
+  for (const o of observations) {
+    if (o.valueNumeric === null) continue;
+    const def = KEY_TO_METRIC[o.metricId];
+    const examType = def?.examType ?? "";
+    if (!BLOOD_EXAM_SET.has(examType)) continue;
+    if (!map.has(examType)) map.set(examType, new Map());
+    const mm = map.get(examType)!;
+    if (!mm.has(o.metricId)) {
+      mm.set(o.metricId, {
+        label: def?.label ?? o.metric?.label ?? o.metricId,
+        unit: def?.unit ?? o.unit ?? o.metric?.unit ?? null,
+        values: [],
+        metricDef: def,
+      });
+    }
+    mm.get(o.metricId)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
+  }
+
+  return BLOOD_EXAM_ORDER
+    .filter((et) => map.has(et))
+    .map((et) => {
+      const mm = map.get(et)!;
+      const rows: BioRow[] = [];
+      for (const [id, m] of mm) {
+        const sorted = [...m.values].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        if (!sorted.length) continue;
+        rows.push({
+          id, label: m.label, unit: m.unit,
+          current: sorted[0].v, previous: sorted[1]?.v ?? null,
+          date: sorted[0].date, metricDef: m.metricDef,
+        });
+      }
+      const info = EXAM_TYPE_LABELS[et] ?? { label: et, icon: "🧪" };
+      const abnormalRows = rows.filter((r) => {
+        if (!r.metricDef?.ranges.length) return false;
+        const interp = interpretValue(r.current, r.metricDef);
+        return interp.color === "orange" || interp.color === "red";
+      });
+      return { examType: et, label: info.label, icon: info.icon, rows, abnormalRows };
+    });
 }
 
 const ANTHROPOMETRY_KEYS = new Set([
@@ -274,7 +336,7 @@ function BIASection({ careCaseId }: { careCaseId: string }) {
   ].filter((m) => latestSession.values[m.key] !== undefined);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-xl bg-white overflow-hidden" style={{ border: "1px solid #DDD6FE", borderLeft: "3px solid #5B4EC4" }}>
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
         <div>
@@ -470,105 +532,84 @@ function BIAComparisonTable({
   );
 }
 
-// ─── Bio section (bilan sanguin par panels) ───────────────────────────────────
+// ─── Bio section ─────────────────────────────────────────────────────────────
 
 function BioSection({ observations }: { observations: Observation[] }) {
-  const [expandedPanel, setExpandedPanel] = useState<string | null>(null);
+  const panels = buildBioPanels(observations);
 
-  const bioObs = observations.filter(
-    (o) =>
-      !o.metricId.startsWith("bia_") &&
-      !ANTHROPOMETRY_KEYS.has(o.metricId) &&
-      o.valueNumeric !== null
+  // Auto-ouvre le premier panel avec des valeurs hors-norme
+  const [expandedPanel, setExpandedPanel] = useState<string | null>(
+    panels.find((p) => p.abnormalRows.length > 0)?.examType ?? null
   );
 
-  if (bioObs.length === 0) return null;
-
-  // Group by panel → metric
-  const panelMap = new Map<
-    string,
-    Map<string, { label: string; unit: string | null; values: { v: number; date: string }[] }>
-  >();
-
-  for (const o of bioObs) {
-    const panel = getBioPanel(o.metricId);
-    if (!panelMap.has(panel)) panelMap.set(panel, new Map());
-    const metricMap = panelMap.get(panel)!;
-    if (!metricMap.has(o.metricId)) {
-      metricMap.set(o.metricId, {
-        label: o.metric?.label ?? o.metricId,
-        unit: o.unit ?? o.metric?.unit ?? null,
-        values: [],
-      });
-    }
-    metricMap.get(o.metricId)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
-  }
-
-  const panels = BIO_PANEL_ORDER.filter((p) => panelMap.has(p));
   if (panels.length === 0) return null;
 
+  const totalValues = panels.reduce((acc, p) => acc + p.rows.length, 0);
+  const totalAbnormal = panels.reduce((acc, p) => acc + p.abnormalRows.length, 0);
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-xl bg-white overflow-hidden" style={{ border: "1px solid #BFDBFE", borderLeft: "3px solid #3B82F6" }}>
       <div className="px-5 py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900">Bilan biologique</h3>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-base">🩸</span>
+          <h3 className="text-sm font-semibold text-gray-900">Bilan biologique</h3>
+          {totalAbnormal > 0 && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              {totalAbnormal} valeur{totalAbnormal > 1 ? "s" : ""} à vérifier
+            </span>
+          )}
+        </div>
         <p className="text-[11px] text-gray-400 mt-0.5">
-          {panels.length} panel{panels.length > 1 ? "s" : ""} · {bioObs.length} valeur{bioObs.length > 1 ? "s" : ""}
+          {panels.length} panel{panels.length > 1 ? "s" : ""} · {totalValues} marqueur{totalValues > 1 ? "s" : ""}
         </p>
       </div>
 
       <div className="divide-y divide-gray-50">
         {panels.map((panel) => {
-          const metricMap = panelMap.get(panel)!;
-          const rows: {
-            id: string; label: string; unit: string | null;
-            current: number; previous: number | null; date: string;
-          }[] = [];
-
-          for (const [id, m] of metricMap) {
-            const sorted = m.values.sort(
-              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-            );
-            if (sorted.length === 0) continue;
-            rows.push({
-              id,
-              label: m.label,
-              unit: m.unit,
-              current: sorted[0].v,
-              previous: sorted[1]?.v ?? null,
-              date: sorted[0].date,
-            });
-          }
-
-          if (rows.length === 0) return null;
-          const isExpanded = expandedPanel === panel;
-
+          const isExpanded = expandedPanel === panel.examType;
           return (
-            <div key={panel}>
+            <div key={panel.examType}>
               <button
-                onClick={() => setExpandedPanel(isExpanded ? null : panel)}
+                onClick={() => setExpandedPanel(isExpanded ? null : panel.examType)}
                 className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/60 transition-colors text-left"
               >
-                <span className="text-xs font-semibold text-gray-700">{panel}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{panel.icon}</span>
+                  <span className="text-xs font-semibold text-gray-700">{panel.label}</span>
+                  {panel.abnormalRows.length > 0 && (
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
+                      {panel.abnormalRows.length} à vérifier
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-gray-400">
-                    {rows.length} marqueur{rows.length > 1 ? "s" : ""}
+                    {panel.rows.length} marqueur{panel.rows.length > 1 ? "s" : ""}
                   </span>
                   <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
                 </div>
               </button>
+
               {isExpanded && (
                 <div className="px-5 pb-4 divide-y divide-gray-50">
-                  {rows.map((row) => {
+                  {panel.rows.map((row) => {
                     const delta = row.previous !== null ? row.current - row.previous : null;
+                    const interp =
+                      row.metricDef && row.metricDef.ranges.length > 0
+                        ? interpretValue(row.current, row.metricDef)
+                        : null;
                     return (
-                      <div key={row.id} className="flex items-center justify-between py-2">
+                      <div key={row.id} className="flex items-center justify-between py-2 gap-2">
                         <div className="min-w-0 flex-1">
                           <span className="text-xs font-medium text-gray-700">{row.label}</span>
                           <span className="text-[10px] text-gray-400 ml-1">
                             {formatShortDate(row.date)}
                           </span>
+                          {interp?.rangeStr && (
+                            <span className="text-[10px] text-gray-300 ml-1">[{interp.rangeStr}]</span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                           {row.previous !== null && (
                             <span className="text-xs text-gray-400 line-through">
                               {fmtVal(row.previous)}{row.unit ? ` ${row.unit}` : ""}
@@ -577,6 +618,15 @@ function BioSection({ observations }: { observations: Observation[] }) {
                           <span className="text-sm font-semibold text-gray-900">
                             {fmtVal(row.current)}{row.unit ? ` ${row.unit}` : ""}
                           </span>
+                          {interp && interp.color !== "green" && interp.color !== "gray" && (
+                            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
+                              interp.color === "red"
+                                ? "bg-red-50 text-red-600 border border-red-200"
+                                : "bg-amber-50 text-amber-600 border border-amber-200"
+                            }`}>
+                              {interp.label}
+                            </span>
+                          )}
                           {delta !== null && delta !== 0 && (
                             <span className={`text-[10px] font-medium ${delta < 0 ? "text-emerald-600" : "text-amber-600"}`}>
                               {delta > 0 ? "+" : ""}{fmtVal(delta)}
@@ -626,8 +676,11 @@ function AnthropometryCard({ observations }: { observations: Observation[] }) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Anthropométrie</h3>
+    <div className="rounded-xl bg-white p-5" style={{ border: "1px solid #BBF7D0", borderLeft: "3px solid #10B981" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base">📏</span>
+        <h3 className="text-sm font-semibold text-gray-900">Anthropométrie</h3>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[...byMetric.entries()].map(([id, m]) => {
           const delta = m.previous !== null ? m.current - m.previous : null;
@@ -825,6 +878,150 @@ function ActivityCard({ careCaseId }: { careCaseId: string }) {
   );
 }
 
+// ─── Autres examens (ECG, DXA, Scores psy, etc.) ─────────────────────────────
+
+function buildOtherPanels(observations: Observation[]) {
+  const map = new Map<string, Map<string, {
+    label: string; unit: string | null;
+    values: { v: number; date: string }[];
+    metricDef: MetricDef | undefined;
+  }>>();
+
+  for (const o of observations) {
+    if (o.valueNumeric === null) continue;
+    const def = KEY_TO_METRIC[o.metricId];
+    const examType = def?.examType ?? "";
+    if (!OTHER_EXAM_SET.has(examType)) continue;
+    if (!map.has(examType)) map.set(examType, new Map());
+    const mm = map.get(examType)!;
+    if (!mm.has(o.metricId)) {
+      mm.set(o.metricId, {
+        label: def?.label ?? o.metric?.label ?? o.metricId,
+        unit: def?.unit ?? o.unit ?? o.metric?.unit ?? null,
+        values: [],
+        metricDef: def,
+      });
+    }
+    mm.get(o.metricId)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
+  }
+
+  return OTHER_EXAM_ORDER
+    .filter((et) => map.has(et))
+    .map((et) => {
+      const mm = map.get(et)!;
+      const rows: BioRow[] = [];
+      for (const [id, m] of mm) {
+        const sorted = [...m.values].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        if (!sorted.length) continue;
+        rows.push({
+          id, label: m.label, unit: m.unit,
+          current: sorted[0].v, previous: sorted[1]?.v ?? null,
+          date: sorted[0].date, metricDef: m.metricDef,
+        });
+      }
+      const info = EXAM_TYPE_LABELS[et] ?? { label: et, icon: "📋" };
+      return { examType: et, label: info.label, icon: info.icon, rows };
+    });
+}
+
+function OthersSection({ observations }: { observations: Observation[] }) {
+  const panels = buildOtherPanels(observations);
+  const [expandedPanel, setExpandedPanel] = useState<string | null>(
+    panels[0]?.examType ?? null
+  );
+
+  if (panels.length === 0) return null;
+
+  const totalValues = panels.reduce((acc, p) => acc + p.rows.length, 0);
+
+  return (
+    <div className="rounded-xl bg-white overflow-hidden" style={{ border: "1px solid #E5E7EB", borderLeft: "3px solid #9CA3AF" }}>
+      <div className="px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <span className="text-base">📋</span>
+          <h3 className="text-sm font-semibold text-gray-900">Autres examens</h3>
+        </div>
+        <p className="text-[11px] text-gray-400 mt-0.5">
+          {panels.length} type{panels.length > 1 ? "s" : ""} · {totalValues} valeur{totalValues > 1 ? "s" : ""}
+        </p>
+      </div>
+
+      <div className="divide-y divide-gray-50">
+        {panels.map((panel) => {
+          const isExpanded = expandedPanel === panel.examType;
+          return (
+            <div key={panel.examType}>
+              <button
+                onClick={() => setExpandedPanel(isExpanded ? null : panel.examType)}
+                className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/60 transition-colors text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{panel.icon}</span>
+                  <span className="text-xs font-semibold text-gray-700">{panel.label}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400">
+                    {panel.rows.length} valeur{panel.rows.length > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="px-5 pb-4 divide-y divide-gray-50">
+                  {panel.rows.map((row) => {
+                    const delta = row.previous !== null ? row.current - row.previous : null;
+                    const interp =
+                      row.metricDef && row.metricDef.ranges.length > 0
+                        ? interpretValue(row.current, row.metricDef)
+                        : null;
+                    return (
+                      <div key={row.id} className="flex items-center justify-between py-2 gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-medium text-gray-700">{row.label}</span>
+                          <span className="text-[10px] text-gray-400 ml-1">
+                            {formatShortDate(row.date)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                          {row.previous !== null && (
+                            <span className="text-xs text-gray-400 line-through">
+                              {fmtVal(row.previous)}{row.unit ? ` ${row.unit}` : ""}
+                            </span>
+                          )}
+                          <span className="text-sm font-semibold text-gray-900">
+                            {fmtVal(row.current)}{row.unit ? ` ${row.unit}` : ""}
+                          </span>
+                          {interp && interp.color !== "green" && interp.color !== "gray" && (
+                            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
+                              interp.color === "red"
+                                ? "bg-red-50 text-red-600 border border-red-200"
+                                : "bg-amber-50 text-amber-600 border border-amber-200"
+                            }`}>
+                              {interp.label}
+                            </span>
+                          )}
+                          {delta !== null && delta !== 0 && (
+                            <span className={`text-[10px] font-medium ${delta < 0 ? "text-emerald-600" : "text-amber-600"}`}>
+                              {delta > 0 ? "+" : ""}{fmtVal(delta)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export function ViewSuivi({ careCaseId, dashboard }: Props) {
@@ -855,6 +1052,9 @@ export function ViewSuivi({ careCaseId, dashboard }: Props) {
 
       {/* Anthropométrie complémentaire */}
       <AnthropometryCard observations={obs} />
+
+      {/* Autres examens : ECG, DXA, scores psy, etc. */}
+      <OthersSection observations={obs} />
 
       {/* Alimentation + Santé mentale */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

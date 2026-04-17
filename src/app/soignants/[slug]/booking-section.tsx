@@ -164,6 +164,7 @@ export default function BookingSection({
           return
         }
         const result = await authApi.login(email, password)
+        if ('mfaRequired' in result) { toast.error("MFA requis — connexion non supportée ici"); return; }
         const me = await authApi.me(result.accessToken)
         setAuth(me, result.accessToken, result.refreshToken)
         setFirstName(me.firstName)

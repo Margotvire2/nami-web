@@ -14,7 +14,7 @@ import { useAuthStore } from "@/lib/store";
 import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
 import { KnowledgeSearch } from "@/components/nami/KnowledgeSearch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiWithToken, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral, type TaskWithContext } from "@/lib/api";
+import { apiWithToken, networkApi, notificationsApi, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral, type TaskWithContext, type NetworkOverview, type NetworkPatient, type NotificationItem } from "@/lib/api";
 import { toast } from "sonner";
 import { useConsultation } from "@/contexts/ConsultationContext";
 
@@ -110,6 +110,15 @@ export default function DashboardPage() {
     }
   }
 
+  // ── Network overview (stat cards + table patients) ──
+  const { data: networkData } = useQuery<NetworkOverview>({
+    queryKey: ["network-overview"],
+    queryFn: () => networkApi.overview(accessToken!),
+    enabled: !!accessToken,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+
   // ── Adressages envoyés en attente ──
   const { data: outgoingReferrals = [] } = useQuery({
     queryKey: ["referrals-outgoing-pending"],
@@ -164,7 +173,10 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto bg-[#FAFAF8]">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex gap-6 items-start flex-col lg:flex-row">
+          {/* ── STAT CARDS ── */}
+        <StatCards stats={networkData?.stats} />
+
+        <div className="flex gap-6 items-start flex-col lg:flex-row">
 
             {/* ── Colonne gauche 2/3 ── */}
             <div className="w-full lg:flex-[2] min-w-0 space-y-5">
@@ -316,6 +328,9 @@ export default function DashboardPage() {
             {/* ── Colonne droite 1/3 ── */}
             <div className="w-full lg:flex-[1] min-w-0 space-y-5">
 
+              {/* ACTIVITÉ RÉCENTE */}
+              <ActiviteRecente />
+
               {/* ADRESSAGES ENVOYÉS EN ATTENTE */}
               {pendingOutgoing.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
@@ -396,6 +411,9 @@ export default function DashboardPage() {
               <ProMessagesSection />
             </div>
           </div>
+
+          {/* ── PATIENTS TABLE ── */}
+          <PatientsTable patients={networkData?.patients} />
         </div>
       </div>
 
@@ -952,6 +970,276 @@ function ProMessagesSection() {
               </div>
             </Link>
           ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STAT CARDS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function StatCards({ stats }: { stats?: NetworkOverview["stats"] }) {
+  const cards = [
+    {
+      label: "Patients actifs",
+      value: stats?.totalActive ?? "—",
+      border: "#5B4EC4",
+      href: "/patients",
+    },
+    {
+      label: "Tâches en retard",
+      value: stats?.tasksOverdue ?? "—",
+      border: "#D97706",
+      href: "/taches",
+    },
+    {
+      label: "RDV aujourd'hui",
+      value: stats?.appointmentsToday ?? "—",
+      border: "#2563EB",
+      href: "/agenda",
+    },
+    {
+      label: "Indicateurs à compléter",
+      value: stats?.openAlerts ?? "—",
+      border: "#DC2626",
+      href: "/patients",
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5"
+    >
+      {cards.map((c) => (
+        <Link key={c.label} href={c.href}>
+          <div
+            className="bg-white rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+            style={{ border: "1px solid #E8ECF4", borderLeft: `3px solid ${c.border}` }}
+          >
+            <p className="text-[22px] font-bold tabular-nums text-[#0F172A]" style={{ fontFamily: "var(--font-inter)" }}>
+              {c.value}
+            </p>
+            <p className="text-[12px] text-[#64748B] mt-1 leading-tight" style={{ fontFamily: "var(--font-inter)" }}>
+              {c.label}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ACTIVITÉ RÉCENTE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ACTIVITY_ICON: Record<string, string> = {
+  TASK_ASSIGNED:      "📋",
+  TASK_COMPLETED:     "✅",
+  NOTE_CREATED:       "📝",
+  NOTE_UPDATED:       "✏️",
+  OBSERVATION_ADDED:  "📊",
+  MESSAGE_RECEIVED:   "💬",
+  DOCUMENT_UPLOADED:  "📄",
+  MEMBER_JOINED:      "👋",
+  APPOINTMENT_BOOKED: "📅",
+  REFERRAL_RECEIVED:  "🔀",
+  PRESCRIPTION_DRAFT: "💊",
+};
+
+function relTime(dateStr: string): string {
+  const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60_000);
+  if (mins < 1) return "à l'instant";
+  if (mins < 60) return `il y a ${mins}min`;
+  const h = Math.floor(mins / 60);
+  if (h < 24) return `il y a ${h}h`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? "hier" : `il y a ${d}j`;
+}
+
+function ActiviteRecente() {
+  const { accessToken } = useAuthStore();
+
+  const { data } = useQuery({
+    queryKey: ["notifications-recent"],
+    queryFn: () => notificationsApi.list(accessToken!, undefined, 5),
+    enabled: !!accessToken,
+    refetchInterval: 60_000,
+  });
+
+  const items: NotificationItem[] = data?.items ?? [];
+  if (items.length === 0) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>
+          ACTIVITÉ RÉCENTE
+        </p>
+        <div className="space-y-0.5">
+          {items.map((item) => {
+            const icon = ACTIVITY_ICON[item.activityType] ?? "🔔";
+            const caseId = item.careCase?.id;
+            const patientLink = caseId ? `/patients/${caseId}` : null;
+            const patientName = item.careCase?.patient
+              ? `${item.careCase.patient.firstName} ${item.careCase.patient.lastName}`
+              : null;
+            return (
+              <div key={item.id} className="flex items-start gap-3 -mx-2 px-2 py-2 rounded-lg hover:bg-[#F8FAFC] transition-colors">
+                <span className="text-base shrink-0 mt-0.5">{icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] text-[#1E293B] leading-snug">{item.title}</p>
+                  {patientName && (
+                    <p className="text-[12px] text-[#64748B] mt-0.5">
+                      {patientLink ? (
+                        <Link href={patientLink} className="hover:text-[#5B4EC4] hover:underline">{patientName}</Link>
+                      ) : patientName}
+                    </p>
+                  )}
+                </div>
+                <span className="text-[11px] text-[#94A3B8] shrink-0 mt-0.5" style={{ fontFamily: "var(--font-inter)" }}>
+                  {relTime(item.occurredAt)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PATIENTS TABLE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const CASE_TYPE_LABEL: Record<string, { label: string; bg: string; text: string }> = {
+  TCA:      { label: "TCA",       bg: "bg-violet-50", text: "text-violet-700" },
+  OBESITE:  { label: "Obésité",   bg: "bg-amber-50",  text: "text-amber-700" },
+  EPILEPSY: { label: "Épilepsie", bg: "bg-blue-50",   text: "text-blue-700" },
+  GENERIC:  { label: "Général",   bg: "bg-slate-50",  text: "text-slate-600" },
+};
+
+function PatientsTable({ patients }: { patients?: NetworkPatient[] }) {
+  if (!patients || patients.length === 0) return null;
+
+  const rows = patients.slice(0, 10);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.3 }}>
+      <div className="bg-white rounded-2xl" style={{ border: "1px solid #E8ECF4" }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8ECF4]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>
+            MES PATIENTS
+          </p>
+          <Link href="/reseau" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Voir tout →</Link>
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-[11px] text-[#94A3B8] uppercase tracking-[0.06em] border-b border-[#F1F5F9]" style={{ fontFamily: "var(--font-inter)" }}>
+                <th className="text-left px-5 py-3 font-semibold">Patient</th>
+                <th className="text-left px-4 py-3 font-semibold">Pathologie</th>
+                <th className="text-left px-4 py-3 font-semibold">Statut</th>
+                <th className="text-left px-4 py-3 font-semibold">Tâches</th>
+                <th className="text-left px-4 py-3 font-semibold">Prochain RDV</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((p, i) => {
+                const fullName = `${p.patient.firstName} ${p.patient.lastName}`;
+                const typeInfo = CASE_TYPE_LABEL[p.caseType ?? "GENERIC"] ?? CASE_TYPE_LABEL.GENERIC;
+                const hasOverdue = (p.overdueTasksCount ?? 0) > 0;
+                return (
+                  <tr
+                    key={p.careCaseId}
+                    className={cn("border-b border-[#F8FAFC] hover:bg-[#FAFAF8] transition-colors group", i === rows.length - 1 ? "border-0" : "")}
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0", avatarColor(fullName))}>
+                          {fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-[#0F172A] truncate max-w-[140px]">{fullName}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium", typeInfo.bg, typeInfo.text)}>
+                        {typeInfo.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium",
+                        p.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700" : "bg-slate-50 text-slate-500"
+                      )}>
+                        {p.status === "ACTIVE" ? "Actif" : p.status === "PAUSED" ? "Pausé" : "Clôturé"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {hasOverdue ? (
+                        <span className="inline-flex items-center gap-1 text-amber-600 text-[12px] font-medium">
+                          <AlertTriangle size={12} /> {p.overdueTasksCount}
+                        </span>
+                      ) : (
+                        <span className="text-[#94A3B8] text-[12px]">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-[#64748B]">
+                      {p.nextAppointment?.startAt
+                        ? new Date(p.nextAppointment.startAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link href={`/patients/${p.careCaseId}`}>
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#5B4EC4] text-[12px] font-medium">
+                          Ouvrir →
+                        </span>
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y divide-[#F1F5F9]">
+          {rows.map((p) => {
+            const fullName = `${p.patient.firstName} ${p.patient.lastName}`;
+            const typeInfo = CASE_TYPE_LABEL[p.caseType ?? "GENERIC"] ?? CASE_TYPE_LABEL.GENERIC;
+            const hasOverdue = (p.overdueTasksCount ?? 0) > 0;
+            return (
+              <Link key={p.careCaseId} href={`/patients/${p.careCaseId}`}>
+                <div className="flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF8] transition-colors">
+                  <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0", avatarColor(fullName))}>
+                    {fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-[#0F172A] truncate">{fullName}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={cn("text-[11px] font-medium", typeInfo.text)}>{typeInfo.label}</span>
+                      {hasOverdue && (
+                        <span className="inline-flex items-center gap-0.5 text-amber-600 text-[11px]">
+                          <AlertTriangle size={10} /> {p.overdueTasksCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-[#CBD5E1] shrink-0" />
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </motion.div>

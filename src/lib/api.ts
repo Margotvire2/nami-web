@@ -926,6 +926,14 @@ export interface JournalEntry {
   sharedWithTeam: boolean;
   createdAt: string;
   author: { id: string; firstName: string; lastName: string };
+  // Photo repas + analyse IA (alimentés après validate-meal-analysis)
+  photoUrl: string | null;
+  photoAnalyzed: boolean;
+  photoValidated: boolean;
+  photoMacros: {
+    macros: { kcal: number; proteines_g: number; glucides_g: number; lipides_g: number; fibres_g: number };
+    aliments: Array<{ nom: string; quantite_g: number }>;
+  } | null;
 }
 
 export const journalApi = {
@@ -2215,6 +2223,15 @@ export function apiWithToken(token: string) {
       list: (id: string) => tasksApi.list(token, id),
       create: (id: string, data: CreateTaskInput) => tasksApi.create(token, id, data),
       update: (id: string, taskId: string, data: Partial<Task>) => tasksApi.update(token, id, taskId, data),
+      scheduleQuestionnaire: (
+        careCaseId: string,
+        data: { questionnaireCode: string; scheduledAt: string; patientMessage?: string; priority?: string }
+      ) =>
+        request<Task>(
+          `/care-cases/${careCaseId}/tasks/schedule-questionnaire`,
+          { method: "POST", body: JSON.stringify(data) },
+          token
+        ),
     },
     alerts: {
       list: (id: string) => alertsApi.list(token, id),

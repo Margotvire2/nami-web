@@ -131,7 +131,8 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
     queryFn: () => api.journal.list(careCaseId),
   })
 
-  const canSeeAiMacros = permissions?.canSeeAiMacros ?? false
+  // Dans le cockpit soignant, les macros et photos sont toujours visibles
+  const canSeeAiMacros = permissions?.canSeeAiMacros ?? true
   const canSeeCrisisDetail = permissions?.canSeeCrisisDetail ?? false
 
   // Anorexia activity framing
@@ -249,6 +250,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
               <MiniStat label="Sautés" value={String(skippedMeals)} alert={skippedMeals > 2} />
             </div>
           </div>
+          <IngestaTotals meals={meals} />
           <div className="grid md:grid-cols-2 gap-2 mt-4">
             {meals.slice(0, 8).map((m) => <MealCard key={m.id} entry={m} canSeeAiMacros={canSeeAiMacros} />)}
           </div>
@@ -410,37 +412,150 @@ function MealHeatmap({ meals }: { meals: JournalEntry[] }) {
 }
 
 function MealCard({ entry, canSeeAiMacros }: { entry: JournalEntry; canSeeAiMacros: boolean }) {
+  const [photoExpanded, setPhotoExpanded] = useState(false)
   const p = entry.payload as Record<string, unknown>
   const sens = p.sensations as Record<string, number> | undefined
-  const macros = (p.aiAnalysis ?? p.macros ?? p.aiMacros) as Record<string, number> | undefined
+  // Macros depuis payload (mobile, ancienne structure)
+  const payloadMacros = (p.aiAnalysis ?? p.macros ?? p.aiMacros) as Record<string, number> | undefined
+  // Macros validées par le soignant (via validate-meal-analysis) — format backend
+  const validatedMacros = entry.photoMacros?.macros
 
   return (
-    <div className="rounded-lg border bg-card p-3 text-xs space-y-1.5">
-      <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">{fmtTime(entry.occurredAt)}</span>
-        <span className="font-semibold">{MEAL_LABELS[String(p.moment)] ?? "Repas"}</span>
-        {!!p.skipped && <Badge className="bg-red-100 text-red-700">Sauté</Badge>}
-      </div>
-      {!!p.description && <p className="text-muted-foreground">{String(p.description)}</p>}
-      {sens && (
-        <div className="flex gap-1 flex-wrap">
-          {sens.hunger != null && <Badge className={sensColor(sens.hunger)}>Faim {sens.hunger}</Badge>}
-          {sens.satiety != null && <Badge className={sensColor(sens.satiety)}>Satiété {sens.satiety}</Badge>}
-          {sens.pleasure != null && <Badge className={sensColor(sens.pleasure)}>Plaisir {sens.pleasure}</Badge>}
-          {sens.duration != null && <Badge className="bg-muted text-muted-foreground">{sens.duration}min</Badge>}
+    <div className="rounded-lg border bg-card text-xs overflow-hidden">
+      {/* Photo du repas */}
+      {entry.photoUrl && (
+        <div className="relative cursor-pointer" onClick={() => setPhotoExpanded(!photoExpanded)}>
+          <img
+            src={entry.photoUrl}
+            alt="Photo repas"
+            loading="lazy"
+            className={`w-full object-cover transition-all ${photoExpanded ? "h-48" : "h-28"}`}
+          />
+          {entry.photoValidated && (
+            <span className="absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
+              ✓ Analysé
+            </span>
+          )}
+          {!entry.photoValidated && entry.photoAnalyzed && (
+            <span className="absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">
+              En attente
+            </span>
+          )}
         </div>
       )}
-      {canSeeAiMacros && macros && (
-        <div className="bg-indigo-50 rounded p-2 border border-indigo-100 mt-1">
-          <p className="text-[10px] font-semibold text-indigo-600 mb-0.5">Extraction structurée</p>
-          <div className="flex gap-2 flex-wrap text-[10px]">
-            {macros.calories != null && <span className="font-medium">{macros.calories}kcal</span>}
-            {macros.protein_g != null && <span>P: {macros.protein_g}g</span>}
-            {macros.carbs_g != null && <span>G: {macros.carbs_g}g</span>}
-            {macros.fat_g != null && <span>L: {macros.fat_g}g</span>}
+
+      <div className="p-3 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">{fmtTime(entry.occurredAt)}</span>
+          <span className="font-semibold">{MEAL_LABELS[String(p.moment)] ?? "Repas"}</span>
+          {!!p.skipped && <Badge className="bg-red-100 text-red-700">Sauté</Badge>}
+        </div>
+        {!!p.description && <p className="text-muted-foreground">{String(p.description)}</p>}
+        {sens && (
+          <div className="flex gap-1 flex-wrap">
+            {sens.hunger != null && <Badge className={sensColor(sens.hunger)}>Faim {sens.hunger}</Badge>}
+            {sens.satiety != null && <Badge className={sensColor(sens.satiety)}>Satiété {sens.satiety}</Badge>}
+            {sens.pleasure != null && <Badge className={sensColor(sens.pleasure)}>Plaisir {sens.pleasure}</Badge>}
+            {sens.duration != null && <Badge className="bg-muted text-muted-foreground">{sens.duration}min</Badge>}
           </div>
+        )}
+
+        {/* Macros validées par le soignant (prioritaires) */}
+        {canSeeAiMacros && validatedMacros && (
+          <div className="bg-violet-50 rounded p-2 border border-violet-100 mt-1">
+            <p className="text-[10px] font-semibold text-violet-700 mb-1">Ingesta validés</p>
+            <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[10px]">
+              <span className="text-muted-foreground">Énergie</span>
+              <span className="font-semibold col-span-2">{validatedMacros.kcal} kcal</span>
+              <span className="text-muted-foreground">Protéines</span>
+              <span className="font-medium col-span-2">{validatedMacros.proteines_g} g</span>
+              <span className="text-muted-foreground">Glucides</span>
+              <span className="font-medium col-span-2">{validatedMacros.glucides_g} g</span>
+              <span className="text-muted-foreground">Lipides</span>
+              <span className="font-medium col-span-2">{validatedMacros.lipides_g} g</span>
+              {validatedMacros.fibres_g > 0 && (
+                <>
+                  <span className="text-muted-foreground">Fibres</span>
+                  <span className="font-medium col-span-2">{validatedMacros.fibres_g} g</span>
+                </>
+              )}
+            </div>
+            {entry.photoMacros?.aliments && entry.photoMacros.aliments.length > 0 && (
+              <p className="text-[9px] text-muted-foreground mt-1">
+                {entry.photoMacros.aliments.map((a) => `${a.nom} (${a.quantite_g}g)`).join(", ")}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Macros payload (mobile — si pas encore validées) */}
+        {canSeeAiMacros && !validatedMacros && payloadMacros && (
+          <div className="bg-indigo-50 rounded p-2 border border-indigo-100 mt-1">
+            <p className="text-[10px] font-semibold text-indigo-600 mb-0.5">Brouillon IA — à valider</p>
+            <div className="flex gap-2 flex-wrap text-[10px]">
+              {payloadMacros.calories != null && <span className="font-medium">{payloadMacros.calories} kcal</span>}
+              {payloadMacros.protein_g != null && <span>P: {payloadMacros.protein_g}g</span>}
+              {payloadMacros.carbs_g != null && <span>G: {payloadMacros.carbs_g}g</span>}
+              {payloadMacros.fat_g != null && <span>L: {payloadMacros.fat_g}g</span>}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── IngestaTotals ───────────────────────────────────────────────────────────
+
+function IngestaTotals({ meals }: { meals: JournalEntry[] }) {
+  // Calculer les totaux uniquement sur les repas avec des macros validées
+  const totals = useMemo(() => {
+    let kcal = 0, proteines = 0, glucides = 0, lipides = 0, fibres = 0, count = 0
+    for (const m of meals) {
+      const mac = m.photoMacros?.macros
+      if (!mac) continue
+      kcal += mac.kcal ?? 0
+      proteines += mac.proteines_g ?? 0
+      glucides += mac.glucides_g ?? 0
+      lipides += mac.lipides_g ?? 0
+      fibres += mac.fibres_g ?? 0
+      count++
+    }
+    return count > 0 ? { kcal: Math.round(kcal), proteines: Math.round(proteines), glucides: Math.round(glucides), lipides: Math.round(lipides), fibres: Math.round(fibres), count } : null
+  }, [meals])
+
+  if (!totals) return null
+
+  return (
+    <div className="mt-3 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-100">
+      <p className="text-[10px] font-semibold text-amber-700 mb-1.5">
+        Total ingesta validés ({totals.count} repas analysés)
+      </p>
+      <div className="flex gap-4 flex-wrap text-xs">
+        <div className="text-center">
+          <p className="font-bold text-amber-900">{totals.kcal}</p>
+          <p className="text-[9px] text-amber-600">kcal</p>
         </div>
-      )}
+        <div className="text-center">
+          <p className="font-bold text-amber-900">{totals.proteines}g</p>
+          <p className="text-[9px] text-amber-600">Protéines</p>
+        </div>
+        <div className="text-center">
+          <p className="font-bold text-amber-900">{totals.glucides}g</p>
+          <p className="text-[9px] text-amber-600">Glucides</p>
+        </div>
+        <div className="text-center">
+          <p className="font-bold text-amber-900">{totals.lipides}g</p>
+          <p className="text-[9px] text-amber-600">Lipides</p>
+        </div>
+        {totals.fibres > 0 && (
+          <div className="text-center">
+            <p className="font-bold text-amber-900">{totals.fibres}g</p>
+            <p className="text-[9px] text-amber-600">Fibres</p>
+          </div>
+        )}
+      </div>
+      <p className="text-[9px] text-amber-500 mt-1.5">Brouillon IA — validé par le soignant</p>
     </div>
   )
 }
