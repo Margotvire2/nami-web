@@ -12,6 +12,8 @@ import {
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
+import { NutritionAnalysis } from "@/components/NutritionAnalysis"
+import { type NutritionAnalysisResult } from "@/lib/api"
 
 // ─── Labels ─────────────────────────────────────────────────────────────────
 
@@ -252,7 +254,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
           </div>
           <IngestaTotals meals={meals} />
           <div className="grid md:grid-cols-2 gap-2 mt-4">
-            {meals.slice(0, 8).map((m) => <MealCard key={m.id} entry={m} canSeeAiMacros={canSeeAiMacros} />)}
+            {meals.slice(0, 8).map((m) => <MealCard key={m.id} entry={m} careCaseId={careCaseId} canSeeAiMacros={canSeeAiMacros} />)}
           </div>
         </Section>
       )}
@@ -411,7 +413,7 @@ function MealHeatmap({ meals }: { meals: JournalEntry[] }) {
   )
 }
 
-function MealCard({ entry, canSeeAiMacros }: { entry: JournalEntry; canSeeAiMacros: boolean }) {
+function MealCard({ entry, careCaseId, canSeeAiMacros }: { entry: JournalEntry; careCaseId: string; canSeeAiMacros: boolean }) {
   const [photoExpanded, setPhotoExpanded] = useState(false)
   const p = entry.payload as Record<string, unknown>
   const sens = p.sensations as Record<string, number> | undefined
@@ -499,6 +501,15 @@ function MealCard({ entry, canSeeAiMacros }: { entry: JournalEntry; canSeeAiMacr
               {payloadMacros.fat_g != null && <span>L: {payloadMacros.fat_g}g</span>}
             </div>
           </div>
+        )}
+
+        {/* Analyse nutritionnelle IA à la demande */}
+        {canSeeAiMacros && !p.skipped && (
+          <NutritionAnalysis
+            entryId={entry.id}
+            careCaseId={careCaseId}
+            existingAnalysis={(p.nutritionAnalysis as NutritionAnalysisResult | undefined) ?? null}
+          />
         )}
       </div>
     </div>

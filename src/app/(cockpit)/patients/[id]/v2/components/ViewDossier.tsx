@@ -185,11 +185,20 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
     },
   });
 
+  const ACTIVITY_LABELS_MAP: Record<string, string> = {
+    walking: "Marche", running: "Course", cycling: "Vélo", swimming: "Natation",
+    yoga: "Yoga", team_sport: "Sport co", housework: "Ménage", gardening: "Jardinage", other: "Autre",
+  };
+
   if (isLoading) return <LoadingState />;
   const entries = Array.isArray(journalEntries) ? journalEntries : [];
   const now = new Date();
+
+  // Utiliser occurredAt (champ Prisma réel) — fallback createdAt pour compatibilité
+  const entryDate = (e: any) => new Date(e.occurredAt || e.createdAt);
+
   const filtered = entries.filter((e: any) => {
-    const diff = now.getTime() - new Date(e.createdAt || e.date).getTime();
+    const diff = now.getTime() - entryDate(e).getTime();
     if (period === "today") return diff < 86400000;
     if (period === "7d") return diff < 7 * 86400000;
     if (period === "30d") return diff < 30 * 86400000;
@@ -200,17 +209,21 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
   const emotions = filtered.filter((e: any) => e.entryType === "EMOTION");
   const activities = filtered.filter((e: any) => e.entryType === "PHYSICAL_ACTIVITY");
   const symptoms = filtered.filter((e: any) => e.entryType === "SYMPTOM");
-  const positives = filtered.filter((e: any) => e.entryType === "POSITIVE" || e.entryType === "NOTE");
+  const positives = filtered.filter((e: any) => e.entryType === "POSITIVE_THOUGHT" || e.entryType === "NOTE");
 
   const periodDays = period === "today" ? 1 : period === "7d" ? 7 : period === "30d" ? 30
-    : Math.max(1, Math.ceil((now.getTime() - new Date(entries[entries.length - 1]?.createdAt || now).getTime()) / 86400000));
+    : Math.max(1, Math.ceil((now.getTime() - entryDate(entries[entries.length - 1] ?? {}).getTime()) / 86400000));
+
+  // Lire depuis payload (les champs sont dans entry.payload, pas au niveau racine)
   const avgEnergy = emotions.length > 0
-    ? Math.round(emotions.reduce((s: number, e: any) => s + (e.energyLevel || e.intensity || 0), 0) / emotions.length * 10) : null;
+    ? Math.round(emotions.reduce((s: number, e: any) => s + (Number(e.payload?.energy) || 0), 0) / emotions.length)
+    : null;
   const avgMealsPerDay = periodDays > 0 ? (meals.length / periodDays).toFixed(1) : "0";
-  const totalActivityMin = activities.reduce((s: number, a: any) => s + (a.duration || 0), 0);
+  const totalActivityMin = activities.reduce((s: number, a: any) => s + (Number(a.payload?.durationMinutes) || 0), 0);
   const avgPleasure = activities.length > 0
-    ? Math.round(activities.reduce((s: number, a: any) => s + (a.pleasureLevel || 0), 0) / activities.length * 10) / 10 : null;
-  const todayMeals = entries.filter((e: any) => e.entryType === "MEAL" && (now.getTime() - new Date(e.createdAt || e.date).getTime()) < 86400000);
+    ? Math.round(activities.reduce((s: number, a: any) => s + (Number(a.payload?.pleasure) || 0), 0) / activities.length * 10) / 10
+    : null;
+  const todayMeals = entries.filter((e: any) => e.entryType === "MEAL" && (now.getTime() - entryDate(e).getTime()) < 86400000);
 
   const days7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(now); d.setDate(d.getDate() - (6 - i)); return d; });
   const slots = ["P.déj", "Déj", "Dîner", "Coll"];
@@ -298,7 +311,7 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
                   <div className="text-[10px] text-gray-400 flex items-center">{slot}</div>
                   {days7.map((d, di) => {
                     const dayStr = d.toISOString().split("T")[0];
-                    const dayMeals = meals.filter((m: any) => new Date(m.createdAt || m.date).toISOString().split("T")[0] === dayStr);
+                    const dayMeals = meals.filter((m: any) => entryDate(m).toISOString().split("T")[0] === dayStr);
                     const filled = dayMeals[si];
                     const photo = filled?.payload?.photoUrl as string | undefined;
                     return photo ? (
@@ -337,10 +350,11 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
             <div className="flex gap-1">
               {days7.map((d, i) => {
                 const dayStr = d.toISOString().split("T")[0];
-                const dayEmotions = emotions.filter((e: any) => new Date(e.createdAt || e.date).toISOString().split("T")[0] === dayStr);
-                const mood = dayEmotions[0]?.mood || dayEmotions[0]?.weatherType;
-                const energy = dayEmotions.length > 0 ? Math.round(dayEmotions.reduce((s: number, e: any) => s + (e.energyLevel || e.intensity || 5), 0) / dayEmotions.length) : null;
-                const emoji = weatherEmojis[mood] || (energy !== null ? weatherScale[Math.min(4, Math.max(0, Math.round(energy / 2) - 1))] : null);
+                const dayEmotions = emotions.filter((e: any) => entryDate(e).toISOString().split("T")[0] === dayStr);
+                const mood = dayEmotions[0]?.payload?.mood;
+                const energy = dayEmotions.length > 0 ? Math.round(dayEmotions.reduce((s: number, e: any) => s + (Number(e.payload?.energy) || 5), 0) / dayEmotions.length) : null;
+                const MOOD_EMOJIS_LOCAL: Record<string, string> = { sunny: "☀️", partly_cloudy: "🌤️", cloudy: "☁️", rainy: "🌧️", stormy: "⛈️", tornado: "🌪" };
+                const emoji = MOOD_EMOJIS_LOCAL[mood] || (energy !== null ? weatherScale[Math.min(4, Math.max(0, Math.round(energy / 20)))] : null);
                 return (
                   <div key={i} className="flex-1 text-center">
                     <p className="text-[10px] text-gray-400">{dayNames[d.getDay() === 0 ? 6 : d.getDay() - 1]}</p>
@@ -353,7 +367,7 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
           <div>
             <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Courbe d'énergie</p>
             {emotions.length >= 2 ? (
-              <JournalSparkline values={emotions.slice(0, 10).map((e: any) => e.energyLevel || e.intensity || 5).reverse()} color="#6366f1" />
+              <JournalSparkline values={emotions.slice(0, 10).map((e: any) => Number(e.payload?.energy) || 5).reverse()} color="#6366f1" />
             ) : <p className="text-xs text-gray-400 italic">Pas assez de données</p>}
           </div>
         </div>
@@ -362,16 +376,26 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
       {activities.length > 0 && (
         <JournalSection title="Activité physique" icon="🏃" count={activities.length}>
           <div className="space-y-1.5">
-            {activities.map((a: any, i: number) => (
-              <div key={i} className="rounded-lg border border-gray-100 p-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">🏃</span>
-                  <span className="text-xs font-medium text-gray-700">{a.activityType || a.title || "Activité"} — {a.duration || "?"}min</span>
-                  {a.pleasureLevel != null && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">Plaisir {a.pleasureLevel}/10</span>}
+            {activities.map((a: any, i: number) => {
+              const pl = a.payload ?? {};
+              const actLabel = ACTIVITY_LABELS_MAP[pl.activityType] ?? pl.activityName ?? pl.activityType ?? "Activité";
+              const dur = pl.durationMinutes ?? pl.duration;
+              const pleasure = pl.pleasure;
+              const pain = pl.pain;
+              return (
+                <div key={i} className="rounded-lg border border-gray-100 p-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm">🏃</span>
+                    <span className="text-xs font-medium text-gray-700">
+                      {actLabel}{dur != null ? ` — ${dur} min` : ""}
+                    </span>
+                    {pleasure != null && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">Plaisir {pleasure}/10</span>}
+                    {pain != null && Number(pain) > 3 && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">Douleur {pain}/10</span>}
+                  </div>
+                  <span className="text-[10px] text-gray-400 shrink-0">{entryDate(a).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
-                <span className="text-[10px] text-gray-400">{new Date(a.createdAt || a.date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </JournalSection>
       )}
@@ -379,20 +403,31 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
       {symptoms.length > 0 && (
         <JournalSection title="Symptômes" icon="🩺" count={symptoms.length}>
           <div className="space-y-1.5">
-            {symptoms.map((s: any, i: number) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border border-gray-100 p-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">🩺</span>
-                  <span className="text-xs text-gray-700">{s.symptomType || s.content || "Symptôme"}</span>
+            {symptoms.map((s: any, i: number) => {
+              const pl = s.payload ?? {};
+              const name = pl.symptomType ?? pl.symptomName ?? pl.name ?? "Symptôme";
+              const intensity = pl.intensity != null ? Number(pl.intensity) : null;
+              const category = pl.category as string | undefined;
+              const context = pl.context as string | undefined;
+              return (
+                <div key={i} className="flex items-start justify-between rounded-lg border border-gray-100 p-2.5 gap-2">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <span className="text-sm shrink-0">🩺</span>
+                    <div className="min-w-0">
+                      <span className="text-xs font-medium text-gray-700">{name}</span>
+                      {category && <span className="text-[10px] text-gray-400 ml-1">· {category}</span>}
+                      {context && <p className="text-[10px] text-gray-400 mt-0.5 truncate">{context}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {intensity != null && (
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${intensity > 6 ? "bg-red-100 text-red-600" : intensity > 3 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600"}`}>{intensity}/10</span>
+                    )}
+                    <span className="text-[10px] text-gray-400">{formatShortDate(entryDate(s).toISOString())}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {s.intensity && (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${s.intensity > 6 ? "bg-red-100 text-red-600" : s.intensity > 3 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600"}`}>{s.intensity}/10</span>
-                  )}
-                  <span className="text-[10px] text-gray-400">{formatShortDate(s.createdAt || s.date)}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </JournalSection>
       )}
@@ -400,12 +435,16 @@ function JournalPanel({ careCaseId }: { careCaseId: string; careCase?: CareCaseD
       {positives.length > 0 && (
         <JournalSection title="Pensées & notes" icon="✨" count={positives.length}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-            {positives.map((p: any, i: number) => (
-              <div key={i} className="rounded-lg bg-yellow-50 border border-yellow-100 p-3">
-                <p className="text-xs text-gray-700">{p.entryType === "POSITIVE" ? "✨ " : "📝 "}{p.content || p.description}</p>
-                <p className="text-[10px] text-gray-400 mt-1">{formatShortDate(p.createdAt || p.date)}</p>
-              </div>
-            ))}
+            {positives.map((p: any, i: number) => {
+              const pl = p.payload ?? {};
+              const text = pl.content ?? pl.text ?? pl.description ?? "";
+              return (
+                <div key={i} className="rounded-lg bg-yellow-50 border border-yellow-100 p-3">
+                  <p className="text-xs text-gray-700">{p.entryType === "POSITIVE_THOUGHT" ? "✨ " : "📝 "}{text}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{formatShortDate(entryDate(p).toISOString())}</p>
+                </div>
+              );
+            })}
           </div>
         </JournalSection>
       )}

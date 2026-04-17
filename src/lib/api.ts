@@ -936,11 +936,35 @@ export interface JournalEntry {
   } | null;
 }
 
+export interface NutritionAnalysisResult {
+  items: Array<{
+    name: string;
+    quantity: string;
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  }>;
+  total: {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
+  confidence: "high" | "medium" | "low";
+  notes?: string;
+  analyzedAt?: string;
+}
+
 export const journalApi = {
   list: (token: string, careCaseId: string, params?: { type?: string }) => {
     const qs = params?.type ? `?type=${params.type}` : "";
     return request<JournalEntry[]>(`/care-cases/${careCaseId}/journal${qs}`, {}, token);
   },
+  analyzeNutrition: (token: string, entryId: string) =>
+    request<NutritionAnalysisResult>(`/journal/${entryId}/nutrition-analysis`, { method: "POST" }, token),
 };
 
 // ─── Onboarding ──────────────────────────────────────────────────────────────
@@ -2266,6 +2290,7 @@ export function apiWithToken(token: string) {
     },
     journal: {
       list: (careCaseId: string, params?: { type?: string }) => journalApi.list(token, careCaseId, params),
+      analyzeNutrition: (entryId: string) => journalApi.analyzeNutrition(token, entryId),
     },
     conditions: {
       list: (careCaseId: string) => conditionsApi.list(token, careCaseId),
