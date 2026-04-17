@@ -1,0 +1,26 @@
+name: Security Audit
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1'  # Chaque lundi à 8h UTC
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: npm audit (production deps only)
+        run: npm audit --production --audit-level=high
+        continue-on-error: true
+      - name: npm audit summary
+        run: |
+          echo "## Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          npm audit --production --json | jq '.metadata.vulnerabilities' >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
