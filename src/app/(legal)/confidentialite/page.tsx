@@ -9,7 +9,7 @@ export default function ConfidentialitePage() {
   return (
     <article className="prose prose-sm max-w-none">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Politique de confidentialité</h1>
-      <p className="text-sm text-gray-400 mb-8">Dernière mise à jour : avril 2026</p>
+      <p className="text-sm text-gray-400 mb-8">Dernière mise à jour : 17 avril 2026</p>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">1. Responsable du traitement</h2>
@@ -66,7 +66,92 @@ export default function ConfidentialitePage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">6. Vos droits</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">6. Traitement automatisé des données (Art. 22 RGPD)</h2>
+        <p className="text-sm text-gray-600 leading-relaxed mb-4">
+          Nami utilise des modèles d&apos;intelligence artificielle pour les finalités suivantes :
+        </p>
+        <ul className="text-sm text-gray-600 space-y-2 list-disc list-inside mb-6">
+          <li>
+            <strong>Structurer les comptes-rendus de consultation</strong> : les dictées vocales sont transcrites
+            et organisées en notes cliniques structurées.
+          </li>
+          <li>
+            <strong>Générer des brouillons de synthèse clinique</strong> : les informations du dossier de soins
+            sont résumées pour faciliter la coordination entre professionnels.
+          </li>
+          <li>
+            <strong>Extraire les valeurs numériques de vos bilans</strong> : les résultats biologiques et de
+            composition corporelle sont extraits automatiquement depuis vos documents.
+          </li>
+        </ul>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">Sous-traitants impliqués dans le traitement IA</h3>
+        <div className="overflow-x-auto mb-6">
+          <table className="w-full text-sm text-gray-600 border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Sous-traitant</th>
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Service</th>
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Localisation</th>
+                <th className="text-left py-2 font-semibold text-gray-700">Garanties</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">Anthropic (Claude)</td>
+                <td className="py-2 pr-4">Synthèse clinique, extraction de bilans, structuration documentaire</td>
+                <td className="py-2 pr-4">États-Unis</td>
+                <td className="py-2">DPA signé, Clauses Contractuelles Types (SCCs)</td>
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 font-medium">OpenAI (Whisper)</td>
+                <td className="py-2 pr-4">Transcription audio des consultations</td>
+                <td className="py-2 pr-4">États-Unis</td>
+                <td className="py-2">DPA signé, Clauses Contractuelles Types (SCCs)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Anonymisation préalable</h3>
+        <p className="text-sm text-gray-600 leading-relaxed mb-6">
+          Avant tout envoi vers ces services, les données sont anonymisées : les noms, prénoms et dates de
+          naissance sont remplacés par des identifiants génériques (ex : [PATIENT_0], [SOIGNANT_0]).
+          Les fichiers audio sont supprimés immédiatement après transcription.
+        </p>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Droit d&apos;opposition</h3>
+        <p className="text-sm text-gray-600 leading-relaxed mb-2">
+          Vous pouvez vous opposer à ces traitements automatisés à tout moment :
+        </p>
+        <ul className="text-sm text-gray-600 space-y-1.5 list-disc list-inside mb-4">
+          <li>Via les paramètres de votre compte (section &quot;Confidentialité&quot;)</li>
+          <li>
+            En contactant notre référent protection des données :{" "}
+            <a href="mailto:dpo@namipourlavie.com" className="text-indigo-600 hover:underline font-medium">
+              dpo@namipourlavie.com
+            </a>
+          </li>
+        </ul>
+        <p className="text-sm text-gray-600 leading-relaxed mb-6">
+          En cas d&apos;opposition, les fonctionnalités de synthèse automatique et de transcription seront
+          désactivées pour votre dossier. La coordination entre professionnels de santé restera possible
+          sans traitement automatisé.
+        </p>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Validation humaine obligatoire</h3>
+        <div className="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3">
+          <p className="text-sm text-indigo-800 leading-relaxed">
+            Les résultats générés par l&apos;intelligence artificielle sont systématiquement présentés comme des{" "}
+            <strong>brouillons soumis à la validation du professionnel de santé</strong>. Aucune décision
+            clinique n&apos;est prise automatiquement par Nami. Le professionnel de santé reste seul
+            responsable de ses décisions thérapeutiques.
+          </p>
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">7. Vos droits</h2>
         <p className="text-sm text-gray-600 leading-relaxed mb-3">
           Conformément au RGPD, vous disposez des droits suivants sur vos données personnelles :
         </p>
@@ -83,7 +168,7 @@ export default function ConfidentialitePage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">7. Cookies et traceurs</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">8. Cookies et traceurs</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
           Nami utilise des cookies techniques strictement nécessaires au fonctionnement du service (authentification, session).
           Aucun cookie publicitaire ou de tracking tiers n&apos;est déposé sans consentement explicite.
