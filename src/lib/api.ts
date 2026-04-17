@@ -2385,6 +2385,7 @@ export function apiWithToken(token: string) {
         request<Rcp>(`/rcps/${rcpId}`, { method: "PATCH", body: JSON.stringify(data) }, token),
       summarize: (rcpId: string) => request<{ aiSummary: string }>(`/rcps/${rcpId}/summarize`, { method: "POST" }, token),
       draftCr:   (rcpId: string) => request<{ draft: string }>(`/rcps/${rcpId}/draft-cr`, { method: "POST" }, token),
+      exportPdfUrl: (rcpId: string) => `${API_URL}/rcps/${rcpId}/export-pdf`,
     },
     billing: {
       tariffs: (params?: { q?: string; category?: string; nomenclature?: string }) => {

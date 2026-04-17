@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
   ChevronLeft, Clock, Users, AlertTriangle, Zap, CheckCircle2,
-  MessageSquare, Sparkles, X, Plus, Activity, FileText, Lock, FileEdit,
+  MessageSquare, Sparkles, X, Plus, Activity, FileText, Lock, FileEdit, FileDown,
 } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 
@@ -302,6 +302,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
   const [draftingCr, setDraftingCr] = useState(false);
   const [showDraft, setShowDraft] = useState(false);
   const [initialDecision, setInitialDecision] = useState("");
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const { data: rcp, isLoading } = useQuery<RcpDetail>({
     queryKey: ["rcp", rcpId],
@@ -334,6 +335,32 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
       toast.error("Erreur lors de la génération du brouillon");
     } finally {
       setDraftingCr(false);
+    }
+  }
+
+  async function handleExportPdf() {
+    setExportingPdf(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const res = await fetch(`${apiUrl}/rcps/${rcpId}/export-pdf`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error((err as { error?: string }).error ?? "Erreur export PDF");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `CR_RCP_${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erreur lors de l'export PDF");
+    } finally {
+      setExportingPdf(false);
     }
   }
 
@@ -447,6 +474,18 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
               >
                 <FileEdit className="w-3.5 h-3.5 mr-1.5" />
                 {draftingCr ? "Brouillon…" : rcp.draftCr ? "Voir brouillon CR" : "Brouillon CR IA"}
+              </Button>
+            )}
+            {(rcp.draftCr || rcp.decision) && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                className="border-slate-200 text-slate-600 hover:bg-slate-50"
+              >
+                <FileDown className="w-3.5 h-3.5 mr-1.5" />
+                {exportingPdf ? "Export…" : "Exporter PDF"}
               </Button>
             )}
             {rcp.canClose && (
