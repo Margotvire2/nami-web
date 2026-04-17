@@ -7,8 +7,8 @@ import { apiWithToken, type JournalEntry } from "@/lib/api"
 import { format, parseISO, subDays, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
-  ChevronDown, ChevronRight, UtensilsCrossed, Brain, Activity,
-  Stethoscope, Sparkles, AlertTriangle, TrendingUp, TrendingDown, Minus,
+  UtensilsCrossed, Brain, Activity,
+  Stethoscope, Sparkles, AlertTriangle, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronRight,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
@@ -33,7 +33,9 @@ const MOOD_LABELS: Record<string, string> = {
   sunny: "☀️ Ensoleillé", partly_cloudy: "🌤 Variable", cloudy: "☁️ Couvert",
   rainy: "🌧 Difficile", stormy: "⛈️ Orageux", tornado: "🌪 Tempête",
 }
-const MOOD_EMOJI: Record<string, string> = { sunny: "☀️", partly_cloudy: "🌤", cloudy: "☁️", rainy: "🌧", stormy: "⛈️", tornado: "🌪" }
+const MOOD_EMOJI: Record<string, string> = {
+  sunny: "☀️", partly_cloudy: "🌤", cloudy: "☁️", rainy: "🌧", stormy: "⛈️", tornado: "🌪",
+}
 
 const ACTIVITY_LABELS: Record<string, string> = {
   walking: "Marche", running: "Course", cycling: "Vélo", swimming: "Natation",
@@ -42,6 +44,13 @@ const ACTIVITY_LABELS: Record<string, string> = {
 
 const MEAL_LABELS: Record<string, string> = {
   BREAKFAST: "Petit-déjeuner", LUNCH: "Déjeuner", DINNER: "Dîner", SNACK: "Collation", OTHER: "Hors repas",
+  breakfast: "Petit-déjeuner", lunch: "Déjeuner", dinner: "Dîner", snack: "Collation",
+}
+
+const CONTEXT_LABELS: Record<string, string> = {
+  alone: "👤 Seul(e)", family: "👥 En famille", friends: "👫 Entre amis",
+  work: "💼 Au travail", screen: "📱 Devant un écran", walking: "🚶 En marchant",
+  restaurant: "🍴 Au restaurant",
 }
 
 const PERIODS: Array<{ key: Period; label: string }> = [
@@ -63,16 +72,13 @@ interface Props {
 function fmtTime(iso: string) { return format(parseISO(iso), "HH:mm") }
 function fmtDate(iso: string) { return format(parseISO(iso), "d MMM", { locale: fr }) }
 
-function Badge({ children, className }: { children: React.ReactNode; className: string }) {
-  return <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${className}`}>{children}</span>
+function sensColor(v: number) {
+  return v >= 7 ? "bg-emerald-100 text-emerald-700" : v >= 4 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+}
+function intColor(v: number) {
+  return v >= 7 ? "bg-red-100 text-red-700" : v >= 4 ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
 }
 
-function sensColor(v: number) { return v >= 7 ? "bg-emerald-100 text-emerald-700" : v >= 4 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700" }
-function intColor(v: number) { return v >= 7 ? "bg-red-100 text-red-700" : v >= 4 ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700" }
-
-function emotionLabel(e: string) { return EMOTION_LABELS[e] ?? e }
-
-// Dedup: same type + same hour (±5min) + same payload keys
 function dedup(entries: JournalEntry[]): JournalEntry[] {
   const seen = new Map<string, JournalEntry>()
   for (const e of entries) {
@@ -83,41 +89,51 @@ function dedup(entries: JournalEntry[]): JournalEntry[] {
   return Array.from(seen.values())
 }
 
-// ─── Section wrapper ────────────────────────────────────────────────────────
+// ─── Shared sub-components ──────────────────────────────────────────────────
 
-function Section({ icon, title, count, defaultOpen, children }: {
-  icon: React.ReactNode; title: string; count: number; defaultOpen: boolean; children: React.ReactNode
+function Badge({ children, className }: { children: React.ReactNode; className: string }) {
+  return <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${className}`}>{children}</span>
+}
+
+function SensationBar({ emoji, label, value, max, color }: {
+  emoji: string; label: string; value: number; max: number; color: string
 }) {
-  const [open, setOpen] = useState(defaultOpen)
+  const pct = Math.min(100, (value / max) * 100)
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2.5 px-5 py-3.5 text-left hover:bg-muted/20 transition-colors">
-        {icon}
-        <span className="text-sm font-semibold flex-1">{title}</span>
-        {count > 0 && <span className="text-[10px] font-medium bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{count}</span>}
-        {open ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
-      </button>
-      {open && <div className="px-5 pb-5 border-t pt-4">{children}</div>}
+    <div className="flex items-center gap-2">
+      <span className="text-xs w-4 shrink-0">{emoji}</span>
+      <span className="text-[10px] font-medium text-gray-500 w-[72px] shrink-0 truncate">{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+      <span className="text-[10px] font-semibold text-gray-600 w-8 text-right shrink-0">{value}/{max}</span>
     </div>
   )
 }
 
 function StatCard({ icon, title, value, sub, trend, alert, onClick }: {
-  icon: React.ReactNode; title: string; value: string; sub?: string; trend?: "up" | "down" | "stable"; alert?: boolean; onClick?: () => void
+  icon: React.ReactNode; title: string; value: string; sub?: string
+  trend?: "up" | "down" | "stable"; alert?: boolean; onClick?: () => void
 }) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus
   return (
-    <button onClick={onClick} className={`flex-1 min-w-[140px] rounded-xl border p-4 text-left transition-all hover:shadow-sm ${alert ? "bg-red-50 border-red-200" : "bg-card"}`}>
-      <div className="flex items-center gap-2 mb-2">
-        {icon}
-        <span className="text-[11px] font-medium text-muted-foreground">{title}</span>
-      </div>
-      <p className={`text-2xl font-bold ${alert ? "text-red-600" : "text-foreground"}`}>{value}</p>
+    <button onClick={onClick} className={`flex-1 min-w-[140px] rounded-xl border p-4 text-left transition-all hover:shadow-sm ${alert ? "bg-red-50 border-red-200" : "bg-white border-gray-200"}`}>
+      <div className="flex items-center gap-2 mb-2">{icon}<span className="text-[11px] font-medium text-gray-500">{title}</span></div>
+      <p className={`text-2xl font-bold ${alert ? "text-red-600" : "text-gray-900"}`}>{value}</p>
       <div className="flex items-center gap-1 mt-1">
-        {sub && <span className="text-[10px] text-muted-foreground">{sub}</span>}
-        {trend && <TrendIcon size={12} className={trend === "up" ? "text-emerald-500" : trend === "down" ? "text-red-500" : "text-muted-foreground"} />}
+        {sub && <span className="text-[10px] text-gray-400">{sub}</span>}
+        {trend && <TrendIcon size={12} className={trend === "up" ? "text-emerald-500" : trend === "down" ? "text-red-500" : "text-gray-400"} />}
       </div>
     </button>
+  )
+}
+
+function MiniStat({ label, value, alert }: { label: string; value: string; alert?: boolean }) {
+  return (
+    <div className={`px-3 py-2 rounded-lg border text-center min-w-[80px] ${alert ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"}`}>
+      <p className={`text-base font-bold ${alert ? "text-red-600" : "text-gray-900"}`}>{value}</p>
+      <p className="text-[9px] text-gray-400">{label}</p>
+    </div>
   )
 }
 
@@ -127,22 +143,20 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const [period, setPeriod] = useState<Period>("7d")
+  const [overviewOpen, setOverviewOpen] = useState(false)
 
   const { data: entries, isLoading } = useQuery({
     queryKey: ["journal", careCaseId],
     queryFn: () => api.journal.list(careCaseId),
   })
 
-  // Dans le cockpit soignant, les macros et photos sont toujours visibles
   const canSeeAiMacros = permissions?.canSeeAiMacros ?? true
   const canSeeCrisisDetail = permissions?.canSeeCrisisDetail ?? false
 
-  // Anorexia activity framing
   const isAnorexia = pathwayName?.toLowerCase().includes("anorex") ?? false
   const isRestrictedPhase = ["evaluation", "stabilization", "weight_recovery"].includes(currentPhase ?? "")
   const anorexiaSurveillance = isAnorexia && isRestrictedPhase
 
-  // Filter + dedup
   const filtered = useMemo(() => {
     if (!entries) return []
     const now = new Date()
@@ -156,37 +170,71 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
     return dedup(f)
   }, [entries, period])
 
-  // Group
+  // Stats
   const meals = filtered.filter((e) => e.entryType === "MEAL")
   const emotions = filtered.filter((e) => e.entryType === "EMOTION")
   const activities = filtered.filter((e) => e.entryType === "PHYSICAL_ACTIVITY")
   const symptoms = filtered.filter((e) => e.entryType === "SYMPTOM")
   const crises = filtered.filter((e) => e.entryType === "CRISIS_EVENT")
-  const positiveNotes = filtered.filter((e) => e.entryType === "POSITIVE_THOUGHT" || e.entryType === "NOTE")
 
-  // Stats
-  const periodDays = period === "today" ? 1 : period === "7d" ? 7 : period === "30d" ? 30 : Math.max(1, Math.ceil((Date.now() - new Date(entries?.[entries.length - 1]?.occurredAt ?? Date.now()).getTime()) / 86400000))
+  const periodDays = period === "today" ? 1 : period === "7d" ? 7 : period === "30d" ? 30
+    : Math.max(1, Math.ceil((Date.now() - new Date(entries?.[entries.length - 1]?.occurredAt ?? Date.now()).getTime()) / 86400000))
   const mealsPerDay = Math.round((meals.filter((m) => !(m.payload as Record<string, unknown>).skipped).length / periodDays) * 10) / 10
   const skippedMeals = meals.filter((m) => !!(m.payload as Record<string, unknown>).skipped).length
 
   const energyEntries = emotions.filter((e) => (e.payload as Record<string, unknown>).energy != null)
-  const avgEnergy = energyEntries.length > 0 ? Math.round(energyEntries.reduce((s, e) => s + Number((e.payload as Record<string, unknown>).energy), 0) / energyEntries.length) : null
+  const avgEnergy = energyEntries.length > 0
+    ? Math.round(energyEntries.reduce((s, e) => s + Number((e.payload as Record<string, unknown>).energy), 0) / energyEntries.length)
+    : null
 
   const totalActivityMin = activities.reduce((s, a) => s + (Number((a.payload as Record<string, unknown>).durationMinutes) || 0), 0)
-  const avgPleasure = activities.length > 0 ? Math.round(activities.reduce((s, a) => s + (Number((a.payload as Record<string, unknown>).pleasure) || 0), 0) / activities.length * 10) / 10 : null
+  const avgPleasure = activities.length > 0
+    ? Math.round(activities.reduce((s, a) => s + (Number((a.payload as Record<string, unknown>).pleasure) || 0), 0) / activities.length * 10) / 10
+    : null
   const painCount = activities.filter((a) => Number((a.payload as Record<string, unknown>).pain) > 3).length
 
-  if (isLoading) return <div className="p-6 space-y-3"><Skeleton className="h-10 w-48" /><Skeleton className="h-24" /><Skeleton className="h-24" /></div>
+  // Day grouping for column layout
+  const dayGroups = useMemo(() => {
+    const map = new Map<string, JournalEntry[]>()
+    for (const e of filtered) {
+      const key = format(parseISO(e.occurredAt), "yyyy-MM-dd")
+      const arr = map.get(key) ?? []
+      arr.push(e)
+      map.set(key, arr)
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([dateKey, dayEntries]) => {
+        const d = parseISO(dateKey)
+        const raw = format(d, "EEEE d", { locale: fr })
+        const label = raw.charAt(0).toUpperCase() + raw.slice(1)
+        return {
+          dateKey,
+          label,
+          entries: [...dayEntries].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt)),
+        }
+      })
+  }, [filtered])
+
+  if (isLoading) return (
+    <div className="p-6 space-y-3">
+      <Skeleton className="h-10 w-48" /><Skeleton className="h-24" /><Skeleton className="h-24" />
+    </div>
+  )
 
   return (
     <div className="p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Journal patient <span className="text-muted-foreground font-normal">({filtered.length})</span></h2>
-        <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+        <h2 className="text-sm font-semibold text-gray-900">
+          Journal patient <span className="text-gray-400 font-normal">({filtered.length})</span>
+        </h2>
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
           {PERIODS.map((p) => (
             <button key={p.key} onClick={() => setPeriod(p.key)}
-              className={`text-[10px] font-medium px-2.5 py-1 rounded-md transition-colors ${period === p.key ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+              className={`text-[10px] font-medium px-2.5 py-1 rounded-md transition-colors ${
+                period === p.key ? "bg-white shadow-sm text-gray-900" : "text-gray-500"
+              }`}>
               {p.label}
             </button>
           ))}
@@ -194,181 +242,154 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+        <div className="text-center py-12 text-gray-400">
           <Sparkles size={24} className="mx-auto mb-2 opacity-20" />
           <p className="text-sm">Aucune entrée sur cette période</p>
         </div>
       )}
 
-      {/* ROW 1 — Dashboard cards */}
       {filtered.length > 0 && (
-        <div className="flex gap-3 flex-wrap">
-          <StatCard
-            icon={<Brain size={14} className="text-violet-500" />}
-            title="Énergie"
-            value={avgEnergy != null ? `${avgEnergy}%` : "—"}
-            sub={energyEntries.length > 0 ? `${energyEntries.length} check-ins` : "Pas de données"}
-            trend={avgEnergy != null ? (avgEnergy > 60 ? "up" : avgEnergy < 40 ? "down" : "stable") : undefined}
-          />
-          <StatCard
-            icon={<UtensilsCrossed size={14} className="text-amber-500" />}
-            title="Alimentation"
-            value={`${mealsPerDay} repas/j`}
-            sub={skippedMeals > 0 ? `${skippedMeals} sautés` : "Aucun sauté"}
-            alert={skippedMeals > 2}
-          />
-          {!anorexiaSurveillance ? (
+        <>
+          {/* Stats row */}
+          <div className="flex gap-3 flex-wrap">
             <StatCard
-              icon={<Activity size={14} className="text-green-500" />}
-              title="Activité"
-              value={`${totalActivityMin} min`}
-              sub={avgPleasure != null ? `Plaisir ${avgPleasure}/10` : "—"}
-              trend={totalActivityMin >= 150 ? "up" : totalActivityMin > 0 ? "stable" : undefined}
+              icon={<Brain size={14} className="text-violet-500" />}
+              title="Énergie"
+              value={avgEnergy != null ? `${avgEnergy}%` : "—"}
+              sub={energyEntries.length > 0 ? `${energyEntries.length} check-ins` : "Pas de données"}
+              trend={avgEnergy != null ? (avgEnergy > 60 ? "up" : avgEnergy < 40 ? "down" : "stable") : undefined}
             />
-          ) : (
             <StatCard
-              icon={<Activity size={14} className="text-amber-500" />}
-              title="Activité — À évaluer"
-              value={`${totalActivityMin} min`}
-              sub={painCount > 0 ? `${painCount} douleurs` : "—"}
-              alert={totalActivityMin > 420 || (avgPleasure === 0 && totalActivityMin > 60)}
+              icon={<UtensilsCrossed size={14} className="text-amber-500" />}
+              title="Alimentation"
+              value={`${mealsPerDay} repas/j`}
+              sub={skippedMeals > 0 ? `${skippedMeals} sautés` : "Aucun sauté"}
+              alert={skippedMeals > 2}
             />
-          )}
-        </div>
-      )}
+            {!anorexiaSurveillance ? (
+              <StatCard
+                icon={<Activity size={14} className="text-green-500" />}
+                title="Activité"
+                value={`${totalActivityMin} min`}
+                sub={avgPleasure != null ? `Plaisir ${avgPleasure}/10` : "—"}
+                trend={totalActivityMin >= 150 ? "up" : totalActivityMin > 0 ? "stable" : undefined}
+              />
+            ) : (
+              <StatCard
+                icon={<Activity size={14} className="text-amber-500" />}
+                title="Activité — À évaluer"
+                value={`${totalActivityMin} min`}
+                sub={painCount > 0 ? `${painCount} douleurs` : "—"}
+                alert={totalActivityMin > 420 || (avgPleasure === 0 && totalActivityMin > 60)}
+              />
+            )}
+          </div>
 
-      {/* ROW 2 — Alerts */}
-      {filtered.length > 0 && (
-        <AlertBanner meals={meals} energyEntries={energyEntries} activities={activities} anorexiaSurveillance={anorexiaSurveillance} avgPleasure={avgPleasure} totalActivityMin={totalActivityMin} />
-      )}
+          {/* Alert banner */}
+          <AlertBanner
+            meals={meals}
+            energyEntries={energyEntries}
+            activities={activities}
+            anorexiaSurveillance={anorexiaSurveillance}
+            avgPleasure={avgPleasure}
+            totalActivityMin={totalActivityMin}
+          />
 
-      {/* ── ALIMENTATION ── */}
-      {meals.length > 0 && (
-        <Section icon={<UtensilsCrossed size={15} className="text-amber-600" />} title="Alimentation" count={meals.length} defaultOpen>
-          <div className="grid md:grid-cols-2 gap-4 mt-2">
-            <MealHeatmap meals={meals} />
-            <div className="space-y-2">
-              <MiniStat label="Repas/jour" value={String(mealsPerDay)} />
-              <MiniStat label="Sautés" value={String(skippedMeals)} alert={skippedMeals > 2} />
-            </div>
-          </div>
-          <IngestaTotals meals={meals} />
-          <div className="grid md:grid-cols-2 gap-2 mt-4">
-            {meals.slice(0, 8).map((m) => <MealCard key={m.id} entry={m} careCaseId={careCaseId} canSeeAiMacros={canSeeAiMacros} />)}
-          </div>
-        </Section>
-      )}
-
-      {/* ── SANTÉ MENTALE ── */}
-      {emotions.length > 0 && (
-        <Section icon={<Brain size={15} className="text-violet-600" />} title="Santé mentale" count={emotions.length + crises.length} defaultOpen={false}>
-          <div className="grid md:grid-cols-2 gap-4 mt-2">
-            <MoodWeek entries={emotions} />
-            <EnergyChart entries={emotions} />
-          </div>
-          <div className="grid md:grid-cols-2 gap-2 mt-3">
-            {emotions.slice(0, 8).map((e) => <EmotionCard key={e.id} entry={e} />)}
-          </div>
-          {crises.length > 0 && canSeeCrisisDetail && (
-            <div className="mt-4 pt-3 border-t">
-              <p className="text-[10px] font-semibold text-red-600 mb-2">ÉVÉNEMENTS DE CRISE ({crises.length})</p>
-              {crises.map((c) => <CrisisCard key={c.id} entry={c} />)}
-            </div>
-          )}
-        </Section>
-      )}
-
-      {/* ── ACTIVITÉ PHYSIQUE ── */}
-      {activities.length > 0 && (
-        <Section
-          icon={<Activity size={15} className={anorexiaSurveillance ? "text-amber-600" : "text-green-600"} />}
-          title={anorexiaSurveillance ? "Activité physique — À évaluer" : "Activité physique"}
-          count={activities.length}
-          defaultOpen={false}
-        >
-          <div className="flex gap-3 mt-2 mb-3 flex-wrap">
-            <MiniStat label="Min/semaine" value={String(totalActivityMin)} />
-            <MiniStat label="Plaisir moy" value={avgPleasure != null ? `${avgPleasure}/10` : "—"} />
-            <MiniStat label="Douleurs" value={String(painCount)} alert={painCount > 2} />
-          </div>
-          {anorexiaSurveillance && totalActivityMin > 420 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700 mb-3 flex items-center gap-2">
-              <AlertTriangle size={14} /> Activité élevée ({totalActivityMin} min/sem) — à évaluer
-            </div>
-          )}
-          {anorexiaSurveillance && avgPleasure === 0 && totalActivityMin > 60 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700 mb-3 flex items-center gap-2">
-              <AlertTriangle size={14} /> Activité sans plaisir — possible hyperactivité compensatoire
-            </div>
-          )}
-          <div className="space-y-2">
-            {activities.slice(0, 6).map((a) => <ActivityCard key={a.id} entry={a} anorexiaSurveillance={anorexiaSurveillance} />)}
-          </div>
-        </Section>
-      )}
-
-      {/* ── SYMPTÔMES + PENSÉES — side by side ── */}
-      {(symptoms.length > 0 || positiveNotes.length > 0) && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {symptoms.length > 0 && (
-            <Section icon={<Stethoscope size={15} className="text-red-600" />} title="Symptômes" count={symptoms.length} defaultOpen={false}>
-              <div className="space-y-2 mt-2">
-                {symptoms.slice(0, 6).map((s) => {
-                  const p = s.payload as Record<string, unknown>
-                  return (
-                    <div key={s.id} className="flex items-center gap-2 text-xs">
-                      <span>🩺</span>
-                      <span className="font-medium flex-1">{String(p.symptomType ?? "Symptôme")}</span>
-                      {p.intensity != null && <Badge className={intColor(Number(p.intensity))}>{String(p.intensity)}/10</Badge>}
-                      <span className="text-muted-foreground">{fmtDate(s.occurredAt)}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </Section>
-          )}
-          {positiveNotes.length > 0 && (
-            <Section icon={<Sparkles size={15} className="text-yellow-600" />} title="Pensées & notes" count={positiveNotes.length} defaultOpen={false}>
-              <div className="space-y-2 mt-2">
-                {positiveNotes.slice(0, 6).map((n) => (
-                  <div key={n.id} className="text-xs bg-muted/30 rounded-lg p-2.5">
-                    <p className="text-foreground leading-relaxed">
-                      {n.entryType === "POSITIVE_THOUGHT" ? "✨ " : "📝 "}
-                      {String((n.payload as Record<string, unknown>).text ?? (n.payload as Record<string, unknown>).content ?? "")}
-                    </p>
-                    <p className="text-[9px] text-muted-foreground mt-1">{fmtDate(n.occurredAt)} · {fmtTime(n.occurredAt)}</p>
+          {/* Vue d'ensemble — collapsible */}
+          {(meals.length > 0 || emotions.length > 0) && (
+            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+              <button
+                onClick={() => setOverviewOpen(!overviewOpen)}
+                className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-xs font-semibold text-gray-700 flex-1">Vue d&apos;ensemble</span>
+                {overviewOpen
+                  ? <ChevronDown size={14} className="text-gray-400" />
+                  : <ChevronRight size={14} className="text-gray-400" />
+                }
+              </button>
+              {overviewOpen && (
+                <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {meals.length > 0 && <MealHeatmap meals={meals} />}
+                    {emotions.length > 0 && <MoodWeek entries={emotions} />}
                   </div>
-                ))}
-              </div>
-            </Section>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <IngestaTotals meals={meals} />
+                    {emotions.length > 0 && <EnergyChart entries={emotions} />}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
-        </div>
+
+          {/* Crises — toujours visibles si accès */}
+          {crises.length > 0 && canSeeCrisisDetail && (
+            <div className="rounded-xl border border-red-200 bg-red-50/40 p-4">
+              <p className="text-[10px] font-bold text-red-700 uppercase tracking-wider mb-2">
+                Événements de crise ({crises.length})
+              </p>
+              <div className="space-y-2">
+                {crises.map((c) => <CrisisCard key={c.id} entry={c} />)}
+              </div>
+            </div>
+          )}
+
+          {/* Day-column scroll */}
+          {dayGroups.length > 0 && (
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1">
+              {dayGroups.map(({ dateKey, label, entries: dayEntries }) => (
+                <div key={dateKey} className="flex-shrink-0 w-[300px]">
+                  {/* Day header */}
+                  <div className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10 py-2 px-1 mb-3 rounded-lg border border-gray-100">
+                    <p className="text-sm font-bold text-gray-800">{label}</p>
+                    <p className="text-[10px] text-gray-400">{dayEntries.length} entrée{dayEntries.length > 1 ? "s" : ""}</p>
+                  </div>
+
+                  {/* Entries */}
+                  <div className="space-y-3">
+                    {dayEntries.map((entry) => {
+                      switch (entry.entryType) {
+                        case "MEAL":
+                          return <MealCard key={entry.id} entry={entry} careCaseId={careCaseId} canSeeAiMacros={canSeeAiMacros} />
+                        case "EMOTION":
+                          return <EmotionCard key={entry.id} entry={entry} />
+                        case "PHYSICAL_ACTIVITY":
+                          return <ActivityCard key={entry.id} entry={entry} anorexiaSurveillance={anorexiaSurveillance} />
+                        case "SYMPTOM":
+                          return <SymptomCard key={entry.id} entry={entry} />
+                        case "SLEEP":
+                          return <SleepCard key={entry.id} entry={entry} />
+                        case "POSITIVE_THOUGHT":
+                        case "NOTE":
+                          return <NoteCard key={entry.id} entry={entry} />
+                        default:
+                          return <GenericCard key={entry.id} entry={entry} />
+                      }
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
 }
 
-// ─── Sub-components ─────────────────────────────────────────────────────────
-
-function MiniStat({ label, value, alert }: { label: string; value: string; alert?: boolean }) {
-  return (
-    <div className={`px-3 py-2 rounded-lg border text-center min-w-[80px] ${alert ? "bg-red-50 border-red-200" : "bg-muted/30"}`}>
-      <p className={`text-base font-bold ${alert ? "text-red-600" : "text-foreground"}`}>{value}</p>
-      <p className="text-[9px] text-muted-foreground">{label}</p>
-    </div>
-  )
-}
+// ─── Alert banner ────────────────────────────────────────────────────────────
 
 function AlertBanner({ meals, energyEntries, activities, anorexiaSurveillance, avgPleasure, totalActivityMin }: {
-  meals: JournalEntry[]; energyEntries: JournalEntry[]; activities: JournalEntry[];
+  meals: JournalEntry[]; energyEntries: JournalEntry[]; activities: JournalEntry[]
   anorexiaSurveillance: boolean; avgPleasure: number | null; totalActivityMin: number
 }) {
   const alerts: string[] = []
   const todayMeals = meals.filter((m) => isSameDay(parseISO(m.occurredAt), new Date()))
-  if (todayMeals.length === 0) alerts.push("Aucun repas enregistré aujourd'hui")
+  if (todayMeals.length === 0 && meals.length > 0) alerts.push("Aucun repas enregistré aujourd'hui")
 
-  const lastEnergyEntries = energyEntries.slice(0, 3)
-  if (lastEnergyEntries.length >= 3 && lastEnergyEntries.every((e) => Number((e.payload as Record<string, unknown>).energy) < 40)) {
+  const lastEnergy = energyEntries.slice(0, 3)
+  if (lastEnergy.length >= 3 && lastEnergy.every((e) => Number((e.payload as Record<string, unknown>).energy) < 40)) {
     alerts.push("Énergie en baisse (3 derniers check-ins < 40%)")
   }
 
@@ -386,124 +407,133 @@ function AlertBanner({ meals, energyEntries, activities, anorexiaSurveillance, a
   )
 }
 
-function MealHeatmap({ meals }: { meals: JournalEntry[] }) {
-  const types = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"]
-  const labels = ["P.déj", "Déj", "Dîner", "Coll"]
-  const days: Date[] = []
-  for (let i = 6; i >= 0; i--) days.push(subDays(new Date(), i))
+// ─── Meal card ───────────────────────────────────────────────────────────────
 
-  return (
-    <div>
-      <p className="text-[10px] font-medium text-muted-foreground mb-2">HEATMAP 7 JOURS</p>
-      <div className="grid gap-1" style={{ gridTemplateColumns: "40px repeat(7, 1fr)" }}>
-        <div />
-        {days.map((d, i) => <p key={i} className="text-[9px] text-muted-foreground text-center">{format(d, "EEE", { locale: fr })}</p>)}
-        {types.map((type, ti) => (
-          <div key={`row${ti}`} className="contents">
-            <p className="text-[9px] text-muted-foreground truncate">{labels[ti]}</p>
-            {days.map((d, di) => {
-              const has = meals.some((m) => isSameDay(parseISO(m.occurredAt), d) && (m.payload as Record<string, unknown>).moment === type)
-              const skipped = meals.some((m) => isSameDay(parseISO(m.occurredAt), d) && (m.payload as Record<string, unknown>).moment === type && !!(m.payload as Record<string, unknown>).skipped)
-              return <div key={`${ti}-${di}`} className={`w-5 h-5 rounded mx-auto ${skipped ? "bg-red-200" : has ? "bg-emerald-200" : "bg-muted/40"}`} />
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function MealCard({ entry, careCaseId, canSeeAiMacros }: { entry: JournalEntry; careCaseId: string; canSeeAiMacros: boolean }) {
-  const [photoExpanded, setPhotoExpanded] = useState(false)
+function MealCard({ entry, careCaseId, canSeeAiMacros }: {
+  entry: JournalEntry; careCaseId: string; canSeeAiMacros: boolean
+}) {
   const p = entry.payload as Record<string, unknown>
   const sens = p.sensations as Record<string, number> | undefined
-  // Macros depuis payload (mobile, ancienne structure)
-  const payloadMacros = (p.aiAnalysis ?? p.macros ?? p.aiMacros) as Record<string, number> | undefined
-  // Macros validées par le soignant (via validate-meal-analysis) — format backend
+  const mealLabel = MEAL_LABELS[String(p.moment ?? p.mealType ?? "")] ?? "Repas"
   const validatedMacros = entry.photoMacros?.macros
+  const payloadMacros = (p.aiAnalysis ?? p.macros ?? p.aiMacros) as Record<string, number> | undefined
 
   return (
-    <div className="rounded-lg border bg-card text-xs overflow-hidden">
-      {/* Photo du repas */}
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm">🍽</span>
+          <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">{mealLabel}</span>
+          {!!p.skipped && <Badge className="bg-red-100 text-red-700 ml-1">Sauté</Badge>}
+        </div>
+        <span className="text-xs text-gray-400 tabular-nums">{fmtTime(entry.occurredAt)}</span>
+      </div>
+
+      {/* Photo — pleine largeur, aspect 4:3 */}
       {entry.photoUrl && (
-        <div className="relative cursor-pointer" onClick={() => setPhotoExpanded(!photoExpanded)}>
+        <div className="relative w-full aspect-[4/3] bg-gray-100">
           <img
             src={entry.photoUrl}
-            alt="Photo repas"
+            alt={mealLabel}
             loading="lazy"
-            className={`w-full object-cover transition-all ${photoExpanded ? "h-48" : "h-28"}`}
+            className="w-full h-full object-cover"
           />
           {entry.photoValidated && (
-            <span className="absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
+            <span className="absolute top-2 right-2 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
               ✓ Analysé
             </span>
           )}
           {!entry.photoValidated && entry.photoAnalyzed && (
-            <span className="absolute top-1.5 right-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">
+            <span className="absolute top-2 right-2 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">
               En attente
             </span>
           )}
         </div>
       )}
 
-      <div className="p-3 space-y-1.5">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">{fmtTime(entry.occurredAt)}</span>
-          <span className="font-semibold">{MEAL_LABELS[String(p.moment)] ?? "Repas"}</span>
-          {!!p.skipped && <Badge className="bg-red-100 text-red-700">Sauté</Badge>}
-        </div>
-        {!!p.description && <p className="text-muted-foreground">{String(p.description)}</p>}
-        {sens && (
-          <div className="flex gap-1 flex-wrap">
-            {sens.hunger != null && <Badge className={sensColor(sens.hunger)}>Faim {sens.hunger}</Badge>}
-            {sens.satiety != null && <Badge className={sensColor(sens.satiety)}>Satiété {sens.satiety}</Badge>}
-            {sens.pleasure != null && <Badge className={sensColor(sens.pleasure)}>Plaisir {sens.pleasure}</Badge>}
-            {sens.duration != null && <Badge className="bg-muted text-muted-foreground">{sens.duration}min</Badge>}
+      <div className="px-3 py-2.5 space-y-2.5">
+        {/* Description */}
+        {!!p.description && (
+          <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{String(p.description)}</p>
+        )}
+
+        {/* Repas sauté */}
+        {(!!p.skipped && !p.description) && (
+          <p className="text-xs text-gray-400 italic">Repas non pris</p>
+        )}
+
+        {/* Sensations — barres visuelles */}
+        {sens && (sens.hunger != null || sens.satiety != null || sens.pleasure != null) && (
+          <div className="space-y-1.5 py-2 px-2.5 bg-gray-50 rounded-lg">
+            {sens.hunger != null && (
+              <SensationBar emoji="😋" label="Faim" value={sens.hunger} max={10} color="#7C3AED" />
+            )}
+            {sens.satiety != null && (
+              <SensationBar emoji="🌿" label="Rassasiement" value={sens.satiety} max={10} color="#10B981" />
+            )}
+            {sens.pleasure != null && (
+              <SensationBar emoji="😊" label="Plaisir" value={sens.pleasure} max={10} color="#F59E0B" />
+            )}
           </div>
         )}
 
-        {/* Macros validées par le soignant (prioritaires) */}
+        {/* Durée + contexte */}
+        {!!(sens?.duration || p.context || p.durationMin) && (
+          <div className="flex items-center gap-2 flex-wrap text-[11px] text-gray-500">
+            {!!(sens?.duration || p.durationMin) && (
+              <span>⏱ {sens?.duration ?? Number(p.durationMin)} min</span>
+            )}
+            {!!p.context && (
+              <span>· {CONTEXT_LABELS[String(p.context)] ?? String(p.context)}</span>
+            )}
+          </div>
+        )}
+
+        {/* Ingesta validés */}
         {canSeeAiMacros && validatedMacros && (
-          <div className="bg-violet-50 rounded p-2 border border-violet-100 mt-1">
-            <p className="text-[10px] font-semibold text-violet-700 mb-1">Ingesta validés</p>
-            <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[10px]">
-              <span className="text-muted-foreground">Énergie</span>
-              <span className="font-semibold col-span-2">{validatedMacros.kcal} kcal</span>
-              <span className="text-muted-foreground">Protéines</span>
-              <span className="font-medium col-span-2">{validatedMacros.proteines_g} g</span>
-              <span className="text-muted-foreground">Glucides</span>
-              <span className="font-medium col-span-2">{validatedMacros.glucides_g} g</span>
-              <span className="text-muted-foreground">Lipides</span>
-              <span className="font-medium col-span-2">{validatedMacros.lipides_g} g</span>
-              {validatedMacros.fibres_g > 0 && (
-                <>
-                  <span className="text-muted-foreground">Fibres</span>
-                  <span className="font-medium col-span-2">{validatedMacros.fibres_g} g</span>
-                </>
+          <div className="rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Ingesta validés</span>
+              <span className="text-xs font-bold text-gray-800">{validatedMacros.kcal} kcal</span>
+            </div>
+            <MacroStackBar
+              protein={validatedMacros.proteines_g ?? 0}
+              carbs={validatedMacros.glucides_g ?? 0}
+              fat={validatedMacros.lipides_g ?? 0}
+            />
+            <div className="flex items-center gap-3 text-[10px]">
+              <span className="text-blue-600 font-semibold">P {validatedMacros.proteines_g}g</span>
+              <span className="text-amber-600 font-semibold">G {validatedMacros.glucides_g}g</span>
+              <span className="text-red-500 font-semibold">L {validatedMacros.lipides_g}g</span>
+              {(validatedMacros.fibres_g ?? 0) > 0 && (
+                <span className="text-green-600 font-semibold">F {validatedMacros.fibres_g}g</span>
               )}
             </div>
             {entry.photoMacros?.aliments && entry.photoMacros.aliments.length > 0 && (
-              <p className="text-[9px] text-muted-foreground mt-1">
+              <p className="text-[9px] text-gray-400">
                 {entry.photoMacros.aliments.map((a) => `${a.nom} (${a.quantite_g}g)`).join(", ")}
               </p>
             )}
           </div>
         )}
 
-        {/* Macros payload (mobile — si pas encore validées) */}
+        {/* Macros payload non validées */}
         {canSeeAiMacros && !validatedMacros && payloadMacros && (
-          <div className="bg-indigo-50 rounded p-2 border border-indigo-100 mt-1">
-            <p className="text-[10px] font-semibold text-indigo-600 mb-0.5">Brouillon IA — à valider</p>
+          <div className="rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-2 space-y-1.5">
+            <span className="text-[10px] font-semibold text-gray-500">Brouillon IA — à valider</span>
             <div className="flex gap-2 flex-wrap text-[10px]">
-              {payloadMacros.calories != null && <span className="font-medium">{payloadMacros.calories} kcal</span>}
-              {payloadMacros.protein_g != null && <span>P: {payloadMacros.protein_g}g</span>}
-              {payloadMacros.carbs_g != null && <span>G: {payloadMacros.carbs_g}g</span>}
-              {payloadMacros.fat_g != null && <span>L: {payloadMacros.fat_g}g</span>}
+              {payloadMacros.calories != null && (
+                <span className="font-bold text-gray-700">{payloadMacros.calories} kcal</span>
+              )}
+              {payloadMacros.protein_g != null && <span className="text-blue-600">P {payloadMacros.protein_g}g</span>}
+              {payloadMacros.carbs_g != null && <span className="text-amber-600">G {payloadMacros.carbs_g}g</span>}
+              {payloadMacros.fat_g != null && <span className="text-red-500">L {payloadMacros.fat_g}g</span>}
             </div>
           </div>
         )}
 
-        {/* Analyse nutritionnelle IA à la demande */}
+        {/* Analyse IA à la demande */}
         {canSeeAiMacros && !p.skipped && (
           <NutritionAnalysis
             entryId={entry.id}
@@ -516,10 +546,283 @@ function MealCard({ entry, careCaseId, canSeeAiMacros }: { entry: JournalEntry; 
   )
 }
 
-// ─── IngestaTotals ───────────────────────────────────────────────────────────
+function MacroStackBar({ protein, carbs, fat }: { protein: number; carbs: number; fat: number }) {
+  const protCal = protein * 4
+  const carbsCal = carbs * 4
+  const fatCal = fat * 9
+  const total = protCal + carbsCal + fatCal || 1
+  return (
+    <div className="h-2 rounded-full overflow-hidden flex bg-gray-200">
+      <div style={{ width: `${(protCal / total) * 100}%` }} className="bg-blue-500 h-full" />
+      <div style={{ width: `${(carbsCal / total) * 100}%` }} className="bg-amber-400 h-full" />
+      <div style={{ width: `${(fatCal / total) * 100}%` }} className="bg-red-400 h-full" />
+    </div>
+  )
+}
+
+// ─── Emotion card ─────────────────────────────────────────────────────────────
+
+function EmotionCard({ entry }: { entry: JournalEntry }) {
+  const p = entry.payload as Record<string, unknown>
+  const mood = p.mood as string | undefined
+  const emotions = (p.emotions as string[]) ?? (p.emotionType ? [p.emotionType as string] : [])
+  const intensity = p.intensity as number | undefined
+
+  if (mood) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm space-y-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+            {MOOD_EMOJI[mood] ?? "🌤"} Météo
+          </span>
+          <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+        </div>
+        <p className="text-sm text-gray-700">{MOOD_LABELS[mood] ?? mood}</p>
+        {p.energy != null && (
+          <SensationBar emoji="⚡" label="Énergie" value={Number(p.energy)} max={100} color="#7C3AED" />
+        )}
+        {!!p.note && <p className="text-xs text-gray-600 mt-1">{String(p.note)}</p>}
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">💭 Ressentis</span>
+        <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+      </div>
+      {emotions.length > 0 && (
+        <p className="text-sm text-gray-700">{emotions.map((e) => EMOTION_LABELS[e] ?? e).join(", ")}</p>
+      )}
+      {intensity != null && (
+        <SensationBar emoji="💜" label="Intensité" value={intensity} max={10} color="#7C3AED" />
+      )}
+      {!!p.trigger && (
+        <p className="text-[11px] text-gray-500">
+          <span className="font-semibold">Déclencheur :</span> {String(p.trigger)}
+        </p>
+      )}
+      {!!p.automaticThought && (
+        <p className="text-[11px] text-gray-500 italic">💭 « {String(p.automaticThought)} »</p>
+      )}
+      {!!p.need && (
+        <p className="text-[11px] text-gray-500">
+          <span className="font-semibold">Besoin :</span> {String(p.need)}
+        </p>
+      )}
+      {!!p.note && (
+        <p className="text-xs text-gray-600">{String(p.note)}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── Activity card ────────────────────────────────────────────────────────────
+
+function ActivityCard({ entry, anorexiaSurveillance }: { entry: JournalEntry; anorexiaSurveillance: boolean }) {
+  const p = entry.payload as Record<string, unknown>
+  const pleasure = Number(p.pleasure ?? 0)
+  const duration = Number(p.durationMinutes ?? p.duration ?? 0)
+  const actLabel = ACTIVITY_LABELS[String(p.activityType ?? p.activityName ?? "")] ?? String(p.activityType ?? "Activité")
+
+  const pleasureBg = anorexiaSurveillance && pleasure >= 8 && duration > 45
+    ? "bg-amber-50 border-amber-200"
+    : "bg-white border-gray-100"
+
+  return (
+    <div className={`rounded-xl border p-3 shadow-sm space-y-2 ${pleasureBg}`}>
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">🏃 Activité physique</span>
+        <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+      </div>
+      <p className="text-sm font-medium text-gray-700">{actLabel}</p>
+      <div className="flex gap-2 flex-wrap">
+        {duration > 0 && (
+          <div className="bg-green-50 rounded-md px-2 py-1">
+            <p className="text-[10px] text-green-600">Durée</p>
+            <p className="text-xs font-bold text-green-700">{duration} min</p>
+          </div>
+        )}
+        {pleasure > 0 && (
+          <div className={`rounded-md px-2 py-1 ${anorexiaSurveillance && pleasure >= 8 ? "bg-amber-100" : "bg-violet-50"}`}>
+            <p className={`text-[10px] ${anorexiaSurveillance && pleasure >= 8 ? "text-amber-600" : "text-violet-600"}`}>Plaisir</p>
+            <p className={`text-xs font-bold ${anorexiaSurveillance && pleasure >= 8 ? "text-amber-700" : "text-violet-700"}`}>{pleasure}/10</p>
+          </div>
+        )}
+        {Number(p.pain) > 0 && (
+          <div className="bg-red-50 rounded-md px-2 py-1">
+            <p className="text-[10px] text-red-600">Douleur</p>
+            <p className="text-xs font-bold text-red-700">{Number(p.pain)}/10</p>
+          </div>
+        )}
+      </div>
+      {!!p.context && (
+        <p className="text-[11px] text-gray-500">{CONTEXT_LABELS[String(p.context)] ?? String(p.context)}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── Symptom card ─────────────────────────────────────────────────────────────
+
+function SymptomCard({ entry }: { entry: JournalEntry }) {
+  const p = entry.payload as Record<string, unknown>
+  const name = String(p.symptomName ?? p.symptomType ?? p.name ?? "Symptôme")
+  const intensity = p.intensity != null ? Number(p.intensity) : null
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">🩹 Symptômes</span>
+        <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+      </div>
+      <p className="text-sm text-gray-700">{name}</p>
+      {intensity != null && (
+        <SensationBar emoji="🔴" label="Intensité" value={intensity} max={10} color="#EF4444" />
+      )}
+      {!!p.category && (
+        <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+          {String(p.category)}
+        </span>
+      )}
+      {!!p.context && (
+        <p className="text-[11px] text-gray-500">{String(p.context)}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── Sleep card ───────────────────────────────────────────────────────────────
+
+function SleepCard({ entry }: { entry: JournalEntry }) {
+  const p = entry.payload as Record<string, unknown>
+  const hours = p.hours ?? p.sleepHours ?? p.duration
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">😴 Sommeil</span>
+        <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+      </div>
+      {hours != null && (
+        <div className="flex items-center justify-between bg-indigo-50 rounded-md px-2.5 py-2">
+          <span className="text-[11px] text-indigo-600">Heures de sommeil</span>
+          <span className="text-sm font-bold text-indigo-700">{String(hours)}h</span>
+        </div>
+      )}
+      {p.quality != null && (
+        <SensationBar emoji="⭐" label="Qualité" value={Number(p.quality)} max={10} color="#6366F1" />
+      )}
+      {!!p.note && <p className="text-xs text-gray-600">{String(p.note)}</p>}
+    </div>
+  )
+}
+
+// ─── Note / Positive thought card ────────────────────────────────────────────
+
+function NoteCard({ entry }: { entry: JournalEntry }) {
+  const p = entry.payload as Record<string, unknown>
+  const isPositive = entry.entryType === "POSITIVE_THOUGHT"
+  const content = String(p.content ?? p.text ?? "")
+
+  return (
+    <div className={`rounded-xl border p-3 shadow-sm ${
+      isPositive ? "bg-amber-50 border-amber-100" : "bg-white border-gray-100"
+    }`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+          {isPositive ? "✨ Pensée +" : "📝 Note"}
+        </span>
+        <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+      </div>
+      <p className={`text-xs leading-relaxed ${isPositive ? "text-amber-800 italic" : "text-gray-700"}`}>
+        {isPositive ? `« ${content} »` : content}
+      </p>
+      {entry.photoUrl && (
+        <img
+          src={entry.photoUrl}
+          alt="Note"
+          className="mt-2 rounded-lg w-full aspect-[4/3] object-cover"
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Generic card (fallback) ──────────────────────────────────────────────────
+
+function GenericCard({ entry }: { entry: JournalEntry }) {
+  const p = entry.payload as Record<string, unknown>
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+          {entry.entryType.replace(/_/g, " ")}
+        </span>
+        <span className="text-xs text-gray-400">{fmtTime(entry.occurredAt)}</span>
+      </div>
+      {!!p.note && <p className="text-xs text-gray-600">{String(p.note)}</p>}
+      {!!p.description && <p className="text-xs text-gray-600">{String(p.description)}</p>}
+    </div>
+  )
+}
+
+// ─── Crisis card ──────────────────────────────────────────────────────────────
+
+function CrisisCard({ entry }: { entry: JournalEntry }) {
+  const p = entry.payload as Record<string, unknown>
+  const outcome = p.outcome as string | undefined
+  const label = outcome === "resisted" ? "💪 A tenu" : outcome === "partial" ? "🤝 Limité" : "Crise complète"
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs space-y-1">
+      <div className="flex items-center gap-2">
+        <span>🚨</span>
+        <Badge className="bg-red-100 text-red-700">{label}</Badge>
+        {!!p.duration_minutes && <span className="text-gray-500">{String(p.duration_minutes)} min</span>}
+        <span className="text-gray-400 ml-auto">{fmtDate(entry.occurredAt)}</span>
+      </div>
+      {!!((p.coping_used as string[] | undefined)?.length) && (
+        <p className="text-gray-500">Stratégies : {(p.coping_used as string[]).join(", ")}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── Overview widgets ─────────────────────────────────────────────────────────
+
+function MealHeatmap({ meals }: { meals: JournalEntry[] }) {
+  const types = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"]
+  const labels = ["P.déj", "Déj", "Dîner", "Coll"]
+  const days: Date[] = []
+  for (let i = 6; i >= 0; i--) days.push(subDays(new Date(), i))
+
+  return (
+    <div>
+      <p className="text-[10px] font-medium text-gray-400 mb-2 uppercase tracking-wider">Heatmap 7 jours</p>
+      <div className="grid gap-1" style={{ gridTemplateColumns: "40px repeat(7, 1fr)" }}>
+        <div />
+        {days.map((d, i) => (
+          <p key={i} className="text-[9px] text-gray-400 text-center">
+            {format(d, "EEE", { locale: fr })}
+          </p>
+        ))}
+        {types.map((type, ti) => (
+          <div key={`row${ti}`} className="contents">
+            <p className="text-[9px] text-gray-400 truncate">{labels[ti]}</p>
+            {days.map((d, di) => {
+              const has = meals.some((m) => isSameDay(parseISO(m.occurredAt), d) && (m.payload as Record<string, unknown>).moment === type)
+              const skipped = meals.some((m) => isSameDay(parseISO(m.occurredAt), d) && (m.payload as Record<string, unknown>).moment === type && !!(m.payload as Record<string, unknown>).skipped)
+              return <div key={`${ti}-${di}`} className={`w-5 h-5 rounded mx-auto ${skipped ? "bg-red-200" : has ? "bg-emerald-200" : "bg-gray-100"}`} />
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function IngestaTotals({ meals }: { meals: JournalEntry[] }) {
-  // Calculer les totaux uniquement sur les repas avec des macros validées
   const totals = useMemo(() => {
     let kcal = 0, proteines = 0, glucides = 0, lipides = 0, fibres = 0, count = 0
     for (const m of meals) {
@@ -532,116 +835,33 @@ function IngestaTotals({ meals }: { meals: JournalEntry[] }) {
       fibres += mac.fibres_g ?? 0
       count++
     }
-    return count > 0 ? { kcal: Math.round(kcal), proteines: Math.round(proteines), glucides: Math.round(glucides), lipides: Math.round(lipides), fibres: Math.round(fibres), count } : null
+    return count > 0
+      ? { kcal: Math.round(kcal), proteines: Math.round(proteines), glucides: Math.round(glucides), lipides: Math.round(lipides), fibres: Math.round(fibres), count }
+      : null
   }, [meals])
 
   if (!totals) return null
 
   return (
-    <div className="mt-3 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-100">
+    <div className="px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-100">
       <p className="text-[10px] font-semibold text-amber-700 mb-1.5">
         Total ingesta validés ({totals.count} repas analysés)
       </p>
       <div className="flex gap-4 flex-wrap text-xs">
-        <div className="text-center">
-          <p className="font-bold text-amber-900">{totals.kcal}</p>
-          <p className="text-[9px] text-amber-600">kcal</p>
-        </div>
-        <div className="text-center">
-          <p className="font-bold text-amber-900">{totals.proteines}g</p>
-          <p className="text-[9px] text-amber-600">Protéines</p>
-        </div>
-        <div className="text-center">
-          <p className="font-bold text-amber-900">{totals.glucides}g</p>
-          <p className="text-[9px] text-amber-600">Glucides</p>
-        </div>
-        <div className="text-center">
-          <p className="font-bold text-amber-900">{totals.lipides}g</p>
-          <p className="text-[9px] text-amber-600">Lipides</p>
-        </div>
-        {totals.fibres > 0 && (
-          <div className="text-center">
-            <p className="font-bold text-amber-900">{totals.fibres}g</p>
-            <p className="text-[9px] text-amber-600">Fibres</p>
+        {[
+          { label: "kcal", val: String(totals.kcal) },
+          { label: "Prot.", val: `${totals.proteines}g` },
+          { label: "Glu.", val: `${totals.glucides}g` },
+          { label: "Lip.", val: `${totals.lipides}g` },
+          ...(totals.fibres > 0 ? [{ label: "Fibres", val: `${totals.fibres}g` }] : []),
+        ].map(({ label, val }) => (
+          <div key={label} className="text-center">
+            <p className="font-bold text-amber-900">{val}</p>
+            <p className="text-[9px] text-amber-600">{label}</p>
           </div>
-        )}
+        ))}
       </div>
       <p className="text-[9px] text-amber-500 mt-1.5">Brouillon IA — validé par le soignant</p>
-    </div>
-  )
-}
-
-function EmotionCard({ entry }: { entry: JournalEntry }) {
-  const p = entry.payload as Record<string, unknown>
-  const mood = p.mood as string | undefined
-  const emotions = (p.emotions as string[]) ?? (p.emotionType ? [p.emotionType as string] : [])
-  const intensity = p.intensity as number | undefined
-
-  if (mood) {
-    return (
-      <div className="rounded-lg border bg-card p-3 text-xs flex items-center gap-3">
-        <span className="text-lg">{MOOD_EMOJI[mood] ?? "🌤"}</span>
-        <div className="flex-1">
-          <p className="font-medium">{MOOD_LABELS[mood] ?? mood}</p>
-          {p.energy != null && <p className="text-muted-foreground">Énergie {String(p.energy)}%</p>}
-        </div>
-        <span className="text-muted-foreground">{fmtTime(entry.occurredAt)}</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="rounded-lg border bg-card p-3 text-xs space-y-1">
-      <div className="flex items-center gap-2">
-        <span className="font-semibold">{emotions.map(emotionLabel).join(", ") || "Émotion"}</span>
-        {intensity != null && <Badge className={intColor(intensity)}>{intensity}/10</Badge>}
-        <span className="text-muted-foreground ml-auto">{fmtTime(entry.occurredAt)}</span>
-      </div>
-      {!!p.trigger && <p className="text-muted-foreground">Déclencheur : {String(p.trigger)}</p>}
-    </div>
-  )
-}
-
-function CrisisCard({ entry }: { entry: JournalEntry }) {
-  const p = entry.payload as Record<string, unknown>
-  const outcome = p.outcome as string | undefined
-  const label = outcome === "resisted" ? "💪 A tenu" : outcome === "partial" ? "🤝 Limité" : "Crise complète"
-  return (
-    <div className="rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs space-y-1 mb-2">
-      <div className="flex items-center gap-2">
-        <span>🚨</span>
-        <Badge className="bg-red-100 text-red-700">{label}</Badge>
-        {!!p.duration_minutes && <span className="text-muted-foreground">{String(p.duration_minutes)}min</span>}
-        <span className="text-muted-foreground ml-auto">{fmtDate(entry.occurredAt)}</span>
-      </div>
-      {!!((p.coping_used as string[] | undefined)?.length) && (
-        <p className="text-muted-foreground">Stratégies : {(p.coping_used as string[]).join(", ")}</p>
-      )}
-    </div>
-  )
-}
-
-function ActivityCard({ entry, anorexiaSurveillance }: { entry: JournalEntry; anorexiaSurveillance: boolean }) {
-  const p = entry.payload as Record<string, unknown>
-  const pleasure = Number(p.pleasure ?? 0)
-  const duration = Number(p.durationMinutes ?? 0)
-
-  // Anorexia: high pleasure + high duration = orange/red
-  const pleasureBadge = anorexiaSurveillance
-    ? (pleasure >= 8 && duration > 45 ? "bg-amber-100 text-amber-700" : sensColor(pleasure))
-    : sensColor(pleasure)
-
-  return (
-    <div className="rounded-lg border bg-card p-3 text-xs flex items-center gap-3">
-      <span>🏃</span>
-      <div className="flex-1">
-        <p className="font-medium">{ACTIVITY_LABELS[String(p.activityType ?? p.activityName)] ?? String(p.activityType ?? "Activité")} — {duration}min</p>
-        <div className="flex gap-1 mt-1">
-          <Badge className={pleasureBadge}>Plaisir {pleasure}/10</Badge>
-          {Number(p.pain) > 0 && <Badge className={intColor(Number(p.pain))}>Douleur {String(p.pain)}/10</Badge>}
-        </div>
-      </div>
-      <span className="text-muted-foreground">{fmtTime(entry.occurredAt)}</span>
     </div>
   )
 }
@@ -655,7 +875,8 @@ function MoodWeek({ entries }: { entries: JournalEntry[] }) {
     days.push({ label: format(d, "EEE", { locale: fr }), emoji: MOOD_EMOJI[key] ?? "·" })
   }
 
-  const dominant = entries.filter((e) => !!(e.payload as Record<string, unknown>).mood)
+  const dominant = entries
+    .filter((e) => !!(e.payload as Record<string, unknown>).mood)
     .reduce((acc, e) => {
       const m = String((e.payload as Record<string, unknown>).mood)
       acc[m] = (acc[m] || 0) + 1
@@ -665,16 +886,20 @@ function MoodWeek({ entries }: { entries: JournalEntry[] }) {
 
   return (
     <div>
-      <p className="text-[10px] font-medium text-muted-foreground mb-2">MÉTÉO 7 JOURS</p>
+      <p className="text-[10px] font-medium text-gray-400 mb-2 uppercase tracking-wider">Météo 7 jours</p>
       <div className="flex justify-between mb-2">
         {days.map((d, i) => (
           <div key={i} className="text-center">
             <p className="text-lg">{d.emoji}</p>
-            <p className="text-[9px] text-muted-foreground">{d.label}</p>
+            <p className="text-[9px] text-gray-400">{d.label}</p>
           </div>
         ))}
       </div>
-      {topMood && <p className="text-[10px] text-muted-foreground">Dominante : {MOOD_LABELS[topMood[0]] ?? topMood[0]}</p>}
+      {topMood && (
+        <p className="text-[10px] text-gray-400">
+          Dominante : {MOOD_LABELS[topMood[0]] ?? topMood[0]}
+        </p>
+      )}
     </div>
   )
 }
@@ -682,13 +907,16 @@ function MoodWeek({ entries }: { entries: JournalEntry[] }) {
 function EnergyChart({ entries }: { entries: JournalEntry[] }) {
   const data = entries
     .filter((e) => (e.payload as Record<string, unknown>).energy != null)
-    .map((e) => ({ date: format(parseISO(e.occurredAt), "d/MM"), energy: Number((e.payload as Record<string, unknown>).energy) }))
+    .map((e) => ({
+      date: format(parseISO(e.occurredAt), "d/MM"),
+      energy: Number((e.payload as Record<string, unknown>).energy),
+    }))
     .reverse().slice(-14)
 
   if (data.length < 2) return null
   return (
     <div>
-      <p className="text-[10px] font-medium text-muted-foreground mb-1">COURBE D&apos;ÉNERGIE</p>
+      <p className="text-[10px] font-medium text-gray-400 mb-1 uppercase tracking-wider">Courbe d&apos;énergie</p>
       <div className="h-[100px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
