@@ -493,7 +493,9 @@ function TranscriptionModal({ doc, onClose }: { doc: any; onClose: () => void })
               <h3 className="text-sm font-semibold text-gray-900">{doc.title || "Transcription"}</h3>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">🔒 Privé — visible par vous uniquement</span>
+              {doc.isSharedWithTeam === false && (
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">🔒 Privé — visible par vous uniquement</span>
+              )}
               {doc.createdAt && (
                 <span className="text-[11px] text-gray-400">{new Date(doc.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })} à {new Date(doc.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
               )}
@@ -812,7 +814,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
               <div
                 key={doc.id}
                 className="rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer group"
-                onClick={() => { if (doc.documentType === "TRANSCRIPTION" && doc.textContent) setTranscriptionModalDoc(doc); }}
+                onClick={() => { if (doc.documentType === "TRANSCRIPTION") setTranscriptionModalDoc(doc); }}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
