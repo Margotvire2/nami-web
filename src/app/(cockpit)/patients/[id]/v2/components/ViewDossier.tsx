@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
 import { PrescriptionDraftEditor } from "@/components/PrescriptionDraftEditor";
@@ -56,6 +57,9 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
 // ══════════════════════════════════════════════════════
 
 function NotesPanel({ careCaseId }: { careCaseId: string }) {
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+
   const { data: notes, isLoading } = useQuery({
     queryKey: ["notes", careCaseId],
     queryFn: async () => {
@@ -65,6 +69,39 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
   });
 
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({ noteId, reason }: { noteId: string; reason: string }) => {
+      await api.delete(`/care-cases/${careCaseId}/notes/${noteId}`, { reason: reason || undefined });
+    },
+    onSuccess: (_, { noteId }) => {
+      queryClient.invalidateQueries({ queryKey: ["notes", careCaseId] });
+      setDeleteTarget(null);
+      setDeleteReason("");
+      // 10s undo toast
+      const toastId = toast.success("Note supprimée", {
+        description: "Récupérable pendant 30 jours",
+        duration: 10000,
+        action: {
+          label: "Annuler",
+          onClick: () => {
+            api.post(`/care-cases/${careCaseId}/notes/${noteId}/restore`)
+              .then(() => {
+                queryClient.invalidateQueries({ queryKey: ["notes", careCaseId] });
+                toast.dismiss(toastId);
+                toast.success("Note restaurée");
+              })
+              .catch(() => toast.error("Impossible de restaurer la note"));
+          },
+        },
+      });
+    },
+    onError: () => toast.error("Impossible de supprimer la note"),
+  });
+
   if (isLoading) return <LoadingState />;
 
   const notesList = Array.isArray(notes) ? notes : [];
@@ -98,6 +135,9 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
           {filtered.map((note: any) => {
             const typeColor = noteTypeColors[note.noteType] || "border-l-gray-400";
             const authorName = note.author ? `${note.author.firstName || ""} ${note.author.lastName || ""}`.trim() : null;
+            const isAuthor = user?.personId === note.authorPersonId;
+            const isAdmin = user?.roleType === "ADMIN";
+            const canDelete = isAuthor || isAdmin;
             return (
               <div key={note.id} className={`rounded-xl border border-gray-200 bg-white p-5 border-l-4 ${typeColor}`}>
                 <div className="flex items-start justify-between mb-3">
@@ -112,9 +152,28 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
                       <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">✨ Extraction assistée</span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400 flex-shrink-0">
-                    {formatDateTime(note.createdAt)}
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xs text-gray-400">{formatDateTime(note.createdAt)}</span>
+                    {canDelete && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === note.id ? null : note.id)}
+                          className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-base leading-none"
+                          aria-label="Options"
+                        >⋯</button>
+                        {openMenuId === note.id && (
+                          <div className="absolute right-0 top-7 z-20 bg-white border border-gray-200 rounded-lg shadow-md py-1 w-36">
+                            <button
+                              onClick={() => { setDeleteTarget({ id: note.id, title: note.title || noteTypeLabels[note.noteType] || "Note" }); setOpenMenuId(null); }}
+                              className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {authorName && (
                   <div className="flex items-center gap-2 mb-3">
@@ -143,6 +202,42 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Modale de confirmation de suppression */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteTarget(null)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Supprimer la note</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              <span className="font-medium text-gray-700">{deleteTarget.title}</span> sera supprimée. Récupérable pendant 30 jours.
+            </p>
+            <div className="mb-5">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Motif de suppression <span className="text-gray-400">(optionnel)</span></label>
+              <input
+                type="text"
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Ex : note créée par erreur, doublon…"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setDeleteTarget(null); setDeleteReason(""); }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >Annuler</button>
+              <button
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate({ noteId: deleteTarget.id, reason: deleteReason })}
+                className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {deleteMutation.isPending ? "Suppression…" : "Supprimer"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

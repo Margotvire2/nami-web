@@ -2652,7 +2652,7 @@ export const api = {
   get:    <T = any>(url: string)                    => apiRequest<T>("GET",    url),
   post:   <T = any>(url: string, body?: unknown)    => apiRequest<T>("POST",   url, body),
   patch:  <T = any>(url: string, body?: unknown)    => apiRequest<T>("PATCH",  url, body),
-  delete: <T = any>(url: string)                    => apiRequest<T>("DELETE", url),
+  delete: <T = any>(url: string, body?: unknown)    => apiRequest<T>("DELETE", url, body),
 };
 
 // ─── Secretary types ──────────────────────────────────────────────────────────
