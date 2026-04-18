@@ -28,9 +28,9 @@ function MacroBar({ protein, carbs, fat }: { protein: number; carbs: number; fat
 
   return (
     <div className="flex rounded-full overflow-hidden h-2 w-full mt-1 mb-2">
-      <div style={{ width: `${pProt}%` }} className="bg-blue-500" title={`Protéines ${pProt}%`} />
-      <div style={{ width: `${pCarb}%` }} className="bg-amber-400" title={`Glucides ${pCarb}%`} />
-      <div style={{ width: `${Math.max(0, pFat)}%` }} className="bg-red-400" title={`Lipides ${pFat}%`} />
+      <div style={{ width: `${pProt}%`, backgroundColor: "#7C3AED" }} title={`Protéines ${pProt}%`} />
+      <div style={{ width: `${pCarb}%`, backgroundColor: "#14B8A6" }} title={`Glucides ${pCarb}%`} />
+      <div style={{ width: `${Math.max(0, pFat)}%`, backgroundColor: "#94A3B8" }} title={`Lipides ${pFat}%`} />
     </div>
   )
 }
@@ -95,23 +95,23 @@ export function NutritionAnalysis({ entryId, careCaseId, existingAnalysis }: Pro
       {/* Détail macros */}
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
         <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#7C3AED" }} />
           <span className="text-muted-foreground">Protéines</span>
           <span className="font-semibold ml-auto">{Math.round(total.protein)}g <span className="text-muted-foreground font-normal">({pProt}%)</span></span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#14B8A6" }} />
           <span className="text-muted-foreground">Glucides</span>
           <span className="font-semibold ml-auto">{Math.round(total.carbs)}g <span className="text-muted-foreground font-normal">({pCarb}%)</span></span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#94A3B8" }} />
           <span className="text-muted-foreground">Lipides</span>
           <span className="font-semibold ml-auto">{Math.round(total.fat)}g <span className="text-muted-foreground font-normal">({Math.max(0, pFat)}%)</span></span>
         </div>
         {total.fiber > 0 && (
           <div className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: "#5EEAD4" }} />
             <span className="text-muted-foreground">Fibres</span>
             <span className="font-semibold ml-auto">{Math.round(total.fiber)}g</span>
           </div>
