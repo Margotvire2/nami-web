@@ -139,24 +139,50 @@ export function useCareSocket(careCaseId: string | null | undefined): void {
       queryClient.invalidateQueries({ queryKey: ["suivi", careCaseId] });
     };
 
-    socket.on("note_created",               onNoteCreated);
-    socket.on("note_updated",               onNoteUpdated);
-    socket.on("note_deleted",               onNoteDeleted);
-    socket.on("journal_entry",              onJournalEntry);
-    socket.on("observation",                onObservation);
-    socket.on("message",                    onMessage);
-    socket.on("prescription_draft_created", onPrescriptionDraft);
-    socket.on("bio_extracted",              onBioExtracted);
+    // ── consultation_actions_extracted ────────────────────────────────────────
+    const onActionsExtracted = (data: any) => {
+      const tasks = data.tasksCreated ?? 0;
+      const referrals = data.referralsDrafted ?? 0;
+      const questionnaires = data.questionnairesScheduled ?? 0;
+      const appts = data.appointmentsToSchedule ?? 0;
+
+      const parts: string[] = [];
+      if (tasks > 0) parts.push(`${tasks} tâche${tasks > 1 ? "s" : ""}`);
+      if (referrals > 0) parts.push(`${referrals} adressage${referrals > 1 ? "s" : ""} DRAFT`);
+      if (questionnaires > 0) parts.push(`${questionnaires} questionnaire${questionnaires > 1 ? "s" : ""}`);
+      if (appts > 0) parts.push(`${appts} RDV à planifier`);
+
+      if (parts.length === 0) return;
+
+      toast.success(`Actions extraites — ${parts.join(", ")}`, {
+        duration: 6000,
+        description: "Brouillons IA — à valider dans les tâches et adressages",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["tasks", careCaseId] });
+      queryClient.invalidateQueries({ queryKey: ["referrals", careCaseId] });
+    };
+
+    socket.on("note_created",                    onNoteCreated);
+    socket.on("note_updated",                    onNoteUpdated);
+    socket.on("note_deleted",                    onNoteDeleted);
+    socket.on("journal_entry",                   onJournalEntry);
+    socket.on("observation",                     onObservation);
+    socket.on("message",                         onMessage);
+    socket.on("prescription_draft_created",      onPrescriptionDraft);
+    socket.on("bio_extracted",                   onBioExtracted);
+    socket.on("consultation_actions_extracted",  onActionsExtracted);
 
     return () => {
-      socket.off("note_created",               onNoteCreated);
-      socket.off("note_updated",               onNoteUpdated);
-      socket.off("note_deleted",               onNoteDeleted);
-      socket.off("journal_entry",              onJournalEntry);
-      socket.off("observation",                onObservation);
-      socket.off("message",                    onMessage);
-      socket.off("prescription_draft_created", onPrescriptionDraft);
-      socket.off("bio_extracted",              onBioExtracted);
+      socket.off("note_created",                    onNoteCreated);
+      socket.off("note_updated",                    onNoteUpdated);
+      socket.off("note_deleted",                    onNoteDeleted);
+      socket.off("journal_entry",                   onJournalEntry);
+      socket.off("observation",                     onObservation);
+      socket.off("message",                         onMessage);
+      socket.off("prescription_draft_created",      onPrescriptionDraft);
+      socket.off("bio_extracted",                   onBioExtracted);
+      socket.off("consultation_actions_extracted",  onActionsExtracted);
     };
   }, [accessToken, careCaseId, queryClient, user?.id]);
 
