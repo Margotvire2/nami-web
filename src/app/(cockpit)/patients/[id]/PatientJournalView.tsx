@@ -154,9 +154,12 @@ function MacroBar({ protein, carbs, fat }: { protein: number; carbs: number; fat
   )
 }
 
-// Analyse nutritionnelle IA inline compacte
-function CompactNutritionInline({ analysis }: { analysis: NutritionAnalysisResult }) {
-  const { total } = analysis
+// Analyse nutritionnelle IA inline — compact + détail dépliable
+function NutritionDetailInline({ analysis }: { analysis: NutritionAnalysisResult }) {
+  const [expanded, setExpanded] = useState(false)
+  const { total, items, confidence, confidenceReason, mealDescription, suggestions } = analysis
+  const confidenceDot = confidence === "high" ? "🟢" : confidence === "medium" ? "🟡" : "🔴"
+
   return (
     <div className="rounded px-1.5 py-1 space-y-1" style={{ backgroundColor: SL }}>
       <div className="flex items-center justify-between">
@@ -164,11 +167,58 @@ function CompactNutritionInline({ analysis }: { analysis: NutritionAnalysisResul
         <span className="text-[10px] font-bold text-slate-700">{Math.round(total.kcal)} kcal</span>
       </div>
       <MacroBar protein={total.protein} carbs={total.carbs} fat={total.fat} />
-      <div className="flex gap-1.5 text-[8px]">
-        <span style={{ color: MACRO_COLORS.protein }}>P{Math.round(total.protein)}g</span>
-        <span style={{ color: namiPalette.teal[600] }}>G{Math.round(total.carbs)}g</span>
-        <span style={{ color: namiPalette.slate[500] }}>L{Math.round(total.fat)}g</span>
+      <div className="flex items-center gap-1.5">
+        <div className="flex gap-1.5 text-[8px] flex-1">
+          <span style={{ color: MACRO_COLORS.protein }}>P{Math.round(total.protein)}g</span>
+          <span style={{ color: namiPalette.teal[600] }}>G{Math.round(total.carbs)}g</span>
+          <span style={{ color: namiPalette.slate[500] }}>L{Math.round(total.fat)}g</span>
+        </div>
+        {(items.length > 0 || confidenceReason || mealDescription) && (
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="text-[9px] text-slate-400 hover:text-slate-600 transition"
+          >
+            {expanded ? "▲" : "▼"}
+          </button>
+        )}
       </div>
+
+      {expanded && (
+        <div className="pt-1 space-y-1.5 border-t border-slate-200">
+          {mealDescription && (
+            <p className="text-[9px] text-slate-500 italic leading-snug">{mealDescription}</p>
+          )}
+          {items.length > 0 && (
+            <div className="space-y-1">
+              {items.map((item, i) => {
+                const qty = item.estimatedQuantity ?? item.quantity
+                const srcLabel = item.quantitySource === "patient_description" ? "📝"
+                  : item.quantitySource === "standard_portion" ? "📏" : "📷"
+                return (
+                  <div key={i} className="flex items-baseline gap-1">
+                    <span className="text-[9px] font-medium text-slate-600 flex-1 truncate">{item.name}</span>
+                    {qty && <span className="text-[8px] text-slate-400 shrink-0">{qty}</span>}
+                    <span className="text-[8px] shrink-0" title={item.quantitySource ?? ""}>{srcLabel}</span>
+                    <span className="text-[9px] font-semibold text-slate-600 shrink-0 w-9 text-right">
+                      {Math.round(item.kcal)} kcal
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {(confidenceReason ?? confidence) && (
+            <p className="text-[8px] text-slate-400">
+              {confidenceDot} {confidenceReason ?? confidence}
+            </p>
+          )}
+          {suggestions && (
+            <p className="text-[9px] text-slate-500 italic border-t border-slate-200 pt-1">
+              {suggestions}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -296,7 +346,7 @@ function CompactMealCard({ entry, careCaseId, canSeeAiMacros }: {
         {/* Analyse IA (depuis payload ou on-demand) */}
         {canSeeAiMacros && !validatedMacros && (
           nutritionData
-            ? <CompactNutritionInline analysis={nutritionData} />
+            ? <NutritionDetailInline analysis={nutritionData} />
             : !p.skipped && (
               <button
                 onClick={() => mutation.mutate()}
@@ -331,6 +381,42 @@ function CompactNoteCard({ entry }: { entry: JournalEntry }) {
       }}
     >
       {isPositive ? `✨ « ${content} »` : `📝 ${content}`}
+    </div>
+  )
+}
+
+// Totaux nutrition agrégés pour la journée (repas analysés uniquement)
+function DayNutritionSummary({ meals }: { meals: JournalEntry[] }) {
+  const analyzed = meals.filter(e => {
+    const nd = getNutritionData(e.payload as Record<string, unknown>)
+    return nd?.total?.kcal
+  })
+  if (analyzed.length === 0) return null
+
+  const totals = analyzed.reduce((acc, e) => {
+    const nd = getNutritionData(e.payload as Record<string, unknown>)!
+    return {
+      kcal: acc.kcal + nd.total.kcal,
+      protein: acc.protein + nd.total.protein,
+      carbs: acc.carbs + nd.total.carbs,
+      fat: acc.fat + nd.total.fat,
+    }
+  }, { kcal: 0, protein: 0, carbs: 0, fat: 0 })
+
+  return (
+    <div className="rounded-md px-1.5 py-1 mb-1.5 space-y-0.5" style={{ backgroundColor: VL }}>
+      <div className="flex items-center justify-between">
+        <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: namiPalette.violet[400] }}>
+          Journée
+        </span>
+        <span className="text-[10px] font-bold" style={{ color: V }}>{Math.round(totals.kcal)} kcal</span>
+      </div>
+      <MacroBar protein={totals.protein} carbs={totals.carbs} fat={totals.fat} />
+      <div className="flex gap-1.5 text-[8px]">
+        <span style={{ color: MACRO_COLORS.protein }}>P{Math.round(totals.protein)}g</span>
+        <span style={{ color: namiPalette.teal[600] }}>G{Math.round(totals.carbs)}g</span>
+        <span style={{ color: namiPalette.slate[500] }}>L{Math.round(totals.fat)}g</span>
+      </div>
     </div>
   )
 }
@@ -469,6 +555,7 @@ function DayColumn({ slot, careCaseId, canSeeAiMacros, anorexiaSurveillance, can
 
           {/* ── Corps : repas + notes uniquement ── */}
           <div className="space-y-2 flex-1 overflow-y-auto">
+            <DayNutritionSummary meals={meals} />
             {meals.map(entry => (
               <CompactMealCard
                 key={entry.id}
@@ -657,6 +744,16 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
 
   const slots = period === "7d" ? sevenDaySlots : multiDaySlots
 
+  const unanalyzedCount = useMemo(() => {
+    if (!entries) return 0
+    return entries.filter(e => {
+      if (e.entryType !== "MEAL") return false
+      const p = e.payload as Record<string, unknown>
+      if (p.skipped) return false
+      return !getNutritionData(p)
+    }).length
+  }, [entries])
+
   if (isLoading) return (
     <div className="p-6 space-y-3">
       <Skeleton className="h-10 w-48" />
@@ -669,11 +766,13 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
   return (
     <div className="p-4 space-y-4">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-sm font-semibold text-gray-900">
           Journal <span className="text-gray-400 font-normal">({filtered.length})</span>
         </h2>
-        <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
+        <div className="flex items-center gap-2">
+          {canSeeAiMacros && <BatchAnalyzeButton careCaseId={careCaseId} unanalyzedCount={unanalyzedCount} />}
+          <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
           {PERIODS.map(p => (
             <button
               key={p.key}
@@ -685,6 +784,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
               {p.label}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
@@ -828,6 +928,47 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
         </>
       )}
     </div>
+  )
+}
+
+// ─── BatchAnalyzeButton ───────────────────────────────────────────────────────
+
+function BatchAnalyzeButton({ careCaseId, unanalyzedCount }: { careCaseId: string; unanalyzedCount: number }) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const qc = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: () => api.journal.nutritionBatchAnalyze(careCaseId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["journal", careCaseId] }),
+  })
+
+  if (unanalyzedCount === 0) return null
+
+  if (mutation.isSuccess) {
+    const result = mutation.data as { analyzed?: number } | undefined
+    return (
+      <span className="text-[10px] font-medium" style={{ color: namiPalette.teal[600] }}>
+        ✓ {result?.analyzed ?? 0} repas analysés
+      </span>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => mutation.mutate()}
+      disabled={mutation.isPending}
+      className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-lg border transition disabled:opacity-50"
+      style={{ borderColor: namiPalette.violet[200], color: V, backgroundColor: VL }}
+    >
+      {mutation.isPending
+        ? <>
+            <span className="w-2.5 h-2.5 border border-current border-t-transparent rounded-full animate-spin" />
+            Analyse en cours…
+          </>
+        : <>🤖 Analyser {unanalyzedCount} repas</>
+      }
+    </button>
   )
 }
 

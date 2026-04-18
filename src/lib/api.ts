@@ -939,7 +939,10 @@ export interface JournalEntry {
 export interface NutritionAnalysisResult {
   items: Array<{
     name: string;
-    quantity: string;
+    /** @deprecated use estimatedQuantity */
+    quantity?: string;
+    estimatedQuantity?: string;
+    quantitySource?: "photo_estimate" | "patient_description" | "standard_portion";
     kcal: number;
     protein: number;
     carbs: number;
@@ -956,6 +959,9 @@ export interface NutritionAnalysisResult {
     salt?: number;
   };
   confidence: "high" | "medium" | "low";
+  confidenceReason?: string;
+  mealDescription?: string;
+  suggestions?: string | null;
   notes?: string;
   analyzedAt?: string;
   cached?: boolean;
