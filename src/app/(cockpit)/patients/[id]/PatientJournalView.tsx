@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { apiWithToken, type JournalEntry, type NutritionAnalysisResult } from "@/lib/api"
+import { apiWithToken, type JournalEntry, type NutritionAnalysisResult, type NutritionAnalysisItem } from "@/lib/api"
 import { format, parseISO, subDays, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
@@ -154,67 +154,218 @@ function MacroBar({ protein, carbs, fat }: { protein: number; carbs: number; fat
   )
 }
 
-// Analyse nutritionnelle IA inline — compact + détail dépliable
-function NutritionDetailInline({ analysis }: { analysis: NutritionAnalysisResult }) {
-  const [expanded, setExpanded] = useState(false)
-  const { total, items, confidence, confidenceReason, mealDescription, suggestions } = analysis
+// Analyse nutritionnelle IA — compact + détail dépliable + édition soignant
+function NutritionDetailEditable({
+  analysis, entryId, careCaseId, onUpdated,
+}: {
+  analysis: NutritionAnalysisResult
+  entryId: string
+  careCaseId: string
+  onUpdated: () => void
+}) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const [showDetail, setShowDetail] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editItems, setEditItems] = useState<NutritionAnalysisItem[]>(analysis.items ?? [])
+  const [saving, setSaving] = useState(false)
+
+  const { total, confidence, confidenceReason, photoAnalysis, textAnalysis, warnings, wasManuallyEdited } = analysis
   const confidenceDot = confidence === "high" ? "🟢" : confidence === "medium" ? "🟡" : "🔴"
 
+  const editTotal = useMemo(() => ({
+    kcal: Math.round(editItems.reduce((s, i) => s + (i.kcal ?? 0), 0)),
+    protein: Math.round(editItems.reduce((s, i) => s + (i.protein ?? 0), 0) * 10) / 10,
+    carbs: Math.round(editItems.reduce((s, i) => s + (i.carbs ?? 0), 0) * 10) / 10,
+    fat: Math.round(editItems.reduce((s, i) => s + (i.fat ?? 0), 0) * 10) / 10,
+  }), [editItems])
+
+  const displayTotal = editing ? editTotal : total
+
+  const handleItemChange = (idx: number, field: keyof NutritionAnalysisItem, value: string) => {
+    const updated = [...editItems]
+    const numVal = parseFloat(value) || 0
+    if (field === "name" || field === "quantity") {
+      updated[idx] = { ...updated[idx], [field]: value }
+    } else {
+      updated[idx] = { ...updated[idx], [field]: numVal }
+      // Recalculer kcal auto
+      const it = updated[idx]
+      updated[idx].kcal = Math.round((it.protein ?? 0) * 4 + (it.carbs ?? 0) * 4 + (it.fat ?? 0) * 9)
+    }
+    setEditItems(updated)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await api.journal.updateNutritionAnalysis(entryId, editItems)
+      setEditing(false)
+      onUpdated()
+    } catch (err) {
+      console.error("Erreur sauvegarde nutrition:", err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleAddItem = () => {
+    setEditItems([...editItems, {
+      name: "Nouvel aliment", quantity: "100g", quantitySource: "manual",
+      certainty: "certain", source: "manual", kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0,
+    }])
+  }
+
+  const pCal = displayTotal.protein * 4
+  const cCal = displayTotal.carbs * 4
+  const fCal = displayTotal.fat * 9
+  const sum = pCal + cCal + fCal || 1
+
   return (
-    <div className="rounded px-1.5 py-1 space-y-1" style={{ backgroundColor: SL }}>
-      <div className="flex items-center justify-between">
-        <span className="text-[9px] font-medium text-slate-500">🤖 IA</span>
-        <span className="text-[10px] font-bold text-slate-700">{Math.round(total.kcal)} kcal</span>
-      </div>
-      <MacroBar protein={total.protein} carbs={total.carbs} fat={total.fat} />
-      <div className="flex items-center gap-1.5">
-        <div className="flex gap-1.5 text-[8px] flex-1">
-          <span style={{ color: MACRO_COLORS.protein }}>P{Math.round(total.protein)}g</span>
-          <span style={{ color: namiPalette.teal[600] }}>G{Math.round(total.carbs)}g</span>
-          <span style={{ color: namiPalette.slate[500] }}>L{Math.round(total.fat)}g</span>
+    <div className="rounded-lg overflow-hidden border border-slate-100" style={{ backgroundColor: "#F8FAFC" }}>
+      {/* ── Résumé compact ── */}
+      <div className="px-2.5 py-2 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9px] font-semibold text-slate-500">🤖 Analyse IA</span>
+            {wasManuallyEdited && (
+              <span className="text-[8px] px-1 py-0.5 rounded font-medium" style={{ backgroundColor: namiPalette.violet[50], color: V }}>
+                modifié
+              </span>
+            )}
+          </div>
+          <span className="text-[12px] font-bold text-slate-800">{Math.round(displayTotal.kcal)} kcal</span>
         </div>
-        {(items.length > 0 || confidenceReason || mealDescription) && (
-          <button
-            onClick={() => setExpanded(e => !e)}
-            className="text-[9px] text-slate-400 hover:text-slate-600 transition"
-          >
-            {expanded ? "▲" : "▼"}
-          </button>
-        )}
+        <div className="h-2 rounded-full overflow-hidden flex" style={{ backgroundColor: namiPalette.slate[200] }}>
+          <div style={{ width: `${(pCal / sum) * 100}%`, backgroundColor: MACRO_COLORS.protein }} className="h-full" />
+          <div style={{ width: `${(cCal / sum) * 100}%`, backgroundColor: MACRO_COLORS.carbs }} className="h-full" />
+          <div style={{ width: `${(fCal / sum) * 100}%`, backgroundColor: MACRO_COLORS.fat }} className="h-full" />
+        </div>
+        <div className="flex gap-3 text-[10px] font-semibold">
+          <span style={{ color: MACRO_COLORS.protein }}>P {Math.round(displayTotal.protein)}g</span>
+          <span style={{ color: namiPalette.teal[600] }}>G {Math.round(displayTotal.carbs)}g</span>
+          <span style={{ color: namiPalette.slate[500] }}>L {Math.round(displayTotal.fat)}g</span>
+        </div>
       </div>
 
-      {expanded && (
-        <div className="pt-1 space-y-1.5 border-t border-slate-200">
-          {mealDescription && (
-            <p className="text-[9px] text-slate-500 italic leading-snug">{mealDescription}</p>
-          )}
-          {items.length > 0 && (
-            <div className="space-y-1">
-              {items.map((item, i) => {
-                const qty = item.estimatedQuantity ?? item.quantity
-                const srcLabel = item.quantitySource === "patient_description" ? "📝"
-                  : item.quantitySource === "standard_portion" ? "📏" : "📷"
-                return (
-                  <div key={i} className="flex items-baseline gap-1">
-                    <span className="text-[9px] font-medium text-slate-600 flex-1 truncate">{item.name}</span>
-                    {qty && <span className="text-[8px] text-slate-400 shrink-0">{qty}</span>}
-                    <span className="text-[8px] shrink-0" title={item.quantitySource ?? ""}>{srcLabel}</span>
-                    <span className="text-[9px] font-semibold text-slate-600 shrink-0 w-9 text-right">
-                      {Math.round(item.kcal)} kcal
-                    </span>
-                  </div>
-                )
-              })}
+      {/* ── Boutons ── */}
+      <div className="flex border-t border-slate-100">
+        <button
+          onClick={() => setShowDetail(d => !d)}
+          className="flex-1 py-1 text-[9px] font-medium text-slate-400 hover:bg-slate-50 transition text-center"
+        >
+          {showDetail ? "▲ Masquer" : "▼ Détail"}
+        </button>
+        <button
+          onClick={() => { setEditing(e => !e); setShowDetail(true); setEditItems(analysis.items ?? []) }}
+          className="flex-1 py-1 text-[9px] font-medium hover:bg-slate-50 transition text-center border-l border-slate-100"
+          style={{ color: V }}
+        >
+          {editing ? "✕ Annuler" : "✏️ Modifier"}
+        </button>
+      </div>
+
+      {/* ── Détail ── */}
+      {showDetail && (
+        <div className="px-2.5 pb-2.5 pt-2 border-t border-slate-100 space-y-2">
+          {photoAnalysis && <p className="text-[9px] italic text-slate-400 leading-snug">📷 {photoAnalysis}</p>}
+          {textAnalysis && <p className="text-[9px] italic text-slate-400 leading-snug">📝 {textAnalysis}</p>}
+          {(warnings ?? []).length > 0 && (
+            <div className="space-y-0.5">
+              {warnings!.map((w, i) => <p key={i} className="text-[9px] text-amber-600">⚠️ {w}</p>)}
             </div>
           )}
-          {(confidenceReason ?? confidence) && (
-            <p className="text-[8px] text-slate-400">
-              {confidenceDot} {confidenceReason ?? confidence}
-            </p>
+
+          {/* Liste items */}
+          <div className="space-y-1">
+            {(editing ? editItems : (analysis.items ?? [])).map((item, i) => (
+              <div key={i} className="flex items-start gap-1.5 py-1 border-b border-slate-50 last:border-0">
+                {editing ? (
+                  <>
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <input
+                        value={item.name}
+                        onChange={e => handleItemChange(i, "name", e.target.value)}
+                        className="w-full text-[10px] font-medium text-slate-700 bg-white border border-slate-200 rounded px-1.5 py-0.5"
+                      />
+                      <div className="flex gap-1">
+                        <input
+                          value={item.quantity ?? ""}
+                          onChange={e => handleItemChange(i, "quantity", e.target.value)}
+                          className="w-14 text-[9px] bg-white border border-slate-200 rounded px-1 py-0.5"
+                          placeholder="qté"
+                        />
+                        {(["protein", "carbs", "fat"] as const).map(f => (
+                          <input
+                            key={f}
+                            type="number"
+                            value={item[f] ?? 0}
+                            onChange={e => handleItemChange(i, f, e.target.value)}
+                            className="w-9 text-[9px] bg-white border border-slate-200 rounded px-1 py-0.5 text-center"
+                            placeholder={f === "protein" ? "P" : f === "carbs" ? "G" : "L"}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setEditItems(editItems.filter((_, j) => j !== i))}
+                      className="text-red-400 hover:text-red-600 text-[10px] mt-1 shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <p className="text-[10px] font-medium text-slate-700 truncate">{item.name}</p>
+                        {item.certainty === "incertain" && <span className="text-[8px] text-amber-500 shrink-0">?</span>}
+                      </div>
+                      <div className="flex items-center gap-1 text-[8px] text-slate-400">
+                        <span>{item.quantity ?? item.estimatedQuantity ?? ""}</span>
+                        <span>{
+                          item.source === "photo" ? "📷" :
+                          item.source === "text_addition" ? "📝+" :
+                          item.source === "manual" ? "✏️" : ""
+                        }</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-bold text-slate-700">{Math.round(item.kcal)} kcal</p>
+                      <p className="text-[8px] text-slate-400">
+                        P{Math.round(item.protein)} G{Math.round(item.carbs)} L{Math.round(item.fat)}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Boutons édition */}
+          {editing && (
+            <div className="flex gap-1.5 pt-1">
+              <button
+                onClick={handleAddItem}
+                className="flex-1 py-1.5 rounded border border-dashed border-slate-200 text-[9px] font-medium text-slate-400 hover:bg-slate-50"
+              >
+                + Ajouter
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 py-1.5 rounded text-[9px] font-semibold text-white disabled:opacity-50"
+                style={{ backgroundColor: V }}
+              >
+                {saving ? "…" : "✓ Sauvegarder"}
+              </button>
+            </div>
           )}
-          {suggestions && (
-            <p className="text-[9px] text-slate-500 italic border-t border-slate-200 pt-1">
-              {suggestions}
+
+          {/* Confidence */}
+          {(confidenceReason ?? confidence) && !editing && (
+            <p className="text-[8px] text-slate-400 pt-1 border-t border-slate-50">
+              {confidenceDot} {confidenceReason ?? confidence}
             </p>
           )}
         </div>
@@ -248,10 +399,11 @@ function CompactMealCard({ entry, careCaseId, canSeeAiMacros }: {
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const qc = useQueryClient()
+  const refreshJournal = () => qc.invalidateQueries({ queryKey: ["journal", careCaseId] })
 
   const mutation = useMutation({
     mutationFn: () => api.journal.analyzeNutrition(entry.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["journal", careCaseId] }),
+    onSuccess: refreshJournal,
   })
 
   const p = entry.payload as Record<string, unknown>
@@ -277,7 +429,21 @@ function CompactMealCard({ entry, careCaseId, canSeeAiMacros }: {
       {/* Photo pleine largeur */}
       {!!photoUrl && (
         <div className="relative w-full aspect-[4/3] bg-slate-100">
-          <img src={photoUrl} alt={mealLabel} loading="lazy" className="w-full h-full object-cover" />
+          <img
+            src={photoUrl}
+            alt={mealLabel}
+            loading="lazy"
+            className="w-full h-full object-cover"
+            onError={e => {
+              const img = e.currentTarget
+              img.style.display = "none"
+              const placeholder = document.createElement("div")
+              placeholder.className = "w-full h-full flex flex-col items-center justify-center"
+              placeholder.style.cssText = "color:#94A3B8"
+              placeholder.innerHTML = `<span style="font-size:1.5rem">📷</span><span style="font-size:10px;margin-top:4px">Photo indisponible</span>`
+              img.parentElement?.appendChild(placeholder)
+            }}
+          />
           {entry.photoValidated && (
             <span className="absolute top-1.5 right-1.5 text-[8px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
               ✓ Analysé
@@ -346,7 +512,12 @@ function CompactMealCard({ entry, careCaseId, canSeeAiMacros }: {
         {/* Analyse IA (depuis payload ou on-demand) */}
         {canSeeAiMacros && !validatedMacros && (
           nutritionData
-            ? <NutritionDetailInline analysis={nutritionData} />
+            ? <NutritionDetailEditable
+                analysis={nutritionData}
+                entryId={entry.id}
+                careCaseId={careCaseId}
+                onUpdated={refreshJournal}
+              />
             : !p.skipped && (
               <button
                 onClick={() => mutation.mutate()}
@@ -744,15 +915,14 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
 
   const slots = period === "7d" ? sevenDaySlots : multiDaySlots
 
+  // Compter uniquement les repas de la PÉRIODE AFFICHÉE (meals = filtré par period)
   const unanalyzedCount = useMemo(() => {
-    if (!entries) return 0
-    return entries.filter(e => {
-      if (e.entryType !== "MEAL") return false
+    return meals.filter(e => {
       const p = e.payload as Record<string, unknown>
       if (p.skipped) return false
-      return !getNutritionData(p)
+      return !getNutritionData(p) && !e.photoMacros?.macros
     }).length
-  }, [entries])
+  }, [meals])
 
   if (isLoading) return (
     <div className="p-6 space-y-3">

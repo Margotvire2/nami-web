@@ -947,20 +947,25 @@ export interface JournalEntry {
   } | null;
 }
 
+export interface NutritionAnalysisItem {
+  name: string;
+  quantity?: string;
+  estimatedQuantity?: string;
+  quantitySource?: "photo_estimate" | "patient_description" | "standard_portion" | "manual";
+  certainty?: "certain" | "probable" | "incertain";
+  alternatives?: string | null;
+  source?: "photo" | "text_addition" | "text_precision" | "manual";
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  salt?: number;
+  calculation?: string;
+}
+
 export interface NutritionAnalysisResult {
-  items: Array<{
-    name: string;
-    /** @deprecated use estimatedQuantity */
-    quantity?: string;
-    estimatedQuantity?: string;
-    quantitySource?: "photo_estimate" | "patient_description" | "standard_portion";
-    kcal: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-    salt?: number;
-  }>;
+  items: NutritionAnalysisItem[];
   total: {
     kcal: number;
     protein: number;
@@ -971,10 +976,18 @@ export interface NutritionAnalysisResult {
   };
   confidence: "high" | "medium" | "low";
   confidenceReason?: string;
+  photoAnalysis?: string | null;
+  textAnalysis?: string | null;
+  warnings?: string[];
+  /** @deprecated */
   mealDescription?: string;
+  /** @deprecated */
   suggestions?: string | null;
   notes?: string;
   analyzedAt?: string;
+  editedAt?: string;
+  wasManuallyEdited?: boolean;
+  photoAccessible?: boolean;
   cached?: boolean;
 }
 
@@ -1006,6 +1019,8 @@ export const journalApi = {
   },
   analyzeNutrition: (token: string, entryId: string) =>
     request<NutritionAnalysisResult>(`/journal/${entryId}/nutrition-analysis`, { method: "POST" }, token),
+  updateNutritionAnalysis: (token: string, entryId: string, items: NutritionAnalysisItem[]) =>
+    request<NutritionAnalysisResult>(`/journal/${entryId}/nutrition-analysis`, { method: "PATCH", body: JSON.stringify({ items }) }, token),
   nutritionWeekly: (token: string, careCaseId: string, weekOffset = 0) =>
     request<NutritionWeeklyResponse>(`/care-cases/${careCaseId}/nutrition-weekly?weekOffset=${weekOffset}`, {}, token),
   nutritionBatchAnalyze: (token: string, careCaseId: string, entryIds?: string[]) =>
@@ -2337,6 +2352,7 @@ export function apiWithToken(token: string) {
     journal: {
       list: (careCaseId: string, params?: { type?: string }) => journalApi.list(token, careCaseId, params),
       analyzeNutrition: (entryId: string) => journalApi.analyzeNutrition(token, entryId),
+      updateNutritionAnalysis: (entryId: string, items: NutritionAnalysisItem[]) => journalApi.updateNutritionAnalysis(token, entryId, items),
       nutritionWeekly: (careCaseId: string, weekOffset?: number) => journalApi.nutritionWeekly(token, careCaseId, weekOffset),
       nutritionBatchAnalyze: (careCaseId: string, entryIds?: string[]) => journalApi.nutritionBatchAnalyze(token, careCaseId, entryIds),
     },
