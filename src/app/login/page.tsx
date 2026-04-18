@@ -89,7 +89,7 @@ export default function LoginPage() {
       const user = await authApi.me(res.accessToken);
       setAuth(user, res.accessToken, res.refreshToken);
       track.login({ method: "email" });
-      router.push(user.roleType === "PATIENT" ? "/accueil" : "/aujourd-hui");
+      router.push(user.roleType === "PATIENT" ? "/accueil" : user.roleType === "SECRETARY" ? "/secretariat" : "/aujourd-hui");
     } catch {
       toast.error("Email ou mot de passe incorrect");
     } finally {
@@ -106,7 +106,7 @@ export default function LoginPage() {
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
       track.login({ method: "email_mfa" });
-      router.push(user.roleType === "PATIENT" ? "/accueil" : "/aujourd-hui");
+      router.push(user.roleType === "PATIENT" ? "/accueil" : user.roleType === "SECRETARY" ? "/secretariat" : "/aujourd-hui");
     } catch {
       toast.error("Code incorrect. Réessayez.");
       setTotpCode("");

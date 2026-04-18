@@ -28,6 +28,7 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (!accessToken) router.replace("/login");
     else if (user?.roleType === "PATIENT") router.replace("/accueil");
+    else if (user?.roleType === "SECRETARY") router.replace("/secretariat");
   }, [accessToken, user, router]);
 
   // Onboarding guard — providers only

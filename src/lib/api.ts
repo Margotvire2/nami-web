@@ -551,7 +551,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  roleType: "PATIENT" | "PROVIDER" | "ADMIN" | "ORG_ADMIN";
+  roleType: "PATIENT" | "PROVIDER" | "ADMIN" | "ORG_ADMIN" | "SECRETARY";
   emailVerifiedAt?: string | null;
   providerProfile?: {
     id: string;
@@ -2654,6 +2654,91 @@ export const api = {
   patch:  <T = any>(url: string, body?: unknown)    => apiRequest<T>("PATCH",  url, body),
   delete: <T = any>(url: string)                    => apiRequest<T>("DELETE", url),
 };
+
+// ─── Secretary types ──────────────────────────────────────────────────────────
+
+export interface SecretaryAppointment {
+  id: string;
+  startAt: string;
+  endAt: string;
+  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "PATIENT_ARRIVED";
+  patient: { id: string; firstName: string; lastName: string; phone: string | null; birthDate: string | null } | null;
+  consultationType: { name: string; durationMinutes: number; color: string | null } | null;
+  notes: string | null;
+}
+
+export interface SecretaryAgenda {
+  providerId: string;
+  providerName: string;
+  specialties: string[];
+  appointments: SecretaryAppointment[];
+}
+
+export interface SecretaryAgendasResponse {
+  date: string;
+  agendas: SecretaryAgenda[];
+}
+
+export interface SecretaryWaitingEntry {
+  appointmentId: string;
+  patientName: string;
+  providerName: string;
+  scheduledAt: string;
+  waitingMinutes: number;
+}
+
+export interface SecretaryPatientResult {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  birthDate: string | null;
+  sex: string | null;
+}
+
+async function secretaryApiRequest<T>(path: string, options: RequestInit = {}, token: string): Promise<T> {
+  return request<T>(path, options, token);
+}
+
+export function secretaryApi(token: string) {
+  return {
+    getAgendas: (date?: string): Promise<SecretaryAgendasResponse> =>
+      secretaryApiRequest(`/secretary/agendas${date ? `?date=${date}` : ""}`, {}, token),
+
+    createAppointment: (data: {
+      providerId: string;
+      patientId?: string;
+      patientFirstName?: string;
+      patientLastName?: string;
+      patientPhone?: string;
+      patientEmail?: string;
+      startAt: string;
+      endAt?: string;
+      consultationTypeId?: string;
+      notes?: string;
+    }): Promise<SecretaryAppointment> =>
+      secretaryApiRequest("/secretary/appointments", { method: "POST", body: JSON.stringify(data) }, token),
+
+    updateAppointment: (id: string, data: { startAt?: string; endAt?: string; status?: string; notes?: string }): Promise<SecretaryAppointment> =>
+      secretaryApiRequest(`/secretary/appointments/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+
+    cancelAppointment: (id: string): Promise<{ success: boolean }> =>
+      secretaryApiRequest(`/secretary/appointments/${id}`, { method: "DELETE" }, token),
+
+    markArrived: (id: string): Promise<{ success: boolean }> =>
+      secretaryApiRequest(`/secretary/appointments/${id}/arrived`, { method: "POST" }, token),
+
+    getWaitingRoom: (): Promise<SecretaryWaitingEntry[]> =>
+      secretaryApiRequest("/secretary/waiting-room", {}, token),
+
+    searchPatients: (q: string): Promise<SecretaryPatientResult[]> =>
+      secretaryApiRequest(`/secretary/patients/search?q=${encodeURIComponent(q)}`, {}, token),
+
+    getPatient: (id: string): Promise<{ patient: SecretaryPatientResult; appointments: SecretaryAppointment[] }> =>
+      secretaryApiRequest(`/secretary/patients/${id}`, {}, token),
+  };
+}
 
 export interface InvoiceLineInput {
   actCode: string;
