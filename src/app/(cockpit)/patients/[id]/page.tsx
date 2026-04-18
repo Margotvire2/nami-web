@@ -14,6 +14,7 @@ import { ViewDossier } from "./v2/components/ViewDossier";
 import { ViewCoordination } from "./v2/components/ViewCoordination";
 import { ViewParcours } from "./v2/components/ViewParcours";
 import { SuiviTab } from "@/components/patient/SuiviTab";
+import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossier";
 import { PatientJournalView } from "./PatientJournalView";
 import { ReferralModal } from "./referral-modal";
 import { QuickTaskModal } from "./QuickTaskModal";
@@ -25,7 +26,7 @@ import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react"
 import { AnimatedTabs } from "@/components/ui/AnimatedTabs"
 import { useCareSocket } from "@/hooks/useCareSocket"
 
-type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination" | "journal";
+type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination" | "journal" | "pediatrique";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "globale", label: "Vue globale" },
@@ -341,7 +342,10 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
 
       {/* Tab bar */}
       <AnimatedTabs
-        tabs={TABS.map((t) => ({ id: t.key, label: t.label }))}
+        tabs={[
+          ...TABS,
+          ...(careCase.caseType === "PEDIATRIC" ? [{ key: "pediatrique" as Tab, label: "Pédiatrie" }] : []),
+        ].map((t) => ({ id: t.key, label: t.label }))}
         activeTab={activeTab}
         onTabChange={(id) => setActiveTab(id as Tab)}
         className="bg-card px-6 shrink-0"
@@ -374,6 +378,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (
             <ViewCoordination dashboard={dash} careCaseId={id} />
+          )}
+          {activeTab === "pediatrique" && careCase.caseType === "PEDIATRIC" && (
+            <PediatricDossier careCaseId={id} />
           )}
         </div>
       </div>
