@@ -945,6 +945,7 @@ export interface NutritionAnalysisResult {
     carbs: number;
     fat: number;
     fiber: number;
+    salt?: number;
   }>;
   total: {
     kcal: number;
@@ -952,10 +953,33 @@ export interface NutritionAnalysisResult {
     carbs: number;
     fat: number;
     fiber: number;
+    salt?: number;
   };
   confidence: "high" | "medium" | "low";
   notes?: string;
   analyzedAt?: string;
+  cached?: boolean;
+}
+
+export interface NutritionWeeklyResponse {
+  weekLabel: string;
+  weekStart: string;
+  weekEnd: string;
+  totalMeals: number;
+  analyzedMeals: number;
+  notAnalyzedMeals: number;
+  notAnalyzedIds: string[];
+  daysWithData: number;
+  totals: { kcal: number; protein: number; carbs: number; fat: number; fiber: number; salt: number };
+  avgPerDay: { kcal: number; protein: number; carbs: number; fat: number; fiber: number; salt: number } | null;
+  dailyBreakdown: Record<string, { kcal: number; protein: number; carbs: number; fat: number; fiber: number; salt: number; mealCount: number }>;
+}
+
+export interface NutritionBatchAnalyzeResponse {
+  analyzed: number;
+  skipped: number;
+  errors: number;
+  total: number;
 }
 
 export const journalApi = {
@@ -965,6 +989,10 @@ export const journalApi = {
   },
   analyzeNutrition: (token: string, entryId: string) =>
     request<NutritionAnalysisResult>(`/journal/${entryId}/nutrition-analysis`, { method: "POST" }, token),
+  nutritionWeekly: (token: string, careCaseId: string, weekOffset = 0) =>
+    request<NutritionWeeklyResponse>(`/care-cases/${careCaseId}/nutrition-weekly?weekOffset=${weekOffset}`, {}, token),
+  nutritionBatchAnalyze: (token: string, careCaseId: string, entryIds?: string[]) =>
+    request<NutritionBatchAnalyzeResponse>(`/care-cases/${careCaseId}/nutrition-batch-analyze`, { method: "POST", body: JSON.stringify({ entryIds }) }, token),
 };
 
 // ─── Onboarding ──────────────────────────────────────────────────────────────
@@ -2291,6 +2319,8 @@ export function apiWithToken(token: string) {
     journal: {
       list: (careCaseId: string, params?: { type?: string }) => journalApi.list(token, careCaseId, params),
       analyzeNutrition: (entryId: string) => journalApi.analyzeNutrition(token, entryId),
+      nutritionWeekly: (careCaseId: string, weekOffset?: number) => journalApi.nutritionWeekly(token, careCaseId, weekOffset),
+      nutritionBatchAnalyze: (careCaseId: string, entryIds?: string[]) => journalApi.nutritionBatchAnalyze(token, careCaseId, entryIds),
     },
     conditions: {
       list: (careCaseId: string) => conditionsApi.list(token, careCaseId),
