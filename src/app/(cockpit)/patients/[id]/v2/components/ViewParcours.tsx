@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api, apiWithToken } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   Route, CheckCircle2, Circle, ChevronDown, ChevronUp,
   ClipboardList, PenLine, Zap, Flame, Users, CalendarClock,
-  Loader2, Activity, AlertTriangle, Clock,
+  Loader2, Activity, AlertTriangle, Clock, Search, Plus,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -132,7 +135,7 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
   }
 
   if (!data?.pathway) {
-    return <EmptyState />;
+    return <EmptyState careCaseId={careCaseId} />;
   }
 
   // Flatten all latest obs into a single map: metricKey → LatestObs
@@ -147,6 +150,7 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
 
   return (
     <PathwayView
+      careCaseId={careCaseId}
       pathway={data.pathway}
       team={data.team}
       nextAppointment={data.nextAppointment}
@@ -158,16 +162,19 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
 // ─── PathwayView ──────────────────────────────────────────────────────────────
 
 function PathwayView({
+  careCaseId,
   pathway,
   team,
   nextAppointment,
   obsMap,
 }: {
+  careCaseId: string;
   pathway: NonNullable<PatientConfig["pathway"]>;
   team: TeamMember[];
   nextAppointment: NextAppointment | null;
   obsMap: Map<string, LatestObs>;
 }) {
+  const [showChangePanel, setShowChangePanel] = useState(false);
   const { name, phases, currentPhase, dayInPathway, startedAt } = pathway;
   const activeIndex = resolveActiveIndex(phases, currentPhase);
   const completionPercent =
@@ -210,10 +217,26 @@ function PathwayView({
               </p>
             </div>
           </div>
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-100 shrink-0">
-            {completionPercent}% accompli
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowChangePanel(!showChangePanel)}
+              className="text-[10px] font-medium px-2 py-1 rounded-lg border border-neutral-200 text-neutral-500 hover:border-teal-300 hover:text-teal-600 transition-colors"
+            >
+              Modifier
+            </button>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-100">
+              {completionPercent}% accompli
+            </span>
+          </div>
         </div>
+
+        {/* Panel de changement de parcours */}
+        {showChangePanel && (
+          <div className="mt-4 pt-4 border-t border-neutral-100">
+            <PathwayAssignPanel careCaseId={careCaseId} onClose={() => setShowChangePanel(false)} />
+          </div>
+        )}
 
         {/* Barre de progression */}
         <div className="mt-4">
@@ -557,21 +580,119 @@ function PhaseCard({
   );
 }
 
+// ─── PathwayAssignPanel ───────────────────────────────────────────────────────
+
+function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClose?: () => void }) {
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
+  const apiClient = apiWithToken(accessToken!);
+
+  const [search, setSearch] = useState("");
+
+  const { data: pathways = [], isLoading } = useQuery<{ id: string; key: string; label: string; family: string; _count?: { metrics: number } }[]>({
+    queryKey: ["pathways-all-slim"],
+    queryFn: () => apiClient.intelligence.pathways(undefined, undefined, true),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const filtered = pathways.filter((p) =>
+    !search || p.label.toLowerCase().includes(search.toLowerCase()) || p.family.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const assignMutation = useMutation({
+    mutationFn: (pathwayTemplateId: string) => apiClient.careCases.assignPathway(careCaseId, pathwayTemplateId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["patient-config", careCaseId] });
+      toast.success("Parcours assigné");
+      onClose?.();
+    },
+    onError: () => toast.error("Erreur lors de l'assignation"),
+  });
+
+  return (
+    <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm space-y-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+        Choisir un parcours de soins
+      </p>
+
+      {/* Search */}
+      <div className="relative">
+        <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Rechercher par nom ou famille…"
+          className="w-full pl-7 pr-3 h-8 text-xs rounded-lg border border-neutral-200 bg-neutral-50 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-teal-400"
+        />
+      </div>
+
+      {/* List */}
+      <div className="space-y-1 max-h-64 overflow-y-auto pr-0.5">
+        {isLoading && (
+          <div className="flex justify-center py-4">
+            <Loader2 size={16} className="animate-spin text-neutral-400" />
+          </div>
+        )}
+        {!isLoading && filtered.length === 0 && (
+          <p className="text-xs text-neutral-400 text-center py-3 italic">Aucun parcours trouvé</p>
+        )}
+        {filtered.map((p) => (
+          <button
+            key={p.key}
+            type="button"
+            disabled={assignMutation.isPending}
+            onClick={() => assignMutation.mutate(p.id)}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-lg border border-neutral-100 hover:border-teal-200 hover:bg-teal-50/40 transition-all",
+              assignMutation.isPending && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-neutral-700 truncate">{p.label}</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 shrink-0 capitalize">
+                {p.family}
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── EmptyState ───────────────────────────────────────────────────────────────
 
-function EmptyState() {
+function EmptyState({ careCaseId }: { careCaseId: string }) {
+  const [showPanel, setShowPanel] = useState(false);
+
+  if (showPanel) {
+    return (
+      <div className="space-y-3 max-w-3xl">
+        <PathwayAssignPanel careCaseId={careCaseId} onClose={() => setShowPanel(false)} />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
+    <div className="flex flex-col items-center justify-center py-16 text-center max-w-3xl">
       <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mb-4">
         <Route size={28} className="text-teal-400" />
       </div>
       <h3 className="text-sm font-medium text-neutral-700 mb-1">
-        Aucun modèle de parcours sélectionné
+        Aucun parcours de soins sélectionné
       </h3>
-      <p className="text-xs text-neutral-400 max-w-xs">
-        Sélectionnez un modèle de parcours lors de la création du dossier
-        pour structurer le suivi avec des phases, activités et échéances.
+      <p className="text-xs text-neutral-400 max-w-xs mb-5">
+        Assignez un parcours structuré pour organiser les phases, activités et échéances de ce dossier.
       </p>
+      <button
+        type="button"
+        onClick={() => setShowPanel(true)}
+        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-xs font-medium transition-colors"
+      >
+        <Plus size={13} />
+        Assigner un parcours
+      </button>
     </div>
   );
 }

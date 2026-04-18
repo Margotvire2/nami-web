@@ -185,6 +185,13 @@ export const careCasesApi = {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
+
+  assignPathway: (token: string, id: string, pathwayTemplateId: string | null) =>
+    request<{ success: boolean; careCaseId: string; pathwayTemplateId: string | null }>(
+      `/care-cases/${id}/pathway`,
+      { method: "PATCH", body: JSON.stringify({ pathwayTemplateId }) },
+      token
+    ),
 };
 
 // ─── Care Team ────────────────────────────────────────────────────────────────
@@ -429,8 +436,12 @@ export const intelligenceApi = {
     const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
     return request<any[]>(`/knowledge/metrics${qs}`, {}, token);
   },
-  pathways: (token: string, family?: string) => {
-    const qs = family ? `?family=${encodeURIComponent(family)}` : "";
+  pathways: (token: string, family?: string, q?: string, slim?: boolean) => {
+    const params = new URLSearchParams();
+    if (family) params.set("family", family);
+    if (q) params.set("q", q);
+    if (slim) params.set("slim", "true");
+    const qs = params.toString() ? `?${params.toString()}` : "";
     return request<any[]>(`/knowledge/pathways${qs}`, {}, token);
   },
   conditionLinks: (token: string, fromCode?: string) => {
@@ -2270,6 +2281,7 @@ export function apiWithToken(token: string) {
       get: (id: string) => careCasesApi.get(token, id),
       timeline: (id: string, page?: number, limit?: number) => careCasesApi.timeline(token, id, page, limit),
       update: (id: string, data: Partial<CareCaseDetail>) => careCasesApi.update(token, id, data),
+      assignPathway: (id: string, pathwayTemplateId: string | null) => careCasesApi.assignPathway(token, id, pathwayTemplateId),
     },
     team: { list: (id: string) => teamApi.list(token, id) },
     notes: {
@@ -2373,7 +2385,7 @@ export function apiWithToken(token: string) {
       knowledgeSource: (id: string) => intelligenceApi.knowledgeSource(token, id),
       questionnaires: (domain?: string) => intelligenceApi.questionnaires(token, domain),
       metrics: (domain?: string) => intelligenceApi.metrics(token, domain),
-      pathways: (family?: string) => intelligenceApi.pathways(token, family),
+      pathways: (family?: string, q?: string, slim?: boolean) => intelligenceApi.pathways(token, family, q, slim),
       conditionLinks: (fromCode?: string) => intelligenceApi.conditionLinks(token, fromCode),
       syncHAS: () => intelligenceApi.syncHAS(token),
       refreshHASSource: (sourceId: string) => intelligenceApi.refreshHASSource(token, sourceId),

@@ -32,6 +32,7 @@ import {
   Copy,
   ArrowRight,
   Route,
+  Search,
 } from "lucide-react";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -101,14 +102,22 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
   const [mainConcern, setMainConcern] = useState("");
   const [riskLevel, setRiskLevel] = useState<CreatePatientWithCaseInput["riskLevel"]>("UNKNOWN");
   const [pathwayTemplateKey, setPathwayTemplateKey] = useState<string | undefined>(undefined);
+  const [pathwaySearch, setPathwaySearch] = useState("");
 
-  // Charger les pathways disponibles pour le caseType sélectionné (mode structuré seulement)
-  const family = CASETYPE_TO_FAMILY[caseType];
-  const { data: pathways = [] } = useQuery<{ key: string; label: string; family: string }[]>({
-    queryKey: ["pathways-for-modal", family],
-    queryFn: () => api.intelligence.pathways(family),
-    enabled: followUpMode === "structured" && !!family && step === 1,
+  // Charger TOUS les pathways actifs (mode structuré seulement) — filtrage client-side
+  const { data: allPathways = [] } = useQuery<{ id: string; key: string; label: string; family: string; _count?: { metrics: number } }[]>({
+    queryKey: ["pathways-all-slim"],
+    queryFn: () => api.intelligence.pathways(undefined, undefined, true),
+    enabled: followUpMode === "structured" && step === 1,
     staleTime: 5 * 60 * 1000,
+  });
+
+  // Filtrage : par famille si un caseType est sélectionné, par recherche texte sinon
+  const family = CASETYPE_TO_FAMILY[caseType];
+  const pathways = allPathways.filter((p) => {
+    const matchFamily = !family || p.family === family;
+    const matchSearch = !pathwaySearch || p.label.toLowerCase().includes(pathwaySearch.toLowerCase());
+    return matchFamily && matchSearch;
   });
 
   // Auto-generate case title
@@ -169,6 +178,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
     setMainConcern("");
     setRiskLevel("UNKNOWN");
     setPathwayTemplateKey(undefined);
+    setPathwaySearch("");
   }
 
   function handleCopyLink() {
@@ -388,14 +398,27 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
               </div>
             )}
 
-            {/* Sélecteur de pathway — uniquement en mode structuré + famille connue */}
-            {followUpMode === "structured" && pathways.length > 0 && (
+            {/* Sélecteur de pathway — en mode structuré (tous les parcours, recherche libre) */}
+            {followUpMode === "structured" && (
               <div>
                 <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
                   <Route size={10} />
                   Parcours de soins
                 </label>
-                <div className="mt-1.5 space-y-1 max-h-32 overflow-y-auto pr-0.5">
+                {/* Search */}
+                {!family && (
+                  <div className="relative mt-1.5">
+                    <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={pathwaySearch}
+                      onChange={(e) => setPathwaySearch(e.target.value)}
+                      placeholder="Rechercher un parcours…"
+                      className="w-full pl-7 pr-3 h-8 text-[11px] rounded-lg border border-border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                )}
+                <div className="mt-1.5 space-y-1 max-h-36 overflow-y-auto pr-0.5">
                   <button
                     type="button"
                     onClick={() => setPathwayTemplateKey(undefined)}
@@ -409,6 +432,11 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                     <span className="font-medium">Auto</span>
                     <span className="text-[10px] ml-1.5 opacity-70">— sélection automatique</span>
                   </button>
+                  {pathways.length === 0 && (
+                    <p className="text-[11px] text-muted-foreground text-center py-2 italic">
+                      {allPathways.length === 0 ? "Chargement…" : "Aucun parcours trouvé"}
+                    </p>
+                  )}
                   {pathways.map((p) => (
                     <button
                       key={p.key}
@@ -421,7 +449,14 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                           : "border-border text-muted-foreground hover:bg-muted/40"
                       )}
                     >
-                      <span className="font-medium">{p.label}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium truncate">{p.label}</span>
+                        {!family && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 capitalize">
+                            {p.family}
+                          </span>
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>
