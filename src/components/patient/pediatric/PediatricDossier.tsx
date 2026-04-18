@@ -7,8 +7,9 @@ import { PediatricExaminationTimeline } from "./PediatricExaminationTimeline";
 import { PediatricVaccinationTimeline } from "./PediatricVaccinationTimeline";
 import { PendingObservationsPanel } from "./PendingObservationsPanel";
 import { PediatricModulePanel } from "./PediatricModulePanel";
+import { PediatricParentEntries } from "./PediatricParentEntries";
 import type { PediatricProfile } from "./types";
-import { Loader2, Baby, Users, Layers } from "lucide-react";
+import { Loader2, Baby, Users, Layers, Smartphone } from "lucide-react";
 
 interface Props {
   careCaseId: string;
@@ -94,6 +95,11 @@ export function PediatricDossier({ careCaseId }: Props) {
       {/* Calendrier vaccinal */}
       <Section title="Calendrier vaccinal 2025">
         <PediatricVaccinationTimeline vaccinations={profile.vaccinations} />
+      </Section>
+
+      {/* Saisies parent (app mobile) */}
+      <Section title="Saisies parent" icon={<Smartphone size={15} />}>
+        <PediatricParentEntries profileId={profile.id} />
       </Section>
 
       {/* Modules de spécialité */}
