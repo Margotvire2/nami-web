@@ -15,9 +15,6 @@ interface Props {
 }
 
 type DossierTab = "notes" | "journal" | "timeline" | "documents" | "ordonnances";
-type PeriodFilter = "7d" | "30d" | "90d" | "all" | "today";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MetabolicNeeds = Record<string, any>;
 
 export function ViewDossier({ careCaseId, careCase }: Props) {
   const [activeTab, setActiveTab] = useState<DossierTab>("notes");
