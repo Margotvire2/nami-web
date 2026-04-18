@@ -2,7 +2,9 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { PATHOLOGIES, getPathologyBySlug, CATEGORY_LABELS } from "@/lib/data/pathologies"
-import { ArrowLeft, ChevronRight, Stethoscope, BookOpen, HelpCircle } from "lucide-react"
+import { ChevronRight, Stethoscope, BookOpen, HelpCircle } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 export const revalidate = 86400 // 24h
 
@@ -65,29 +67,19 @@ async function getArticle(slug: string): Promise<Article | null> {
   }
 }
 
-// ─── Markdown → HTML (format article public) ─────────────────────────────────
+// ─── Nettoyage du contenu avant rendu ────────────────────────────────────────
+// Supprime le H1 (déjà affiché dans le header) et convertit **1.1 Titre** → ### Titre
 
-function renderMarkdown(md: string): string {
-  let html = md
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-
-  html = html.replace(/^---$/gm, '<hr class="my-6 border-gray-100" />')
-  html = html.replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold text-gray-700 mt-5 mb-2">$1</h4>')
-  html = html.replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-[#1A1A2E] mt-7 mb-2">$1</h3>')
-  html = html.replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-[#1A1A2E] mt-9 mb-3 pb-2 border-b border-gray-100">$1</h2>')
-  html = html.replace(/^# (.+)$/gm, '')  // H1 déjà dans le header de page
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-[#1A1A2E]">$1</strong>')
-  html = html.replace(/\*(.+?)\*/g, '<em class="text-gray-600">$1</em>')
-  html = html.replace(/^- (.+)$/gm, '<li class="text-sm text-gray-700 ml-4 list-disc leading-relaxed">$1</li>')
-  html = html.replace(/((?:<li[^>]*>.*<\/li>\n?)+)/g, '<ul class="my-3 space-y-1.5">$1</ul>')
-  html = html.replace(/^(?!<[a-z/])(.+)$/gm, (match) => {
-    if (!match.trim()) return ""
-    return `<p class="text-sm text-gray-700 leading-relaxed my-2">${match}</p>`
-  })
-  html = html.replace(/<p[^>]*>\s*<\/p>/g, "")
-  return html
+function preprocessContent(md: string): string {
+  return md
+    // Supprimer les H1
+    .replace(/^#\s+.+$/gm, "")
+    // Convertir **N.N Titre** ou **N. Titre** en heading H3
+    .replace(/^\*\*(\d+\.\d+\s+)(.+?)\*\*\s*$/gm, "### $2")
+    .replace(/^\*\*(\d+\.\s+)(.+?)\*\*\s*$/gm, "### $2")
+    // Supprimer les lignes vides multiples
+    .replace(/\n{4,}/g, "\n\n\n")
+    .trim()
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -231,10 +223,83 @@ export default async function PathologyPage({
                   {article.excerpt}
                 </p>
               )}
-              <div
-                className="prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}
-              />
+              <div className="article-body max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: () => null,
+                    h2: ({ children }) => (
+                      <h2 className="text-base font-bold text-[#1A1A2E] mt-8 mb-3 pb-2 border-b border-gray-100">{children}</h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-sm font-semibold text-[#1A1A2E] mt-5 mb-2">{children}</h3>
+                    ),
+                    h4: ({ children }) => (
+                      <h4 className="text-sm font-medium text-gray-700 mt-4 mb-1">{children}</h4>
+                    ),
+                    p: ({ children }) => (
+                      <p className="text-sm text-gray-700 leading-relaxed my-2">{children}</p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-[#1A1A2E]">{children}</strong>
+                    ),
+                    em: ({ children }) => (
+                      <em className="text-gray-600 not-italic">{children}</em>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="my-3 space-y-1.5 pl-4">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="my-3 space-y-1.5 pl-4 list-decimal">{children}</ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-sm text-gray-700 leading-relaxed list-disc">{children}</li>
+                    ),
+                    hr: () => (
+                      <hr className="my-6 border-gray-100" />
+                    ),
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#5B4EC4] hover:underline font-medium"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-2 border-[#5B4EC4]/30 pl-4 my-4 text-sm text-gray-600 italic">
+                        {children}
+                      </blockquote>
+                    ),
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto my-5 rounded-xl border border-gray-100">
+                        <table className="w-full text-sm border-collapse">{children}</table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="bg-gray-50">{children}</thead>
+                    ),
+                    th: ({ children }) => (
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="px-3 py-2 text-sm text-gray-700 border-b border-gray-50">{children}</td>
+                    ),
+                    tr: ({ children }) => (
+                      <tr className="hover:bg-gray-50/50 transition-colors">{children}</tr>
+                    ),
+                    code: ({ children }) => (
+                      <code className="text-xs bg-gray-100 text-[#5B4EC4] px-1.5 py-0.5 rounded font-mono">{children}</code>
+                    ),
+                  }}
+                >
+                  {preprocessContent(article.content)}
+                </ReactMarkdown>
+              </div>
 
               {/* Sources */}
               {article.sources && article.sources.length > 0 && (
