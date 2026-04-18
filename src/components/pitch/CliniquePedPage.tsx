@@ -641,7 +641,406 @@ function ParcoursSection() {
   );
 }
 
-// ─── SECTION 7 — CTA ─────────────────────────────────────────────────────────
+// ─── SECTION 7 — CE QUE NAMI FAIT AU QUOTIDIEN ───────────────────────────────
+
+// Composant de flow réutilisable (étapes + flèches)
+type FlowStep = { icon: string; title: string; sub: string };
+
+function StepFlow({ steps }: { steps: (FlowStep | null)[] }) {
+  return (
+    <div style={{ display: "flex", alignItems: "stretch", overflowX: "auto", paddingBottom: 4, gap: 0 }}>
+      {steps.map((step, i) => {
+        if (step === null) return (
+          <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#8A8A96", fontSize: 18, flexShrink: 0 }}>→</div>
+        );
+        return (
+          <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.07)", borderRadius: 12, padding: "16px 14px", textAlign: "center", minWidth: 130, flexShrink: 0 }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>{step.icon}</div>
+            <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1A1A2E", marginBottom: 4 }}>{step.title}</div>
+            <div style={{ fontSize: "0.72rem", color: "#8A8A96", lineHeight: 1.4 }}>{step.sub}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// 7a — En consultation
+function Section7a() {
+  const STEPS: (FlowStep | null)[] = [
+    { icon: "🎙️", title: "Vous parlez", sub: "Consultation normale, micro activé" },
+    null,
+    { icon: "📝", title: "Note structurée", sub: "Compte-rendu rédigé automatiquement" },
+    null,
+    { icon: "📤", title: "Documents", sub: "Ordonnance, lettre d'adressage, PAI" },
+    null,
+    { icon: "✅", title: "Tâches", sub: "RDV, rappels, questionnaires assignés" },
+  ];
+  return (
+    <section style={{ background: "#F5F3EF", padding: "80px clamp(20px, 5vw, 80px)" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <Eyebrow>EN CONSULTATION</Eyebrow>
+          <SectionTitle>Vous parlez. Le reste est fait.</SectionTitle>
+          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 36, maxWidth: 580 }}>
+            Vous enregistrez votre consultation. À la fin, vos documents sont prêts — il ne reste qu&apos;à vérifier et valider.
+          </p>
+        </ScrollReveal>
+        <ScrollReveal variant="fade-up" delay={0.1} duration={0.7}>
+          <StepFlow steps={STEPS} />
+          <div style={{ marginTop: 20, background: "#EDE9FE", borderRadius: 12, padding: "14px 20px", textAlign: "center" }}>
+            <p style={{ fontSize: "0.88rem", color: "#5B4EC4", fontWeight: 600, margin: 0 }}>
+              Tout est un brouillon. Rien ne part sans votre validation.
+            </p>
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
+  );
+}
+
+// 7b — Carnet de santé & parcours
+const CARNET_FEATURES = [
+  { icon: "📈", title: "Courbes de croissance OMS", text: "Poids, taille, PC, IMC — mises à jour à chaque pesée." },
+  { icon: "💉", title: "Calendrier vaccinal 2025", text: "Généré automatiquement, rappels programmés." },
+  { icon: "📋", title: "19 examens obligatoires", text: "De J8 à 16 ans. Statut : fait, programmé, en retard." },
+  { icon: "📄", title: "Documents partagés", text: "Ordonnances, CR, courriers — visibles par parents et équipe." },
+  { icon: "🔗", title: "Parcours de soins greffables", text: "Un soignant active un module (allergie, nutrition, TND, gastro…) → l'équipe s'élargit, les saisies s'adaptent, le parcours est structuré." },
+  { icon: "👥", title: "Équipe visible", text: "Le parent voit qui suit son enfant. Messagerie intégrée." },
+];
+
+function Section7b() {
+  const MINI_CARDS = [
+    { icon: "📈", label: "Courbes de croissance", value: "OMS · P50" },
+    { icon: "💉", label: "Prochain vaccin", value: "Hexavalent · M2" },
+    { icon: "📋", label: "Prochain examen", value: "M2 · dans 3 jours" },
+    { icon: "🍼", label: "Alimentation 7j", value: "780 ml/jour moy." },
+    { icon: "👥", label: "Équipe", value: "3 soignants" },
+  ];
+  return (
+    <section style={{ background: "#FAFAF8", padding: "80px clamp(20px, 5vw, 80px)" }}>
+      <style>{`
+        @media (max-width: 700px) {
+          .s7b-layout { grid-template-columns: 1fr !important; }
+          .s7b-phone  { margin: 0 auto !important; }
+        }
+      `}</style>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <Eyebrow>CARNET DE SANTÉ & PARCOURS</Eyebrow>
+          <SectionTitle>Un carnet digital dès la naissance. Des parcours de soins qui se greffent dessus.</SectionTitle>
+        </ScrollReveal>
+        <div className="s7b-layout" style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 48, alignItems: "start", marginTop: 40 }}>
+          {/* Phone mockup */}
+          <div className="s7b-phone" style={{ flexShrink: 0 }}>
+            <div style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.08)", borderRadius: 16, padding: 20, boxShadow: "0 4px 20px rgba(26,26,46,0.07)" }}>
+              <div style={{ textAlign: "center", fontSize: 36, marginBottom: 6 }}>🐣</div>
+              <div style={{ textAlign: "center", fontWeight: 700, fontSize: "0.9rem", color: "#1A1A2E", marginBottom: 14 }}>Léa · 2 mois</div>
+              {MINI_CARDS.map((c, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 8, background: "#FAFAF8", border: "1px solid #F0EEF8", marginBottom: 6 }}>
+                  <span style={{ fontSize: "0.78rem", color: "#4A4A5A" }}>{c.icon} {c.label}</span>
+                  <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#5B4EC4" }}>{c.value}</span>
+                </div>
+              ))}
+              <div style={{ display: "flex", justifyContent: "space-around", paddingTop: 10, borderTop: "1px solid #F0EEF8", marginTop: 8 }}>
+                {["☀️", "📓", "👶", "📚", "⚙️"].map((icon, i) => (
+                  <div key={i} style={{ fontSize: i === 0 ? 16 : 13, opacity: i === 0 ? 1 : 0.45 }}>{icon}</div>
+                ))}
+              </div>
+            </div>
+            <p style={{ textAlign: "center", fontSize: "0.72rem", color: "#8A8A96", marginTop: 10 }}>App parent · Toutes tranches d&apos;âge</p>
+          </div>
+          {/* Features */}
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 20px" }}>Le carnet de santé de chaque enfant, relié à son équipe</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {CARNET_FEATURES.map((f, i) => (
+                <ScrollReveal key={i} variant="fade-up" delay={i * 0.07} duration={0.6}>
+                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "#1A1A2E", marginBottom: 2 }}>{f.title}</div>
+                      <div style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6 }}>{f.text}</div>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// 7c — Entre les consultations (2 sous-tabs)
+function Section7c() {
+  const [activeSubTab, setActiveSubTab] = useState(0);
+
+  const ADULTE_LEFT = [
+    { icon: "📸", title: "Repas avec photo", text: "Photo, faim/satiété, contexte. Ce qu'il mange vraiment." },
+    { icon: "⚖️", title: "Poids", text: "Courbe mise à jour entre les consultations." },
+    { icon: "🩺", title: "Symptômes", text: "Type, intensité, durée, déclencheur — horodatés." },
+    { icon: "😔", title: "Émotions", text: "Humeur, énergie, triggers. Patterns visibles." },
+    { icon: "🏃", title: "Activité physique", text: "Type, durée, intensité, plaisir, douleurs." },
+    { icon: "📋", title: "Questionnaires", text: "PHQ-9, GAD-7, EAT-26, EDE-Q, SCOFF — score automatique." },
+  ];
+
+  const COCKPIT_CARDS = [
+    { icon: "🍽️", label: "Repas tracés", value: "14 repas · 2 crises" },
+    { icon: "📊", label: "PHQ-9", value: "12 → 9 ↓3" },
+    { icon: "⚖️", label: "Poids 7j", value: "78.2 → 77.5 kg" },
+    { icon: "😴", label: "Sommeil", value: "6h42 · 3/5" },
+    { icon: "🏃", label: "Activité", value: "3 séances · 2h15" },
+  ];
+
+  const PED_LEFT = [
+    { icon: "🍼", title: "Alimentation", text: "Biberon (volume, heure), tétée (durée, sein), diversification (aliment, réaction). Apports réels sur 14 jours." },
+    { icon: "😴", title: "Sommeil", text: "'Il dort mal' → '6 fragments de 45 min' ou '8h avec 2 réveils'." },
+    { icon: "👶", title: "Couches", text: "Couleur, consistance. Journal objectif pour suspicion APLV ou RGO." },
+    { icon: "⚖️", title: "Pesées maison", text: "Arrivent en 'à valider'. 6 points sur la courbe au lieu de 2." },
+    { icon: "🌡️", title: "Événements", text: "Fièvre, régurgitations, réactions — notés quand ça se passe." },
+    { icon: "🏅", title: "Jalons", text: "Premier sourire, tenue de tête, premiers mots. Avec la date." },
+  ];
+
+  const PED_RIGHT = [
+    { date: "📅 J15", text: "780 ml/jour, selles jaunes, 14h sommeil en 6 siestes, 2 régurgitations à J+8 et J+12. Questions ciblées en 2 min au lieu de 15." },
+    { date: "📅 M1", text: "Courbe avec 6 points, pas 2. Reprise régulière ou plateau — vous le voyez." },
+    { date: "📅 M4", text: "Jalons acquis documentés avec dates. Vous vérifiez les manquants directement." },
+  ];
+
+  return (
+    <section style={{ background: "#F5F3EF", padding: "80px clamp(20px, 5vw, 80px)" }}>
+      <style>{`
+        @media (max-width: 700px) {
+          .s7c-layout { grid-template-columns: 1fr !important; }
+        }
+        @keyframes fadeSubTab {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <Eyebrow>ENTRE LES CONSULTATIONS</Eyebrow>
+          <SectionTitle>Votre patient vous parle en continu</SectionTitle>
+          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 28, maxWidth: 580 }}>
+            L&apos;app s&apos;adapte au parcours : nourrisson, enfant, ado, adulte. Chaque pathologie active les saisies pertinentes.
+          </p>
+        </ScrollReveal>
+
+        {/* Sub-tabs */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 36, flexWrap: "wrap" }}>
+          {["Adultes & adolescents", "Nourrissons & enfants"].map((label, i) => (
+            <button key={i} onClick={() => setActiveSubTab(i)}
+              style={{ padding: "8px 18px", borderRadius: 100, border: activeSubTab === i ? "none" : "1px solid rgba(26,26,46,0.12)", background: activeSubTab === i ? "#5B4EC4" : "#fff", color: activeSubTab === i ? "#fff" : "#4A4A5A", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit" }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Adultes */}
+        {activeSubTab === 0 && (
+          <div key="adulte" className="s7c-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, animation: "fadeSubTab 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 16px" }}>Ce que le patient fait</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {ADULTE_LEFT.map((item, i) => (
+                  <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: "0.84rem", color: "#1A1A2E" }}>{item.title}</span>
+                      <span style={{ fontSize: "0.82rem", color: "#4A4A5A" }}> — {item.text}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 16px" }}>Ce que vous recevez</h3>
+              <div style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.07)", borderRadius: 14, padding: "16px 18px", boxShadow: "0 4px 16px rgba(26,26,46,0.06)" }}>
+                <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1A1A2E", marginBottom: 12 }}>Semaine de Thomas Dupont</div>
+                {COCKPIT_CARDS.map((c, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", borderRadius: 8, background: "#FAFAF8", border: "1px solid #F0EEF8", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.78rem", color: "#4A4A5A" }}>{c.icon} {c.label}</span>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#1A1A2E" }}>{c.value}</span>
+                  </div>
+                ))}
+                <div style={{ marginTop: 12, background: "#EDE9FE", borderRadius: 10, padding: "10px 14px" }}>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#5B4EC4", marginBottom: 4 }}>Parcours pluridisciplinaires</div>
+                  <p style={{ fontSize: "0.78rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>Le psy voit les émotions. La diét voit les repas. Le médecin voit les bilans. L'APA voit l'activité. Chacun dans le même dossier — le patient ne fait plus le lien entre vous.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pédiatrie */}
+        {activeSubTab === 1 && (
+          <div key="ped" className="s7c-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, animation: "fadeSubTab 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 6px" }}>Ce que le parent fait</h3>
+              <p style={{ fontSize: "0.82rem", color: "#8A8A96", marginBottom: 16 }}>Il observe 24h/24 ce que vous ne pouvez pas observer en consultation.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {PED_LEFT.map((item, i) => (
+                  <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#CCFBF1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: "0.84rem", color: "#1A1A2E" }}>{item.title}</span>
+                      <span style={{ fontSize: "0.82rem", color: "#4A4A5A" }}> — {item.text}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 16px" }}>Ce que ça change en consultation</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {PED_RIGHT.map((item, i) => (
+                  <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.07)", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#5B4EC4", marginBottom: 6 }}>{item.date}</div>
+                    <p style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>{item.text}</p>
+                  </div>
+                ))}
+                <div style={{ background: "#CCFBF1", borderRadius: 12, padding: "14px 16px" }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#2BA89C", marginBottom: 4 }}>Pour les parents</div>
+                  <p style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>Tracer rassure. Voir les tendances rassure. Savoir que vous voyez les données réduit les appels anxieux.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// 7d — Documents & bilans
+const DOCS_CARDS = [
+  { icon: "🧪", iconBg: "#EDE9FE", title: "Bilan biologique", text: "PDF déposé → hémoglobine, HbA1c, ferritine extraits avec la date. Vous validez." },
+  { icon: "📊", iconBg: "#CCFBF1", title: "Impédancemétrie", text: "48 métriques extraites. Conversion automatique des unités." },
+  { icon: "📷", iconBg: "#FEF9C3", title: "Ordonnance scannée", text: "Photo → médicaments, doses, fréquences structurés." },
+  { icon: "📈", iconBg: "#EDE9FE", title: "Carnet de santé", text: "Scan → points placés sur les courbes OMS avec la date." },
+];
+
+function Section7d() {
+  return (
+    <section style={{ background: "#FAFAF8", padding: "80px clamp(20px, 5vw, 80px)" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <Eyebrow>DOCUMENTS & BILANS</Eyebrow>
+          <SectionTitle>Zéro saisie manuelle</SectionTitle>
+          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 560 }}>
+            Les bilans sont extraits. Les ordonnances sont scannées. Tout arrive en attente de validation.
+          </p>
+        </ScrollReveal>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
+          {DOCS_CARDS.map((card, i) => (
+            <ScrollReveal key={i} variant="fade-up" delay={i * 0.1} duration={0.7}>
+              <HoverCard {...card} />
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// 7e — Synthèse & coordination
+const SYNTH_CARDS = [
+  { icon: "✨", iconBg: "#EDE9FE", title: "Résumé en 1 clic", text: "Dossier croisé avec les recommandations HAS/ESPGHAN/SFP. Ce qui a évolué, ce qui manque. 2 min au lieu de 40 pages." },
+  { icon: "📨", iconBg: "#CCFBF1", title: "Adressage en 2 min", text: "Spécialité, motif, urgence. Le confrère rejoint l'équipe avec accès au dossier." },
+  { icon: "📋", iconBg: "#FEF9C3", title: "Questionnaires", text: "Envoyés depuis le dossier, remplis sur téléphone, score automatique comparé au précédent." },
+  { icon: "🔍", iconBg: "#EDE9FE", title: "Complétude", text: "RDV planifié ? Note récente ? Équipe complète ? Tâches en retard ? Adressage sans réponse ?" },
+];
+
+function Section7e() {
+  return (
+    <section style={{ background: "#F5F3EF", padding: "80px clamp(20px, 5vw, 80px)" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <Eyebrow>SYNTHÈSE & COORDINATION</Eyebrow>
+          <SectionTitle>Vous ouvrez le dossier. Tout est déjà là.</SectionTitle>
+        </ScrollReveal>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20, marginTop: 40 }}>
+          {SYNTH_CARDS.map((card, i) => (
+            <ScrollReveal key={i} variant="fade-up" delay={i * 0.1} duration={0.7}>
+              <HoverCard {...card} />
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// 7f — Avant / après
+const AVANT_APRES = [
+  { avant: "Retranscription post-consultation · 15-20 min", apres: "Généré automatiquement · 0 min" },
+  { avant: "Saisie manuelle bilan bio · 5-10 min", apres: "Extraction en 30 secondes" },
+  { avant: "Synthèse avant consultation · 10-15 min", apres: "Résumé structuré en 2 minutes" },
+  { avant: "Courrier d'adressage dicté", apres: "Adressage structuré en 2 minutes" },
+  { avant: "Questionnaire papier → saisie → calcul", apres: "Envoyé sur téléphone, résultat auto" },
+  { avant: "Dossier fragmenté entre 4 soignants", apres: "Un dossier de coordination partagé" },
+  { avant: "Données patient de mémoire", apres: "Journal horodaté en temps réel" },
+];
+
+function Section7f() {
+  return (
+    <section style={{ background: "#1A1A2E", padding: "80px clamp(20px, 5vw, 80px)" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <h2 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.2rem)", fontWeight: 700, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1.2, margin: "0 0 36px", textAlign: "center" }}>
+            Ce que vous gagnez
+          </h2>
+        </ScrollReveal>
+        <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+          {/* Header */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+            <div style={{ background: "rgba(220,38,38,0.12)", padding: "10px 20px", fontSize: "0.75rem", fontWeight: 700, color: "#FCA5A5", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              AVANT
+            </div>
+            <div style={{ background: "rgba(5,150,105,0.12)", padding: "10px 20px", fontSize: "0.75rem", fontWeight: 700, color: "#6EE7B7", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", borderLeft: "1px solid rgba(255,255,255,0.08)" }}>
+              AVEC NAMI
+            </div>
+          </div>
+          {AVANT_APRES.map((row, i) => (
+            <ScrollReveal key={i} variant="fade-up" delay={i * 0.06} duration={0.6}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.06)" : undefined }}>
+                <div style={{ padding: "14px 20px", fontSize: "0.84rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.5, background: "rgba(220,38,38,0.05)" }}>
+                  {row.avant}
+                </div>
+                <div style={{ padding: "14px 20px", fontSize: "0.84rem", color: "#6EE7B7", lineHeight: 1.5, fontWeight: 500, background: "rgba(5,150,105,0.05)", borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
+                  ✓ {row.apres}
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// 7g — Ce que Nami ne fait pas
+function Section7g() {
+  return (
+    <section style={{ background: "#FAFAF8", padding: "64px clamp(20px, 5vw, 80px)" }}>
+      <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <Eyebrow>CE QUE NAMI NE FAIT PAS</Eyebrow>
+          <SectionTitle>Intentionnellement</SectionTitle>
+          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.8, marginTop: 20, maxWidth: 560, margin: "20px auto 0" }}>
+            Nami ne pose pas de diagnostic, ne décide pas d&apos;un traitement, ne déclenche pas d&apos;alerte clinique. Tout ce qui est extrait arrive en statut &quot;à valider&quot;. Vous restez le seul décideur clinique.
+          </p>
+        </ScrollReveal>
+      </div>
+    </section>
+  );
+}
+
+// ─── SECTION 8 — CTA ─────────────────────────────────────────────────────────
 
 function CTASection() {
   const [hovered, setHovered] = useState(false);
@@ -694,7 +1093,7 @@ function CTASection() {
   );
 }
 
-// ─── SECTION 8 — FOOTER ──────────────────────────────────────────────────────
+// ─── SECTION 9 — FOOTER ──────────────────────────────────────────────────────
 
 const DISCLAIMER_LINES = [
   "Nami est une plateforme de coordination des parcours de soins (Art. L.1110-12 CSP).",
@@ -732,6 +1131,13 @@ export function CliniquePedPage() {
       <DiscoursSection />
       <ChiffresSection />
       <ParcoursSection />
+      <Section7a />
+      <Section7b />
+      <Section7c />
+      <Section7d />
+      <Section7e />
+      <Section7f />
+      <Section7g />
       <CTASection />
       <FooterSection />
     </div>
