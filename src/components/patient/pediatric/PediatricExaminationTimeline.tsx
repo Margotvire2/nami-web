@@ -5,9 +5,11 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CheckCircle2, Clock, AlertTriangle, SkipForward, ChevronDown, ChevronUp } from "lucide-react";
 import type { PediatricExamination } from "./types";
+import { PediatricExaminationModal } from "./PediatricExaminationModal";
 
 interface Props {
   examinations: PediatricExamination[];
+  profileId: string;
 }
 
 const STATUS_CONFIG = {
@@ -19,8 +21,9 @@ const STATUS_CONFIG = {
   CANCELLED: { icon: SkipForward,  color: "text-[#8A8A96]",   bg: "bg-[#FAFAF8]",  label: "Annulé" },
 };
 
-export function PediatricExaminationTimeline({ examinations }: Props) {
+export function PediatricExaminationTimeline({ examinations, profileId }: Props) {
   const [showAll, setShowAll] = useState(false);
+  const [selectedExam, setSelectedExam] = useState<PediatricExamination | null>(null);
 
   const visible = showAll
     ? examinations
@@ -46,7 +49,7 @@ export function PediatricExaminationTimeline({ examinations }: Props) {
       {/* Liste */}
       <div className="space-y-1">
         {visible.map((exam) => (
-          <ExamRow key={exam.id} exam={exam} />
+          <ExamRow key={exam.id} exam={exam} onClick={() => setSelectedExam(exam)} />
         ))}
       </div>
 
@@ -59,16 +62,27 @@ export function PediatricExaminationTimeline({ examinations }: Props) {
           {showAll ? "Réduire" : `Voir tous (${examinations.length})`}
         </button>
       )}
+
+      {selectedExam && (
+        <PediatricExaminationModal
+          exam={selectedExam}
+          profileId={profileId}
+          onClose={() => setSelectedExam(null)}
+        />
+      )}
     </div>
   );
 }
 
-function ExamRow({ exam }: { exam: PediatricExamination }) {
+function ExamRow({ exam, onClick }: { exam: PediatricExamination; onClick: () => void }) {
   const cfg = STATUS_CONFIG[exam.status] ?? STATUS_CONFIG.UPCOMING;
   const Icon = cfg.icon;
 
   return (
-    <div className={`flex items-center gap-3 px-3 py-2 rounded-lg ${cfg.bg}`}>
+    <div
+      onClick={onClick}
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${cfg.bg}`}
+    >
       <Icon size={14} className={cfg.color} />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-[#1A1A2E] truncate">{exam.label}</p>
