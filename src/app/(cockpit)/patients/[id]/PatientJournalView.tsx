@@ -8,10 +8,8 @@ import { format, parseISO, subDays, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
   Brain, Activity, Sparkles, AlertTriangle, TrendingUp, TrendingDown, Minus,
-  ChevronDown, ChevronRight,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { SENSATION_COLORS, MACRO_COLORS, namiPalette } from "@/lib/namiColors"
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -540,7 +538,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const [period, setPeriod] = useState<Period>("7d")
-  const [overviewOpen, setOverviewOpen] = useState(false)
+  const [overviewWeekOffset, setOverviewWeekOffset] = useState(0)
 
   const { data: entries, isLoading } = useQuery({
     queryKey: ["journal", careCaseId],
@@ -565,6 +563,36 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
     }).sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
     return dedup(f)
   }, [entries, period])
+
+  // ── Vue d'ensemble — navigation semaine ───────────────────────────────────
+  const overviewWeek = useMemo(() => {
+    const today = new Date()
+    const daysToMonday = today.getDay() === 0 ? 6 : today.getDay() - 1
+    const startOfCurrentWeek = subDays(today, daysToMonday)
+    const weekStart = subDays(startOfCurrentWeek, overviewWeekOffset * 7)
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekStart)
+      d.setDate(weekStart.getDate() + i)
+      return d
+    })
+  }, [overviewWeekOffset])
+
+  const overviewWeekLabel = useMemo(() => {
+    const start = overviewWeek[0]
+    const end = overviewWeek[6]
+    return `${format(start, "d", { locale: fr })} – ${format(end, "d MMMM", { locale: fr })}`
+  }, [overviewWeek])
+
+  const weekEntries = useMemo(() => {
+    if (!entries) return []
+    const start = overviewWeek[0]
+    const end = new Date(overviewWeek[6])
+    end.setHours(23, 59, 59, 999)
+    return dedup(entries.filter(e => {
+      const d = parseISO(e.occurredAt)
+      return d >= start && d <= end
+    }))
+  }, [entries, overviewWeek])
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const meals      = filtered.filter(e => e.entryType === "MEAL")
@@ -724,31 +752,35 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
             </div>
           )}
 
-          {/* ── Vue d'ensemble — pliable ── */}
-          {(meals.length > 0 || emotions.length > 0) && (
-            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-              <button
-                onClick={() => setOverviewOpen(!overviewOpen)}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-xs font-semibold text-gray-700 flex-1">Vue d&apos;ensemble</span>
-                {overviewOpen
-                  ? <ChevronDown size={14} className="text-gray-400" />
-                  : <ChevronRight size={14} className="text-gray-400" />
-                }
-              </button>
-              {overviewOpen && (
-                <div className="px-4 pb-4 border-t border-gray-100 pt-4 space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {meals.length > 0 && <MealHeatmap meals={meals} />}
-                    {emotions.length > 0 && <MoodWeek entries={emotions} />}
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <IngestaTotals meals={meals} />
-                    {emotions.length > 0 && <EnergyChart entries={emotions} />}
-                  </div>
+          {/* ── Vue d'ensemble — 3 widgets avec navigation semaine ── */}
+          {entries && entries.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-700">Vue d&apos;ensemble</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setOverviewWeekOffset(prev => prev + 1)}
+                    className="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 transition text-sm"
+                  >
+                    ‹
+                  </button>
+                  <span className="text-[12px] font-medium text-slate-600 min-w-[120px] text-center">
+                    {overviewWeekLabel}
+                  </span>
+                  <button
+                    onClick={() => setOverviewWeekOffset(prev => Math.max(0, prev - 1))}
+                    disabled={overviewWeekOffset === 0}
+                    className="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 transition text-sm disabled:opacity-30"
+                  >
+                    ›
+                  </button>
                 </div>
-              )}
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <OverviewMoodEnergy weekDays={overviewWeek} weekEntries={weekEntries} />
+                <OverviewEmotions weekEntries={weekEntries} />
+                <OverviewActivity weekDays={overviewWeek} weekEntries={weekEntries} anorexiaSurveillance={anorexiaSurveillance} />
+              </div>
             </div>
           )}
 
@@ -801,142 +833,260 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
 
 // ─── Overview widgets ─────────────────────────────────────────────────────────
 
-function MealHeatmap({ meals }: { meals: JournalEntry[] }) {
-  const types  = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"]
-  const labels = ["P.déj", "Déj", "Dîner", "Coll"]
-  const days: Date[] = []
-  for (let i = 6; i >= 0; i--) days.push(subDays(new Date(), i))
+function OverviewMoodEnergy({ weekDays, weekEntries }: {
+  weekDays: Date[]; weekEntries: JournalEntry[]
+}) {
+  const emotions = weekEntries.filter(e => e.entryType === "EMOTION")
+
+  const dayMoods = weekDays.map(d => {
+    const entry = emotions.find(e =>
+      isSameDay(parseISO(e.occurredAt), d) &&
+      !!(e.payload as Record<string, unknown>).mood
+    )
+    if (!entry) {
+      // fallback: premier check-in énergie du jour
+      const energyEntry = emotions.find(e => isSameDay(parseISO(e.occurredAt), d))
+      return {
+        mood: null,
+        energy: energyEntry && (energyEntry.payload as Record<string, unknown>).energy != null
+          ? Number((energyEntry.payload as Record<string, unknown>).energy)
+          : null,
+      }
+    }
+    const p = entry.payload as Record<string, unknown>
+    return {
+      mood: String(p.mood),
+      energy: p.energy != null ? Number(p.energy) : null,
+    }
+  })
+
+  const energyValues = dayMoods.filter(d => d.energy != null).map(d => d.energy!)
+  const avgEnergy = energyValues.length > 0
+    ? Math.round(energyValues.reduce((a, b) => a + b, 0) / energyValues.length)
+    : null
 
   return (
-    <div>
-      <p className="text-[10px] font-medium text-gray-400 mb-2 uppercase tracking-wider">Heatmap 7 jours</p>
-      <div className="grid gap-1" style={{ gridTemplateColumns: "40px repeat(7, 1fr)" }}>
-        <div />
-        {days.map((d, i) => (
-          <p key={i} className="text-[9px] text-gray-400 text-center">{format(d, "EEE", { locale: fr })}</p>
-        ))}
-        {types.map((type, ti) => (
-          <div key={`row${ti}`} className="contents">
-            <p className="text-[9px] text-gray-400 truncate">{labels[ti]}</p>
-            {days.map((d, di) => {
-              const has = meals.some(m => isSameDay(parseISO(m.occurredAt), d) && (m.payload as Record<string, unknown>).moment === type)
-              return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: `linear-gradient(90deg, ${namiPalette.violet[400]}, ${namiPalette.violet[500]})` }} />
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">
+        Humeur & énergie
+      </p>
+      <div className="flex justify-between gap-0.5">
+        {weekDays.map((d, i) => {
+          const { mood, energy } = dayMoods[i]
+          const rawDay = format(d, "EEE", { locale: fr })
+          const dayLabel = rawDay.charAt(0).toUpperCase() + rawDay.slice(1, 3)
+          return (
+            <div key={i} className="text-center flex-1">
+              <p className="text-[10px] font-medium text-slate-400 mb-1">{dayLabel}</p>
+              <p className="text-lg h-7 flex items-center justify-center">
+                {mood ? (MOOD_EMOJI[mood] ?? "·") : <span className="text-slate-300 text-sm">·</span>}
+              </p>
+              <div className="w-full h-[3px] rounded-full mt-1" style={{ backgroundColor: VL }}>
                 <div
-                  key={`${ti}-${di}`}
-                  className="w-5 h-5 rounded mx-auto"
-                  style={{ backgroundColor: has ? namiPalette.teal[200] : namiPalette.slate[100] }}
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${energy ?? 0}%`, backgroundColor: V }}
                 />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="h-px bg-slate-100 my-3" />
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl font-bold" style={{ color: avgEnergy != null && avgEnergy < 40 ? V : namiPalette.slate[700] }}>
+          {avgEnergy != null ? `${avgEnergy}%` : "—"}
+        </span>
+        <span className="text-xs text-slate-500">énergie moy.</span>
+      </div>
+      <p className="text-[11px] text-slate-400 mt-1">
+        {energyValues.length} check-in{energyValues.length > 1 ? "s" : ""} cette semaine
+      </p>
+    </div>
+  )
+}
+
+function OverviewEmotions({ weekEntries }: { weekEntries: JournalEntry[] }) {
+  const emotions = weekEntries.filter(e => e.entryType === "EMOTION")
+
+  const aggregated = useMemo(() => {
+    const map = new Map<string, { count: number; totalIntensity: number }>()
+    for (const e of emotions) {
+      const p = e.payload as Record<string, unknown>
+      const names = (p.emotions as string[] | undefined) ??
+        (p.emotionType ? [String(p.emotionType)] : [])
+      const intensity = p.intensity != null ? Number(p.intensity) : 5
+      for (const name of names) {
+        const existing = map.get(name) ?? { count: 0, totalIntensity: 0 }
+        existing.count++
+        existing.totalIntensity += intensity
+        map.set(name, existing)
+      }
+    }
+    const POSITIVE = new Set(["JOY", "joy", "PRIDE", "pride", "SERENITY", "serenity", "calm", "energetic"])
+    return Array.from(map.entries())
+      .map(([rawName, data]) => ({
+        name: EMOTION_LABELS[rawName] ?? rawName,
+        rawName,
+        count: data.count,
+        avgIntensity: Math.round(data.totalIntensity / data.count),
+        isPositive: POSITIVE.has(rawName),
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [emotions])
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: `linear-gradient(90deg, ${V}, ${T})` }} />
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">
+        Émotions de la semaine
+      </p>
+      {aggregated.length === 0 ? (
+        <p className="text-xs text-slate-300 italic py-4">Aucune émotion enregistrée</p>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {aggregated.map(em => (
+              <span
+                key={em.rawName}
+                className="text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"
+                style={{
+                  backgroundColor: em.isPositive ? TL : VL,
+                  color: em.isPositive ? namiPalette.teal[700] : namiPalette.violet[700],
+                }}
+              >
+                {em.name}
+                <span className="text-[9px] font-bold px-1.5 py-0 rounded-full"
+                  style={{ backgroundColor: "rgba(0,0,0,0.08)" }}>
+                  {em.count}
+                </span>
+              </span>
+            ))}
+          </div>
+          <div className="h-px bg-slate-100 my-2" />
+          <div className="space-y-1.5">
+            {aggregated.slice(0, 4).map(em => {
+              const pct = (em.avgIntensity / 10) * 100
+              const barColor = em.isPositive ? T : V
+              const bgColor  = em.isPositive ? TL : VL
+              return (
+                <div key={em.rawName} className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-medium text-slate-500 w-14 truncate">{em.name}</span>
+                  <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ backgroundColor: bgColor }}>
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+                  </div>
+                  <span className="text-[10px] font-bold w-4 text-right" style={{ color: barColor }}>
+                    {em.avgIntensity}
+                  </span>
+                </div>
               )
             })}
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function IngestaTotals({ meals }: { meals: JournalEntry[] }) {
-  const totals = useMemo(() => {
-    let kcal = 0, proteines = 0, glucides = 0, lipides = 0, fibres = 0, count = 0
-    for (const m of meals) {
-      const mac = m.photoMacros?.macros
-      if (!mac) continue
-      kcal += mac.kcal ?? 0
-      proteines += mac.proteines_g ?? 0
-      glucides += mac.glucides_g ?? 0
-      lipides += mac.lipides_g ?? 0
-      fibres += mac.fibres_g ?? 0
-      count++
-    }
-    return count > 0
-      ? { kcal: Math.round(kcal), proteines: Math.round(proteines), glucides: Math.round(glucides), lipides: Math.round(lipides), fibres: Math.round(fibres), count }
-      : null
-  }, [meals])
-
-  if (!totals) return null
-  return (
-    <div className="px-3 py-2.5 rounded-lg border" style={{ backgroundColor: TL, borderColor: namiPalette.teal[200] }}>
-      <p className="text-[10px] font-semibold mb-1.5" style={{ color: namiPalette.teal[700] }}>
-        Total ingesta validés ({totals.count} repas)
-      </p>
-      <div className="flex gap-4 flex-wrap text-xs">
-        {[
-          { label: "kcal",  val: String(totals.kcal),        color: namiPalette.slate[700] },
-          { label: "Prot.", val: `${totals.proteines}g`,     color: MACRO_COLORS.protein  },
-          { label: "Glu.",  val: `${totals.glucides}g`,      color: MACRO_COLORS.carbs    },
-          { label: "Lip.",  val: `${totals.lipides}g`,       color: MACRO_COLORS.fat      },
-          ...(totals.fibres > 0 ? [{ label: "Fibres", val: `${totals.fibres}g`, color: MACRO_COLORS.fiber }] : []),
-        ].map(({ label, val, color }) => (
-          <div key={label} className="text-center">
-            <p className="font-bold" style={{ color }}>{val}</p>
-            <p className="text-[9px]" style={{ color: namiPalette.teal[600] }}>{label}</p>
-          </div>
-        ))}
-      </div>
-      <p className="text-[9px] mt-1.5" style={{ color: namiPalette.teal[600] }}>Brouillon IA — validé par le soignant</p>
-    </div>
-  )
-}
-
-function MoodWeek({ entries }: { entries: JournalEntry[] }) {
-  const days: Array<{ label: string; emoji: string }> = []
-  for (let i = 6; i >= 0; i--) {
-    const d = subDays(new Date(), i)
-    const mood = entries.find(e => isSameDay(parseISO(e.occurredAt), d) && !!(e.payload as Record<string, unknown>).mood)
-    const key = mood ? String((mood.payload as Record<string, unknown>).mood) : ""
-    days.push({ label: format(d, "EEE", { locale: fr }), emoji: MOOD_EMOJI[key] ?? "·" })
-  }
-
-  const dominant = entries
-    .filter(e => !!(e.payload as Record<string, unknown>).mood)
-    .reduce((acc, e) => {
-      const m = String((e.payload as Record<string, unknown>).mood)
-      acc[m] = (acc[m] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-  const topMood = Object.entries(dominant).sort((a, b) => b[1] - a[1])[0]
-
-  return (
-    <div>
-      <p className="text-[10px] font-medium text-gray-400 mb-2 uppercase tracking-wider">Météo 7 jours</p>
-      <div className="flex justify-between mb-2">
-        {days.map((d, i) => (
-          <div key={i} className="text-center">
-            <p className="text-lg">{d.emoji}</p>
-            <p className="text-[9px] text-gray-400">{d.label}</p>
-          </div>
-        ))}
-      </div>
-      {topMood && (
-        <p className="text-[10px] text-gray-400">Dominante : {MOOD_LABELS[topMood[0]] ?? topMood[0]}</p>
+        </>
       )}
     </div>
   )
 }
 
-function EnergyChart({ entries }: { entries: JournalEntry[] }) {
-  const data = entries
-    .filter(e => (e.payload as Record<string, unknown>).energy != null)
-    .map(e => ({
-      date: format(parseISO(e.occurredAt), "d/MM"),
-      energy: Number((e.payload as Record<string, unknown>).energy),
-    }))
-    .reverse().slice(-14)
+function OverviewActivity({ weekDays, weekEntries, anorexiaSurveillance }: {
+  weekDays: Date[]; weekEntries: JournalEntry[]; anorexiaSurveillance: boolean
+}) {
+  const activities = weekEntries.filter(e => e.entryType === "PHYSICAL_ACTIVITY")
 
-  if (data.length < 2) return null
+  const dayData = weekDays.map(d => {
+    const dayActs = activities.filter(a => isSameDay(parseISO(a.occurredAt), d))
+    const totalMin = dayActs.reduce((s, a) => {
+      const p = a.payload as Record<string, unknown>
+      return s + (Number(p.durationMinutes ?? p.duration ?? 0))
+    }, 0)
+    const pleasures = dayActs
+      .map(a => Number((a.payload as Record<string, unknown>).pleasure ?? 0))
+      .filter(p => p > 0)
+    const avgPleasure = pleasures.length > 0
+      ? Math.round(pleasures.reduce((a, b) => a + b, 0) / pleasures.length)
+      : 0
+    return { totalMin, avgPleasure }
+  })
+
+  const totalMin = dayData.reduce((s, d) => s + d.totalMin, 0)
+  const maxMin   = Math.max(...dayData.map(d => d.totalMin), 1)
+  const allPleasures = dayData.filter(d => d.avgPleasure > 0).map(d => d.avgPleasure)
+  const avgPleasure  = allPleasures.length > 0
+    ? Math.round(allPleasures.reduce((a, b) => a + b, 0) / allPleasures.length * 10) / 10
+    : null
+
+  const isWarning = anorexiaSurveillance &&
+    (totalMin > 420 || (avgPleasure != null && avgPleasure < 3 && totalMin > 60))
+
   return (
-    <div>
-      <p className="text-[10px] font-medium text-gray-400 mb-1 uppercase tracking-wider">Courbe d&apos;énergie</p>
-      <div className="h-[100px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <XAxis dataKey="date" tick={{ fontSize: 9 }} />
-            <YAxis domain={[0, 100]} hide />
-            <Tooltip contentStyle={{ fontSize: 11 }} />
-            <Line type="monotone" dataKey="energy" stroke={V} strokeWidth={2} dot={{ r: 3 }} />
-          </LineChart>
-        </ResponsiveContainer>
+    <div className="bg-white rounded-xl border border-slate-200 p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: `linear-gradient(90deg, ${namiPalette.teal[400]}, ${namiPalette.teal[600]})` }} />
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">
+        Activité physique
+      </p>
+      <div className="flex items-baseline gap-1.5">
+        <span className={`text-2xl font-bold ${isWarning ? "text-amber-600" : ""}`}
+          style={!isWarning ? { color: namiPalette.slate[700] } : undefined}>
+          {totalMin}
+        </span>
+        <span className="text-xs text-slate-500">min cette semaine</span>
       </div>
+      {/* Bargramme durée (ardoise) + plaisir (teal) empilés */}
+      <div className="flex items-end gap-1 h-14 mt-3 mb-1.5">
+        {dayData.map((d, i) => {
+          const totalH = Math.round((d.totalMin / maxMin) * 48)
+          const pleasureH = d.avgPleasure > 0 ? Math.round((d.avgPleasure / 10) * totalH) : 0
+          const durationH = totalH - pleasureH
+          return (
+            <div key={i} className="flex-1 flex flex-col items-stretch justify-end" style={{ height: "100%" }}>
+              <div style={{ flex: 1 }} />
+              {durationH > 0 && (
+                <div style={{ height: `${durationH}px`, backgroundColor: namiPalette.slate[300] }} />
+              )}
+              {pleasureH > 0 && (
+                <div style={{ height: `${pleasureH}px`, backgroundColor: T, borderRadius: "3px 3px 0 0" }} />
+              )}
+              {totalH === 0 && (
+                <div style={{ height: "2px", backgroundColor: namiPalette.slate[200] }} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {/* Labels jours */}
+      <div className="flex justify-between">
+        {weekDays.map((d, i) => {
+          const rawDay = format(d, "EEE", { locale: fr })
+          return (
+            <div key={i} className="flex-1 text-center">
+              <span className="text-[9px] text-slate-400 font-medium">
+                {rawDay.charAt(0).toUpperCase() + rawDay.slice(1, 3)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      {/* Légende */}
+      <div className="flex gap-3 mt-2">
+        <span className="flex items-center gap-1 text-[10px] text-slate-500">
+          <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: T }} /> Plaisir
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-slate-500">
+          <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: namiPalette.slate[300] }} /> Durée
+        </span>
+      </div>
+      {avgPleasure != null && (
+        <div className="mt-2 pt-2 border-t border-slate-100">
+          <p className={`text-[11px] ${isWarning ? "text-amber-600 font-medium" : "text-slate-500"}`}>
+            {isWarning ? "⚠ " : ""}
+            Plaisir moy. {avgPleasure}/10
+            {isWarning && " — à évaluer"}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
