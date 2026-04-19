@@ -42,6 +42,13 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, accessToken: null, refreshToken: null });
       },
     }),
-    { name: "nami-auth" }
+    {
+      name: "nami-auth",
+      // Re-sync le cookie après réhydratation depuis localStorage
+      // (le cookie n'est posé qu'au login, pas au rechargement de page)
+      onRehydrateStorage: () => (state) => {
+        if (state?.accessToken) syncCookie(state.accessToken);
+      },
+    }
   )
 );
