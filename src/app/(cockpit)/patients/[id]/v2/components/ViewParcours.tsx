@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, apiWithToken } from "@/lib/api";
+import { apiWithToken, type PathwayNode, type PathwayNodeStatus, type PathwayTemplateStep } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
@@ -10,27 +10,12 @@ import { groupByFamily, getFamilyLabel } from "@/lib/pathwayFamilyLabels";
 import { toast } from "sonner";
 import {
   Route, CheckCircle2, Circle, ChevronDown, ChevronUp,
-  ClipboardList, PenLine, Zap, Flame, Users, CalendarClock,
-  Loader2, Activity, AlertTriangle, Clock, Search, Plus,
+  Users, CalendarClock, Loader2, Activity, AlertTriangle,
+  Clock, Search, Plus, Stethoscope, FlaskConical, FileText,
+  ClipboardList, Pill, BarChart3, Zap, Play,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Exercise {
-  id: string;
-  title: string;
-  type: "questionnaire" | "free_text" | "action" | "streak" | string;
-  code?: string;
-  trigger?: string;
-  target?: number;
-}
-
-interface Phase {
-  key: string;
-  label: string;
-  order: number;
-  exercises?: Exercise[];
-}
 
 interface TeamMember {
   firstName: string;
@@ -49,7 +34,7 @@ interface PatientConfig {
   pathway: {
     name: string;
     family: string;
-    phases: Phase[];
+    phases: unknown[];
     currentPhase: string | null;
     dayInPathway: number;
     startedAt: string;
@@ -58,72 +43,85 @@ interface PatientConfig {
   nextAppointment: NextAppointment | null;
 }
 
-interface LatestObs {
-  metricKey: string;
-  label: string;
-  value: number | string | boolean | null;
-  unit: string | null;
-  normalMin: number | null;
-  normalMax: number | null;
-  effectiveAt: string;
-}
+// ─── Act type helpers ─────────────────────────────────────────────────────────
 
-interface ObservationsLatestResponse {
-  latest: Record<string, LatestObs[]>;
-  total: number;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function resolveActiveIndex(phases: Phase[], currentPhase: string | null): number {
-  if (!currentPhase) return 0;
-  let idx = phases.findIndex((p) => p.key === currentPhase);
-  if (idx >= 0) return idx;
-  idx = phases.findIndex((p) => p.label === currentPhase);
-  if (idx >= 0) return idx;
-  const lower = currentPhase.toLowerCase();
-  idx = phases.findIndex(
-    (p) =>
-      p.label.toLowerCase().includes(lower) ||
-      lower.includes(p.label.toLowerCase())
-  );
-  return idx >= 0 ? idx : 0;
-}
-
-const EXERCISE_ICONS: Record<string, React.ReactNode> = {
-  questionnaire: <ClipboardList size={12} className="text-indigo-500 shrink-0" />,
-  free_text:     <PenLine       size={12} className="text-sky-500 shrink-0" />,
-  action:        <Zap           size={12} className="text-amber-500 shrink-0" />,
-  streak:        <Flame         size={12} className="text-orange-500 shrink-0" />,
+const ACT_ICONS: Record<string, React.ReactNode> = {
+  CONSULTATION: <Stethoscope size={11} className="shrink-0" />,
+  BILAN:        <FlaskConical size={11} className="shrink-0" />,
+  QUESTIONNAIRE: <ClipboardList size={11} className="shrink-0" />,
+  PRESCRIPTION: <Pill size={11} className="shrink-0" />,
+  SUIVI:        <BarChart3 size={11} className="shrink-0" />,
+  DOCUMENT:     <FileText size={11} className="shrink-0" />,
 };
 
-function ExerciseIcon({ type }: { type: string }) {
-  return <>{EXERCISE_ICONS[type] ?? <Circle size={12} className="text-neutral-400 shrink-0" />}</>;
+const ACT_COLORS: Record<string, string> = {
+  CONSULTATION: "bg-indigo-50 text-indigo-600 border-indigo-100",
+  BILAN:        "bg-blue-50 text-blue-600 border-blue-100",
+  QUESTIONNAIRE: "bg-purple-50 text-purple-600 border-purple-100",
+  PRESCRIPTION: "bg-emerald-50 text-emerald-600 border-emerald-100",
+  SUIVI:        "bg-teal-50 text-teal-600 border-teal-100",
+  DOCUMENT:     "bg-neutral-100 text-neutral-500 border-neutral-200",
+};
+
+function ActBadge({ type }: { type: string }) {
+  const icon = ACT_ICONS[type] ?? <Zap size={11} className="shrink-0" />;
+  const cls = ACT_COLORS[type] ?? "bg-neutral-100 text-neutral-500 border-neutral-200";
+  return (
+    <span className={`inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${cls}`}>
+      {icon}
+      {type}
+    </span>
+  );
 }
+
+// ─── Node status config ───────────────────────────────────────────────────────
+
+const NODE_STATUS_CFG: Record<PathwayNodeStatus, { label: string; cls: string; icon: React.ReactNode }> = {
+  FUTURE:     { label: "À venir",    cls: "bg-neutral-50 text-neutral-400 border-neutral-200",  icon: <Circle size={13} className="text-neutral-300 shrink-0" /> },
+  APPROACHING:{ label: "Bientôt",    cls: "bg-amber-50 text-amber-600 border-amber-200",         icon: <Clock size={13} className="text-amber-400 shrink-0" /> },
+  IN_WINDOW:  { label: "En cours",   cls: "bg-blue-50 text-blue-600 border-blue-200",            icon: <div className="w-3 h-3 rounded-full bg-blue-400 ring-2 ring-blue-200 shrink-0" /> },
+  OVERDUE:    { label: "En retard",  cls: "bg-red-50 text-red-600 border-red-200",               icon: <AlertTriangle size={13} className="text-red-400 shrink-0" /> },
+  COMPLETED:  { label: "Réalisé",    cls: "bg-teal-50 text-teal-600 border-teal-100",            icon: <CheckCircle2 size={13} className="text-teal-500 shrink-0" /> },
+  SKIPPED:    { label: "Ignoré",     cls: "bg-neutral-50 text-neutral-400 border-neutral-200",   icon: <Circle size={13} className="text-neutral-200 shrink-0" /> },
+};
 
 // ─── ViewParcours ─────────────────────────────────────────────────────────────
 
 export function ViewParcours({ careCaseId }: { careCaseId: string }) {
-  const { data, isLoading } = useQuery<PatientConfig>({
+  const { accessToken } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+
+  // Patient config (team, nextAppointment, pathway header)
+  const { data: config, isLoading: configLoading } = useQuery<PatientConfig>({
     queryKey: ["patient-config", careCaseId],
     queryFn: async () => {
-      const res = await api.get<PatientConfig>(`/care-cases/${careCaseId}/patient-config`);
-      return res.data;
+      const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+      const res = await fetch(`${API_URL}/care-cases/${careCaseId}/patient-config`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) throw new Error("patient-config failed");
+      return res.json() as Promise<PatientConfig>;
     },
     staleTime: 60_000,
   });
 
-  const { data: obsData } = useQuery<ObservationsLatestResponse>({
-    queryKey: ["observations-latest", careCaseId],
-    queryFn: async () => {
-      const res = await api.get<ObservationsLatestResponse>(
-        `/care-cases/${careCaseId}/observations/latest`
-      );
-      return res.data;
-    },
-    staleTime: 60_000,
-    enabled: !!data?.pathway,
+  // Pathway graph (CIE nodes — instantiated)
+  const { data: graphData, isLoading: graphLoading } = useQuery({
+    queryKey: ["pathway-graph", careCaseId],
+    queryFn: () => api.careCases.pathwayGraph(careCaseId).catch(() => null),
+    staleTime: 30_000,
   });
+
+  // Template steps fallback (when no nodes instantiated)
+  const hasNodes = (graphData?.nodes?.length ?? 0) > 0;
+  const { data: templateData, isLoading: templateLoading } = useQuery({
+    queryKey: ["pathway-template-steps", careCaseId],
+    queryFn: () => api.careCases.pathwayTemplateSteps(careCaseId),
+    staleTime: 300_000,
+    enabled: !graphLoading && !hasNodes,
+  });
+
+  const isLoading = configLoading || graphLoading;
 
   if (isLoading) {
     return (
@@ -135,261 +133,43 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
     );
   }
 
-  if (!data?.pathway) {
+  if (!config?.pathway && !graphData?.pathway && !templateData?.pathway) {
     return <EmptyState careCaseId={careCaseId} />;
   }
 
-  // Flatten all latest obs into a single map: metricKey → LatestObs
-  const obsMap = new Map<string, LatestObs>();
-  if (obsData?.latest) {
-    for (const domain of Object.values(obsData.latest)) {
-      for (const obs of domain) {
-        obsMap.set(obs.metricKey, obs);
-      }
-    }
-  }
-
-  return (
-    <PathwayView
-      careCaseId={careCaseId}
-      pathway={data.pathway}
-      team={data.team}
-      nextAppointment={data.nextAppointment}
-      obsMap={obsMap}
-    />
-  );
-}
-
-// ─── PathwayView ──────────────────────────────────────────────────────────────
-
-function PathwayView({
-  careCaseId,
-  pathway,
-  team,
-  nextAppointment,
-  obsMap,
-}: {
-  careCaseId: string;
-  pathway: NonNullable<PatientConfig["pathway"]>;
-  team: TeamMember[];
-  nextAppointment: NextAppointment | null;
-  obsMap: Map<string, LatestObs>;
-}) {
-  const [showChangePanel, setShowChangePanel] = useState(false);
-  const { name, phases, currentPhase, dayInPathway, startedAt } = pathway;
-  const activeIndex = resolveActiveIndex(phases, currentPhase);
-  const completionPercent =
-    phases.length > 0
-      ? Math.round((activeIndex / phases.length) * 100)
-      : 0;
-
-  // Section C — collecter les métriques mesurées (bio + vital)
-  const trackedMetrics: LatestObs[] = Array.from(obsMap.values()).filter(
-    (o) => o.value !== null && o.value !== undefined
-  );
-
-  // Section D — extraire les questionnaires uniques des phases
-  const questionnairesMap = new Map<string, Exercise>();
-  for (const phase of phases) {
-    for (const ex of (phase.exercises ?? [])) {
-      if (ex.type === "questionnaire" && !questionnairesMap.has(ex.title)) {
-        questionnairesMap.set(ex.title, ex);
-      }
-    }
-  }
-  const questionnaires = Array.from(questionnairesMap.values());
+  const pathway = graphData?.pathway ?? templateData?.pathway ?? null;
+  const pathwayName = pathway?.label ?? config?.pathway?.name ?? "Parcours de soins";
+  const startedAt = config?.pathway?.startedAt ?? graphData?.pathwayStartedAt ?? null;
+  const dayInPathway = config?.pathway?.dayInPathway ?? 0;
 
   return (
     <div className="space-y-5 max-w-3xl">
+      {/* ─── Header ─── */}
+      <PathwayHeader
+        careCaseId={careCaseId}
+        name={pathwayName}
+        startedAt={startedAt}
+        dayInPathway={dayInPathway}
+        summary={graphData?.summary ?? null}
+        hasNodes={hasNodes}
+        totalSteps={templateData?.steps.length ?? 0}
+      />
 
-      {/* ─── A. HEADER ─────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
-              <Route size={18} className="text-teal-600" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-neutral-800 leading-tight">{name}</h2>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Démarré le {formatDate(startedAt)}
-                {dayInPathway >= 0 && ` · J+${dayInPathway}`}
-                {" · "}Phase {activeIndex + 1} / {phases.length}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowChangePanel(!showChangePanel)}
-              className="text-[10px] font-medium px-2 py-1 rounded-lg border border-neutral-200 text-neutral-500 hover:border-teal-300 hover:text-teal-600 transition-colors"
-            >
-              Modifier
-            </button>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-100">
-              {completionPercent}% accompli
-            </span>
-          </div>
-        </div>
-
-        {/* Panel de changement de parcours */}
-        {showChangePanel && (
-          <div className="mt-4 pt-4 border-t border-neutral-100">
-            <PathwayAssignPanel careCaseId={careCaseId} onClose={() => setShowChangePanel(false)} />
-          </div>
-        )}
-
-        {/* Barre de progression */}
-        <div className="mt-4">
-          <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-teal-500 rounded-full transition-all duration-500"
-              style={{ width: `${completionPercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5">
-            {phases.map((ph, i) => (
-              <span
-                key={ph.key}
-                className={`text-[9px] font-medium ${
-                  i === activeIndex
-                    ? "text-teal-600"
-                    : i < activeIndex
-                    ? "text-neutral-400"
-                    : "text-neutral-300"
-                }`}
-              >
-                {ph.label.split(" ")[0]}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── B. PHASES ─────────────────────────────────────── */}
-      <div className="space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 px-1">
-          Phases du parcours
-        </p>
-        {phases.map((phase, idx) => (
-          <PhaseCard
-            key={phase.key}
-            phase={phase}
-            status={
-              idx < activeIndex
-                ? "COMPLETED"
-                : idx === activeIndex
-                ? "ACTIVE"
-                : "UPCOMING"
-            }
-            defaultOpen={idx === activeIndex}
-          />
-        ))}
-      </div>
-
-      {/* ─── C. MÉTRIQUES SURVEILLÉES ──────────────────────── */}
-      {trackedMetrics.length > 0 && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity size={13} className="text-neutral-400" />
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-              Métriques surveillées ({trackedMetrics.length})
-            </p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {trackedMetrics.slice(0, 12).map((obs) => {
-              const val =
-                typeof obs.value === "number"
-                  ? obs.value
-                  : null;
-              const isLow =
-                val !== null && obs.normalMin !== null && val < obs.normalMin;
-              const isHigh =
-                val !== null && obs.normalMax !== null && val > obs.normalMax;
-              const isAbnormal = isLow || isHigh;
-
-              return (
-                <div
-                  key={obs.metricKey}
-                  className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border ${
-                    isAbnormal
-                      ? "bg-amber-50 border-amber-100"
-                      : "bg-neutral-50 border-neutral-100"
-                  }`}
-                >
-                  {isAbnormal ? (
-                    <AlertTriangle size={12} className="text-amber-500 shrink-0" />
-                  ) : (
-                    <CheckCircle2 size={12} className="text-teal-500 shrink-0" />
-                  )}
-                  <div className="min-w-0">
-                    <p
-                      className={`text-[10px] font-medium truncate ${
-                        isAbnormal ? "text-amber-700" : "text-neutral-700"
-                      }`}
-                    >
-                      {obs.label}
-                    </p>
-                    <p
-                      className={`text-[10px] ${
-                        isAbnormal ? "text-amber-600" : "text-neutral-500"
-                      }`}
-                    >
-                      {val !== null
-                        ? `${Number.isInteger(val) ? val : val.toFixed(1)} ${obs.unit ?? ""}`
-                        : obs.value !== null
-                        ? String(obs.value)
-                        : "—"}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {trackedMetrics.length > 12 && (
-            <p className="text-[10px] text-neutral-400 mt-2 text-center">
-              + {trackedMetrics.length - 12} autre{trackedMetrics.length - 12 > 1 ? "s" : ""}
-            </p>
-          )}
-        </div>
+      {/* ─── Steps ─── */}
+      {hasNodes ? (
+        <CIEStepsSection nodes={graphData!.nodes} />
+      ) : (
+        <TemplateStepsSection
+          steps={templateData?.steps ?? []}
+          loading={templateLoading}
+          careCaseId={careCaseId}
+        />
       )}
 
-      {/* ─── D. QUESTIONNAIRES ─────────────────────────────── */}
-      {questionnaires.length > 0 && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <ClipboardList size={13} className="text-neutral-400" />
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-              Questionnaires ({questionnaires.length})
-            </p>
-          </div>
-          <div className="space-y-1.5">
-            {questionnaires.map((q) => (
-              <div
-                key={q.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-neutral-50 border border-neutral-100"
-              >
-                <Clock size={12} className="text-neutral-400 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-neutral-700 truncate">
-                    {q.title}
-                  </p>
-                  {q.code && (
-                    <span className="inline-block mt-0.5 text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-500 uppercase">
-                      {q.code}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ─── ÉQUIPE + PROCHAIN RDV ─────────────────────────── */}
-      {(team.length > 0 || nextAppointment) && (
+      {/* ─── Équipe + RDV ─── */}
+      {(config?.team?.length || config?.nextAppointment) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {team.length > 0 && (
+          {(config.team?.length ?? 0) > 0 && (
             <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Users size={13} className="text-neutral-400" />
@@ -398,11 +178,10 @@ function PathwayView({
                 </p>
               </div>
               <div className="space-y-2">
-                {team.map((m, i) => (
+                {config.team.map((m, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-indigo-50 flex items-center justify-center text-[10px] font-semibold text-indigo-600 shrink-0">
-                      {m.firstName[0]}
-                      {m.lastName[0]}
+                      {m.firstName[0]}{m.lastName[0]}
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-neutral-700 truncate">
@@ -417,8 +196,7 @@ function PathwayView({
               </div>
             </div>
           )}
-
-          {nextAppointment && (
+          {config?.nextAppointment && (
             <div className="bg-white rounded-2xl border border-neutral-100 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <CalendarClock size={13} className="text-neutral-400" />
@@ -427,22 +205,18 @@ function PathwayView({
                 </p>
               </div>
               <p className="text-sm font-semibold text-neutral-800">
-                {new Date(nextAppointment.date).toLocaleDateString("fr-FR", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
+                {new Date(config.nextAppointment.date).toLocaleDateString("fr-FR", {
+                  weekday: "long", day: "numeric", month: "long",
                 })}
               </p>
               <p className="text-xs text-neutral-500 mt-0.5">
-                {new Date(nextAppointment.date).toLocaleTimeString("fr-FR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
+                {new Date(config.nextAppointment.date).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit", minute: "2-digit",
                 })}
-                {" · "}
-                {nextAppointment.provider}
+                {" · "}{config.nextAppointment.provider}
               </p>
               <p className="text-[10px] text-neutral-400 mt-0.5">
-                {nextAppointment.type}
+                {config.nextAppointment.type}
               </p>
             </div>
           )}
@@ -452,57 +226,153 @@ function PathwayView({
   );
 }
 
-// ─── PhaseCard ────────────────────────────────────────────────────────────────
+// ─── PathwayHeader ────────────────────────────────────────────────────────────
 
-type PhaseStatus = "COMPLETED" | "ACTIVE" | "UPCOMING";
-
-const STATUS_CONFIG: Record<
-  PhaseStatus,
-  { icon: React.ReactNode; border: string; bg: string; label: string; labelCls: string }
-> = {
-  COMPLETED: {
-    icon: <CheckCircle2 size={16} className="text-teal-500 shrink-0" />,
-    border: "border-teal-100",
-    bg: "bg-white",
-    label: "Terminée",
-    labelCls: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  ACTIVE: {
-    icon: (
-      <div className="w-4 h-4 rounded-full bg-amber-400 ring-2 ring-amber-200 shrink-0" />
-    ),
-    border: "border-amber-200",
-    bg: "bg-amber-50/30",
-    label: "En cours",
-    labelCls: "bg-amber-50 text-amber-600 border-amber-200",
-  },
-  UPCOMING: {
-    icon: (
-      <div className="w-4 h-4 rounded-full border-2 border-neutral-200 shrink-0" />
-    ),
-    border: "border-neutral-100",
-    bg: "bg-white",
-    label: "À venir",
-    labelCls: "bg-neutral-50 text-neutral-400 border-neutral-200",
-  },
-};
-
-function PhaseCard({
-  phase,
-  status,
-  defaultOpen,
+function PathwayHeader({
+  careCaseId,
+  name,
+  startedAt,
+  dayInPathway,
+  summary,
+  hasNodes,
+  totalSteps,
 }: {
-  phase: Phase;
-  status: PhaseStatus;
-  defaultOpen: boolean;
+  careCaseId: string;
+  name: string;
+  startedAt: string | null;
+  dayInPathway: number;
+  summary: { total: number; completed: number; overdue: number; inWindow: number; skipped: number; pending: number } | null;
+  hasNodes: boolean;
+  totalSteps: number;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
-  const cfg = STATUS_CONFIG[status];
+  const [showChangePanel, setShowChangePanel] = useState(false);
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
+
+  const instantiate = useMutation({
+    mutationFn: () => apiWithToken(accessToken!).careCases.instantiatePathway(careCaseId),
+    onSuccess: (res) => {
+      toast.success(`Parcours instancié — ${res.nodesCreated} étapes créées`);
+      qc.invalidateQueries({ queryKey: ["pathway-graph", careCaseId] });
+    },
+    onError: (err: Error) => toast.error(err.message ?? "Erreur lors de l'instanciation"),
+  });
+
+  const completionPercent = summary
+    ? Math.round((summary.completed / Math.max(summary.total, 1)) * 100)
+    : 0;
 
   return (
-    <div
-      className={`rounded-xl border ${cfg.border} ${cfg.bg} overflow-hidden shadow-sm`}
-    >
+    <div className="bg-white rounded-2xl border border-neutral-100 p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
+            <Route size={18} className="text-teal-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-neutral-800 leading-tight">{name}</h2>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              {startedAt ? <>Démarré le {formatDate(startedAt)}{dayInPathway >= 0 && ` · J+${dayInPathway}`}</> : "Parcours non démarré"}
+              {summary && ` · ${summary.completed}/${summary.total} étapes`}
+              {!hasNodes && totalSteps > 0 && ` · ${totalSteps} étapes planifiées`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+          {!hasNodes && (
+            <button
+              type="button"
+              onClick={() => instantiate.mutate()}
+              disabled={instantiate.isPending}
+              className="flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-50"
+            >
+              {instantiate.isPending ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
+              Démarrer
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowChangePanel(!showChangePanel)}
+            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-neutral-200 text-neutral-500 hover:border-teal-300 hover:text-teal-600 transition-colors"
+          >
+            Modifier
+          </button>
+          {hasNodes && summary && (
+            <span className={cn(
+              "text-xs font-medium px-2 py-0.5 rounded-full border",
+              summary.overdue > 0
+                ? "bg-red-50 text-red-600 border-red-100"
+                : "bg-teal-50 text-teal-600 border-teal-100"
+            )}>
+              {summary.overdue > 0 ? `${summary.overdue} en retard` : `${completionPercent}% accompli`}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {showChangePanel && (
+        <div className="mt-4 pt-4 border-t border-neutral-100">
+          <PathwayAssignPanel careCaseId={careCaseId} onClose={() => setShowChangePanel(false)} />
+        </div>
+      )}
+
+      {hasNodes && summary && (
+        <div className="mt-4">
+          <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-teal-500 rounded-full transition-all duration-500"
+              style={{ width: `${completionPercent}%` }}
+            />
+          </div>
+          <div className="flex items-center gap-3 mt-2 text-[10px] text-neutral-400">
+            <span className="flex items-center gap-1"><CheckCircle2 size={10} className="text-teal-500" /> {summary.completed} réalisés</span>
+            {summary.overdue > 0 && <span className="flex items-center gap-1"><AlertTriangle size={10} className="text-red-400" /> {summary.overdue} en retard</span>}
+            {summary.inWindow > 0 && <span className="flex items-center gap-1"><Activity size={10} className="text-blue-400" /> {summary.inWindow} en cours</span>}
+            <span>{summary.pending} à venir</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CIE Nodes — groupés par phaseLabel ───────────────────────────────────────
+
+function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
+  // Group by phaseLabel
+  const phases: { label: string; nodes: PathwayNode[] }[] = [];
+  const seen = new Map<string, PathwayNode[]>();
+  for (const node of nodes) {
+    const key = node.phaseLabel ?? "Sans phase";
+    if (!seen.has(key)) { seen.set(key, []); phases.push({ label: key, nodes: seen.get(key)! }); }
+    seen.get(key)!.push(node);
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 px-1">
+        Étapes cliniques ({nodes.length})
+      </p>
+      {phases.map((phase) => (
+        <CIEPhaseGroup key={phase.label} label={phase.label} nodes={phase.nodes} />
+      ))}
+    </div>
+  );
+}
+
+function CIEPhaseGroup({ label, nodes }: { label: string; nodes: PathwayNode[] }) {
+  const completed = nodes.filter(n => n.status === "COMPLETED").length;
+  const overdue = nodes.filter(n => n.status === "OVERDUE").length;
+  const [open, setOpen] = useState(true);
+
+  const phaseStatus: PathwayNodeStatus = overdue > 0 ? "OVERDUE"
+    : completed === nodes.length ? "COMPLETED"
+    : nodes.some(n => n.status === "IN_WINDOW" || n.status === "APPROACHING") ? "IN_WINDOW"
+    : "FUTURE";
+  const cfg = NODE_STATUS_CFG[phaseStatus];
+
+  return (
+    <div className={`rounded-xl border ${overdue > 0 ? "border-red-100" : completed === nodes.length ? "border-teal-100" : "border-neutral-100"} bg-white overflow-hidden shadow-sm`}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-3 px-4 py-3 text-left"
@@ -510,71 +380,182 @@ function PhaseCard({
         {cfg.icon}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${cfg.labelCls}`}
-            >
-              Phase {phase.order}
-            </span>
-            <span className="text-sm font-medium text-neutral-700">
-              {phase.label}
-            </span>
+            <span className="text-sm font-medium text-neutral-700">{label}</span>
           </div>
-          {(phase.exercises ?? []).length > 0 && (
-            <p className="text-[10px] text-neutral-400 mt-0.5">
-              {(phase.exercises ?? []).length} activité
-              {(phase.exercises ?? []).length > 1 ? "s" : ""}
-            </p>
-          )}
+          <p className="text-[10px] text-neutral-400 mt-0.5">
+            {completed}/{nodes.length} étape{nodes.length > 1 ? "s" : ""}
+            {overdue > 0 && <span className="ml-2 text-red-500 font-medium">· {overdue} en retard</span>}
+          </p>
         </div>
-        <span
-          className={`text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.labelCls} shrink-0 hidden sm:inline-block`}
-        >
+        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls} shrink-0`}>
           {cfg.label}
         </span>
-        {open ? (
-          <ChevronUp size={14} className="text-neutral-400 shrink-0" />
-        ) : (
-          <ChevronDown size={14} className="text-neutral-400 shrink-0" />
-        )}
+        {open ? <ChevronUp size={14} className="text-neutral-400 shrink-0" /> : <ChevronDown size={14} className="text-neutral-400 shrink-0" />}
       </button>
 
-      {open && (phase.exercises ?? []).length > 0 && (
-        <div className="px-4 pb-4 pt-1 border-t border-neutral-100">
-          <div className="space-y-2">
-            {(phase.exercises ?? []).map((ex) => (
+      {open && (
+        <div className="px-3 pb-3 pt-0 border-t border-neutral-100">
+          <div className="space-y-1.5 pt-2">
+            {nodes.map((node) => <CIENodeRow key={node.id} node={node} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CIENodeRow({ node }: { node: PathwayNode }) {
+  const cfg = NODE_STATUS_CFG[node.status] ?? NODE_STATUS_CFG.FUTURE;
+  return (
+    <div className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg border ${
+      node.status === "OVERDUE" ? "bg-red-50/50 border-red-100"
+      : node.status === "COMPLETED" ? "bg-teal-50/30 border-teal-100"
+      : node.status === "IN_WINDOW" ? "bg-blue-50/30 border-blue-100"
+      : "bg-neutral-50 border-neutral-100"
+    }`}>
+      <div className="mt-0.5">{cfg.icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <p className={`text-xs font-medium leading-snug ${node.status === "SKIPPED" ? "line-through text-neutral-400" : "text-neutral-700"}`}>
+            {node.actLabel}
+            {node.isRequired && <span className="ml-1 text-[9px] text-red-400">*</span>}
+          </p>
+          <span className={`shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls}`}>
+            {cfg.label}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <ActBadge type={node.clinicalActType} />
+          {node.specialty && (
+            <span className="text-[10px] text-neutral-400">{node.specialty}</span>
+          )}
+          {node.status === "OVERDUE" && node.daysOverdue !== null && (
+            <span className="text-[10px] font-medium text-red-500">{node.daysOverdue}j de retard</span>
+          )}
+          {node.status === "COMPLETED" && node.realizedDate && (
+            <span className="text-[10px] text-teal-600">{formatDate(node.realizedDate)}</span>
+          )}
+          {node.expectedDate && node.status !== "COMPLETED" && (
+            <span className="text-[10px] text-neutral-400">Prévu {formatDate(node.expectedDate)}</span>
+          )}
+        </div>
+        {node.ProviderProfile && (
+          <p className="text-[10px] text-indigo-500 mt-0.5">
+            {node.ProviderProfile.person.firstName} {node.ProviderProfile.person.lastName}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Template Steps — blueprint statique ─────────────────────────────────────
+
+function TemplateStepsSection({
+  steps,
+  loading,
+  careCaseId,
+}: {
+  steps: PathwayTemplateStep[];
+  loading: boolean;
+  careCaseId: string;
+}) {
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-neutral-100 rounded-xl animate-pulse" />)}
+      </div>
+    );
+  }
+
+  if (steps.length === 0) {
+    return (
+      <div className="bg-neutral-50 rounded-2xl border border-neutral-100 p-6 text-center">
+        <p className="text-sm text-neutral-500">Aucune étape définie pour ce parcours.</p>
+      </div>
+    );
+  }
+
+  // Group by phaseLabel
+  const phases: { label: string; steps: PathwayTemplateStep[] }[] = [];
+  const seen = new Map<string, PathwayTemplateStep[]>();
+  for (const step of steps) {
+    const key = step.phaseLabel ?? "Sans phase";
+    if (!seen.has(key)) { seen.set(key, []); phases.push({ label: key, steps: seen.get(key)! }); }
+    seen.get(key)!.push(step);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+          Plan de soins ({steps.length} étapes)
+        </p>
+        <span className="text-[10px] text-neutral-400 italic">
+          Cliquer "Démarrer" pour activer le suivi temps réel
+        </span>
+      </div>
+      {phases.map((phase) => (
+        <TemplatePhaseGroup key={phase.label} label={phase.label} steps={phase.steps} />
+      ))}
+    </div>
+  );
+}
+
+function TemplatePhaseGroup({ label, steps }: { label: string; steps: PathwayTemplateStep[] }) {
+  const [open, setOpen] = useState(true);
+  const required = steps.filter(s => s.isRequired).length;
+
+  return (
+    <div className="rounded-xl border border-neutral-100 bg-white overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+      >
+        <div className="w-3 h-3 rounded-full border-2 border-neutral-200 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium text-neutral-700">{label}</span>
+          <p className="text-[10px] text-neutral-400 mt-0.5">
+            {steps.length} étape{steps.length > 1 ? "s" : ""}
+            {required > 0 && ` · ${required} requise${required > 1 ? "s" : ""}`}
+          </p>
+        </div>
+        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded border bg-neutral-50 text-neutral-400 border-neutral-200 shrink-0">
+          À planifier
+        </span>
+        {open ? <ChevronUp size={14} className="text-neutral-400 shrink-0" /> : <ChevronDown size={14} className="text-neutral-400 shrink-0" />}
+      </button>
+
+      {open && (
+        <div className="px-3 pb-3 pt-0 border-t border-neutral-100">
+          <div className="space-y-1.5 pt-2">
+            {steps.map((step) => (
               <div
-                key={ex.id}
-                className="flex items-start gap-2 py-1.5 px-2 rounded-lg bg-white border border-neutral-50"
+                key={step.id}
+                className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-neutral-50 border border-neutral-100"
               >
-                <div className="mt-0.5">
-                  <ExerciseIcon type={ex.type} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-neutral-700 leading-snug">
-                    {ex.title}
+                <Circle size={13} className="text-neutral-200 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-neutral-700 leading-snug">
+                    {step.actLabel}
+                    {step.isRequired && <span className="ml-1 text-[9px] text-red-400">*</span>}
                   </p>
-                  {ex.target && (
-                    <p className="text-[10px] text-neutral-400 mt-0.5">
-                      Objectif : {ex.target} jours
-                    </p>
-                  )}
-                  {ex.code && (
-                    <span className="inline-block mt-1 text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-500 uppercase">
-                      {ex.code}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <ActBadge type={step.clinicalActType} />
+                    {step.specialty && (
+                      <span className="text-[10px] text-neutral-400">{step.specialty}</span>
+                    )}
+                    {step.expectedDayOffset > 0 && (
+                      <span className="text-[10px] text-neutral-400">J+{step.expectedDayOffset}</span>
+                    )}
+                    {step.sourceRef && (
+                      <span className="text-[9px] font-mono text-neutral-300">{step.sourceRef}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {open && (phase.exercises ?? []).length === 0 && (
-        <div className="px-4 pb-3 pt-1 border-t border-neutral-100">
-          <p className="text-[11px] text-neutral-400 italic">
-            Aucune activité définie pour cette phase.
-          </p>
         </div>
       )}
     </div>
@@ -590,7 +571,7 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
 
   const [search, setSearch] = useState("");
 
-  const { data: pathways = [], isLoading } = useQuery<{ id: string; key: string; label: string; family: string; _count?: { metrics: number } }[]>({
+  const { data: pathways = [], isLoading } = useQuery<{ id: string; key: string; label: string; family: string }[]>({
     queryKey: ["pathways-all-slim"],
     queryFn: () => apiClient.intelligence.pathways(undefined, undefined, true),
     staleTime: 5 * 60 * 1000,
@@ -604,6 +585,8 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
     mutationFn: (pathwayTemplateId: string) => apiClient.careCases.assignPathway(careCaseId, pathwayTemplateId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patient-config", careCaseId] });
+      qc.invalidateQueries({ queryKey: ["pathway-template-steps", careCaseId] });
+      qc.invalidateQueries({ queryKey: ["pathway-graph", careCaseId] });
       toast.success("Parcours assigné");
       onClose?.();
     },
@@ -615,8 +598,6 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
       <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
         Choisir un parcours de soins
       </p>
-
-      {/* Search */}
       <div className="relative">
         <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input
@@ -627,8 +608,6 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
           className="w-full pl-7 pr-3 h-8 text-xs rounded-lg border border-neutral-200 bg-neutral-50 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-teal-400"
         />
       </div>
-
-      {/* List */}
       <div className="space-y-1 max-h-64 overflow-y-auto pr-0.5">
         {isLoading && (
           <div className="flex justify-center py-4">
@@ -638,8 +617,6 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
         {!isLoading && filtered.length === 0 && (
           <p className="text-xs text-neutral-400 text-center py-3 italic">Aucun parcours trouvé</p>
         )}
-
-        {/* Vue groupée par spécialité — quand pas de recherche active */}
         {!isLoading && !search && filtered.length > 0 && (
           groupByFamily(filtered).map(({ family: fam, label: famLabel, items }) => (
             <div key={fam}>
@@ -663,8 +640,6 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
             </div>
           ))
         )}
-
-        {/* Vue plate — quand recherche active */}
         {!isLoading && search && filtered.map((p) => (
           <button
             key={p.key}

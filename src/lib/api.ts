@@ -192,7 +192,74 @@ export const careCasesApi = {
       { method: "PATCH", body: JSON.stringify({ pathwayTemplateId }) },
       token
     ),
+
+  pathwayGraph: (token: string, id: string) =>
+    request<PathwayGraphResponse>(`/care-cases/${id}/pathway/graph`, {}, token),
+
+  pathwayTemplateSteps: (token: string, id: string) =>
+    request<PathwayTemplateStepsResponse>(`/care-cases/${id}/pathway/template-steps`, {}, token),
+
+  instantiatePathway: (token: string, id: string) =>
+    request<{ success: boolean; nodesCreated: number; edgesCreated: number }>(
+      `/care-cases/${id}/pathway/instantiate`,
+      { method: "POST", body: JSON.stringify({}) },
+      token
+    ),
 };
+
+// ─── Pathway types ────────────────────────────────────────────────────────────
+
+export type PathwayNodeStatus =
+  | "FUTURE" | "APPROACHING" | "IN_WINDOW" | "OVERDUE" | "COMPLETED" | "SKIPPED";
+
+export interface PathwayNode {
+  id: string;
+  nodeType: string;
+  status: PathwayNodeStatus;
+  clinicalActType: string;
+  specialty: string | null;
+  actLabel: string;
+  isRequired: boolean;
+  assignedProviderId: string | null;
+  expectedDate: string | null;
+  windowStart: string | null;
+  windowEnd: string | null;
+  realizedDate: string | null;
+  daysOverdue: number | null;
+  daysEarly: number | null;
+  templateStepId: string | null;
+  templateStepIndex: number | null;
+  phaseLabel: string | null;
+  sourceRef: string | null;
+  ProviderProfile: { id: string; specialtyView: string | null; person: { firstName: string; lastName: string } } | null;
+}
+
+export interface PathwayTemplateStep {
+  id: string;
+  stepIndex: number;
+  clinicalActType: string;
+  specialty: string | null;
+  actLabel: string;
+  isRequired: boolean;
+  expectedDayOffset: number;
+  phaseLabel: string | null;
+  sourceRef: string | null;
+}
+
+export interface PathwayGraphResponse {
+  careCaseId: string;
+  pathway: { id: string; key: string; label: string; family: string } | null;
+  pathwayStatus: string | null;
+  pathwayStartedAt: string | null;
+  summary: { total: number; completed: number; overdue: number; inWindow: number; skipped: number; pending: number };
+  nodes: PathwayNode[];
+  edges: unknown[];
+}
+
+export interface PathwayTemplateStepsResponse {
+  pathway: { id: string; key: string; label: string; family: string } | null;
+  steps: PathwayTemplateStep[];
+}
 
 // ─── Care Team ────────────────────────────────────────────────────────────────
 
@@ -2323,6 +2390,9 @@ export function apiWithToken(token: string) {
       timeline: (id: string, page?: number, limit?: number) => careCasesApi.timeline(token, id, page, limit),
       update: (id: string, data: Partial<CareCaseDetail>) => careCasesApi.update(token, id, data),
       assignPathway: (id: string, pathwayTemplateId: string | null) => careCasesApi.assignPathway(token, id, pathwayTemplateId),
+      pathwayGraph: (id: string) => careCasesApi.pathwayGraph(token, id),
+      pathwayTemplateSteps: (id: string) => careCasesApi.pathwayTemplateSteps(token, id),
+      instantiatePathway: (id: string) => careCasesApi.instantiatePathway(token, id),
     },
     team: { list: (id: string) => teamApi.list(token, id) },
     notes: {
