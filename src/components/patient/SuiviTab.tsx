@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
-import { getMetricRange, getValueColor, getQuestionnaireScoring, calculateTDEE } from "@/lib/metricRanges"
+import { getMetricRange, getValueColor, getQuestionnaireScoring } from "@/lib/metricRanges"
 import { ALL_BIO_KEYS, KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -155,6 +155,13 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
     enabled: !!accessToken,
   })
 
+  // Fetch metabolic needs from backend (Mifflin-St Jeor with fallbacks)
+  const { data: metabolicNeeds } = useQuery({
+    queryKey: ["metabolic-needs", careCaseId],
+    queryFn: () => api.metabolicNeeds.get(careCaseId),
+    enabled: !!accessToken,
+  })
+
   // Mutations
   const weightMutation = useMutation({
     mutationFn: () => {
@@ -165,6 +172,7 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["observations-latest"] })
       qc.invalidateQueries({ queryKey: ["trajectory"] })
+      qc.invalidateQueries({ queryKey: ["metabolic-needs", careCaseId] })
       setWeightDialog(false)
       setNewWeight("")
       toast.success("Pesée enregistrée")
@@ -209,6 +217,7 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
       qc.invalidateQueries({ queryKey: ["observations-latest"] })
       qc.invalidateQueries({ queryKey: ["trajectory"] })
       qc.invalidateQueries({ queryKey: ["care-cases"] })
+      qc.invalidateQueries({ queryKey: ["metabolic-needs", careCaseId] })
       setEditDialog(false)
       toast.success("Données mises à jour")
     },
@@ -253,10 +262,9 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
     ? Math.min(100, Math.max(0, Math.round(((currentWeight - firstWeight) / (targetWeight - firstWeight)) * 100)))
     : null
 
-  // Besoins
-  const tdee = currentWeight && height && age && napValue
-    ? calculateTDEE(currentWeight, height, age, sex, napValue)
-    : null
+  // Besoins métaboliques (depuis le backend — fallback NAP=1.7 inclus)
+  const tdee = metabolicNeeds?.det ?? null
+  const mb = metabolicNeeds?.mb ?? null
 
   // BMI label
   const bmiInfo = currentBMI ? getBMILabel(currentBMI, pathwayKey) : null
@@ -290,7 +298,12 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
               NAP : {napValue ?? "?"} — {napDescription ?? "Non renseigné"}
               <button onClick={() => setEditDialog(true)} className="text-primary hover:underline ml-1"><Pencil size={10} /></button>
             </p>
-            {tdee && <p className="text-xs text-muted-foreground">Besoins estimés : <span className="font-medium text-foreground">{tdee} kcal/jour</span></p>}
+            {mb && tdee && (
+              <p className="text-xs text-muted-foreground">
+                MB : <span className="font-medium text-foreground">{mb} kcal</span>
+                {" · "}DET : <span className="font-medium text-foreground">{tdee} kcal/jour</span>
+              </p>
+            )}
             {!tdee && <p className="text-[10px] text-amber-600 flex items-center gap-1"><AlertTriangle size={10} /> Données insuffisantes pour calculer les besoins</p>}
           </div>
           {/* Delta */}

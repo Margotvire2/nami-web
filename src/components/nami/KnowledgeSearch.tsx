@@ -3,22 +3,29 @@
 import { useState, useCallback, useRef } from "react";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type KnowledgeSearchResult } from "@/lib/api";
-import { Search, BookOpen, FileText, GitBranch, Database, ExternalLink, X } from "lucide-react";
+import { Search, BookOpen, FileText, GitBranch, Database, X } from "lucide-react";
 
-// ─── Source badges ────────────────────────────────────────────────────────────
+// ─── Slug → catégorie ────────────────────────────────────────────────────────
+
+function slugToCategory(slug: string): string {
+  if (slug.startsWith("algo_"))  return "ALGO";
+  if (slug.startsWith("pcr-"))   return "PCR";
+  if (slug.startsWith("ke_"))    return "REF";
+  return "FICHE";
+}
 
 const SOURCE_META: Record<string, { label: string; color: string }> = {
-  FFAB:       { label: "FFAB",       color: "bg-purple-50 text-purple-700 border-purple-200" },
-  HAS:        { label: "HAS",        color: "bg-blue-50 text-blue-700 border-blue-200" },
-  FICHE:      { label: "Fiche",      color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  ALGORITHME: { label: "Algorithme", color: "bg-amber-50 text-amber-700 border-amber-200" },
+  FICHE: { label: "Fiche",      color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  ALGO:  { label: "Algorithme", color: "bg-amber-50 text-amber-700 border-amber-200" },
+  PCR:   { label: "PCR",        color: "bg-purple-50 text-purple-700 border-purple-200" },
+  REF:   { label: "Référence",  color: "bg-blue-50 text-blue-700 border-blue-200" },
 };
 
 const SOURCE_ICON: Record<string, typeof BookOpen> = {
-  FFAB:       BookOpen,
-  HAS:        FileText,
-  FICHE:      Database,
-  ALGORITHME: GitBranch,
+  FICHE: Database,
+  ALGO:  GitBranch,
+  PCR:   BookOpen,
+  REF:   FileText,
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -60,7 +67,7 @@ export function KnowledgeSearch({
       setLoading(true);
       setSearched(false);
       try {
-        const data = await apiWithToken(accessToken!).intelligence.knowledgeSearch(q, { limit: 12 });
+        const data = await apiWithToken(accessToken!).intelligence.knowledgeSearch(q, { limit: 10 });
         setResults(data.results);
         setOpen(true);
         setSearched(true);
@@ -101,11 +108,7 @@ export function KnowledgeSearch({
   };
 
   const handleSelect = (r: KnowledgeSearchResult) => {
-    if (onSelect) {
-      onSelect(r);
-    } else if (r.sourceUrl) {
-      window.open(r.sourceUrl, "_blank", "noopener");
-    }
+    if (onSelect) onSelect(r);
     setOpen(false);
   };
 
@@ -146,11 +149,11 @@ export function KnowledgeSearch({
                   {results.length} résultat{results.length > 1 ? "s" : ""}
                 </span>
                 <div className="flex gap-1 flex-wrap">
-                  {Array.from(new Set(results.map((r) => r.source))).map((src) => {
-                    const meta = SOURCE_META[src];
+                  {Array.from(new Set(results.map((r) => slugToCategory(r.slug)))).map((cat) => {
+                    const meta = SOURCE_META[cat];
                     return (
-                      <span key={src} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${meta?.color ?? "bg-gray-100 text-gray-600"}`}>
-                        {meta?.label ?? src}
+                      <span key={cat} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${meta?.color ?? "bg-gray-100 text-gray-600"}`}>
+                        {meta?.label ?? cat}
                       </span>
                     );
                   })}
@@ -159,8 +162,10 @@ export function KnowledgeSearch({
 
               <ul className="max-h-[480px] overflow-y-auto divide-y divide-[#F0F2FA]">
                 {results.map((r) => {
-                  const meta = SOURCE_META[r.source];
-                  const Icon = SOURCE_ICON[r.source] ?? FileText;
+                  const cat = slugToCategory(r.slug);
+                  const meta = SOURCE_META[cat];
+                  const Icon = SOURCE_ICON[cat] ?? FileText;
+                  const preview = r.content.replace(/\n+/g, " ").trim().slice(0, 160);
                   return (
                     <li key={r.id}>
                       <button
@@ -174,31 +179,21 @@ export function KnowledgeSearch({
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <p className="text-sm font-medium text-gray-800 leading-snug line-clamp-1 group-hover:text-[#4F46E5] transition-colors">
-                                {r.title}
+                                {r.sectionTitle || r.slug}
                               </p>
-                              {r.sourceUrl && (
-                                <ExternalLink size={12} className="shrink-0 mt-1 text-gray-300 group-hover:text-[#4F46E5] transition-colors" />
-                              )}
+                              <span className="shrink-0 text-[10px] font-bold tabular-nums text-gray-400">
+                                {Math.round(r.score * 100)}%
+                              </span>
                             </div>
                             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                               <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${meta?.color ?? "bg-gray-100"}`}>
-                                {meta?.label ?? r.source}
+                                {meta?.label ?? cat}
                               </span>
-                              <span className="text-[10px] text-gray-400">{r.category}</span>
-                              {r.gradeEvidence && (
-                                <span className="text-[10px] text-blue-600 font-medium">Grade {r.gradeEvidence}</span>
-                              )}
-                              {r.publicationDate && (
-                                <span className="text-[10px] text-gray-400">
-                                  {new Date(r.publicationDate).getFullYear()}
-                                </span>
-                              )}
+                              <span className="text-[10px] text-gray-400 font-mono">{r.slug}</span>
                             </div>
-                            {/* Extrait avec highlights */}
-                            <p
-                              className="text-xs text-gray-500 mt-1.5 line-clamp-3 leading-relaxed [&_mark]:bg-yellow-100 [&_mark]:text-yellow-900 [&_mark]:rounded [&_mark]:px-0.5"
-                              dangerouslySetInnerHTML={{ __html: r.excerpt }}
-                            />
+                            <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">
+                              {preview}
+                            </p>
                           </div>
                         </div>
                       </button>
@@ -209,14 +204,14 @@ export function KnowledgeSearch({
 
               <div className="px-4 py-2 border-t border-[#F0F2FA] bg-[#F8F9FF]">
                 <p className="text-[10px] text-gray-400">
-                  Base Nami • FFAB · HAS · Fiches cliniques · Algorithmes diagnostiques
+                  Base Nami · recherche sémantique vectorielle + reranker IA
                 </p>
               </div>
             </>
           ) : searched && query.trim().length >= 2 ? (
             <div className="px-4 py-6 text-center">
               <p className="text-sm text-gray-500">Aucun résultat pour «&nbsp;{query}&nbsp;»</p>
-              <p className="text-xs text-gray-400 mt-1">Essayez d'autres termes ou une formulation plus simple</p>
+              <p className="text-xs text-gray-400 mt-1">Essayez une formulation en langage naturel</p>
             </div>
           ) : null}
         </div>

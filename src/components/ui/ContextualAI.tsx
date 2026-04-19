@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useId } from "react"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken } from "@/lib/api"
-import { ExternalLink, X } from "lucide-react"
+import { X } from "lucide-react"
 
 interface ContextualAIProps {
   /** La query envoyée à la base documentaire */
@@ -18,7 +18,7 @@ export function ContextualAI({ query, children, enabled = true }: ContextualAIPr
   const [hovered, setHovered] = useState(false)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{ title: string; excerpt: string; source: string; sourceUrl?: string | null; gradeEvidence?: string | null } | null>(null)
+  const [result, setResult] = useState<{ title: string; excerpt: string; source: string; score: number } | null>(null)
   const { accessToken } = useAuthStore()
   const popoverId = useId()
   const containerRef = useRef<HTMLSpanElement>(null)
@@ -35,12 +35,15 @@ export function ContextualAI({ query, children, enabled = true }: ContextualAIPr
       const data = await api.intelligence.knowledgeSearch(query, { limit: 1 })
       const first = data.results?.[0]
       if (first) {
+        const cat = first.slug.startsWith("algo_") ? "Algorithme"
+          : first.slug.startsWith("pcr-") ? "PCR"
+          : first.slug.startsWith("ke_") ? "Référence"
+          : "Fiche"
         setResult({
-          title: first.title,
-          excerpt: first.excerpt?.replace(/<[^>]*>/g, "").slice(0, 200) ?? "",
-          source: first.source,
-          sourceUrl: first.sourceUrl,
-          gradeEvidence: first.gradeEvidence,
+          title: first.sectionTitle || first.slug,
+          excerpt: first.content.replace(/\n+/g, " ").trim().slice(0, 200),
+          source: cat,
+          score: first.score,
         })
       }
     } catch {
@@ -53,12 +56,10 @@ export function ContextualAI({ query, children, enabled = true }: ContextualAIPr
   if (!enabled) return <>{children}</>
 
   const SOURCE_COLOR: Record<string, string> = {
-    HAS:        "#2563EB",
-    FFAB:       "#7C3AED",
-    FICHE:      "#059669",
-    ORPHANET:   "#DC2626",
-    ALGORITHME: "#D97706",
-    PEDIADOC:   "#0284C7",
+    Fiche:      "#059669",
+    Algorithme: "#D97706",
+    PCR:        "#7C3AED",
+    Référence:  "#2563EB",
   }
 
   return (
@@ -148,15 +149,8 @@ export function ContextualAI({ query, children, enabled = true }: ContextualAIPr
                   }}>
                     {result.source}
                   </span>
-                  {result.gradeEvidence && (
-                    <span style={{ fontSize: 9, color: "#8A8A96" }}>Grade {result.gradeEvidence}</span>
-                  )}
+                  <span style={{ fontSize: 9, color: "#8A8A96" }}>{Math.round(result.score * 100)}%</span>
                 </div>
-                {result.sourceUrl && (
-                  <a href={result.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#8A8A96", display: "flex" }}>
-                    <ExternalLink size={10} />
-                  </a>
-                )}
               </div>
               <div style={{ marginTop: 6, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 9, color: "#4A4A5A" }}>
                 Info documentaire — non clinique

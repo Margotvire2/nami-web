@@ -480,14 +480,12 @@ export const intelligenceApi = {
   knowledgeSearch: (
     token: string,
     q: string,
-    opts: { limit?: number; source?: string; category?: string } = {}
+    opts: { limit?: number } = {}
   ) => {
-    const params = new URLSearchParams({ q });
-    if (opts.limit) params.set("limit", String(opts.limit));
-    if (opts.source) params.set("source", opts.source);
-    if (opts.category) params.set("category", opts.category);
-    return request<{ query: string; count: number; results: KnowledgeSearchResult[] }>(
-      `/intelligence/search?${params.toString()}`,
+    const limit = Math.min(opts.limit ?? 10, 10);
+    const params = new URLSearchParams({ q, limit: String(limit) });
+    return request<{ query: string; rerankProvider?: string; results: KnowledgeSearchResult[] }>(
+      `/knowledge/semantic-search?${params.toString()}`,
       {},
       token
     );
@@ -525,17 +523,11 @@ export interface SemanticSearchResult {
 
 export interface KnowledgeSearchResult {
   id: string;
-  source: "FFAB" | "HAS" | "FICHE" | "FICHE_EXPERT" | "ORPHANET" | "PEDIADOC" | "ALGORITHME";
-  category: string;
-  subcategory: string | null;
-  title: string;
-  excerpt: string; // HTML with <mark> highlights
+  slug: string;
+  sectionTitle: string;
+  content: string;
   score: number;
-  sourceUrl: string | null;
-  publicationDate: string | null;
-  gradeEvidence: string | null;
-  tags: string[];
-  pathwayTypes: string[];
+  qualityScore: number;
 }
 
 export interface KnowledgeEntryDetail {
@@ -1821,6 +1813,25 @@ export const conditionsApi = {
     }, token),
 };
 
+// ─── Besoins métaboliques (Mifflin-St Jeor) ──────────────────────────────
+
+export interface MetabolicNeedsResult {
+  source: "formula" | null;
+  formula: string | null;
+  mb: number | null;
+  det: number | null;
+  minIntake: number | null;
+  maxIntake: number | null;
+  nap: number | null;
+  napDescription: string | null;
+  sexInferred?: boolean;
+}
+
+const metabolicNeedsApi = {
+  get: (token: string, careCaseId: string) =>
+    request<MetabolicNeedsResult>(`/care-cases/${careCaseId}/metabolic-needs`, {}, token),
+};
+
 // ─── Observations (télésurveillance) ──────────────────────────────────────
 
 export interface ObservationInput {
@@ -2403,6 +2414,9 @@ export function apiWithToken(token: string) {
       latest: (careCaseId: string) => observationsApi.latest(token, careCaseId),
       sessions: (careCaseId: string, prefix?: string, maxSessions?: number) => observationsApi.sessions(token, careCaseId, prefix, maxSessions),
       trajectory: (careCaseId: string, opts?: { window?: number; threshold?: number }) => observationsApi.trajectory(token, careCaseId, opts),
+    },
+    metabolicNeeds: {
+      get: (careCaseId: string) => metabolicNeedsApi.get(token, careCaseId),
     },
     recordings: {
       upload: (audioBlob: Blob, duration?: number) => recordingsApi.upload(token, audioBlob, duration),
