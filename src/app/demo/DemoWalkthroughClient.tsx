@@ -225,7 +225,7 @@ function MockMessages() {
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Équipe de Sophie Laurent</div>
         <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
           {[
-            { ini: "AH", name: "Pr Hanachi", role: "Endocrinologue", bg: C.nami },
+            { ini: "AH", name: "Pr Hanachi", role: "Cheffe de service nutrition", bg: C.nami },
             { ini: "SD", name: "S. Degrange", role: "Diététicienne", bg: "#059669" },
             { ini: "CR", name: "Dr Ringot", role: "Psychiatre", bg: "#2563EB" },
             { ini: "AY", name: "A. Yeganyan", role: "Psychologue", bg: "#7C3AED" },
@@ -243,7 +243,7 @@ function MockMessages() {
           {[
             { ini: "SD", bg: "#059669", name: "Sophie Degrange", text: "Bilan nutritionnel fait ce matin. Apports caloriques en hausse (+200 kcal/j vs semaine dernière). Elle accepte mieux les collations.", time: "10:42", role: "Diététicienne" },
             { ini: "CR", bg: "#2563EB", name: "Dr Ringot", text: "Vu en consultation hier. Anxiété pré-prandiale persistante. On démarre la TCC ciblée la semaine prochaine.", time: "11:15", role: "Psychiatre" },
-            { ini: "AH", bg: C.nami, name: "Pr Hanachi", text: "Merci pour les retours. Je prescris un contrôle bio avant la réévaluation pluridisciplinaire du 15 mai.", time: "14:30", role: "Endocrinologue" },
+            { ini: "AH", bg: C.nami, name: "Pr Hanachi", text: "Merci pour les retours. Je prescris un contrôle bio avant la réévaluation pluridisciplinaire du 15 mai.", time: "14:30", role: "Cheffe de service nutrition" },
           ].map((m, i) => (
             <div key={i} style={{ display: "flex", gap: 10, marginBottom: 14 }}>
               <div style={{ width: 28, height: 28, borderRadius: "50%", background: m.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{m.ini}</div>
