@@ -20,16 +20,26 @@ async function tryRefreshToken(): Promise<string | null> {
     return null;
   }
 
+  // Timeout 15s pour ne pas bloquer indéfiniment si Railway est lent
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
   try {
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
-      logout();
-      if (typeof window !== "undefined") window.location.href = "/login";
+      // 401/403 = token invalide ou expiré → déconnexion réelle
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        if (typeof window !== "undefined") window.location.href = "/login";
+      }
+      // 5xx ou autre = erreur serveur transitoire → NE PAS déconnecter
       return null;
     }
 
@@ -42,8 +52,9 @@ async function tryRefreshToken(): Promise<string | null> {
     );
     return data.accessToken;
   } catch {
-    logout();
-    if (typeof window !== "undefined") window.location.href = "/login";
+    clearTimeout(timeoutId);
+    // Erreur réseau (Railway down, timeout, DNS) → NE PAS déconnecter
+    // L'utilisateur sera simplement bloqué sur la page actuelle jusqu'au rétablissement
     return null;
   }
 }
