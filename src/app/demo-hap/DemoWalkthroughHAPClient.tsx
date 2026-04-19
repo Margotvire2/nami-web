@@ -227,7 +227,6 @@ function MockMessages() {
             { ini: "AG", name: "Pr Gervaix", role: "Chef de service péd.", bg: "#4F46E5" },
             { ini: "MV", name: "M. Vire", role: "Diététicienne", bg: "#059669" },
             { ini: "VL", name: "V. Le Muet", role: "Orthophoniste", bg: "#7C3AED" },
-            { ini: "HE", name: "Dr El Jurdi", role: "Allergologue", bg: "#F59E0B" },
           ].map((m, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 8, border: `1px solid ${C.bl}`, background: "#fff" }}>
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: m.bg, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 8, fontWeight: 700 }}>{m.ini}</div>
@@ -353,26 +352,26 @@ function MockPatientData() {
 const STEPS = [
   {
     num: "1", eyebrow: "8H30 — ARRIVÉE",
-    title: "Elle ouvre Nami. Tout est là.",
-    desc: "Le dashboard affiche les rendez-vous du jour, les tâches en attente, l'activité récente de l'équipe pluridisciplinaire. En un coup d'œil, elle sait si quelqu'un a bougé dans un dossier depuis hier.",
+    title: "Il ouvre Nami. Tout est là.",
+    desc: "Le dashboard affiche les rendez-vous du jour, les tâches en attente, l'activité récente de l'équipe pluridisciplinaire. En un coup d'œil, il sait si quelqu'un a bougé dans un dossier depuis hier.",
     mock: <MockDashboard />,
   },
   {
     num: "2", eyebrow: "9H00 — CONSULTATION",
-    title: "Elle consulte. Nami écoute.",
-    desc: "Elle appuie sur « Enregistrer » au début de la consultation. Elle parle avec la maman et l'enfant normalement. À la fin, l'IA structure la note — motif, anamnèse, décisions, brouillons d'ordonnance et d'adressage. Elle valide, corrige, signe. 30 secondes.",
+    title: "Il consulte. Nami structure.",
+    desc: "Il appuie sur « Enregistrer » au début de la consultation. Il parle avec la maman et l'enfant normalement. À la fin, l'IA structure la note — motif, anamnèse, décisions, brouillons d'ordonnance et d'adressage. Il valide, corrige, signe. 30 secondes.",
     mock: <MockScribe />,
   },
   {
     num: "3", eyebrow: "10H30 — PARCOURS",
-    title: "Elle vérifie le parcours. Rien n'est oublié.",
+    title: "Il vérifie le parcours. Rien n'est oublié.",
     desc: "Chaque étape du parcours est sourcée sur les référentiels (ESPGHAN, HAS, EAACI). Le moteur de complétude identifie les étapes manquantes ou en retard. Le bilan orthophonique est en retard — visible immédiatement.",
     mock: <MockParcours />,
   },
   {
     num: "4", eyebrow: "11H00 — ÉQUIPE",
-    title: "Pr Gervaix et son équipe. Dans un seul dossier.",
-    desc: "La diététicienne, l'orthophoniste, Pr Gervaix, l'allergologue — tous dans le même dossier de coordination. Chaque message est tracé, horodaté. Les parents ont un seul point de contact.",
+    title: "Dr Bellaiche et son équipe. Dans un seul dossier.",
+    desc: "La diététicienne, l'orthophoniste, Pr Gervaix — tous dans le même dossier de coordination. Chaque message est tracé, horodaté. Les parents ont un seul point de contact.",
     mock: <MockMessages />,
   },
   {
