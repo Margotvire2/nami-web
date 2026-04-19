@@ -10,6 +10,7 @@ import { PatientHeader } from "./components/PatientHeader";
 import { ViewGlobale } from "./components/ViewGlobale";
 import { ViewDossier } from "./components/ViewDossier";
 import { ViewCoordination } from "./components/ViewCoordination";
+import { ViewSuivi } from "./components/ViewSuivi";
 import { ReferralModal } from "../referral-modal";
 import { QuickTaskModal } from "../QuickTaskModal";
 import { Button } from "@/components/ui/button";
@@ -17,10 +18,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 
-type Tab = "globale" | "dossier" | "coordination";
+type Tab = "globale" | "suivi" | "dossier" | "coordination";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "globale", label: "Vue globale" },
+  { key: "suivi", label: "Suivi" },
   { key: "dossier", label: "Dossier" },
   { key: "coordination", label: "Coordination" },
 ];
@@ -344,6 +346,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         <div className="p-6">
           {activeTab === "globale" && (
             <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} />
+          )}
+          {activeTab === "suivi" && (
+            <ViewSuivi careCaseId={id} dashboard={dash} />
           )}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (
