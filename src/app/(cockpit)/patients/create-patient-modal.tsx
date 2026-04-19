@@ -9,6 +9,7 @@ import {
   type CreatePatientWithCaseInput,
   type CreatePatientWithCaseResult,
 } from "@/lib/api";
+import { groupByFamily, getFamilyLabel } from "@/lib/pathwayFamilyLabels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -405,20 +406,19 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                   <Route size={10} />
                   Parcours de soins
                 </label>
-                {/* Search */}
-                {!family && (
-                  <div className="relative mt-1.5">
-                    <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={pathwaySearch}
-                      onChange={(e) => setPathwaySearch(e.target.value)}
-                      placeholder="Rechercher un parcours…"
-                      className="w-full pl-7 pr-3 h-8 text-[11px] rounded-lg border border-border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                )}
-                <div className="mt-1.5 space-y-1 max-h-36 overflow-y-auto pr-0.5">
+                {/* Barre de recherche — toujours visible en mode structuré */}
+                <div className="relative mt-1.5">
+                  <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={pathwaySearch}
+                    onChange={(e) => setPathwaySearch(e.target.value)}
+                    placeholder="Rechercher un parcours…"
+                    className="w-full pl-7 pr-3 h-8 text-[11px] rounded-lg border border-border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div className="mt-1.5 space-y-1 max-h-40 overflow-y-auto pr-0.5">
+                  {/* Option "Auto" */}
                   <button
                     type="button"
                     onClick={() => setPathwayTemplateKey(undefined)}
@@ -432,12 +432,41 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                     <span className="font-medium">Auto</span>
                     <span className="text-[10px] ml-1.5 opacity-70">— sélection automatique</span>
                   </button>
+
                   {pathways.length === 0 && (
                     <p className="text-[11px] text-muted-foreground text-center py-2 italic">
                       {allPathways.length === 0 ? "Chargement…" : "Aucun parcours trouvé"}
                     </p>
                   )}
-                  {pathways.map((p) => (
+
+                  {/* Vue groupée — quand pas de recherche ET pas de famille filtrée */}
+                  {!pathwaySearch && !family && pathways.length > 0 && (
+                    groupByFamily(pathways).map(({ family: fam, label: famLabel, items }) => (
+                      <div key={fam}>
+                        <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-1 pt-2 pb-0.5">
+                          {famLabel}
+                        </p>
+                        {items.map((p) => (
+                          <button
+                            key={p.key}
+                            type="button"
+                            onClick={() => setPathwayTemplateKey(p.key)}
+                            className={cn(
+                              "w-full text-left text-[11px] px-3 py-1.5 rounded-lg border transition-all",
+                              pathwayTemplateKey === p.key
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-border text-muted-foreground hover:bg-muted/40"
+                            )}
+                          >
+                            <span className="font-medium truncate">{p.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+
+                  {/* Vue plate — quand recherche active OU famille filtrée */}
+                  {(pathwaySearch || family) && pathways.map((p) => (
                     <button
                       key={p.key}
                       type="button"
@@ -452,8 +481,8 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium truncate">{p.label}</span>
                         {!family && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 capitalize">
-                            {p.family}
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
+                            {getFamilyLabel(p.family)}
                           </span>
                         )}
                       </div>

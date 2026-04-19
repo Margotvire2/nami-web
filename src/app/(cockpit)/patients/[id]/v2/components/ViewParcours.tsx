@@ -6,6 +6,7 @@ import { api, apiWithToken } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { groupByFamily, getFamilyLabel } from "@/lib/pathwayFamilyLabels";
 import { toast } from "sonner";
 import {
   Route, CheckCircle2, Circle, ChevronDown, ChevronUp,
@@ -637,7 +638,34 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
         {!isLoading && filtered.length === 0 && (
           <p className="text-xs text-neutral-400 text-center py-3 italic">Aucun parcours trouvé</p>
         )}
-        {filtered.map((p) => (
+
+        {/* Vue groupée par spécialité — quand pas de recherche active */}
+        {!isLoading && !search && filtered.length > 0 && (
+          groupByFamily(filtered).map(({ family: fam, label: famLabel, items }) => (
+            <div key={fam}>
+              <p className="text-[9px] font-semibold uppercase tracking-wider text-neutral-400 px-1 pt-2 pb-0.5">
+                {famLabel}
+              </p>
+              {items.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  disabled={assignMutation.isPending}
+                  onClick={() => assignMutation.mutate(p.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-1.5 rounded-lg border border-neutral-100 hover:border-teal-200 hover:bg-teal-50/40 transition-all",
+                    assignMutation.isPending && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <span className="text-xs font-medium text-neutral-700 truncate">{p.label}</span>
+                </button>
+              ))}
+            </div>
+          ))
+        )}
+
+        {/* Vue plate — quand recherche active */}
+        {!isLoading && search && filtered.map((p) => (
           <button
             key={p.key}
             type="button"
@@ -650,8 +678,8 @@ function PathwayAssignPanel({ careCaseId, onClose }: { careCaseId: string; onClo
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-medium text-neutral-700 truncate">{p.label}</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 shrink-0 capitalize">
-                {p.family}
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 shrink-0">
+                {getFamilyLabel(p.family)}
               </span>
             </div>
           </button>
