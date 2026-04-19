@@ -95,7 +95,7 @@ export function PitchStickyDemo({ caption }: { caption?: React.ReactNode }) {
         ))}
         <div style={{ textAlign: "center", paddingTop: 8 }}>
           <span style={{ fontSize: 12, color: "#8A8A96" }}>
-            22 308 sources cliniques · 425 pathologies · 121 parcours
+            60 000+ sources cliniques · 425 pathologies · 131 parcours
           </span>
         </div>
       </div>
@@ -211,7 +211,7 @@ export function PitchStickyDemo({ caption }: { caption?: React.ReactNode }) {
         ) : (
           <div style={{ textAlign: "center" }}>
             <span style={{ fontSize: 12, color: "#8A8A96" }}>
-              22 308 sources cliniques indexées · 425 pathologies · 121 parcours structurés
+              60 000+ sources cliniques indexées · 425 pathologies · 131 parcours structurés
             </span>
           </div>
         )}

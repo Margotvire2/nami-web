@@ -97,7 +97,7 @@ export default function TrouverUnSoignantPage() {
               Trouvez le bon soignant,<br className="hidden md:block" /> au bon moment.
             </h1>
             <p className="text-lg mb-8" style={{ color: "#4A4A5A" }}>
-              865 000+ professionnels de santé répertoriés.
+              60 000+ sources cliniques structurées. 131 parcours de soins.
             </p>
           </div>
 

@@ -248,7 +248,7 @@ export function PatientTab() {
       {/* Knowledge base footnote */}
       <div style={{ textAlign: "center", marginTop: 14 }}>
         <span style={{ fontSize: 12, color: "#8A8A96" }}>
-          22 308 sources cliniques indexées · 425 pathologies · 121 parcours structurés
+          60 000+ sources cliniques indexées · 425 pathologies · 131 parcours structurés
         </span>
       </div>
     </div>

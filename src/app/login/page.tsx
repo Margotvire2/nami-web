@@ -317,9 +317,9 @@ export default function LoginPage() {
           {/* Stats row */}
           <div className="mt-10 flex items-center gap-6">
             {[
-              { value: "865k+", label: "soignants" },
-              { value: "22k", label: "fiches" },
-              { value: "116k", label: "liens" },
+              { value: "60k+", label: "sources" },
+              { value: "131", label: "parcours" },
+              { value: "2 362", label: "étapes sourcées" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-lg font-extrabold" style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)" }}>{s.value}</p>

@@ -154,7 +154,7 @@ export default function AdminDonneesPage() {
               Modèles de parcours
             </p>
             {[
-              { label: "Parcours actifs", value: "121" },
+              { label: "Parcours actifs", value: "131" },
               { label: "Pathologies indexées", value: "425" },
               { label: "Métriques catalogue", value: "1 172" },
               { label: "Questionnaires", value: "34" },

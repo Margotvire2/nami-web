@@ -37,7 +37,7 @@ const TIERS: PricingTier[] = [
       "Tout Coordination",
       "Base de connaissances cliniques",
       "Transcription IA (brouillon)",
-      "Parcours structurés (121 modèles)",
+      "Parcours structurés (131 modèles)",
       "API + intégrations",
       "Support prioritaire",
     ],

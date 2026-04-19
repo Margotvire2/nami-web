@@ -263,9 +263,9 @@ export default function SignupPage() {
 
           <div className="space-y-3">
             {[
-              { value: "865 000+", label: "soignants en annuaire", delay: "0.3s" },
-              { value: "22 308", label: "fiches de référence", delay: "0.5s" },
-              { value: "121", label: "parcours structurés", delay: "0.7s" },
+              { value: "60 000+", label: "sources cliniques indexées", delay: "0.3s" },
+              { value: "10", label: "référentiels internationaux", delay: "0.5s" },
+              { value: "131", label: "parcours structurés", delay: "0.7s" },
             ].map((s) => (
               <div key={s.label} className="stat-badge flex items-center gap-3 rounded-xl px-4 py-3"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", animationDelay: s.delay }}>

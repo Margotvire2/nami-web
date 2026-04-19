@@ -165,7 +165,7 @@ export default function PathologiesPage() {
             {[
               { value: "269", label: "structures PCR Obésité\nen France", color: "#5B4EC4" },
               { value: "5+", label: "soignants par parcours\nen moyenne", color: "#2BA89C" },
-              { value: "121", label: "parcours de soins\nstructurés dans Nami", color: "#5B4EC4" },
+              { value: "131", label: "parcours de soins\nstructurés dans Nami", color: "#5B4EC4" },
             ].map((s) => (
               <div key={s.label} className="stat-card" style={{ background: "#fff", borderRadius: 18, padding: "32px 20px", border: "1px solid rgba(26,26,46,0.07)", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
                 <div style={{ fontSize: "3rem", fontWeight: 800, letterSpacing: "-0.04em", color: s.color, lineHeight: 1, marginBottom: 12 }}>{s.value}</div>

@@ -147,10 +147,10 @@ export default function HomePage() {
   const panel = stickyProgress < 0.33 ? 0 : stickyProgress < 0.66 ? 1 : 2;
 
   /* ── Counters ── */
-  const c1 = useCounter(865000);
-  const c2 = useCounter(22308);
-  const c3 = useCounter(116);
-  const c4 = useCounter(121);
+  const c1 = useCounter(60000);
+  const c2 = useCounter(10);
+  const c3 = useCounter(131);
+  const c4 = useCounter(2362);
 
   return (
     <>
@@ -525,10 +525,10 @@ export default function HomePage() {
           </Reveal>
           <div className="landing-stats-grid" style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 40, textAlign: "center" }}>
             {[
-              { ref: c1, suffix: "+", label: "Soignants\nen annuaire", color: "var(--nami-primary)" },
-              { ref: c2, suffix: "", label: "Fiches de\nréférence", color: "var(--nami-secondary)" },
-              { ref: c3, suffix: "k", label: "Liens de\nknowledge graph", color: "var(--nami-primary)" },
-              { ref: c4, suffix: "", label: "Parcours de\nsoin structurés", color: "var(--nami-secondary)" },
+              { ref: c1, suffix: "+", label: "Sources cliniques\nindexées", color: "var(--nami-primary)" },
+              { ref: c2, suffix: "", label: "Référentiels\ninternationaux", color: "var(--nami-secondary)" },
+              { ref: c3, suffix: "", label: "Parcours de\nsoin structurés", color: "var(--nami-primary)" },
+              { ref: c4, suffix: "", label: "Étapes de\nparcours sourcées", color: "var(--nami-secondary)" },
             ].map((s, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                 <div style={{ fontSize: "clamp(2.6rem,5vw,4rem)", fontWeight: 800, letterSpacing: "-0.04em", color: s.color, lineHeight: 1 }}>
