@@ -17,7 +17,7 @@ import {
   Stethoscope,
   UserCheck,
 } from "lucide-react";
-import { invitationsApi, authApi, authActivateApi, type Invitation } from "@/lib/api";
+import { invitationsApi, authApi, authActivateApi, authSignupFromInviteApi, type Invitation } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -53,6 +53,9 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
       .then((inv) => {
         setInvitation(inv);
         if (inv.toEmail) setEmail(inv.toEmail);
+        // Pré-remplir depuis les métadonnées admin (firstName/lastName dans message JSON)
+        if (inv.inviteeFirstName) setFirstName(inv.inviteeFirstName);
+        if (inv.inviteeLastName)  setLastName(inv.inviteeLastName);
         if (inv.isExpired) {
           setStep("error");
         } else if (inv.status === "ACCEPTED") {
@@ -69,19 +72,35 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) return;
     setSubmitting(true);
     try {
-      const { accessToken: at } = await authApi.signup({
-        email: email.trim(),
-        password,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        roleType: "PROVIDER",
-      });
-      const me = await authApi.me(at);
-      await acceptInvitation(token, at, me.id);
-      setAccessToken(at);
+      let demoCaseId: string | null = null;
+
+      if (invitation?.isAdminInvite) {
+        // Flow admin invite : endpoint dédié qui pré-valide + assigne le patient démo
+        const result = await authSignupFromInviteApi({ token, password });
+        setAccessToken(result.accessToken);
+        demoCaseId = result.demoCaseId;
+      } else {
+        // Flow collègue classique : signup standard puis accept invitation
+        const { accessToken: at } = await authApi.signup({
+          email: email.trim(),
+          password,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          roleType: "PROVIDER",
+        });
+        const me = await authApi.me(at);
+        await acceptInvitation(token, at, me.id);
+        setAccessToken(at);
+      }
+
       setStep("done");
       toast.success("Bienvenue sur Nami !");
-      setTimeout(() => router.push("/aujourd-hui"), 1500);
+
+      // Admin invite → welcome avec patient démo ; flow classique → aujourd-hui
+      const redirectTo = (invitation?.isAdminInvite && demoCaseId)
+        ? `/welcome?caseId=${demoCaseId}`
+        : "/aujourd-hui";
+      setTimeout(() => router.push(redirectTo), 1200);
     } catch (err: any) {
       const msg = err?.message?.includes("409")
         ? "Un compte avec cet email existe déjà. Connectez-vous."

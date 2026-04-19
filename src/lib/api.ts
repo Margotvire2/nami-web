@@ -1713,6 +1713,10 @@ export interface Invitation {
   isExpired?: boolean;
   existingAccount?: boolean;
   inviteeRoleType?: string | null;
+  inviteeFirstName?: string | null;
+  inviteeLastName?: string | null;
+  inviteeSpecialty?: string | null;
+  isAdminInvite?: boolean;
 }
 
 export interface CreateInvitationInput {
@@ -1741,6 +1745,17 @@ export const authActivateApi = (email: string, password: string) =>
   request<{ accessToken: string; refreshToken: string }>("/auth/activate", {
     method: "POST",
     body: JSON.stringify({ email, password }),
+  });
+
+export const authSignupFromInviteApi = (data: {
+  token: string;
+  password: string;
+  phone?: string;
+  rppsNumber?: string;
+}) =>
+  request<{ accessToken: string; refreshToken: string; demoCaseId: string | null }>("/auth/signup-from-invite", {
+    method: "POST",
+    body: JSON.stringify(data),
   });
 
 // ─── Conditions (PatientCondition) ───────────────────────────────────────

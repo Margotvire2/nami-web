@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
-import { LayoutDashboard, ShieldCheck, Users, Building2, Database } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -14,6 +14,7 @@ const TABS = [
   { href: "/admin/utilisateurs", label: "Utilisateurs",   icon: Users },
   { href: "/admin/organisations",label: "Organisations",  icon: Building2 },
   { href: "/admin/donnees",      label: "Données",         icon: Database },
+  { href: "/admin/inviter",      label: "Inviter",         icon: UserPlus },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
