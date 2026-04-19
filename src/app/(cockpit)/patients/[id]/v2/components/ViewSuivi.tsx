@@ -17,7 +17,7 @@ interface Props {
 interface Observation {
   id: string;
   metricId: string;
-  metric?: { label: string; unit: string | null };
+  metric?: { key?: string; label: string; unit: string | null };
   valueNumeric: number | null;
   valueText: string | null;
   unit: string | null;
@@ -158,20 +158,21 @@ function buildBioPanels(observations: Observation[]) {
 
   for (const o of observations) {
     if (o.valueNumeric === null) continue;
-    const def = KEY_TO_METRIC[o.metricId];
+    const metricKey = o.metric?.key ?? o.metricId;
+    const def = KEY_TO_METRIC[metricKey];
     const examType = def?.examType ?? "";
     if (!BLOOD_EXAM_SET.has(examType)) continue;
     if (!map.has(examType)) map.set(examType, new Map());
     const mm = map.get(examType)!;
-    if (!mm.has(o.metricId)) {
-      mm.set(o.metricId, {
+    if (!mm.has(metricKey)) {
+      mm.set(metricKey, {
         label: def?.label ?? o.metric?.label ?? o.metricId,
         unit: def?.unit ?? o.unit ?? o.metric?.unit ?? null,
         values: [],
         metricDef: def,
       });
     }
-    mm.get(o.metricId)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
+    mm.get(metricKey)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
   }
 
   return BLOOD_EXAM_ORDER
@@ -226,7 +227,10 @@ function deltaColor(key: string, delta: number): string {
 
 function WeightCurveCard({ observations }: { observations: Observation[] }) {
   const weights = observations
-    .filter((o) => o.metricId === "weight_kg" || o.metricId === "poids")
+    .filter((o) => {
+      const k = o.metric?.key ?? o.metricId;
+      return k === "weight_kg" || k === "poids";
+    })
     .filter((o) => o.valueNumeric !== null)
     .sort((a, b) => new Date(a.effectiveAt).getTime() - new Date(b.effectiveAt).getTime())
     .slice(-20);
@@ -650,7 +654,7 @@ function BioSection({ observations }: { observations: Observation[] }) {
 
 function AnthropometryCard({ observations }: { observations: Observation[] }) {
   const anthrObs = observations
-    .filter((o) => EXTRA_ANTHROPOMETRY_KEYS.has(o.metricId) && o.valueNumeric !== null)
+    .filter((o) => EXTRA_ANTHROPOMETRY_KEYS.has(o.metric?.key ?? o.metricId) && o.valueNumeric !== null)
     .sort((a, b) => new Date(b.effectiveAt).getTime() - new Date(a.effectiveAt).getTime());
 
   if (anthrObs.length === 0) return null;
@@ -661,8 +665,9 @@ function AnthropometryCard({ observations }: { observations: Observation[] }) {
     { label: string; unit: string | null; current: number; previous: number | null; date: string }
   >();
   for (const o of anthrObs) {
-    if (!byMetric.has(o.metricId)) {
-      byMetric.set(o.metricId, {
+    const mKey = o.metric?.key ?? o.metricId;
+    if (!byMetric.has(mKey)) {
+      byMetric.set(mKey, {
         label: o.metric?.label ?? o.metricId,
         unit: o.unit ?? o.metric?.unit ?? null,
         current: o.valueNumeric!,
@@ -670,7 +675,7 @@ function AnthropometryCard({ observations }: { observations: Observation[] }) {
         date: o.effectiveAt,
       });
     } else {
-      const m = byMetric.get(o.metricId)!;
+      const m = byMetric.get(mKey)!;
       if (m.previous === null) m.previous = o.valueNumeric!;
     }
   }
@@ -889,20 +894,21 @@ function buildOtherPanels(observations: Observation[]) {
 
   for (const o of observations) {
     if (o.valueNumeric === null) continue;
-    const def = KEY_TO_METRIC[o.metricId];
+    const metricKey = o.metric?.key ?? o.metricId;
+    const def = KEY_TO_METRIC[metricKey];
     const examType = def?.examType ?? "";
     if (!OTHER_EXAM_SET.has(examType)) continue;
     if (!map.has(examType)) map.set(examType, new Map());
     const mm = map.get(examType)!;
-    if (!mm.has(o.metricId)) {
-      mm.set(o.metricId, {
+    if (!mm.has(metricKey)) {
+      mm.set(metricKey, {
         label: def?.label ?? o.metric?.label ?? o.metricId,
         unit: def?.unit ?? o.unit ?? o.metric?.unit ?? null,
         values: [],
         metricDef: def,
       });
     }
-    mm.get(o.metricId)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
+    mm.get(metricKey)!.values.push({ v: o.valueNumeric!, date: o.effectiveAt });
   }
 
   return OTHER_EXAM_ORDER

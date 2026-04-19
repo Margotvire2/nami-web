@@ -15,7 +15,6 @@ import { ViewCoordination } from "./v2/components/ViewCoordination";
 import { ViewParcours } from "./v2/components/ViewParcours";
 import { SuiviTab } from "@/components/patient/SuiviTab";
 import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossier";
-import { PatientJournalView } from "./PatientJournalView";
 import { ReferralModal } from "./referral-modal";
 import { QuickTaskModal } from "./QuickTaskModal";
 import { ScheduleQuestionnaireModal } from "./ScheduleQuestionnaireModal";
@@ -26,12 +25,11 @@ import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react"
 import { AnimatedTabs } from "@/components/ui/AnimatedTabs"
 import { useCareSocket } from "@/hooks/useCareSocket"
 
-type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination" | "journal" | "pediatrique";
+type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination" | "pediatrique";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "globale", label: "Vue globale" },
   { key: "suivi", label: "Suivi" },
-  { key: "journal", label: "Journal" },
   { key: "parcours", label: "Parcours" },
   { key: "dossier", label: "Dossier" },
   { key: "coordination", label: "Coordination" },
@@ -373,7 +371,6 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
               napDescription={careCase.napDescription ?? null}
             />
           )}
-          {activeTab === "journal" && <PatientJournalView careCaseId={id} pathwayName={careCase.caseTitle ?? undefined} currentPhase={careCase.careStage ?? undefined} />}
           {activeTab === "parcours" && <ViewParcours careCaseId={id} />}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (
