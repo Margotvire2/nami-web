@@ -71,7 +71,13 @@ async function getArticle(slug: string): Promise<Article | null> {
 // Supprime le H1 (déjà affiché dans le header) et convertit **1.1 Titre** → ### Titre
 
 function preprocessContent(md: string): string {
-  return md
+  // FAQ + Sources + signature sont affichés séparément — retirer du corps
+  const faqIdx = md.search(/^## Questions fréquentes/m)
+  const sourcesIdx = md.search(/^## Sources/m)
+  const cutIdx = [faqIdx, sourcesIdx].filter((i) => i > 0).reduce((a, b) => Math.min(a, b), Infinity)
+  const body = cutIdx < Infinity ? md.substring(0, cutIdx) : md
+
+  return body
     // Supprimer les H1
     .replace(/^#\s+.+$/gm, "")
     // Convertir **N.N Titre** ou **N. Titre** en heading H3
