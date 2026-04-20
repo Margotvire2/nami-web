@@ -441,85 +441,11 @@ export default function DieteticienPage() {
         ::selection { background: ${COLORS.primary}22; color: ${COLORS.primary}; }
       `}</style>
 
-      {/* NAV */}
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          background: `${COLORS.bg}e8`,
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: `1px solid ${COLORS.border}`,
-          padding: "0 24px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1120,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            height: 64,
-          }}
-        >
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: COLORS.gradient,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: "16px",
-                fontWeight: 800,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-              }}
-            >
-              N
-            </div>
-            <span
-              style={{
-                fontSize: "18px",
-                fontWeight: 700,
-                color: COLORS.text,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-              }}
-            >
-              Nami
-            </span>
-          </a>
-          <a
-            href="/signup"
-            style={{
-              padding: "10px 22px",
-              borderRadius: 10,
-              border: "none",
-              background: COLORS.primary,
-              color: "#fff",
-              fontSize: "14px",
-              fontWeight: 700,
-              cursor: "pointer",
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              textDecoration: "none",
-              display: "inline-block",
-            }}
-          >
-            Créer mon espace gratuit
-          </a>
-        </div>
-      </nav>
 
       {/* HERO */}
       <section
         style={{
-          paddingTop: "clamp(120px, 18vh, 180px)",
+          paddingTop: "clamp(40px, 6vh, 80px)",
           paddingBottom: "clamp(80px, 12vh, 140px)",
           paddingLeft: 24,
           paddingRight: 24,
@@ -972,13 +898,6 @@ export default function DieteticienPage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: `1px solid ${COLORS.border}`, padding: "32px 24px", textAlign: "center" }}>
-        <p style={{ fontSize: "12px", color: COLORS.textMuted, fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>
-          Outil de coordination · Non dispositif médical · Conforme RGPD
-          <br />
-          © 2026 Nami · Tous droits réservés
-        </p>
-      </footer>
     </div>
   );
 }

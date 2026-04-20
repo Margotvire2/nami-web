@@ -4,8 +4,6 @@ import {
   Search, GraduationCap, MapPin, Video,
   Shield, BadgeCheck, ChevronRight, Users,
 } from "lucide-react"
-import { PublicNavbar } from "@/components/public/PublicNavbar"
-import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const metadata: Metadata = {
   title: "Soignants spécialisés — Nami",
@@ -177,8 +175,6 @@ export default async function SoignantsPage() {
       {/* JSON-LD */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <PublicNavbar />
-
       {/* Hero */}
       <div className="bg-white border-b">
         <div className="mx-auto max-w-6xl px-4 py-12 text-center">
@@ -253,7 +249,6 @@ export default async function SoignantsPage() {
         )}
       </div>
 
-      <PublicFooter />
     </div>
   )
 }

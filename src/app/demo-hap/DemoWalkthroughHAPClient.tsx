@@ -2,6 +2,7 @@
 
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 import { AmbientGlowCTA } from "@/components/pitch/AmbientGlow"
+import { HAPNav } from "./HAPNav"
 
 const C = {
   nami: "#5B4EC4", teal: "#2BA89C",
@@ -382,7 +383,7 @@ const STEPS = [
   },
   {
     num: "6", eyebrow: "14H00 — SUIVI",
-    title: "Les données de l'enfant viennent à elle.",
+    title: "Les données de l'enfant viennent à lui.",
     desc: "Courbes de croissance OMS, repas renseignés par la maman, sommeil, taille — tout remonte dans le dossier. Le résumé IA intègre les données parentales avec les observations de l'équipe.",
     mock: <MockPatientData />,
   },
@@ -393,17 +394,7 @@ export function DemoWalkthroughHAPClient() {
   return (
     <div style={{ fontFamily: FJ, color: C.t1, background: C.bg, overflowX: "hidden" }}>
 
-      {/* NAV */}
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: "rgba(250,250,248,0.88)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: `1px solid ${C.bl}`, padding: "14px 0",
-      }}>
-        <div style={{ ...CTR, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "1.25rem", fontWeight: 900, color: C.nami, letterSpacing: "-0.03em" }}>nami</span>
-          <span style={{ fontSize: 12, fontFamily: FI, color: C.tm, fontWeight: 500 }}>Démo · Hôpital Américain de Paris</span>
-        </div>
-      </nav>
+      <HAPNav />
 
       {/* HERO */}
       <section style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px 60px" }}>
@@ -456,6 +447,34 @@ export function DemoWalkthroughHAPClient() {
           </div>
         </section>
       ))}
+
+      {/* TRANSITION VERS PITCH */}
+      <section style={{ padding: "clamp(40px, 6vw, 80px) 0", background: C.bgAlt, textAlign: "center" }}>
+        <div style={{ ...CTR }}>
+          <ScrollReveal variant="fade-up" duration={0.6}>
+            <p style={{ fontSize: 14, color: C.t2, marginBottom: 12 }}>
+              Vous avez vu comment ça marche.
+            </p>
+            <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.03em", color: C.t1, marginBottom: 20 }}>
+              Maintenant, voyons pourquoi c&apos;est{" "}
+              <span style={{ background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                stratégique
+              </span>
+            </h2>
+            <a
+              href="/demo-hap/pitch"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "12px 24px", background: C.nami, color: "#fff",
+                borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none",
+                boxShadow: "0 4px 20px rgba(91,78,196,0.30)",
+              }}
+            >
+              Voir la vision · 3 min →
+            </a>
+          </ScrollReveal>
+        </div>
+      </section>
 
       {/* CTA */}
       <section style={{ padding: "clamp(80px, 12vw, 160px) 0", background: C.dark, textAlign: "center", position: "relative", overflow: "hidden" }}>

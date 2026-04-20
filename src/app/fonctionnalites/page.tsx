@@ -176,18 +176,8 @@ export default function FeaturesPage() {
       `}</style>
 
       {/* NAV */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: `${C.bg}e8`, backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}`, padding: "0 24px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 56 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: C.grad, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14, fontWeight: 800, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>N</div>
-            <span style={{ fontSize: 16, fontWeight: 700, color: C.text, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>Nami</span>
-          </a>
-          <a href="/signup" style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: C.primary, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif", textDecoration: "none", display: "inline-block" }}>Démarrer gratuitement</a>
-        </div>
-      </nav>
-
       {/* HERO */}
-      <section style={{ paddingTop: 88, paddingBottom: 20, paddingLeft: 24, paddingRight: 24, textAlign: "center", maxWidth: 780, margin: "0 auto" }}>
+      <section style={{ paddingTop: 40, paddingBottom: 20, paddingLeft: 24, paddingRight: 24, textAlign: "center", maxWidth: 780, margin: "0 auto" }}>
         <Fade>
           <h1 style={{ fontSize: "clamp(2rem,5.5vw,3.4rem)", fontWeight: 800, color: C.text, lineHeight: 1.06, letterSpacing: "-.04em", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
             Imaginez ne faire <span style={{ background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>que votre métier.</span>
@@ -365,9 +355,6 @@ export default function FeaturesPage() {
         </Fade>
       </section>
 
-      <footer style={{ borderTop: `1px solid ${C.border}`, padding: "18px 24px", textAlign: "center" }}>
-        <p style={{ fontSize: 11, color: C.textMut, fontFamily: "'Inter',sans-serif" }}>Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami</p>
-      </footer>
     </div>
   );
 }

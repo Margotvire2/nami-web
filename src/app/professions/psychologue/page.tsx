@@ -16,7 +16,10 @@ function useVis(t = 0.15): [React.RefObject<HTMLDivElement | null>, boolean] {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: t });
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      { threshold: t }
+    );
     obs.observe(el);
     return () => obs.disconnect();
   }, [t]);
@@ -116,63 +119,84 @@ function StatBlock({ value, label, delay = 0 }: { value: string; label: string; 
   );
 }
 
-function BetweenVisitsDemo() {
-  const entries = [
-    { who: "Dr. Vire · Diététicienne", date: "12 avr.", what: "Plan nutritionnel ajusté, apports protéiques ↑, objectif -5% masse grasse à 6 mois. Adhésion bonne.", color: C.teal, icon: "🥗", locked: false },
-    { who: "Dr. Renard · Psychologue", date: "15 avr.", what: "Suivi psychologique en cours, séances régulières.", color: "#E67E22", icon: "🔒", locked: true },
-    { who: "M. Faure · APA", date: "14 avr.", what: "Programme APA : 3×/sem. Régularité 85%. VO2max +8% depuis janvier. Motivation stable.", color: "#8E44AD", icon: "🏃", locked: false },
-    { who: "Dr. Lefèvre · MG", date: "18 avr.", what: "Renouvellement metformine. Tension artérielle 135/85. Bilan lipidique prescrit.", color: "#3498db", icon: "🩺", locked: false },
-    { who: "Extraction bio auto", date: "20 avr.", what: "HbA1c : 7.2% (↓ vs 8.1% en jan.) · LDL : 1.45 g/L · TG : 1.8 g/L · Créatinine : 82 µmol/L", color: C.primary, icon: "🔬", locked: false },
-  ];
-
+function FrameworkDemo() {
+  const [tab, setTab] = useState("equipe");
   return (
-    <div style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", border: `1px solid ${C.border}`, boxShadow: "0 8px 32px rgba(26,26,46,.04)", maxWidth: 580, margin: "0 auto" }}>
-      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: C.primary, marginBottom: 8, fontFamily: fi }}>
-        Marc, 52 ans, Prochain RDV avec vous : 3 mai
-      </div>
-      <p style={{ fontSize: 13, color: C.textMut, marginBottom: 20, fontFamily: fi }}>
-        Ce qui s&apos;est passé depuis votre dernière consultation (8 janvier) :
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {entries.map((e, i) => (
-          <div key={i} style={{
-            padding: "14px 16px", borderRadius: 12, borderLeft: `3px solid ${e.color}`,
-            background: e.locked ? `${e.color}04` : C.bgAlt,
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: e.color, fontFamily: fi }}>
-                {e.icon} {e.who}
-              </span>
-              <span style={{ fontSize: 12, color: C.textMut, fontFamily: fi }}>{e.date}</span>
-            </div>
-            <p style={{
-              fontSize: 14, margin: 0, fontFamily: fi, lineHeight: 1.55,
-              color: e.locked ? C.textMut : C.text,
-              fontStyle: e.locked ? "italic" : "normal",
-            }}>{e.what}</p>
-          </div>
+    <div style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", border: `1px solid ${C.border}`, boxShadow: "0 8px 32px rgba(26,26,46,.04)", maxWidth: 560, margin: "0 auto" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+        {([["equipe", "Ce que l'équipe voit"], ["vous", "Ce que vous voyez"]] as [string, string][]).map(([k, label]) => (
+          <button key={k} onClick={() => setTab(k)} style={{
+            padding: "8px 16px", borderRadius: 8, border: "none",
+            background: tab === k ? C.primary : C.bgAlt, color: tab === k ? "#fff" : C.textSec,
+            fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: fi, transition: "all .2s",
+          }}>{label}</button>
         ))}
       </div>
-      <div style={{ marginTop: 16, padding: "14px 16px", borderRadius: 10, background: `${C.teal}08`, border: `1px solid ${C.teal}15` }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.teal, marginBottom: 4, fontFamily: fi }}>COMPLÉTUDE PARCOURS OBÉSITÉ</div>
-        <p style={{ fontSize: 13, color: C.textSec, margin: 0, fontFamily: fi, lineHeight: 1.5 }}>
-          82% complet. Manquant : bilan lipidique de contrôle (prescrit, en attente), évaluation qualité de vie (non planifiée).
-        </p>
-      </div>
+
+      {tab === "equipe" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            { who: "Dr. Vire · Diététicienne", date: "12 avr.", note: "Plan nutritionnel ajusté. Apports en progression. Prochain RDV : 10 mai.", color: C.teal },
+            { who: "Dr. Lefèvre · Médecin traitant", date: "8 avr.", note: "Renouvellement ordonnance. Bilan bio prescrit.", color: "#3498db" },
+            { who: "Vous · Psychologue", date: "15 avr.", note: null, color: C.primary },
+            { who: "M. Faure · APA", date: "14 avr.", note: "3 séances/sem. Régularité 85%.", color: "#E67E22" },
+          ].map((e, i) => (
+            <div key={i} style={{ padding: "14px 16px", borderRadius: 12, borderLeft: `3px solid ${e.color}`, background: e.note === null ? `${C.primary}04` : C.bgAlt }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: e.color, fontFamily: fi }}>{e.who}</span>
+                <span style={{ fontSize: 12, color: C.textMut, fontFamily: fi }}>{e.date}</span>
+              </div>
+              {e.note ? (
+                <p style={{ fontSize: 14, color: C.text, margin: 0, fontFamily: fi, lineHeight: 1.5 }}>{e.note}</p>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>🔒</span>
+                  <p style={{ fontSize: 14, color: C.textMut, margin: 0, fontFamily: fi, fontStyle: "italic" }}>Suivi psychologique en cours, séances régulières</p>
+                </div>
+              )}
+            </div>
+          ))}
+          <div style={{ padding: "12px 16px", borderRadius: 10, background: `${C.primary}06`, border: `1px solid ${C.primary}12` }}>
+            <p style={{ fontSize: 13, color: C.primary, margin: 0, fontFamily: fi, fontWeight: 600 }}>
+              Le cadre thérapeutique est respecté. L&apos;équipe sait que vous êtes là, pas ce qui se dit.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ padding: "14px 16px", borderRadius: 12, borderLeft: `3px solid ${C.primary}`, background: C.bgAlt }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.primary, marginBottom: 6, fontFamily: fi }}>Vos notes complètes (privées)</div>
+            <p style={{ fontSize: 14, color: C.text, margin: 0, fontFamily: fi, lineHeight: 1.6 }}>
+              Séance du 15 avril. Gabrielle verbalise davantage autour des conduites restrictives. Alliance thérapeutique solide. Travail sur l&apos;image corporelle en cours. Prochaine séance : 29 avril.
+            </p>
+          </div>
+          <div style={{ padding: "14px 16px", borderRadius: 12, borderLeft: `3px solid ${C.teal}`, background: `${C.teal}04` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.teal, marginBottom: 6, fontFamily: fi }}>Ce que vous pouvez partager (opt-in)</div>
+            <p style={{ fontSize: 14, color: C.text, margin: 0, fontFamily: fi, lineHeight: 1.6 }}>
+              Exemple : &quot;Suivi régulier. Bonne adhésion. Pas d&apos;élément nécessitant un ajustement du cadre somatique.&quot;
+            </p>
+          </div>
+          <div style={{ padding: "12px 16px", borderRadius: 10, background: `${C.teal}06`, border: `1px solid ${C.teal}12` }}>
+            <p style={{ fontSize: 13, color: C.teal, margin: 0, fontFamily: fi, fontWeight: 600 }}>
+              Vous rédigez exactement ce qui est partagé. Pas une ligne de plus.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function TimeCalc() {
   const tasks = [
-    { id: "bio", label: "Récupérer et analyser les résultats bio dispersés entre labos et confrères", d: 40 },
-    { id: "cr", label: "Comptes-rendus de consultation, courriers au MG et aux confrères", d: 45 },
-    { id: "proto", label: "Protocoles : initiation GLP-1, switch insuline, titration, surveillance", d: 30 },
-    { id: "coord", label: "Appeler la diét, le MG, le chirurgien, savoir ce qui s'est passé depuis 3 mois", d: 30 },
-    { id: "msg", label: "Messages patients (questions sur le traitement, effets secondaires)", d: 25 },
-    { id: "pcr", label: "Dossiers PCR, éligibilité, suivi des parcours structurés ARS", d: 20 },
-    { id: "fact", label: "Facturation, préparation comptable", d: 25 },
-    { id: "annul", label: "Annulations, reports, patients perdus de vue entre deux RDV trimestriels", d: 15 },
+    { id: "notes", label: "Rédiger vos notes de séance après chaque patient", d: 50 },
+    { id: "courrier", label: "Courriers de liaison au MG, au psychiatre, certificats", d: 35 },
+    { id: "msg", label: "Messages patients entre séances, gestion de crise", d: 30 },
+    { id: "bilans", label: "Bilans psychologiques, comptes-rendus psychométriques", d: 25 },
+    { id: "coord", label: "Appeler le MG ou le psychiatre pour se coordonner", d: 20 },
+    { id: "fact", label: "Facturation, notes d'honoraires, suivi impayés", d: 25 },
+    { id: "annul", label: "Annulations, reports, patients perdus de vue", d: 20 },
+    { id: "form", label: "Se former, supervisions, lectures", d: 20 },
   ];
   const [vals, setVals] = useState<Record<string, number>>(() => {
     const v: Record<string, number> = {};
@@ -212,9 +236,9 @@ function TimeCalc() {
         </div>
         <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,255,255,.06)", textAlign: "center" }}>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,.7)", margin: 0, fontFamily: fi, lineHeight: 1.7 }}>
-            <span style={{ color: "#fff", fontWeight: 700 }}>{daily} min/jour</span> hors consultation, non rémunéré.
+            <span style={{ color: "#fff", fontWeight: 700 }}>{daily} min/jour</span> hors séance, non rémunéré.
             {" "}À 50€/h = <span style={{ color: C.teal, fontWeight: 700 }}>{yearVal.toLocaleString("fr-FR")}€/an</span>.
-            {" "}Nami en automatise une part, pour <span style={{ color: C.teal, fontWeight: 700 }}>149€/mois</span>.
+            {" "}Nami en automatise une part, pour <span style={{ color: C.teal, fontWeight: 700 }}>79€/mois</span>.
           </p>
         </div>
       </div>
@@ -222,48 +246,35 @@ function TimeCalc() {
   );
 }
 
-export default function EndocrinoPage() {
+export default function PsychologuePage() {
   return (
     <div style={{ background: C.bg, minHeight: "100vh", overflowX: "hidden" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500&display=swap');*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}::selection{background:${C.primary}22;color:${C.primary}}`}</style>
 
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: `${C.bg}e8`, backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}`, padding: "0 24px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: C.grad, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 16, fontWeight: 800, fontFamily: f }}>N</div>
-            <span style={{ fontSize: 18, fontWeight: 700, color: C.text, fontFamily: f }}>Nami</span>
-          </div>
-          <button style={{ padding: "10px 22px", borderRadius: 10, border: "none", background: C.primary, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: f }}>Créer mon espace gratuit</button>
-        </div>
-      </nav>
+      {/* NAV */}
 
       {/* HERO */}
       <section style={{ paddingTop: "clamp(120px,18vh,180px)", paddingBottom: "clamp(60px,8vh,100px)", paddingLeft: 24, paddingRight: 24, textAlign: "center", maxWidth: 860, margin: "0 auto" }}>
-        <Fade><Badge>Pour les endocrinologues &amp; diabétologues</Badge></Fade>
+        <Fade><Badge>Pour les psychologues</Badge></Fade>
         <Fade delay={0.1}>
-          <h1 style={{ fontSize: "clamp(2rem,5.5vw,3.4rem)", fontWeight: 800, color: C.text, lineHeight: 1.08, letterSpacing: "-.035em", marginTop: 24, marginBottom: 20, fontFamily: f }}>
-            3 mois entre deux RDV.<br />
+          <h1 style={{ fontSize: "clamp(2.2rem,6vw,3.6rem)", fontWeight: 800, color: C.text, lineHeight: 1.08, letterSpacing: "-.035em", marginTop: 24, marginBottom: 20, fontFamily: f }}>
+            Votre cadre est protégé.<br />
             <span style={{ background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Voyez enfin ce qui s&apos;est passé.
+              Votre place dans l&apos;équipe, visible.
             </span>
           </h1>
         </Fade>
         <Fade delay={0.2}>
-          <p style={{ fontSize: "clamp(1rem,2.5vw,1.15rem)", lineHeight: 1.7, color: C.textSec, maxWidth: 620, margin: "0 auto 28px", fontFamily: fi }}>
-            Obésité, diabète, thyroïde, SOPK, vos patients sont suivis entre vos consultations par un MG, un diététicien, un psychologue, un APA. Aujourd&apos;hui vous les revoyez à l&apos;aveugle. Avec Nami, vous arrivez avec le contexte complet.
+          <p style={{ fontSize: "clamp(1rem,2.5vw,1.15rem)", lineHeight: 1.7, color: C.textSec, maxWidth: 600, margin: "0 auto 36px", fontFamily: fi }}>
+            Vos patients sont suivis par un MG, un diététicien, un psychiatre, un APA.
+            L&apos;équipe a besoin de savoir que la prise en charge psychologique est en place.
+            Pas ce qui s&apos;y dit. Nami respecte cette frontière, par design.
           </p>
-        </Fade>
-        <Fade delay={0.25}>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
-            {["Obésité complexe", "Diabète type 2", "GLP-1 / Ozempic", "Thyroïde", "SOPK", "Chirurgie bariatrique", "PCR Obésité"].map(p => (
-              <span key={p} style={{ display: "inline-block", padding: "8px 18px", borderRadius: 100, fontSize: 14, fontWeight: 500, background: "#fff", border: `1px solid ${C.border}`, color: C.textSec, fontFamily: fi }}>{p}</span>
-            ))}
-          </div>
         </Fade>
         <Fade delay={0.3}>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             <button style={{ padding: "16px 32px", borderRadius: 12, border: "none", background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: f, boxShadow: "0 4px 16px rgba(91,78,196,.2)" }}>Commencer gratuitement</button>
-            <button style={{ padding: "16px 32px", borderRadius: 12, border: `1.5px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: f }}>Voir le cas Marc</button>
+            <button style={{ padding: "16px 32px", borderRadius: 12, border: `1.5px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: f }}>Voir la confidentialité</button>
           </div>
         </Fade>
       </section>
@@ -271,46 +282,54 @@ export default function EndocrinoPage() {
       {/* STATS */}
       <section style={{ background: "#fff", borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "48px 24px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 32 }}>
-          <StatBlock value="269" label="structures PCR Obésité en France" />
-          <StatBlock value="5+" label="soignants par parcours obésité" delay={0.1} />
-          <StatBlock value="Bio auto" label="HbA1c, lipides, créat extraits automatiquement" delay={0.2} />
+          <StatBlock value="🔒" label="Cadre thérapeutique protégé" />
+          <StatBlock value="Opt-in" label="Vous décidez ce qui est partagé" delay={0.1} />
+          <StatBlock value="19€" label="Facturation non conventionnée incluse" delay={0.2} />
         </div>
       </section>
 
-      {/* BETWEEN VISITS DEMO */}
+      {/* CONFIDENTIALITY DEMO */}
       <section style={{ background: C.dark, padding: "clamp(64px,10vh,100px) 24px" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <Fade>
             <div style={{ textAlign: "center", marginBottom: 48 }}>
               <h2 style={{ fontSize: "clamp(1.5rem,4vw,2.2rem)", fontWeight: 800, color: "#fff", lineHeight: 1.15, letterSpacing: "-.03em", fontFamily: f }}>
-                Tout ce qui s&apos;est passé<br /><span style={{ color: C.teal }}>depuis 3 mois. En 30 secondes.</span>
+                Le cadre thérapeutique,<br /><span style={{ color: C.teal }}>respecté par design.</span>
               </h2>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,.5)", maxWidth: 520, margin: "16px auto 0", fontFamily: fi, lineHeight: 1.6 }}>
-                Avant de revoir Marc, vous ouvrez son dossier Nami. Le plan nutritionnel, l&apos;activité physique, le suivi psy, les résultats bio, tout est là. Vous consultez avec le contexte.
+                Vos notes de séance ne sont jamais visibles par l&apos;équipe. Seul le fait
+                que le suivi est en cours est partagé. Si vous voulez transmettre une
+                observation, c&apos;est votre choix, votre rédaction, votre décision.
               </p>
             </div>
           </Fade>
-          <Fade delay={0.2}><BetweenVisitsDemo /></Fade>
+          <Fade delay={0.2}><FrameworkDemo /></Fade>
         </div>
       </section>
 
-      {/* AVANT / APRÈS */}
-      <section style={{ padding: "clamp(64px,10vh,100px) 24px" }}>
+      {/* CASE STUDY */}
+      <section style={{ padding: "clamp(64px,10vh,120px) 24px" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <Fade>
-            <div style={{ textAlign: "center", marginBottom: 48 }}>
-              <Badge>Ce qui change</Badge>
-              <h2 style={{ fontSize: "clamp(1.6rem,4vw,2.2rem)", fontWeight: 800, color: C.text, lineHeight: 1.12, letterSpacing: "-.03em", marginTop: 16, fontFamily: f }}>
-                Finies les consultations à l&apos;aveugle.
-              </h2>
-            </div>
+          <Fade><Badge>Cas concret</Badge></Fade>
+          <Fade delay={0.1}>
+            <h2 style={{ fontSize: "clamp(1.6rem,4vw,2.4rem)", fontWeight: 800, color: C.text, lineHeight: 1.12, letterSpacing: "-.03em", marginTop: 16, marginBottom: 12, fontFamily: f }}>
+              Gabrielle, 16 ans. TCA. Vous êtes sa psychologue.
+            </h2>
+          </Fade>
+          <Fade delay={0.15}>
+            <p style={{ fontSize: "clamp(1rem,2vw,1.1rem)", lineHeight: 1.7, color: C.textSec, marginBottom: 40, fontFamily: fi }}>
+              Elle est suivie par un psychiatre, une diététicienne, un MG et un endocrinologue.
+              Aujourd&apos;hui, personne ne sait que vous existez dans ce parcours, sauf Gabrielle.
+              Avec Nami, l&apos;équipe sait que le suivi psy est actif. Vous voyez ce que les autres
+              font. Et personne ne lit vos notes.
+            </p>
           </Fade>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 24 }}>
             {[
-              { b: "Marc revient après 3 mois. Vous ne savez pas s'il a vu la diét, le psy, fait ses bilans. Vous passez 10 minutes à reconstituer.", a: "Vous ouvrez le dossier Nami : plan nutritionnel ajusté, APA régulière, psy actif, HbA1c à 7.2%. Vous consultez en 30 secondes de contexte." },
-              { b: "Le MG a prescrit un bilan lipidique. L'avez-vous reçu ? Vous cherchez dans vos courriers.", a: "Les résultats bio sont extraits automatiquement et structurés dans le dossier. LDL, TG, HbA1c, tout est là." },
-              { b: "Vous initiez un GLP-1. Le MG ne le sait pas. La diét ne sait pas. Le patient gère les effets secondaires seul.", a: "Vous mettez à jour dans Nami. Le MG et la diét voient l'initiation. La diét ajuste le plan en conséquence." },
-              { b: "Le patient est éligible à la chirurgie bariatrique. Qui l'a vu ? Le bilan pré-op est-il complet ? Personne ne sait.", a: "L'indicateur de complétude montre le parcours pré-bariatrique : consultations faites, bilans en attente, étapes manquantes." },
+              { b: "Le MG ne sait même pas que Gabrielle vous voit. Il prescrit un bilan « pour voir », que vous aviez déjà discuté avec le psychiatre.", a: "Le MG voit « Suivi psychologique en cours, séances régulières ». Il sait que vous êtes là. Pas besoin de l'appeler." },
+              { b: "La diététicienne ajuste le plan nutritionnel. Vous ne le savez pas. Gabrielle vous le raconte 3 semaines plus tard.", a: "Vous voyez dans Nami : « Plan nutritionnel ajusté, apports protéiques augmentés ». Vous pouvez en parler en séance." },
+              { b: "Gabrielle arrête de venir chez la diét. Personne ne s'en rend compte pendant un mois.", a: "L'indicateur de complétude montre l'interruption du suivi diét. Vous le voyez, vous en parlez en séance." },
+              { b: "Vous rédigez un courrier de liaison au psychiatre. Il met 3 semaines à le recevoir. Il a déjà changé le traitement.", a: "Vous partagez une observation opt-in dans Nami. Le psychiatre la voit immédiatement. Pas de courrier, pas de délai." },
             ].map((item, i) => (
               <Fade key={i} delay={i * 0.1}>
                 <div style={{ background: "#fff", borderRadius: 16, padding: "28px 24px", border: `1px solid ${C.border}`, height: "100%" }}>
@@ -336,10 +355,11 @@ export default function EndocrinoPage() {
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <Badge>Le temps invisible</Badge>
               <h2 style={{ fontSize: "clamp(1.6rem,4vw,2.2rem)", fontWeight: 800, color: C.text, lineHeight: 1.12, letterSpacing: "-.03em", marginTop: 16, fontFamily: f }}>
-                Résultats bio éparpillés, appels aux confrères,<br />courriers, protocoles GLP-1,
+                Tout ce temps hors séance<br />que personne ne rémunère.
               </h2>
               <p style={{ fontSize: 15, color: C.textSec, maxWidth: 560, margin: "16px auto 0", fontFamily: fi, lineHeight: 1.7 }}>
-                tout ça n&apos;est pas compris dans le prix de la consultation.
+                Notes de séance, courriers de liaison, bilans psychologiques, messages patients,
+                coordination téléphonique, facturation, et ce n&apos;est pas compris dans le prix de la séance.
               </p>
             </div>
           </Fade>
@@ -352,19 +372,19 @@ export default function EndocrinoPage() {
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <Fade>
             <div style={{ textAlign: "center", marginBottom: 56 }}>
-              <Badge>Conçu pour les parcours longs</Badge>
+              <Badge>Vos outils</Badge>
               <h2 style={{ fontSize: "clamp(1.6rem,4vw,2.2rem)", fontWeight: 800, color: C.text, lineHeight: 1.12, letterSpacing: "-.03em", marginTop: 16, fontFamily: f }}>
-                Le parcours vit entre vos consultations.<br />Nami aussi.
+                Faire partie de l&apos;équipe<br />sans compromettre le cadre.
               </h2>
             </div>
           </Fade>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 20 }}>
-            <Card icon="🔬" title="Extraction bio automatique" desc="HbA1c, bilan lipidique, TSH, créatinine, les résultats sont extraits et structurés automatiquement. Plus de recopie, plus de résultats perdus." delay={0} />
-            <Card icon="👁️" title="Vue inter-consultations" desc="Ce que la diét, le MG, le psy, l'APA ont fait depuis votre dernier RDV, en un écran. Vous consultez avec le contexte, pas à l'aveugle." delay={0.1} />
-            <Card icon="💊" title="Protocoles GLP-1 & insuline" desc="Initiation GLP-1 (sémaglutide, tirzepatide), switch insuline, titration, surveillance des effets secondaires. Protocoles HAS sourcés." delay={0.2} />
-            <Card icon="📋" title="Parcours PCR Obésité" desc="Profils A, B, C, D configurés. Éligibilité, étapes, bilans requis. Prêt pour les 269 structures ARS. Candidatures ouvertes 5 mai 2026." delay={0.3} />
-            <Card icon="🎙️" title="Enregistrement consultation" desc="Enregistrez vos observations. L'IA structure. Vous validez. Le MG et la diét reçoivent vos conclusions sans courrier." delay={0.4} />
-            <Card icon="✅" title="Complétude parcours" desc="Bilan pré-bariatrique complet ? Bilan à 3 mois fait ? Évaluation psy réalisée ? L'indicateur montre ce qui manque." delay={0.5} />
+            <Card icon="🔒" title="Confidentialité par défaut" desc="Vos notes sont privées. L'équipe voit uniquement : suivi en cours, fréquence, pas de contenu. Vous partagez ce que vous décidez, votre rédaction, votre choix." delay={0} />
+            <Card icon="👥" title="Visible dans l'équipe" desc="Le MG, le psychiatre, la diét savent que vous êtes dans le parcours. Votre place est claire. Plus de « je ne savais même pas qu'il voyait un psy »." delay={0.1} />
+            <Card icon="👁️" title="Vue équipe sans intrusion" desc="Vous voyez le plan nutritionnel, les résultats bio, les traitements en cours, tout ce qui contextualise votre prise en charge. L'équipe ne voit rien de la vôtre." delay={0.2} />
+            <Card icon="🎙️" title="Notes de séance assistées" desc="Enregistrez vos observations. L'IA structure un brouillon privé. Vous relisez, complétez, validez. Gain de temps sans rien exposer." delay={0.3} />
+            <Card icon="📋" title="Courriers de liaison simplifiés" desc="Besoin de transmettre au psychiatre ? Rédigez dans Nami, c'est reçu instantanément. Plus de courrier postal, plus de fax, plus de 3 semaines de délai." delay={0.4} />
+            <Card icon="✅" title="Suivi de la complétude" desc="Le patient a arrêté le suivi diét ? Le bilan bio est en retard ? Vous le voyez, vous en parlez en séance. Le parcours avance." delay={0.5} />
           </div>
         </div>
       </section>
@@ -373,7 +393,7 @@ export default function EndocrinoPage() {
       <section style={{ background: C.bgAlt, padding: "clamp(48px,8vh,80px) 24px", textAlign: "center" }}>
         <Fade>
           <p style={{ fontSize: "clamp(1.1rem,2.5vw,1.4rem)", fontStyle: "italic", color: C.text, maxWidth: 640, margin: "0 auto", lineHeight: 1.6, fontFamily: "'Playfair Display',serif" }}>
-            &ldquo;Les 269 structures PCR Obésité ont besoin d&apos;un outil de coordination. Nami est prêt.&rdquo;
+            &ldquo;Le psychologue est souvent le soignant invisible du parcours. L&apos;équipe ne sait pas qu&apos;il est là. Le patient porte seul le lien entre ses soignants. Nami rend le psychologue visible, sans le rendre transparent.&rdquo;
           </p>
           <p style={{ fontSize: 14, color: C.textMut, marginTop: 20, fontFamily: fi }}>Margot Vire, Diététicienne-nutritionniste, fondatrice de Nami</p>
         </Fade>
@@ -386,17 +406,16 @@ export default function EndocrinoPage() {
             <div style={{ textAlign: "center", marginBottom: 48 }}>
               <Badge>Tarifs</Badge>
               <h2 style={{ fontSize: "clamp(1.6rem,4vw,2.2rem)", fontWeight: 800, color: C.text, lineHeight: 1.12, letterSpacing: "-.03em", marginTop: 16, fontFamily: f }}>
-                Commencez gratuitement.
+                79€/mois ≈ 2% du CA moyen d&apos;un psychologue libéral.
               </h2>
             </div>
           </Fade>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16, alignItems: "stretch" }}>
-            <Tier name="Gratuit" price="0€" sub="Agenda, messagerie, annuaire" features={["Agenda + prise de RDV", "Messagerie patients & soignants", "Fiche patient basique", "Annuaire soignants"]} cta="Commencer" delay={0} />
-            <Tier name="Coordination" price="79€" sub="Vue inter-consultations + adressage" features={["Tout Gratuit inclus", "Vue équipe entre vos RDV", "Adressage structuré", "App patient (photos repas)", "Téléexpertise tracée", "Facturation + visio"]} cta="Essayer" delay={0.1} />
-            <Tier name="Intelligence" price="149€" sub="Bio auto + IA + protocoles" highlighted features={["Tout Coordination", "Extraction bio automatique", "Enregistrement + transcription IA", "Protocoles GLP-1, insuline, HAS", "60 000+ sources cliniques", "Essai 14 jours gratuit"]} cta="Essai gratuit" delay={0.2} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 16, alignItems: "stretch" }}>
+            <Tier name="Gratuit" price="0€" sub="Agenda, messagerie" features={["Agenda + prise de RDV", "Messagerie patients & soignants", "Fiche patient basique", "Annuaire soignants"]} cta="Commencer" delay={0} />
+            <Tier name="Coordination" price="79€" sub="L'équipe vous voit. Pas vos notes." features={["Tout Gratuit inclus", "Présence visible dans l'équipe", "Notes confidentielles par défaut", "Partage opt-in uniquement", "Vue équipe (bio, nutrition, traitements)", "Facturation 19€ incluse"]} cta="Essayer" delay={0.1} />
+            <Tier name="Intelligence" price="149€" sub="L'IA pour vos notes de séance" highlighted features={["Tout Coordination", "Enregistrement + transcription privée", "Bilans psychologiques assistés", "60 000+ sources cliniques", "Essai 14 jours gratuit"]} cta="Essai gratuit" delay={0.2} />
             <Tier name="Pilotage" price="299€" sub="Le cockpit financier" features={["Tout Intelligence", "CA + charges temps réel", "Pré-déclarations fiscales", "Bilan, CR, trésorerie", "Export comptable"]} cta="Découvrir" delay={0.3} />
           </div>
-          <Fade delay={0.4}><p style={{ textAlign: "center", fontSize: 13, color: C.textMut, marginTop: 24, fontFamily: fi }}>Structures PCR et cabinets d&apos;endocrinologie : offre Réseau à partir de 499€/mois.</p></Fade>
         </div>
       </section>
 
@@ -404,11 +423,11 @@ export default function EndocrinoPage() {
       <section style={{ padding: "clamp(64px,10vh,100px) 24px", background: C.bgAlt }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <Fade><h2 style={{ fontSize: "clamp(1.4rem,3vw,1.8rem)", fontWeight: 800, color: C.text, marginBottom: 40, fontFamily: f, textAlign: "center" }}>Questions fréquentes</h2></Fade>
-          <FaqItem q="Nami est-il adapté aux parcours PCR Obésité Complexe ?" a="Oui. Les 4 profils PCR (A, B, C, D définis par l'arrêté du 26 février 2026) sont configurables dans Nami. Éligibilité, étapes, bilans requis, suivi pluridisciplinaire, le tout structuré et traçable pour les ARS. Les candidatures ouvrent le 5 mai 2026." />
-          <FaqItem q="Comment fonctionne l'extraction bio automatique ?" a="Quand un résultat biologique arrive dans le dossier (scan, import, transmission patient), Nami extrait les valeurs clés, HbA1c, bilan lipidique, TSH, créatinine, et les structure automatiquement. Plus de recopie manuelle, plus de valeurs perdues entre deux consultations." delay={0.06} />
-          <FaqItem q="Les protocoles GLP-1 sont-ils sourcés ?" a="Oui. Initiation sémaglutide et tirzepatide, titration, surveillance des effets secondaires, contre-indications, switch entre molécules. Sourcés HAS et sociétés savantes (SFE, SFD). Accessibles en consultation." delay={0.12} />
-          <FaqItem q="Pourquoi Intelligence (149€) est recommandé pour les endocrinos ?" a="Parce que l'extraction bio automatique et les protocoles médicamenteux sont vos outils quotidiens. La Coordination (79€) vous donne la vue d'ensemble. L'Intelligence y ajoute l'automatisation des données biologiques et l'IA, ce qui change radicalement la qualité de vos consultations trimestrielles." delay={0.18} />
-          <FaqItem q="Le Pilotage à 299€, c'est quoi ?" a="Le cockpit financier complet : CA temps réel, charges, pré-déclarations fiscales (BNC, SELARL), bilan et compte de résultat préparés, export comptable. Vous êtes endocrinologue, pas chef d'entreprise, Nami prépare tout." delay={0.24} />
+          <FaqItem q="Mes notes de séance sont-elles vraiment privées ?" a="Oui. L'équipe ne voit que le statut : « Suivi psychologique en cours, séances régulières ». Pas de contenu, pas de thématiques abordées, pas de diagnostic. Si vous voulez partager une observation (par ex. « bonne adhésion, pas d'élément nécessitant un ajustement somatique »), vous la rédigez vous-même, c'est opt-in." />
+          <FaqItem q="En quoi c'est différent d'un simple email au MG ?" a="L'email est ponctuel, il se perd, il n'est pas structuré. Dans Nami, votre présence dans l'équipe est permanente et visible. L'équipe sait que le suivi est actif SANS que vous ayez à écrire quoi que ce soit. Et quand vous voulez transmettre, c'est instantané, pas 3 semaines de courrier." delay={0.06} />
+          <FaqItem q="Comment arrivent les patients ?" a="Soit le MG adresse via Nami (vous recevez le contexte clinique), soit le patient vous invite depuis son app (« Mon psy n'est pas sur Nami, je veux l'inviter »). Dans les deux cas, vous vous inscrivez en 2 minutes et vous voyez l'équipe." delay={0.12} />
+          <FaqItem q="L'enregistrement de séance est-il sécurisé ?" a="L'enregistrement et la transcription restent dans votre espace privé. Le brouillon IA est un outil pour VOUS, pour gagner du temps sur vos notes. Rien n'est partagé automatiquement, jamais." delay={0.18} />
+          <FaqItem q="La facturation est-elle adaptée aux psychologues ?" a="Oui. Le tier Essentiel (inclus dans Coordination) couvre la facturation non conventionnée : notes d'honoraires, suivi des paiements, export comptable. C'est exactement ce dont un psychologue libéral a besoin." delay={0.24} />
         </div>
       </section>
 
@@ -416,8 +435,8 @@ export default function EndocrinoPage() {
       <section style={{ padding: "clamp(64px,10vh,100px) 24px", textAlign: "center" }}>
         <Fade>
           <h2 style={{ fontSize: "clamp(1.6rem,4.5vw,2.6rem)", fontWeight: 800, color: C.text, lineHeight: 1.1, letterSpacing: "-.035em", marginBottom: 16, fontFamily: f }}>
-            Vos patients vivent entre vos RDV.<br />
-            <span style={{ background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Leur parcours aussi.</span>
+            Visible dans l&apos;équipe.<br />
+            <span style={{ background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Protégé dans votre cadre.</span>
           </h2>
         </Fade>
         <Fade delay={0.15}>
@@ -425,9 +444,6 @@ export default function EndocrinoPage() {
         </Fade>
       </section>
 
-      <footer style={{ borderTop: `1px solid ${C.border}`, padding: "32px 24px", textAlign: "center" }}>
-        <p style={{ fontSize: 12, color: C.textMut, fontFamily: fi, lineHeight: 1.6 }}>Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami</p>
-      </footer>
     </div>
   );
 }

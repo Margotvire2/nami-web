@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { PublicNavbar } from "@/components/public/PublicNavbar"
+import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const metadata: Metadata = {
   title: "Trouver un soignant spécialisé — TCA, nutrition, obésité, pédiatrie",
@@ -37,7 +39,9 @@ export default function TrouverSoignantLayout({ children }: { children: React.Re
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <PublicNavbar />
       {children}
+      <PublicFooter />
     </>
   )
 }

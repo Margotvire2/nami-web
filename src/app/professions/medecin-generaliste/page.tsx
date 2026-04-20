@@ -319,15 +319,6 @@ export default function MGPage() {
       `}</style>
 
       {/* NAV */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: `${C.bg}e8`, backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}`, padding: "0 24px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: C.grad, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 16, fontWeight: 800, fontFamily: f }}>N</div>
-            <span style={{ fontSize: 18, fontWeight: 700, color: C.text, fontFamily: f }}>Nami</span>
-          </a>
-          <a href="/signup" style={{ padding: "10px 22px", borderRadius: 10, border: "none", background: C.primary, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: f, textDecoration: "none", display: "inline-block" }}>Créer mon espace gratuit</a>
-        </div>
-      </nav>
 
       {/* HERO */}
       <section style={{ paddingTop: "clamp(120px,18vh,180px)", paddingBottom: "clamp(60px,8vh,100px)", paddingLeft: 24, paddingRight: 24, textAlign: "center", maxWidth: 860, margin: "0 auto" }}>
@@ -493,9 +484,6 @@ export default function MGPage() {
         </Fade>
       </section>
 
-      <footer style={{ borderTop: `1px solid ${C.border}`, padding: "32px 24px", textAlign: "center" }}>
-        <p style={{ fontSize: 12, color: C.textMut, fontFamily: fi, lineHeight: 1.6 }}>Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami</p>
-      </footer>
     </div>
   );
 }
