@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { X, Menu } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Fonctionnalités", href: "/#features" },
+  { label: "Fonctionnalités", href: "/fonctionnalites" },
   { label: "Pathologies", href: "/pathologies" },
   { label: "Annuaire", href: "/trouver-un-soignant" },
   { label: "Blog", href: "/blog" },
