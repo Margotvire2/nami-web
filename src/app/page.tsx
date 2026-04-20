@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeNav } from "@/components/home/HomeNav";
 import { HomeSticky } from "@/components/home/HomeSticky";
-import { HomeStats } from "@/components/home/HomeStats";
 import { Reveal } from "@/components/home/HomeReveal";
 
 export const metadata: Metadata = {
@@ -32,12 +31,12 @@ const STEPS = [
 ];
 
 const SPECIALTIES = [
-  { icon: "🌱", label: "TCA", sub: "Anorexie · Boulimie · ARFID · BED" },
-  { icon: "⚖️", label: "Obésité", sub: "Pédiatrique · Grade II/III · PCR" },
-  { icon: "👶", label: "Pédiatrie", sub: "Cassure de courbe · Crohn · APLV" },
-  { icon: "🧠", label: "Santé mentale", sub: "TSA · TDAH · Anxiété alimentaire" },
-  { icon: "🩺", label: "Maladies chroniques", sub: "MICI · Diabète · Pathologies rares" },
-  { icon: "💊", label: "Post-traitement", sub: "Réhabilitation · Suivi à long terme" },
+  { icon: "🌱", label: "TCA", sub: "Anorexie · Boulimie · ARFID · BED", href: "/professions/dieteticien" },
+  { icon: "⚖️", label: "Obésité", sub: "Pédiatrique · Grade II/III · PCR", href: "/professions/medecin-nutritionniste" },
+  { icon: "👶", label: "Pédiatrie", sub: "Cassure de courbe · Crohn · APLV", href: "/professions/pediatre" },
+  { icon: "🧠", label: "Santé mentale", sub: "TSA · TDAH · Anxiété alimentaire", href: "/professions/psychiatre" },
+  { icon: "🩺", label: "Maladies chroniques", sub: "MICI · Diabète · Pathologies rares", href: "/professions/medecin-generaliste" },
+  { icon: "💊", label: "Post-traitement", sub: "Réhabilitation · Suivi à long terme", href: "/professions/kinesitherapeute" },
 ];
 
 const SECURITY = [
@@ -302,9 +301,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* STATS — client component */}
-        <HomeStats />
-
         {/* ═══ COMMENT ÇA MARCHE ═══════════════════════════════════════════ */}
         <section style={{ padding: "120px 24px", background: "var(--nami-bg-alt)" }}>
           <Reveal style={{ textAlign: "center", marginBottom: 72 }}>
@@ -356,11 +352,11 @@ export default function HomePage() {
           <div className="landing-specialties-grid" style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {SPECIALTIES.map((s, i) => (
               <Reveal key={s.label} delay={i * 55} from="scale">
-                <div className="specialty-card" style={{ background: "#fff", borderRadius: 18, border: "1px solid rgba(26,26,46,0.06)", padding: "26px 22px", cursor: "default", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
+                <Link href={s.href} className="specialty-card" style={{ display: "block", background: "#fff", borderRadius: 18, border: "1px solid rgba(26,26,46,0.06)", padding: "26px 22px", textDecoration: "none", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
                   <div style={{ fontSize: 26, marginBottom: 10 }}>{s.icon}</div>
                   <p style={{ fontSize: 15, fontWeight: 700, color: "var(--nami-text)", marginBottom: 5 }}>{s.label}</p>
                   <p style={{ fontSize: 12, color: "var(--nami-text-3)" }}>{s.sub}</p>
-                </div>
+                </Link>
               </Reveal>
             ))}
           </div>
@@ -431,7 +427,7 @@ export default function HomePage() {
             </div>
             {[
               { title: "Produit", links: [{ l: "Fonctionnalités", h: "/fonctionnalites" }, { l: "Connexion", h: "/login" }, { l: "Créer un compte", h: "/signup" }] },
-              { title: "Ressources", links: [{ l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Pathologies", h: "/pathologies" }, { l: "Blog", h: "/blog" }] },
+              { title: "Ressources", links: [{ l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Spécialités", h: "/professions" }, { l: "Pathologies", h: "/pathologies" }, { l: "Blog", h: "/blog" }] },
               { title: "Légal", links: [{ l: "CGU", h: "/cgu" }, { l: "Confidentialité", h: "/confidentialite" }, { l: "Mentions légales", h: "/mentions-legales" }] },
             ].map(col => (
               <div key={col.title}>

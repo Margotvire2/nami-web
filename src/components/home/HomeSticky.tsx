@@ -42,8 +42,8 @@ export function HomeSticky() {
               },
               {
                 tag: "LA SOLUTION",
-                title: "Nami transfère\ncette charge.",
-                body: "Du patient vers les soignants. Un dossier partagé. Une activité du dossier commune. Une décision collective en quelques clics.",
+                title: "Nami prend\nle relais.",
+                body: "Un dossier partagé. Une activité commune. Chaque soignant voit ce que les autres ont fait. Une décision collective en quelques clics.",
                 color: "#7B6FD4",
               },
             ].map((p, i) => (
