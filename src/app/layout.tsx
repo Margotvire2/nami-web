@@ -35,10 +35,10 @@ export const metadata: Metadata = {
     "adressage médical", "pluridisciplinaire", "APLV", "TDAH", "TSA",
     "annuaire santé", "professionnel de santé", "coordination clinique",
   ],
-  authors: [{ name: "Nami", url: "https://nami-web-orpin.vercel.app" }],
+  authors: [{ name: "Nami", url: "https://namipourlavie.com" }],
+  metadataBase: new URL("https://namipourlavie.com"),
   creator: "Nami",
   publisher: "Nami",
-  metadataBase: new URL("https://nami-web-orpin.vercel.app"),
   alternates: {
     canonical: "/",
   },
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Nami",
     locale: "fr_FR",
-    url: "https://nami-web-orpin.vercel.app",
+    url: "https://namipourlavie.com",
     images: [{ url: "/og-default.png", width: 1200, height: 630 }],
   },
   twitter: {
@@ -75,18 +75,18 @@ const globalJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Nami",
-  url: "https://nami-web-orpin.vercel.app",
+  url: "https://namipourlavie.com",
   description: "Coordination des parcours de soins complexes entre professionnels de santé.",
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://nami-web-orpin.vercel.app/trouver-un-soignant?q={search_term_string}",
+    target: "https://namipourlavie.com/trouver-un-soignant?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
   publisher: {
     "@type": "Organization",
     name: "Nami",
-    url: "https://nami-web-orpin.vercel.app",
-    logo: { "@type": "ImageObject", url: "https://nami-web-orpin.vercel.app/og-default.png" },
+    url: "https://namipourlavie.com",
+    logo: { "@type": "ImageObject", url: "https://namipourlavie.com/og-default.png" },
   },
 };
 
