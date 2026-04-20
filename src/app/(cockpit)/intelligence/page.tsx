@@ -197,25 +197,80 @@ function QualityDashboard() {
 // ─── Slug → catégorie ────────────────────────────────────────────────────────
 
 function slugToCategory(slug: string): string {
-  if (slug.startsWith("algo_"))  return "ALGO";
-  if (slug.startsWith("pcr-"))   return "PCR";
-  if (slug.startsWith("ke_"))    return "REF";
-  return "FICHE"; // sem_* + chunks narratifs custom
+  if (slug.startsWith("sem_"))  return "SEM";
+  if (slug.startsWith("algo_")) return "ALGO";
+  if (slug.startsWith("ke_"))   return "KE";
+  if (slug.startsWith("pcr-"))  return "PCR";
+  return "REF";
 }
 
-const SOURCE_META: Record<string, { label: string; color: string; desc: string }> = {
-  FICHE: { label: "Fiche",      color: "bg-emerald-50 text-emerald-700 border-emerald-200", desc: "Fiches pathologies sémantiques" },
-  ALGO:  { label: "Algorithme", color: "bg-amber-50 text-amber-700 border-amber-200",       desc: "Arbres décisionnels cliniques" },
-  PCR:   { label: "PCR",        color: "bg-purple-50 text-purple-700 border-purple-200",    desc: "Parcours de soins complexe" },
-  REF:   { label: "Référence",  color: "bg-blue-50 text-blue-700 border-blue-200",          desc: "Sources HAS / guidelines" },
+const CATEGORY_META: Record<string, { label: string; color: string; bg: string; desc: string }> = {
+  SEM:  { label: "Sémantique", color: "#5B4EC4", bg: "rgba(91,78,196,0.08)",    desc: "Fiches pathologies sémantiques" },
+  ALGO: { label: "Algorithme", color: "#2BA89C", bg: "rgba(43,168,156,0.08)",   desc: "Arbres décisionnels cliniques" },
+  KE:   { label: "Fiche",      color: "#8A8A96", bg: "rgba(138,138,150,0.10)",  desc: "Fiches de référence" },
+  PCR:  { label: "PCR",        color: "#7C3AED", bg: "rgba(124,58,237,0.08)",   desc: "Parcours de soins complexe" },
+  REF:  { label: "Référence",  color: "#2563EB", bg: "rgba(37,99,235,0.08)",    desc: "Sources HAS / guidelines" },
 };
 
+// Kept for modal icon rendering
 const SOURCE_ICON: Record<string, typeof BookOpen> = {
-  FICHE: Database,
-  ALGO:  GitBranch,
-  PCR:   BookOpen,
-  REF:   FileText,
+  SEM:  Database,
+  ALGO: GitBranch,
+  KE:   FileText,
+  PCR:  BookOpen,
+  REF:  FileText,
 };
+
+// ─── Preview helpers ──────────────────────────────────────────────────────────
+
+function cleanForPreview(content: string): string {
+  return content
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^[-*•]\s+/gm, "")
+    .replace(/^\d+\.\s+/gm, "")
+    .replace(/^---+$/gm, "")
+    .replace(/^\|.+\|$/gm, "")
+    .replace(/\n{2,}/g, " ")
+    .replace(/\n/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function highlightTerms(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+  const terms = query.trim().split(/\s+/).filter((t) => t.length > 2);
+  if (terms.length === 0) return text;
+  const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(pattern);
+  return parts.map((part, i) =>
+    pattern.test(part) ? <strong key={i} style={{ fontWeight: 700, color: "#1A1A2E" }}>{part}</strong> : part
+  );
+}
+
+function ScoreDots({ score }: { score: number }) {
+  const filled = Math.round(score * 5);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+      {[...Array(5)].map((_, i) => (
+        <div
+          key={i}
+          style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: i < filled ? "#5B4EC4" : "rgba(91,78,196,0.15)",
+            flexShrink: 0,
+          }}
+        />
+      ))}
+      <span style={{ fontSize: 10, color: "#8A8A96", marginLeft: 4, fontVariantNumeric: "tabular-nums" }}>
+        {Math.round(score * 100)}%
+      </span>
+    </div>
+  );
+}
 
 const SUGGESTED_QUERIES = [
   "critères hospitalisation anorexie",
@@ -230,64 +285,93 @@ const SUGGESTED_QUERIES = [
 
 // ─── Result card ─────────────────────────────────────────────────────────────
 
-function scoreColor(s: number): string {
-  if (s >= 0.85) return "text-emerald-600 bg-emerald-50 border-emerald-200";
-  if (s >= 0.70) return "text-amber-600 bg-amber-50 border-amber-200";
-  return "text-gray-500 bg-gray-50 border-gray-200";
-}
-
 function ResultCard({
   result,
+  query,
   onOpen,
 }: {
   result: KnowledgeSearchResult;
+  query: string;
   onOpen: (r: KnowledgeSearchResult) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const cat = slugToCategory(result.slug);
-  const meta = SOURCE_META[cat];
-  const Icon = SOURCE_ICON[cat] ?? FileText;
-  const preview = result.content.replace(/\n+/g, " ").trim().slice(0, 280);
-  const hasMore = result.content.length > 280;
+  const meta = CATEGORY_META[cat];
+
+  const clean = cleanForPreview(result.content);
+  const LIMIT = 200;
+  const preview = clean.slice(0, LIMIT);
+  const hasMore = clean.length > LIMIT;
 
   return (
     <div
-      className="nami-card-interactive cursor-pointer"
+      style={{
+        background: "#FAFAF8",
+        border: "1px solid rgba(26,26,46,0.06)",
+        borderRadius: 12,
+        padding: "14px 16px",
+        cursor: "pointer",
+        transition: "border-color 0.2s, box-shadow 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(91,78,196,0.18)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(91,78,196,0.07)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(26,26,46,0.06)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+      }}
       onClick={() => onOpen(result)}
     >
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          <div className={`mt-0.5 shrink-0 p-1.5 rounded-lg border ${meta?.color ?? "bg-gray-100 text-gray-500 border-gray-200"}`}>
-            <Icon size={14} />
-          </div>
-          <div className="min-w-0 flex-1">
-            {/* Title + score */}
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm font-semibold text-gray-900 leading-snug">
-                {result.sectionTitle || result.slug}
-              </h3>
-              <span className={`shrink-0 text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded border ${scoreColor(result.score)}`}>
-                {Math.round(result.score * 100)}%
-              </span>
-            </div>
-
-            {/* Badges */}
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${meta?.color ?? "bg-gray-100"}`}>
-                {meta?.label ?? cat}
-              </span>
-              <span className="text-[10px] text-gray-400 font-mono">{result.slug}</span>
-              <span className="text-[10px] text-gray-400">
-                qualité {Math.round(result.qualityScore * 100)}%
-              </span>
-            </div>
-
-            {/* Content preview */}
-            <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-              {preview}{hasMore && <span className="text-gray-400"> … <span className="text-[#4F46E5]">voir tout</span></span>}
-            </p>
-          </div>
-        </div>
+      {/* Top row: badge + score */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <span
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
+            textTransform: "uppercase",
+            color: meta?.color ?? "#8A8A96",
+            background: meta?.bg ?? "rgba(138,138,150,0.10)",
+            padding: "2px 8px", borderRadius: 6,
+          }}
+        >
+          {meta?.label ?? cat}
+        </span>
+        <ScoreDots score={result.score} />
       </div>
+
+      {/* Title */}
+      <h3 style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4, marginBottom: 3, fontFamily: "var(--font-jakarta)" }}>
+        {result.sectionTitle || result.slug}
+      </h3>
+
+      {/* Source slug */}
+      <p style={{ fontSize: 10, color: "#8A8A96", marginBottom: 8, letterSpacing: "0.02em" }}>
+        {result.slug}
+        {result.qualityScore > 0 && (
+          <span style={{ marginLeft: 8, opacity: 0.7 }}>· qualité {Math.round(result.qualityScore * 100)}%</span>
+        )}
+      </p>
+
+      {/* Content prose */}
+      <p style={{ fontSize: 12, color: "#4A4A5A", lineHeight: 1.65 }}>
+        {expanded
+          ? highlightTerms(clean, query)
+          : <>{highlightTerms(preview, query)}{hasMore && <span style={{ color: "#8A8A96" }}>…</span>}</>}
+      </p>
+
+      {/* Voir plus / Réduire */}
+      {hasMore && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          style={{
+            fontSize: 11, color: "#5B4EC4", fontWeight: 600,
+            marginTop: 6, background: "none", border: "none",
+            cursor: "pointer", padding: 0, display: "block",
+          }}
+        >
+          {expanded ? "Réduire" : "Voir plus"}
+        </button>
+      )}
     </div>
   );
 }
@@ -302,7 +386,7 @@ function KnowledgeDetailModal({
   onClose: () => void;
 }) {
   const cat = slugToCategory(result.slug);
-  const meta = SOURCE_META[cat];
+  const meta = CATEGORY_META[cat];
   const Icon = SOURCE_ICON[cat] ?? FileText;
 
   useEffect(() => {
@@ -323,7 +407,14 @@ function KnowledgeDetailModal({
         {/* Header */}
         <div className="flex items-start justify-between gap-3 px-6 py-4 border-b shrink-0">
           <div className="flex items-start gap-3 min-w-0">
-            <div className={`mt-0.5 shrink-0 p-1.5 rounded-lg border ${meta?.color ?? "bg-gray-100 text-gray-500 border-gray-200"}`}>
+            <div
+              style={{
+                marginTop: 2, flexShrink: 0, padding: "6px",
+                borderRadius: 8, border: `1px solid ${meta?.color ?? "#8A8A96"}22`,
+                background: meta?.bg ?? "rgba(138,138,150,0.10)",
+                color: meta?.color ?? "#8A8A96",
+              }}
+            >
               <Icon size={14} />
             </div>
             <div className="min-w-0">
@@ -331,11 +422,19 @@ function KnowledgeDetailModal({
                 {result.sectionTitle || result.slug}
               </h2>
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${meta?.color ?? "bg-gray-100"}`}>
+                <span
+                  style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    color: meta?.color ?? "#8A8A96",
+                    background: meta?.bg ?? "rgba(138,138,150,0.10)",
+                    padding: "2px 8px", borderRadius: 6,
+                  }}
+                >
                   {meta?.label ?? cat}
                 </span>
                 <span className="text-[10px] text-gray-400 font-mono">{result.slug}</span>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${scoreColor(result.score)}`}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#5B4EC4" }}>
                   {Math.round(result.score * 100)}% pertinence
                 </span>
                 <span className="text-[10px] text-gray-400">
@@ -641,16 +740,20 @@ export default function IntelligencePage() {
             Tous ({results.length})
           </button>
           {Object.entries(sourceCounts).map(([src, count]) => {
-            const meta = SOURCE_META[src];
+            const meta = CATEGORY_META[src];
+            const isActive = activeSource === src;
             return (
               <button
                 key={src}
-                onClick={() => setActiveSource(activeSource === src ? null : src)}
-                className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
-                  activeSource === src
-                    ? `${meta?.color ?? "bg-gray-100 text-gray-700 border-gray-300"} font-semibold`
-                    : "border-[#E8ECF4] bg-white text-gray-600 hover:border-[#4F46E5] hover:text-[#4F46E5]"
-                }`}
+                onClick={() => setActiveSource(isActive ? null : src)}
+                style={{
+                  fontSize: 12, fontWeight: 600, padding: "6px 12px",
+                  borderRadius: 8, border: "1px solid",
+                  cursor: "pointer", transition: "all 0.15s",
+                  borderColor: isActive ? (meta?.color ?? "#5B4EC4") : "rgba(26,26,46,0.08)",
+                  color: isActive ? (meta?.color ?? "#5B4EC4") : "#4A4A5A",
+                  background: isActive ? (meta?.bg ?? "rgba(91,78,196,0.08)") : "#fff",
+                }}
               >
                 {meta?.label ?? src} ({count})
               </button>
@@ -669,7 +772,7 @@ export default function IntelligencePage() {
       {!loading && searched && filteredResults.length > 0 && (
         <div className="space-y-3">
           {filteredResults.map((r) => (
-            <ResultCard key={r.slug} result={r} onOpen={setSelectedResult} />
+            <ResultCard key={r.id} result={r} query={query} onOpen={setSelectedResult} />
           ))}
         </div>
       )}
@@ -695,15 +798,23 @@ export default function IntelligencePage() {
 
       {!loading && !searched && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-          {Object.entries(SOURCE_META).map(([key, meta]) => {
+          {Object.entries(CATEGORY_META).map(([key, meta]) => {
             const Icon = SOURCE_ICON[key] ?? FileText;
             return (
-              <div key={key} className={`p-4 rounded-xl border ${meta.color} flex flex-col gap-1`}>
-                <div className="flex items-center gap-2">
+              <div
+                key={key}
+                style={{
+                  padding: 16, borderRadius: 12,
+                  border: `1px solid ${meta.color}22`,
+                  background: meta.bg,
+                  display: "flex", flexDirection: "column", gap: 4,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6, color: meta.color }}>
                   <Icon size={14} />
-                  <span className="text-xs font-semibold">{meta.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: meta.color }}>{meta.label}</span>
                 </div>
-                <p className="text-[10px] opacity-70">{meta.desc}</p>
+                <p style={{ fontSize: 10, color: meta.color, opacity: 0.7 }}>{meta.desc}</p>
               </div>
             );
           })}
