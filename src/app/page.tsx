@@ -16,45 +16,19 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const FEATURES = [
-  {
-    tag: "COORDINATION",
-    title: "Un dossier partagé.\nUne équipe alignée.",
-    body: "Médecin, diét, psy, pédiatre — chacun voit ce que les autres ont fait, en temps réel. Plus de coordination par SMS.",
-    color: "#5B4EC4",
-    accent: "rgba(91,78,196,0.08)",
-    border: "rgba(91,78,196,0.15)",
-  },
-  {
-    tag: "CONTINUITÉ",
-    title: "L'histoire du patient.\nPas un instantané.",
-    body: "Courbes de poids, bilans biologiques, indicateurs de progression, questionnaires — le dossier complet en un coup d'œil.",
-    color: "#2BA89C",
-    accent: "rgba(43,168,156,0.08)",
-    border: "rgba(43,168,156,0.15)",
-  },
-  {
-    tag: "ADRESSAGE",
-    title: "La bonne orientation.\nAu bon moment.",
-    body: "Trouvez le confrère idéal en 3 clics. Lettre d'adressage générée automatiquement. Traçabilité complète.",
-    color: "#5B4EC4",
-    accent: "rgba(91,78,196,0.08)",
-    border: "rgba(91,78,196,0.15)",
-  },
-  {
-    tag: "BASE DE CONNAISSANCES",
-    title: "22 308 fiches.\nTout le savoir organisé.",
-    body: "Recommandations HAS, FFAB, ESPGHAN, DSM-5. Recherche sémantique pendant la consultation.",
-    color: "#2BA89C",
-    accent: "rgba(43,168,156,0.08)",
-    border: "rgba(43,168,156,0.15)",
-  },
+const FEATURES: { icon: string; title: string; desc: string }[] = [
+  { icon: "🎙️", title: "Dictez. L'IA structure. Vous validez.", desc: "Enregistrez votre consultation. L'IA transcrit et produit un brouillon structuré. Fini les CR rédigés à 21h." },
+  { icon: "👁️", title: "5 soignants. 1 seul écran.", desc: "Tout ce que la diét, le psy, le MG, le kiné ont fait. Avant votre consultation. Plus jamais sans contexte." },
+  { icon: "🔬", title: "Bilans centralisés", desc: "Bio, DXA, ECG, IRM : scannez ou importez. Les valeurs sont extraites et structurées automatiquement." },
+  { icon: "💊", title: "Photo → médicaments extraits", desc: "Photographiez une ordonnance. Les médicaments sont reconnus. 15 millions de références BDPM." },
+  { icon: "📖", title: "60 000 sources cliniques", desc: "HAS, PNDS, DSM-5, ESPGHAN. Recherche pendant la consultation. Chaque recommandation sourcée." },
+  { icon: "📱", title: "Le patient est partenaire", desc: "L'app patient montre le parcours, l'équipe, les RDV. Photos de repas, humeur, questionnaires. Le patient n'est plus coordinateur — il est informé." },
 ];
 
 const STEPS = [
-  { n: "01", tag: "INVITEZ", title: "Constituez l'équipe", body: "Ajoutez vos confrères et votre patient au dossier de coordination. Chaque rôle voit ce qui le concerne." },
-  { n: "02", tag: "DOCUMENTEZ", title: "Centralisez tout", body: "Dictez, l'IA structure le brouillon. Partagez bilans et comptes-rendus. Tout est en un seul endroit." },
-  { n: "03", tag: "COORDONNEZ", title: "Avancez ensemble", body: "Chaque soignant voit ce que les autres ont fait. Le parcours progresse. Le patient n'est plus coordinateur." },
+  { n: "01", tag: "L'ÉQUIPE SE FORME", title: "En 2 clics", body: "Ajoutez vos confrères et votre patient au dossier de coordination. Chaque rôle voit ce qui le concerne." },
+  { n: "02", tag: "L'INFORMATION CIRCULE", title: "En temps réel", body: "Dictez, importez, partagez. Bilans, CR, ordonnances. Tout est en un seul endroit. Plus de courrier perdu." },
+  { n: "03", tag: "LE PATIENT AVANCE", title: "Sans répéter", body: "Plus personne ne travaille sans contexte. Le parcours progresse. Le patient n'est plus le messager." },
 ];
 
 const SPECIALTIES = [
@@ -166,6 +140,8 @@ export default function HomePage() {
           .landing-steps-grid { grid-template-columns: 1fr !important; }
           .landing-specialties-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .landing-security-grid { grid-template-columns: 1fr !important; }
+          .landing-charge-grid { grid-template-columns: 1fr !important; }
+          .landing-charge-stats { grid-template-columns: repeat(2, 1fr) !important; }
           .landing-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
           .landing-footer-bottom { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
           .landing-cta-btns { flex-direction: column !important; align-items: stretch !important; }
@@ -238,24 +214,88 @@ export default function HomePage() {
         <HomeSticky />
 
         {/* ═══ FEATURES BENTO ═════════════════════════════════════════════ */}
-        <section id="features" style={{ padding: "130px 24px", background: "var(--nami-bg-alt)" }}>
-          <Reveal style={{ textAlign: "center", marginBottom: 72 }}>
-            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--nami-primary)", textTransform: "uppercase", marginBottom: 18, padding: "5px 16px", border: "1px solid rgba(91,78,196,0.2)", borderRadius: 100, background: "rgba(91,78,196,0.06)" }}>FONCTIONNALITÉS</div>
-            <h2 style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, color: "var(--nami-text)" }}>
-              Tout ce dont une équipe<br />
-              <span className="nami-gradient-text">pluridisciplinaire a besoin.</span>
+        {/* ═══ LA CHARGE INVISIBLE ════════════════════════════════════════ */}
+        <section style={{ padding: "120px 24px", background: "var(--nami-white)" }}>
+          <Reveal style={{ textAlign: "center", marginBottom: 56 }}>
+            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#E69342", textTransform: "uppercase", marginBottom: 18, padding: "5px 16px", border: "1px solid rgba(230,147,66,0.2)", borderRadius: 100, background: "rgba(230,147,66,0.06)" }}>LA CHARGE INVISIBLE</div>
+            <h2 style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, color: "var(--nami-text)" }}>
+              Le patient ne devrait pas être<br />
+              <span className="nami-gradient-text">le coordinateur de son propre parcours.</span>
             </h2>
           </Reveal>
-          <div className="landing-features-grid" style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
-            {FEATURES.map((f, i) => (
-              <Reveal key={f.tag} delay={i * 80} from="scale">
-                <div className="card-hover" style={{ background: "#fff", borderRadius: 22, border: `1px solid ${f.border}`, padding: "36px 32px", height: "100%", cursor: "default", boxShadow: "0 1px 4px rgba(26,26,46,0.05)" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: f.color, textTransform: "uppercase", padding: "4px 12px", border: `1px solid ${f.border}`, borderRadius: 100, background: f.accent }}>{f.tag}</span>
+          <div style={{ maxWidth: 720, margin: "0 auto 40px" }}>
+            <Reveal>
+              <p style={{ textAlign: "center", fontSize: 15, color: "var(--nami-text-2)", lineHeight: 1.7, marginBottom: 36 }}>
+                Entre chaque consultation, c&apos;est le patient — ou ses parents — qui fait le travail de coordination. Pas par choix. Par absence d&apos;outil.
+              </p>
+            </Reveal>
+            <div className="landing-charge-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+              {[
+                { icon: "📋", task: "Apporter l'ordonnance", detail: "\"Vous pouvez ramener ce que le gastro vous a prescrit ?\"" },
+                { icon: "🔄", task: "Répéter son histoire", detail: "Chaque nouveau soignant, tout reprendre de zéro. Dates, traitements, allergies." },
+                { icon: "📞", task: "Relancer les soignants", detail: "Appeler le secrétariat. Vérifier que le courrier est arrivé. Relancer pour les résultats." },
+                { icon: "🧠", task: "Se souvenir de tout", detail: "Le psy a dit quoi ? Le bilan montrait quoi ? Le traitement a changé quand ?" },
+                { icon: "📬", task: "Transmettre les bilans", detail: "Le MG les a, personne d'autre. Scanner, envoyer, espérer que ça arrive." },
+                { icon: "😔", task: "Gérer les contradictions", detail: "La diét dit 2000 kcal. L'endocrinologue dit 1600. Lequel suivre ?" },
+              ].map((item, i) => (
+                <Reveal key={item.task} delay={i * 60} from="bottom">
+                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "20px 18px", borderRadius: 16, background: "var(--nami-bg-alt)", border: "1px solid rgba(26,26,46,0.05)" }}>
+                    <span style={{ fontSize: 22, flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: "var(--nami-text)", marginBottom: 4 }}>{item.task}</p>
+                      <p style={{ fontSize: 13, color: "var(--nami-text-3)", lineHeight: 1.55, margin: 0, fontStyle: "italic" }}>{item.detail}</p>
+                    </div>
                   </div>
-                  <h3 style={{ fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.18, color: "var(--nami-text)", marginBottom: 14, whiteSpace: "pre-line" }}>{f.title}</h3>
-                  <p style={{ fontSize: "0.9375rem", color: "var(--nami-text-2)", lineHeight: 1.7 }}>{f.body}</p>
-                  <div style={{ marginTop: 26, width: 36, height: 3, borderRadius: 2, background: f.color, opacity: 0.5 }} />
+                </Reveal>
+              ))}
+            </div>
+          </div>
+          <Reveal delay={360}>
+            <div style={{ maxWidth: 720, margin: "0 auto 40px", background: "var(--nami-dark)", borderRadius: 24, padding: "40px 32px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(91,78,196,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <h3 style={{ fontSize: "clamp(1.4rem,3.5vw,2.2rem)", fontWeight: 800, color: "#EEECEA", lineHeight: 1.15, letterSpacing: "-0.02em", marginBottom: 14 }}>
+                  Nami absorbe cette charge.
+                </h3>
+                <p style={{ fontSize: 15, color: "rgba(238,236,234,0.5)", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
+                  L&apos;information circule entre les soignants. Le patient reste informé, pas coordinateur. Peu importe où il consulte — hôpital, cabinet, visio — chaque soignant est relié au même parcours.
+                </p>
+              </div>
+            </div>
+          </Reveal>
+          <Reveal delay={420}>
+            <div className="landing-charge-stats" style={{ maxWidth: 720, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, textAlign: "center" }}>
+              {[
+                { value: "60 000+", label: "Sources cliniques" },
+                { value: "131", label: "Parcours structurés" },
+                { value: "2 362", label: "Étapes sourcées" },
+                { value: "116 000+", label: "Relations cliniques" },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <div style={{ fontSize: "clamp(1.2rem,2.5vw,1.6rem)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--nami-primary)" }}>{stat.value}</div>
+                  <div style={{ fontSize: 11, color: "var(--nami-text-3)", marginTop: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </section>
+
+        {/* ═══ FEATURES — FOND SOMBRE ═════════════════════════════════════ */}
+        <section id="features" style={{ padding: "130px 24px", background: "var(--nami-dark)" }}>
+          <Reveal style={{ textAlign: "center", marginBottom: 72 }}>
+            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#45C4B8", textTransform: "uppercase", marginBottom: 18, padding: "5px 16px", border: "1px solid rgba(69,196,184,0.2)", borderRadius: 100, background: "rgba(69,196,184,0.06)" }}>FONCTIONNALITÉS</div>
+            <h2 style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, color: "#EEECEA" }}>
+              WhatsApp n&apos;est pas un outil<br />
+              <span className="nami-gradient-text-dark">de coordination.</span>
+            </h2>
+          </Reveal>
+          <div className="landing-features-grid" style={{ maxWidth: 1060, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={i * 60} from="scale">
+                <div className="card-hover" style={{ padding: "32px 28px", borderRadius: 20, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", height: "100%", cursor: "default" }}>
+                  <div style={{ fontSize: 28, marginBottom: 16 }}>{f.icon}</div>
+                  <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#EEECEA", marginBottom: 10, lineHeight: 1.3, letterSpacing: "-0.02em" }}>{f.title}</h3>
+                  <p style={{ fontSize: "0.9375rem", lineHeight: 1.7, color: "rgba(238,236,234,0.45)", margin: 0 }}>{f.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -270,8 +310,8 @@ export default function HomePage() {
           <Reveal style={{ textAlign: "center", marginBottom: 72 }}>
             <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--nami-secondary)", textTransform: "uppercase", marginBottom: 18, padding: "5px 16px", border: "1px solid rgba(43,168,156,0.2)", borderRadius: 100, background: "rgba(43,168,156,0.06)" }}>EN PRATIQUE</div>
             <h2 style={{ fontSize: "clamp(2rem,4.5vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12, color: "var(--nami-text)" }}>
-              Trois étapes.<br />
-              <span className="nami-gradient-text">Une équipe coordonnée.</span>
+              Du premier RDV au<br />
+              <span className="nami-gradient-text">parcours complet.</span>
             </h2>
           </Reveal>
           <div className="landing-steps-grid" style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
@@ -390,7 +430,7 @@ export default function HomePage() {
               </p>
             </div>
             {[
-              { title: "Produit", links: [{ l: "Fonctionnalités", h: "#features" }, { l: "Connexion", h: "/login" }, { l: "Créer un compte", h: "/signup" }] },
+              { title: "Produit", links: [{ l: "Fonctionnalités", h: "/fonctionnalites" }, { l: "Connexion", h: "/login" }, { l: "Créer un compte", h: "/signup" }] },
               { title: "Ressources", links: [{ l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Pathologies", h: "/pathologies" }, { l: "Blog", h: "/blog" }] },
               { title: "Légal", links: [{ l: "CGU", h: "/cgu" }, { l: "Confidentialité", h: "/confidentialite" }, { l: "Mentions légales", h: "/mentions-legales" }] },
             ].map(col => (
