@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { PATHOLOGIES, CATEGORY_LABELS } from "@/lib/data/pathologies"
-import { PublicNavbar } from "@/components/public/PublicNavbar"
-import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const metadata: Metadata = {
   title: "Pathologies — Fiches cliniques et parcours de soins",
@@ -85,7 +83,7 @@ export default function PathologiesPage() {
         }
       `}</style>
 
-      <PublicNavbar />
+
 
       {/* ── Hero ── */}
       <section style={{ padding: "120px 24px 80px", textAlign: "center", background: "linear-gradient(180deg,#FAFAF8 0%,#F5F3EF 100%)" }}>
@@ -205,7 +203,6 @@ export default function PathologiesPage() {
         </p>
       </div>
 
-      <PublicFooter />
     </div>
   )
 }

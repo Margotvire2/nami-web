@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import BlogBrowser from "./BlogBrowser"
-import { PublicNavbar } from "@/components/public/PublicNavbar"
-import { PublicFooter } from "@/components/public/PublicFooter"
 
 export const revalidate = 300
 
@@ -53,8 +51,6 @@ export default async function BlogPage() {
     <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <PublicNavbar />
-
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="text-center mb-12" style={{ paddingTop: 80 }}>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
@@ -74,7 +70,6 @@ export default async function BlogPage() {
 
         <BlogBrowser initialArticles={articles} initialTotal={total} apiUrl={API_URL} pageSize={PAGE_SIZE} />
       </div>
-      <PublicFooter />
     </div>
   )
 }
