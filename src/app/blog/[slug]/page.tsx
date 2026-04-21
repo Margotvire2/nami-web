@@ -61,6 +61,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
+function preprocessContent(md: string): string {
+  const faqIdx = md.search(/^## Questions fréquentes/m)
+  const sourcesIdx = md.search(/^## Sources/m)
+  const cutIdx = [faqIdx, sourcesIdx].filter((i) => i > 0).reduce((a, b) => Math.min(a, b), Infinity)
+  return cutIdx < Infinity ? md.substring(0, cutIdx).trim() : md.trim()
+}
+
 function renderMarkdown(md: string): string {
   let html = md
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -169,7 +176,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
 
         {/* Article content */}
         <article className="rounded-xl border bg-white p-6 shadow-sm">
-          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }} />
+          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(preprocessContent(article.content)) }} />
         </article>
 
         {/* FAQ */}
