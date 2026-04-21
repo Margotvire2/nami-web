@@ -123,7 +123,18 @@ function TrajectoryDeviationBanner({
   careCaseId: string;
   patientFirstName: string;
 }) {
-  const [dismissed, setDismissed] = useState<string[]>([]);
+  const sessionKey = `traj-dismissed-${careCaseId}`;
+  const [dismissed, setDismissed] = useState<string[]>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(sessionKey) || "[]");
+    } catch { return []; }
+  });
+
+  function dismissMetric(key: string) {
+    const next = [...dismissed, key];
+    setDismissed(next);
+    try { sessionStorage.setItem(sessionKey, JSON.stringify(next)); } catch {}
+  }
 
   const { data } = useQuery({
     queryKey: ["obs-trajectory", careCaseId],
@@ -146,17 +157,17 @@ function TrajectoryDeviationBanner({
   const name = patientFirstName || "Le patient";
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+    <div className="rounded-xl border border-red-200 bg-red-50/40 p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <p className="text-xs font-semibold text-amber-800">
+          <p className="text-xs font-semibold text-red-800">
             Écarts de trajectoire détectés
           </p>
-          <p className="text-[11px] text-amber-600 mt-0.5">
+          <p className="text-[11px] text-red-500 mt-0.5">
             Régression linéaire OLS · brouillon indicatif — à vérifier par le soignant
           </p>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 shrink-0">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 shrink-0">
           {deviations.length} métrique{deviations.length > 1 ? "s" : ""}
         </span>
       </div>
@@ -200,11 +211,11 @@ function TrajectoryDeviationBanner({
                 </p>
               </div>
 
-              {/* Dismiss */}
+              {/* Dismiss (sessionStorage — réapparaît au rechargement complet) */}
               <button
-                onClick={() => setDismissed((d) => [...d, m.metricKey])}
-                className="shrink-0 text-amber-300 hover:text-amber-600 transition-colors"
-                title="Masquer"
+                onClick={() => dismissMetric(m.metricKey)}
+                className="shrink-0 text-red-200 hover:text-red-500 transition-colors"
+                title="Masquer pour cette session"
               >
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                   <path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
@@ -225,7 +236,8 @@ function TrajectoryDeviationBanner({
 function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const qc = useQueryClient();
   const [sections, setSections] = useState<{ title: string; content: string }[]>([]);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
+  const [showFull, setShowFull] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -323,39 +335,92 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     "Plan de soins": "🗺️", "Traitements": "💊", "Points de vigilance": "⚠️", "Objectifs": "🎯",
   };
 
+  const excerpt = sections[0]?.content
+    ? sections[0].content.replace(/\*\*/g, "").replace(/\n/g, " ").slice(0, 220) + (sections[0].content.length > 220 ? "…" : "")
+    : "";
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <button onClick={() => sections.length > 0 && setCollapsed(!collapsed)} className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/50">
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden border-l-4 border-l-[#5B4EC4]">
+      {/* Header */}
+      <button
+        onClick={() => sections.length > 0 && setCollapsed(!collapsed)}
+        className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/50"
+      >
         <div className="flex items-center gap-2">
           <span>✨</span>
           <h3 className="text-sm font-semibold text-gray-900">Résumé clinique</h3>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">Brouillon · à valider</span>
-          {lastUpdated && <span className="text-[10px] text-gray-400">{new Date(lastUpdated).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>}
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium border border-amber-100">
+            Brouillon · à valider
+          </span>
+          {lastUpdated && (
+            <span className="text-[10px] text-gray-400">
+              {new Date(lastUpdated).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); generate(); }} disabled={isStreaming} className="text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50">
+          <button
+            onClick={(e) => { e.stopPropagation(); generate(); }}
+            disabled={isStreaming}
+            className="text-xs px-3 py-1 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50"
+          >
             {isStreaming ? "…" : sections.length > 0 ? "Actualiser" : "Générer"}
           </button>
           {sections.length > 0 && <Chevron open={!collapsed} />}
         </div>
       </button>
+
+      {/* Spinner génération */}
       {isStreaming && (
         <div className="px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2">
             <div className="w-3 h-3 border-2 border-[#5B4EC4] border-t-transparent rounded-full animate-spin flex-shrink-0" />
             <span className="text-xs text-[#5B4EC4]">Génération en cours…</span>
           </div>
-          {streamText && (
-            <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed max-h-40 overflow-y-auto">{streamText}</div>
-          )}
         </div>
       )}
-      {!isStreaming && !collapsed && sections.length > 0 && (
-        <div className="px-5 pb-4 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
-          <div className="lg:col-span-2">
-            <AiDisclaimer variant="inline" className="mb-2" />
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[11px] text-gray-400">Qualité de la synthèse :</span>
+
+      {/* Empty state */}
+      {!isStreaming && sections.length === 0 && (
+        <div className="px-5 py-3 border-t border-gray-100">
+          <p className="text-xs text-gray-400">Aucun résumé disponible. Cliquez sur <strong>Générer</strong> pour créer une synthèse clinique.</p>
+        </div>
+      )}
+
+      {/* Excerpt (collapsed) */}
+      {!isStreaming && !collapsed && sections.length > 0 && !showFull && (
+        <div className="px-5 pb-4 border-t border-gray-100 mt-0">
+          <AiDisclaimer variant="inline" className="mt-3 mb-2" />
+          <p className="text-sm text-gray-700 leading-relaxed">{excerpt}</p>
+          <button
+            onClick={() => setShowFull(true)}
+            className="mt-2 text-xs text-[#5B4EC4] hover:underline font-medium"
+          >
+            Voir le résumé complet →
+          </button>
+        </div>
+      )}
+
+      {/* Résumé complet */}
+      {!isStreaming && !collapsed && sections.length > 0 && showFull && (
+        <div className="px-5 pb-4 border-t border-gray-100">
+          <AiDisclaimer variant="inline" className="mt-3 mb-2" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {sections.map((s, i) => (
+              <div key={i} className="rounded-lg bg-gray-50/70 p-3 border border-gray-100">
+                <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <span>{icons[s.title] || "📄"}</span>{s.title}
+                </h4>
+                <MarkdownContent content={s.content} compact />
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between mt-3">
+            <button onClick={() => setShowFull(false)} className="text-xs text-gray-400 hover:text-gray-600">
+              ← Réduire
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-400">Qualité :</span>
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -369,19 +434,9 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
                   {star <= (hoverRating ?? rating ?? 0) ? "★" : "☆"}
                 </button>
               ))}
-              {rating !== null && (
-                <span className="text-[11px] text-[#5B4EC4] ml-1">Merci !</span>
-              )}
+              {rating !== null && <span className="text-[11px] text-[#5B4EC4]">Merci !</span>}
             </div>
           </div>
-          {sections.map((s, i) => (
-            <div key={i} className="rounded-lg bg-gray-50/70 p-3 border border-gray-100">
-              <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                <span>{icons[s.title] || "📄"}</span>{s.title}
-              </h4>
-              <MarkdownContent content={s.content} compact />
-            </div>
-          ))}
         </div>
       )}
     </div>
@@ -625,12 +680,12 @@ function FlagsBanner({ alerts, screenings }: { alerts: PatientDashboard["alerts"
 // CONDITIONS CLINIQUES
 // ══════════════════════════════════════════════════════
 
-const CONDITION_TYPE_STYLE: Record<string, { badge: string; label: string }> = {
-  PRIMARY:     { badge: "bg-[#EDE9FC] text-[#5B4EC4] border-[#C4B5FD]",   label: "Principale" },
-  COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",    label: "Comorbidité" },
-  SUSPECTED:   { badge: "bg-amber-50 text-amber-700 border-amber-200",     label: "Suspectée" },
-  ALLERGY:     { badge: "bg-red-50 text-red-700 border-red-200",           label: "Allergie" },
-  BACKGROUND:  { badge: "bg-gray-50 text-gray-500 border-gray-200",        label: "Antécédent" },
+const CONDITION_TYPE_STYLE: Record<string, { badge: string; label: string; borderLeft: string }> = {
+  PRIMARY:     { badge: "bg-[#EDE9FC] text-[#5B4EC4] border-[#C4B5FD]",   label: "Principale",   borderLeft: "border-l-[#5B4EC4]" },
+  COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",    label: "Comorbidité",  borderLeft: "border-l-[#8A8A96]" },
+  SUSPECTED:   { badge: "bg-amber-50 text-amber-700 border-amber-200",     label: "Suspectée",    borderLeft: "border-l-[#E6993E]" },
+  ALLERGY:     { badge: "bg-red-50 text-red-700 border-red-200",           label: "Allergie",     borderLeft: "border-l-[#D94F4F]" },
+  BACKGROUND:  { badge: "bg-gray-50 text-gray-500 border-gray-200",        label: "Antécédent",   borderLeft: "border-l-gray-300" },
 };
 
 const SEVERITY_STYLE: Record<string, string> = {
@@ -761,10 +816,12 @@ function ConditionsCard({ careCaseId }: { careCaseId: string }) {
         <p className="text-xs text-gray-400 italic">Aucune condition documentée</p>
       ) : (
         <div className="space-y-1.5">
-          {active.map((c: any) => (
-            <div key={c.id} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-2.5 py-1.5 group">
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border shrink-0 ${CONDITION_TYPE_STYLE[c.conditionType]?.badge ?? "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                {CONDITION_TYPE_STYLE[c.conditionType]?.label ?? c.conditionType}
+          {active.map((c: any) => {
+            const typeStyle = CONDITION_TYPE_STYLE[c.conditionType];
+            return (
+            <div key={c.id} className={`flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-2.5 py-1.5 group border-l-4 ${typeStyle?.borderLeft ?? "border-l-gray-200"}`}>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border shrink-0 ${typeStyle?.badge ?? "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                {typeStyle?.label ?? c.conditionType}
               </span>
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-medium truncate block">{c.conditionLabel}</span>
@@ -780,7 +837,8 @@ function ConditionsCard({ careCaseId }: { careCaseId: string }) {
                 ✕
               </button>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@ import { api, PatientCondition } from "@/lib/api";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
 import { PATHOLOGIES } from "@/lib/data/pathologies";
+import { getClinicalProfile, getDeltaColorClass } from "@/lib/clinicalProfile";
 
 
 // CIM-11 code → pathology slug (code principal + aliases)
@@ -44,6 +45,7 @@ export function PatientHeader({
 }: Props) {
   const { indicators } = dashboard;
   const c = careCase;
+  const profile = getClinicalProfile(careCase);
 
   const { data: conditions = [] } = useQuery<PatientCondition[]>({
     queryKey: ["conditions", careCaseId],
@@ -93,7 +95,7 @@ export function PatientHeader({
                   <span>
                     {poids.value} {poids.unit}
                     {poids.delta ? (
-                      <span className={`ml-0.5 text-xs ${poids.delta > 0 ? "text-green-600" : "text-red-500"}`}>
+                      <span className={`ml-0.5 text-xs ${getDeltaColorClass("weight_kg", poids.delta, profile)}`}>
                         ({poids.delta > 0 ? "+" : ""}{poids.delta.toFixed(1)})
                       </span>
                     ) : null}
