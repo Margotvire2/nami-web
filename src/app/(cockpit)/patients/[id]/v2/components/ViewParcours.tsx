@@ -338,7 +338,58 @@ function PathwayHeader({
 
 // ─── CIE Nodes — groupés par phaseLabel ───────────────────────────────────────
 
+function NextStepHero({ node }: { node: PathwayNode }) {
+  const isOverdue = node.status === "OVERDUE";
+  return (
+    <div
+      className="rounded-2xl p-5"
+      style={{
+        border: `2px solid ${isOverdue ? "rgba(217,79,79,0.2)" : "rgba(91,78,196,0.15)"}`,
+        background: isOverdue ? "rgba(217,79,79,0.02)" : "rgba(91,78,196,0.015)",
+      }}
+    >
+      <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: isOverdue ? "#D94F4F" : "#5B4EC4" }}>
+        {isOverdue ? "⚠ Étape en retard" : "Votre prochaine étape"}
+      </p>
+      <p className="text-[16px] font-bold text-[#1A1A2E] leading-snug">{node.actLabel}</p>
+      <div className="flex items-center gap-3 mt-2 flex-wrap">
+        {node.specialty && <span className="text-[12px] text-[#4A4A5A]">{node.specialty}</span>}
+        {node.phaseLabel && <span className="text-[12px] text-[#8A8A96]">· {node.phaseLabel}</span>}
+        {node.expectedDate && (
+          <span className="text-[12px] text-[#8A8A96]">
+            · à faire avant le {new Date(node.expectedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+          </span>
+        )}
+        {isOverdue && node.daysOverdue !== null && (
+          <span className="text-[12px] font-semibold text-[#D94F4F]">· {node.daysOverdue}j de retard</span>
+        )}
+      </div>
+      <div className="flex gap-2 mt-4">
+        <button
+          className="text-[13px] font-semibold px-4 py-2 rounded-lg text-white"
+          style={{ background: isOverdue ? "#D94F4F" : "#5B4EC4", border: "none", cursor: "pointer" }}
+        >
+          Comment faire →
+        </button>
+        <button
+          className="text-[13px] px-4 py-2 rounded-lg"
+          style={{ border: "1px solid rgba(26,26,46,0.12)", background: "transparent", color: "#4A4A5A", cursor: "pointer" }}
+        >
+          Marquer comme fait
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
+  // Find next actionable step (OVERDUE first, then IN_WINDOW)
+  const nextStep =
+    nodes.find(n => n.status === "OVERDUE") ??
+    nodes.find(n => n.status === "IN_WINDOW") ??
+    nodes.find(n => n.status === "APPROACHING") ??
+    null;
+
   // Group by phaseLabel
   const phases: { label: string; nodes: PathwayNode[] }[] = [];
   const seen = new Map<string, PathwayNode[]>();
@@ -348,22 +399,28 @@ function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
     seen.get(key)!.push(node);
   }
 
+  const activeStatuses = new Set<PathwayNodeStatus>(["OVERDUE", "IN_WINDOW", "APPROACHING"]);
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      {nextStep && <NextStepHero node={nextStep} />}
       <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 px-1">
-        Étapes cliniques ({nodes.length})
+        Toutes les étapes ({nodes.length})
       </p>
-      {phases.map((phase) => (
-        <CIEPhaseGroup key={phase.label} label={phase.label} nodes={phase.nodes} />
-      ))}
+      {phases.map((phase) => {
+        const hasActive = phase.nodes.some(n => activeStatuses.has(n.status));
+        return (
+          <CIEPhaseGroup key={phase.label} label={phase.label} nodes={phase.nodes} defaultOpen={hasActive} />
+        );
+      })}
     </div>
   );
 }
 
-function CIEPhaseGroup({ label, nodes }: { label: string; nodes: PathwayNode[] }) {
+function CIEPhaseGroup({ label, nodes, defaultOpen }: { label: string; nodes: PathwayNode[]; defaultOpen?: boolean }) {
   const completed = nodes.filter(n => n.status === "COMPLETED").length;
   const overdue = nodes.filter(n => n.status === "OVERDUE").length;
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen ?? false);
 
   const phaseStatus: PathwayNodeStatus = overdue > 0 ? "OVERDUE"
     : completed === nodes.length ? "COMPLETED"
@@ -495,15 +552,15 @@ function TemplateStepsSection({
           Cliquer "Démarrer" pour activer le suivi temps réel
         </span>
       </div>
-      {phases.map((phase) => (
-        <TemplatePhaseGroup key={phase.label} label={phase.label} steps={phase.steps} />
+      {phases.map((phase, i) => (
+        <TemplatePhaseGroup key={phase.label} label={phase.label} steps={phase.steps} defaultOpen={i === 0} />
       ))}
     </div>
   );
 }
 
-function TemplatePhaseGroup({ label, steps }: { label: string; steps: PathwayTemplateStep[] }) {
-  const [open, setOpen] = useState(true);
+function TemplatePhaseGroup({ label, steps, defaultOpen = false }: { label: string; steps: PathwayTemplateStep[]; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const required = steps.filter(s => s.isRequired).length;
 
   return (

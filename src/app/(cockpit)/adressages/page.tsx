@@ -90,9 +90,13 @@ export default function AdressagesPage() {
     const recv: ReferralWithDir[] = (incoming || []).map((r) => ({ ...r, _direction: "received" }));
     const map = new Map<string, ReferralWithDir>();
     for (const r of [...sent, ...recv]) map.set(r.id, r);
-    return Array.from(map.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    const PRIORITY_ORDER: Record<string, number> = { EMERGENCY: 0, URGENT: 1, ROUTINE: 2 };
+    return Array.from(map.values()).sort((a, b) => {
+      const pa = PRIORITY_ORDER[a.priority] ?? 2;
+      const pb = PRIORITY_ORDER[b.priority] ?? 2;
+      if (pa !== pb) return pa - pb;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }, [outgoing, incoming]);
 
   const filtered = useMemo(() => {
@@ -228,18 +232,22 @@ function ReferralCard({ referral: r, direction, isSelected, onSelect }: {
   return (
     <div onClick={onSelect} className={cn(
       "bg-white rounded-xl p-5 cursor-pointer transition-all duration-150",
-      isSelected ? "border-l-[3px] border-l-[#4F46E5] bg-[#FAFBFF] shadow-lg" : "border border-[#E8ECF4] hover:shadow-md hover:-translate-y-px",
+      isSelected
+        ? "border-l-[3px] border-l-[#4F46E5] bg-[#FAFBFF] shadow-lg"
+        : r.priority === "EMERGENCY"
+        ? "border-l-[3px] border-l-red-500 border border-red-100 bg-red-50/30 hover:shadow-md"
+        : r.priority === "URGENT"
+        ? "border-l-[3px] border-l-amber-500 border border-amber-100 hover:shadow-md"
+        : "border border-[#E8ECF4] hover:shadow-md hover:-translate-y-px",
     )}>
       {/* Meta row */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", direction === "received" ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-500")}>
           {direction === "received" ? "REÇU" : "ENVOYÉ"}
         </span>
-        {r.priority !== "ROUTINE" && (
-          <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full border", priorityMeta.badgeClass)}>
-            {priorityMeta.label}
-          </span>
-        )}
+        <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full border", priorityMeta.badgeClass)}>
+          {priorityMeta.label}
+        </span>
         <span className="text-[11px] text-[#94A3B8] ml-auto">{daysAgo(r.createdAt)}</span>
         <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full border", statusMeta.badgeClass)}>
           {statusMeta.label}

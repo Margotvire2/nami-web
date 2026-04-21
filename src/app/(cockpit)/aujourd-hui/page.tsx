@@ -173,13 +173,16 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto bg-[#FAFAF8]">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          {/* ── STAT CARDS ── */}
-        <StatCards stats={networkData?.stats} />
-
-        <div className="flex gap-6 items-start flex-col lg:flex-row">
+          <div className="flex gap-6 items-start flex-col lg:flex-row">
 
             {/* ── Colonne gauche 2/3 ── */}
             <div className="w-full lg:flex-[2] min-w-0 space-y-5">
+
+              {/* DEMANDES DE COORDINATION — priorité maximale */}
+              <IncomingReferralsSection />
+
+              {/* DEMANDES DE PATIENTS */}
+              <IncomingRequestsSection />
 
               {/* MA JOURNÉE */}
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3 }}>
@@ -328,56 +331,8 @@ export default function DashboardPage() {
             {/* ── Colonne droite 1/3 ── */}
             <div className="w-full lg:flex-[1] min-w-0 space-y-5">
 
-              {/* ACTIVITÉ RÉCENTE */}
-              <ActiviteRecente />
-
-              {/* ADRESSAGES ENVOYÉS EN ATTENTE */}
-              {pendingOutgoing.length > 0 && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
-                  <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ADRESSAGES EN ATTENTE</p>
-                        <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold flex items-center justify-center">{pendingOutgoing.length}</span>
-                      </div>
-                      <Link href="/adressages" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir</Link>
-                    </div>
-                    <div className="space-y-2">
-                      {pendingOutgoing.slice(0, 3).map((ref) => {
-                        const daysAgoRef = Math.floor((Date.now() - new Date(ref.updatedAt).getTime()) / 86400000);
-                        const timeLabel = daysAgoRef === 0 ? "aujourd'hui" : daysAgoRef === 1 ? "hier" : `il y a ${daysAgoRef}j`;
-                        const isUrgent = ref.priority === "URGENT" || ref.priority === "EMERGENCY";
-                        return (
-                          <Link key={ref.id} href="/adressages">
-                            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
-                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", isUrgent ? "bg-red-50" : "bg-amber-50")}>
-                                <ArrowLeftRight size={14} className={isUrgent ? "text-red-500" : "text-amber-600"} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="text-[13px] font-medium text-[#374151] truncate">{ref.careCase?.caseTitle ?? "Dossier"}</p>
-                                  {isUrgent && <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full shrink-0">Urgent</span>}
-                                </div>
-                                <p className="text-[11px] text-[#94A3B8]">Sans réponse {timeLabel}</p>
-                              </div>
-                              <ChevronRight size={13} className="text-[#CBD5E1] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* DEMANDES DE PATIENTS */}
-              <IncomingRequestsSection />
-
               {/* DEMANDES DE RDV */}
               <AppointmentRequestsSection />
-
-              {/* DEMANDES DE COORDINATION */}
-              <IncomingReferralsSection />
 
               {/* ACTUALITÉS */}
               {NEWS_ITEMS.length > 0 && (
@@ -412,8 +367,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ── PATIENTS TABLE ── */}
-          <PatientsTable patients={networkData?.patients} />
         </div>
       </div>
 

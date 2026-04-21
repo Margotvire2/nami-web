@@ -306,8 +306,9 @@ function ResultCard({
   return (
     <div
       style={{
-        background: "#FAFAF8",
+        background: "#FFFFFF",
         border: "1px solid rgba(26,26,46,0.06)",
+        borderLeft: `4px solid ${meta?.color ?? "rgba(26,26,46,0.12)"}`,
         borderRadius: 12,
         padding: "14px 16px",
         cursor: "pointer",
@@ -324,7 +325,7 @@ function ResultCard({
       onClick={() => onOpen(result)}
     >
       {/* Top row: badge + score */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <span
           style={{
             fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
@@ -332,11 +333,20 @@ function ResultCard({
             color: meta?.color ?? "#8A8A96",
             background: meta?.bg ?? "rgba(138,138,150,0.10)",
             padding: "2px 8px", borderRadius: 6,
+            flexShrink: 0,
           }}
         >
           {meta?.label ?? cat}
         </span>
         <ScoreDots score={result.score} />
+        {result.qualityScore > 0 && result.qualityScore < 0.75 && (
+          <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: "rgba(230,153,62,0.08)", color: "#E6993E", border: "1px solid rgba(230,153,62,0.2)", flexShrink: 0 }}>
+            Qualité source limitée
+          </span>
+        )}
+        <span style={{ fontSize: 10, color: "#8A8A96", marginLeft: "auto" }}>
+          {result.qualityScore > 0 ? `${Math.round(result.qualityScore * 100)}%` : ""}
+        </span>
       </div>
 
       {/* Title */}
@@ -347,9 +357,6 @@ function ResultCard({
       {/* Source slug */}
       <p style={{ fontSize: 10, color: "#8A8A96", marginBottom: 8, letterSpacing: "0.02em" }}>
         {result.slug}
-        {result.qualityScore > 0 && (
-          <span style={{ marginLeft: 8, opacity: 0.7 }}>· qualité {Math.round(result.qualityScore * 100)}%</span>
-        )}
       </p>
 
       {/* Content prose */}
