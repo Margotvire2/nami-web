@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (!p) return { title: "Pathologie introuvable" }
 
   return {
-    title: p.title + " | Nami",
+    title: p.title,
     description: p.description,
     keywords: p.keywords.join(", "),
     openGraph: {
