@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 
-export const metadata = undefined // page client — metadata dans layout si besoin
 
 const N = {
   primary: "#5B4EC4",
