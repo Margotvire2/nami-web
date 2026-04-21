@@ -21,7 +21,7 @@ interface Article {
 
 async function getArticle(slug: string): Promise<Article | null> {
   try {
-    const res = await fetch(`${API_URL}/blog/articles/${slug}`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_URL}/blog/articles/${slug}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) })
     if (!res.ok) return null
     return res.json()
   } catch { return null }
@@ -29,7 +29,7 @@ async function getArticle(slug: string): Promise<Article | null> {
 
 async function getArticleSlugs(): Promise<{ slug: string }[]> {
   try {
-    const res = await fetch(`${API_URL}/blog/sitemap`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_URL}/blog/sitemap`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) })
     if (!res.ok) return []
     return res.json()
   } catch { return [] }
@@ -108,11 +108,11 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
     "@type": "MedicalWebPage",
     headline: article.title,
     description: article.metaDescription ?? article.excerpt,
-    url: `https://nami-web-orpin.vercel.app/blog/${slug}`,
+    url: `https://namipourlavie.com/blog/${slug}`,
     datePublished: article.publishedAt,
     dateModified: article.publishedAt,
     author: { "@type": "Organization", name: article.authorName },
-    publisher: { "@type": "Organization", name: "Nami", url: "https://nami-web-orpin.vercel.app" },
+    publisher: { "@type": "Organization", name: "Nami", url: "https://namipourlavie.com" },
     inLanguage: "fr",
     isAccessibleForFree: true,
     keywords: article.keywords.join(", "),

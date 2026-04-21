@@ -76,12 +76,27 @@ async function searchDirectory(specialty: string, city: string | null): Promise<
     if (city) params.set("city", city)
     const res = await fetch(`${API_URL}/annuaire/directory?${params}`, {
       next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) return { results: [], total: 0 }
     return res.json()
   } catch {
     return { results: [], total: 0 }
   }
+}
+
+export async function generateStaticParams() {
+  const TOP_SLUGS = [
+    "medecin-generaliste", "pediatre", "cardiologue", "psychiatre",
+    "dieteticien", "orthophoniste", "masseur-kinesitherapeute", "infirmier",
+    "ophtalmologiste", "gynecologiste", "dermatologue", "gastro-enterologue",
+    "endocrinologue", "pneumologue", "radiologue", "sage-femme", "psychologue",
+    "neurologue", "rhumatologue", "orl",
+    "dieteticien-paris", "pediatre-paris", "psychiatre-paris", "psychologue-paris",
+    "dieteticien-lyon", "pediatre-lyon", "medecin-generaliste-paris",
+    "medecin-generaliste-lyon", "medecin-generaliste-marseille",
+  ]
+  return TOP_SLUGS.map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
