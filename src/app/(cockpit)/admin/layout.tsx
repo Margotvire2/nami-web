@@ -4,12 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
-import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus, Megaphone, Target } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus, Megaphone, Target, TrendingUp } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 const TABS = [
   { href: "/admin",              label: "Vue d'ensemble", icon: LayoutDashboard },
+  { href: "/admin/traction",     label: "Traction",       icon: TrendingUp },
   { href: "/admin/validations",  label: "Validations",    icon: ShieldCheck,    badge: true },
   { href: "/admin/utilisateurs", label: "Utilisateurs",   icon: Users },
   { href: "/admin/organisations",label: "Organisations",  icon: Building2 },
