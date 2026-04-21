@@ -4,29 +4,10 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
+import { Settings } from "lucide-react";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-import {
-  LayoutDashboard,
-  Users,
-  ArrowLeftRight,
-  Radio,
-  FileText,
-  CalendarDays,
-  BellDot,
-  UsersRound,
-  BookOpen,
-  ClipboardList,
-  CheckSquare,
-  Receipt,
-  FlaskConical,
-  Settings,
-  Shield,
-  MessageSquare,
-  Network,
-} from "lucide-react";
-import { NotificationCenter } from "@/components/NotificationCenter";
 
 /*
   Sidebar Nami 2.0 — 3 blocs mentaux :
@@ -36,27 +17,27 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 */
 
 const NAV_ACTIVITY = [
-  { href: "/aujourd-hui",  label: "Aujourd'hui",  icon: LayoutDashboard },
-  { href: "/agenda",       label: "Agenda",        icon: CalendarDays },
-  { href: "/facturation",  label: "Facturation",   icon: Receipt },
+  { href: "/aujourd-hui",  label: "Aujourd'hui",       emoji: "🏠" },
+  { href: "/agenda",       label: "Agenda",             emoji: "📅" },
+  { href: "/facturation",  label: "Facturation",        emoji: "💳" },
 ];
 
 const NAV_PATIENTS = [
-  { href: "/patients",    label: "Patients",     icon: Users },
-  { href: "/alertes",     label: "Rappels",      icon: BellDot },
-  { href: "/taches",      label: "Tâches",       icon: CheckSquare },
-  { href: "/protocoles",  label: "Références",   icon: ClipboardList },
-  { href: "/intelligence", label: "Base documentaire", icon: FlaskConical },
-  { href: "/documents",   label: "Documents",    icon: FileText },
+  { href: "/patients",     label: "Patients",           emoji: "👥" },
+  { href: "/alertes",      label: "Rappels",            emoji: "🔔" },
+  { href: "/taches",       label: "Tâches",             emoji: "✅" },
+  { href: "/protocoles",   label: "Références",         emoji: "📋" },
+  { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
+  { href: "/documents",    label: "Documents",          emoji: "📄" },
 ];
 
 const NAV_NETWORK = [
-  { href: "/messages",      label: "Messages",      icon: MessageSquare },
-  { href: "/adressages",    label: "Adressages",    icon: ArrowLeftRight },
-  { href: "/reseau",        label: "Vue réseau",    icon: Network },
-  { href: "/collaboration", label: "Collaboration", icon: Radio },
-  { href: "/equipe",        label: "Équipe",        icon: UsersRound },
-  { href: "/annuaire",      label: "Annuaire",      icon: BookOpen },
+  { href: "/messages",      label: "Messages",      emoji: "💬" },
+  { href: "/adressages",    label: "Adressages",    emoji: "↔️" },
+  { href: "/reseau",        label: "Vue réseau",    emoji: "🌐" },
+  { href: "/collaboration", label: "Collaboration", emoji: "📡" },
+  { href: "/equipe",        label: "Équipe",        emoji: "👤" },
+  { href: "/annuaire",      label: "Annuaire",      emoji: "📖" },
 ];
 
 export function Sidebar() {
@@ -81,10 +62,12 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[250px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col h-full">
+    <aside className="w-[220px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col h-full">
       {/* Logo */}
-      <div className="px-5 h-[56px] flex items-center gap-2.5 shrink-0">
-        <img src="/nami-mascot.png" alt="Nami" className="w-8 h-8" style={{ borderRadius: 10, objectFit: "contain" }} />
+      <div className="px-4 h-[56px] flex items-center gap-2.5 shrink-0">
+        <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[15px] font-black text-white shrink-0" style={{ background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)" }}>
+          N
+        </div>
         <span className="text-[15px] font-bold text-[#0F172A] tracking-tight flex-1" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
         <NotificationCenter />
       </div>
@@ -103,15 +86,14 @@ export function Sidebar() {
             <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
             <Link
               href="/admin"
-              className="flex items-center gap-2.5 h-9 rounded-[10px] text-[13px] transition-all duration-150 mx-0"
+              className="flex items-center gap-2.5 h-9 rounded-[10px] text-[13px] transition-all duration-150"
               style={{
                 fontFamily: "var(--font-jakarta)",
-                paddingLeft: pathname.startsWith("/admin") ? "9px" : "12px",
+                paddingLeft: "12px",
                 paddingRight: "12px",
                 fontWeight: pathname.startsWith("/admin") ? 600 : 400,
                 color: pathname.startsWith("/admin") ? "#5B4EC4" : "#64748B",
                 background: pathname.startsWith("/admin") ? "rgba(91,78,196,0.08)" : "transparent",
-                borderLeft: pathname.startsWith("/admin") ? "3px solid #5B4EC4" : "3px solid transparent",
                 textDecoration: "none",
               }}
               onMouseEnter={e => {
@@ -127,7 +109,7 @@ export function Sidebar() {
                 }
               }}
             >
-              <Shield size={16} strokeWidth={1.75} className="shrink-0" />
+              <span style={{ fontSize: 15, opacity: pathname.startsWith("/admin") ? 1 : 0.5, lineHeight: 1 }}>🛡️</span>
               <span className="truncate flex-1">Administration</span>
               {pendingCount > 0 && (
                 <span
@@ -190,7 +172,7 @@ export function Sidebar() {
   );
 }
 
-function NavItem({ href, label, icon: Icon, active }: { href: string; label: string; icon: React.ElementType; active: boolean }) {
+function NavItem({ href, label, emoji, active }: { href: string; label: string; emoji: string; active: boolean }) {
   return (
     <Link
       href={href}
@@ -198,12 +180,11 @@ function NavItem({ href, label, icon: Icon, active }: { href: string; label: str
       className="flex items-center gap-2.5 h-9 rounded-[10px] text-[13px] transition-all duration-150"
       style={{
         fontFamily: "var(--font-jakarta)",
-        paddingLeft: active ? "9px" : "12px",
+        paddingLeft: "12px",
         paddingRight: "12px",
         fontWeight: active ? 600 : 400,
         color: active ? "#5B4EC4" : "#64748B",
         background: active ? "rgba(91,78,196,0.08)" : "transparent",
-        borderLeft: active ? "3px solid #5B4EC4" : "3px solid transparent",
       }}
       onMouseEnter={e => {
         if (!active) {
@@ -218,7 +199,7 @@ function NavItem({ href, label, icon: Icon, active }: { href: string; label: str
         }
       }}
     >
-      <Icon size={16} strokeWidth={1.75} className="shrink-0" />
+      <span style={{ fontSize: 15, opacity: active ? 1 : 0.5, lineHeight: 1, width: 18, textAlign: "center", flexShrink: 0 }}>{emoji}</span>
       <span className="truncate">{label}</span>
     </Link>
   );
@@ -228,7 +209,7 @@ function NavGroup({ items, isActive }: { items: typeof NAV_ACTIVITY; isActive: (
   return (
     <div className="space-y-0.5">
       {items.map((item) => (
-        <NavItem key={item.href} href={item.href} label={item.label} icon={item.icon} active={isActive(item.href)} />
+        <NavItem key={item.href} href={item.href} label={item.label} emoji={item.emoji} active={isActive(item.href)} />
       ))}
     </div>
   );
