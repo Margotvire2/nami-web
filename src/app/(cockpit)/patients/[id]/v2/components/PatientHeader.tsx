@@ -26,7 +26,6 @@ interface Props {
   onRecord: () => void;
   onStartConsultation?: () => void;
   onAiSummarize: () => void;
-  onShare?: () => void;
   onQuestionnaire?: () => void;
   aiStreaming: boolean;
 }
@@ -40,7 +39,6 @@ export function PatientHeader({
   onTask,
   onStartConsultation,
   onAiSummarize,
-  onShare,
   onQuestionnaire,
   aiStreaming,
 }: Props) {
@@ -140,7 +138,6 @@ export function PatientHeader({
             onClick={onAiSummarize}
             disabled={aiStreaming}
           />
-          {onShare && <ActionButton label="Partager" icon="🔗" onClick={onShare} />}
         </div>
       </div>
     </div>

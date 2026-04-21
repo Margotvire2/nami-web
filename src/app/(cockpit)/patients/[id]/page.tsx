@@ -301,20 +301,6 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           }
         }}
         onAiSummarize={handleAiSummarize}
-        onShare={async () => {
-          try {
-            const res = await fetch(`${API_URL}/care-cases/${id}/share-link`, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            if (!res.ok) throw new Error();
-            const { url } = await res.json() as { url: string };
-            await navigator.clipboard.writeText(url);
-            toast.success("Lien copié — valide 7 jours");
-          } catch {
-            toast.error("Impossible de générer le lien de partage");
-          }
-        }}
         aiStreaming={aiStreaming}
       />
 
@@ -401,6 +387,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         <ScheduleQuestionnaireModal
           careCaseId={id}
           patientFirstName={careCase.patient.firstName}
+          patientBirthDate={careCase.patient.birthDate ?? null}
           onClose={() => setQuestionnaireModalOpen(false)}
         />
       )}

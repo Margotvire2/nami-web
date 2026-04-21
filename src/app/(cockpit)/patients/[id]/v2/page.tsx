@@ -300,7 +300,6 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)
         }
         onAiSummarize={handleAiSummarize}
-        onShare={handleShare}
         aiStreaming={aiStreaming}
       />
 
