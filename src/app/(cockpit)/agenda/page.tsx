@@ -230,6 +230,170 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
 }
 
 /* ═══════════════════════════════════════════
+   DAY VIEW — Rich cards for today
+   ═══════════════════════════════════════════ */
+function DayView({
+  appointments, careCases, getColor, onSelect, onCreateNow,
+}: {
+  appointments: AgendaAppointment[]
+  careCases: CareCase[]
+  getColor: (a: AgendaAppointment) => string
+  onSelect: (a: AgendaAppointment) => void
+  onCreateNow: () => void
+}) {
+  const today = new Date()
+  const todayAppts = appointments
+    .filter(a => isSameDay(parseISO(a.startAt), today))
+    .sort((a, b) => parseISO(a.startAt).getTime() - parseISO(b.startAt).getTime())
+
+  const caseMap = new Map<string, CareCase>()
+  for (const cc of careCases) caseMap.set(cc.id, cc)
+
+  const nowTs = Date.now()
+  const videoCount = todayAppts.filter(a => a.locationType === "VIDEO" || a.locationType === "PHONE").length
+  const inPersonCount = todayAppts.filter(a => a.status !== "CANCELLED").length - videoCount
+  const nextAppt = todayAppts.filter(a => parseISO(a.startAt).getTime() > nowTs && a.status !== "CANCELLED")[0]
+  const nextInLabel = nextAppt ? formatDistanceToNow(parseISO(nextAppt.startAt), { locale: fr, addSuffix: false }) : null
+
+  if (todayAppts.length === 0) {
+    return (
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+        <div style={{ fontSize: 40, opacity: 0.15 }}>📅</div>
+        <div style={{ fontSize: 14, fontWeight: 500, color: N.textSoft }}>Aucun rendez-vous aujourd&apos;hui</div>
+        <button onClick={onCreateNow} style={{ fontSize: 13, fontWeight: 600, padding: "9px 20px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>+ Créer un rendez-vous</button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
+      {/* Day summary card */}
+      <div style={{ background: N.card, borderRadius: 12, border: `1px solid ${N.border}`, padding: "14px 20px", marginBottom: 16, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: N.primary }}>{todayAppts.filter(a => a.status !== "CANCELLED").length} patients</span>
+        <span style={{ fontSize: 13, color: N.textSoft }}>
+          {inPersonCount > 0 && `${inPersonCount} consult${inPersonCount > 1 ? "s" : ""} cabinet`}
+          {videoCount > 0 && ` · ${videoCount} téléconsult${videoCount > 1 ? "s" : ""}`}
+        </span>
+        {nextAppt && nextInLabel && (
+          <span style={{ marginLeft: "auto", fontSize: 13, color: N.textSoft }}>
+            Prochain dans <span style={{ fontWeight: 700, color: N.primary }}>{nextInLabel}</span>
+            {" · "}{format(parseISO(nextAppt.startAt), "HH:mm")}
+          </span>
+        )}
+        <button onClick={onCreateNow} style={{ fontSize: 12, fontWeight: 600, padding: "7px 14px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>+ Nouveau RDV</button>
+      </div>
+
+      {/* Appointment cards */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {todayAppts.map((appt) => {
+          const name = `${appt.patient.firstName} ${appt.patient.lastName}`
+          const start = parseISO(appt.startAt)
+          const dur = getApptDuration(appt)
+          const careCase = appt.careCaseId ? (caseMap.get(appt.careCaseId) ?? null) : null
+          const bandColor = careCase ? getPathologyColor(careCase.caseType) : getColor(appt)
+          const status = STATUS_CFG[appt.status] ?? { label: appt.status, color: N.textSoft, bg: N.bg, icon: "·" }
+          const isNow = parseISO(appt.startAt).getTime() <= nowTs && parseISO(appt.endAt).getTime() > nowTs
+          const isDone = appt.status === "COMPLETED" || appt.status === "CANCELLED"
+          const isPending = appt.status === "PENDING"
+          const initials = `${appt.patient.firstName[0] ?? ""}${appt.patient.lastName?.[0] ?? ""}`.toUpperCase()
+
+          return (
+            <div key={appt.id} style={{
+              background: N.card, borderRadius: 14, overflow: "hidden",
+              border: isNow ? `2px solid rgba(91,78,196,0.25)` : `1px solid ${N.border}`,
+              boxShadow: isNow ? `0 0 0 4px rgba(91,78,196,0.06), 0 2px 8px rgba(0,0,0,0.04)` : "0 1px 4px rgba(0,0,0,0.04)",
+              opacity: appt.status === "CANCELLED" ? 0.45 : 1,
+              transition: "box-shadow 0.2s",
+            }}>
+              <div style={{ display: "flex" }}>
+                {/* Left color bar */}
+                <div style={{ width: 5, background: bandColor, flexShrink: 0 }} />
+                <div style={{ flex: 1, padding: "16px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    {/* Time column */}
+                    <div style={{ textAlign: "center", minWidth: 52, flexShrink: 0 }}>
+                      <div style={{ fontSize: 19, fontWeight: 700, color: N.text, fontVariantNumeric: "tabular-nums" }}>{format(start, "HH:mm")}</div>
+                      <div style={{ fontSize: 11, color: N.textSoft }}>{dur} min</div>
+                    </div>
+                    {/* Status dot */}
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: status.color, flexShrink: 0, border: isNow ? `2px solid ${N.primary}` : "none" }} />
+                    {/* Avatar */}
+                    <div style={{ width: 38, height: 38, borderRadius: "50%", background: N.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: N.primary, flexShrink: 0 }}>{initials}</div>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: N.text }}>{name}</span>
+                        {isNow && <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: N.primaryLight, color: N.primary }}>Maintenant</span>}
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: status.bg, color: status.color }}>{status.icon} {status.label}</span>
+                        {isPending && <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: N.warningBg, color: N.warning }}>À confirmer</span>}
+                      </div>
+                      <div style={{ fontSize: 12, color: N.textSoft, marginTop: 3 }}>
+                        {appt.consultationType?.name ?? "Consultation"}
+                        {careCase && ` · ${getPathologyLabel(careCase.caseType)}`}
+                        {" · "}{LOCATION_LABELS[appt.locationType ?? ""] ?? "Cabinet"}
+                      </div>
+                    </div>
+                    {/* Action buttons */}
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                      {appt.status === "CONFIRMED" && appt.careCaseId && (
+                        <button
+                          onClick={() => window.dispatchEvent(new CustomEvent("nami-prep-mode", {
+                            detail: { careCaseId: appt.careCaseId, patientName: name, time: format(start, "HH:mm") }
+                          }))}
+                          style={{ fontSize: 12, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
+                        >
+                          Préparer →
+                        </button>
+                      )}
+                      {appt.status === "CONFIRMED" && appt.careCaseId && (
+                        <button
+                          onClick={() => window.dispatchEvent(new CustomEvent("nami-start-consultation", {
+                            detail: { careCaseId: appt.careCaseId, patientName: name }
+                          }))}
+                          style={{ fontSize: 12, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.text, cursor: "pointer", fontFamily: "inherit" }}
+                        >
+                          🎙 Démarrer
+                        </button>
+                      )}
+                      {!isDone && !isPending && (
+                        <button onClick={() => onSelect(appt)} style={{ fontSize: 12, padding: "8px 14px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.textSoft, cursor: "pointer", fontFamily: "inherit" }}>
+                          ···
+                        </button>
+                      )}
+                      {appt.status === "COMPLETED" && appt.careCaseId && (
+                        <Link href={`/patients/${appt.patient.id}`} style={{ fontSize: 12, padding: "8px 14px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.primary, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "flex", alignItems: "center" }}>
+                          Voir dossier →
+                        </Link>
+                      )}
+                      {isPending && (
+                        <>
+                          <button
+                            onClick={() => onSelect(appt)}
+                            style={{ fontSize: 12, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: "none", background: N.success, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
+                          >
+                            Accepter
+                          </button>
+                          <button
+                            onClick={() => onSelect(appt)}
+                            style={{ fontSize: 12, padding: "8px 12px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.danger, cursor: "pointer", fontFamily: "inherit" }}
+                          >
+                            Refuser
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════
    SLOT CATCHER — click to create + "+" hover
    ═══════════════════════════════════════════ */
 function SlotCatcher({ date, onSlotClick }: { date: Date; onSlotClick: (h: number, m: number) => void }) {
@@ -584,6 +748,7 @@ const actionBtn: React.CSSProperties = { flex: 1, padding: 10, borderRadius: 8, 
 export default function AgendaPage() {
   const agenda = useAgenda()
   const { careCases } = agenda
+  const [view, setView] = useState<"semaine" | "jour">("semaine")
   const [selectedAppt, setSelectedAppt] = useState<AgendaAppointment | null>(null)
   const [createCtx, setCreateCtx] = useState<{
     date: Date; hour: number; minute: number; location: ConsultationLocation | null
@@ -719,7 +884,16 @@ export default function AgendaPage() {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{ display: "flex", gap: 4, background: "#ECEAF5", borderRadius: 8, padding: 3 }}>
-            <button style={{ padding: "5px 14px", borderRadius: 6, border: "none", fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: N.primary, color: "#fff", fontWeight: 600 }}>Semaine</button>
+            {([["jour", "Jour"], ["semaine", "Semaine"]] as const).map(([id, label]) => (
+              <button key={id} onClick={() => setView(id)}
+                style={{ padding: "5px 14px", borderRadius: 6, border: "none", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+                  background: view === id ? N.primary : "transparent",
+                  color: view === id ? "#fff" : N.textSoft,
+                  fontWeight: view === id ? 600 : 400, transition: "all 0.15s",
+                }}>
+                {label}
+              </button>
+            ))}
           </div>
           <Link href="/agenda/parametrage" style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, fontSize: 12, cursor: "pointer", fontFamily: "inherit", color: N.textSoft, textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
             ⚙️ Paramètres
@@ -730,8 +904,22 @@ export default function AgendaPage() {
       {/* DAY SUMMARY */}
       <DaySummaryBar appointments={agenda.appointments} />
 
-      {/* GRID */}
-      <div style={{ flex: 1, display: "flex", overflowX: "auto", overflowY: "auto" }}>
+      {/* DAY VIEW */}
+      {view === "jour" && (
+        <DayView
+          appointments={agenda.appointments}
+          careCases={careCases}
+          getColor={agenda.getColor}
+          onSelect={setSelectedAppt}
+          onCreateNow={() => {
+            const now = new Date()
+            setCreateCtx({ date: now, hour: now.getHours() + 1, minute: 0, location: agenda.locations[0] ?? null })
+          }}
+        />
+      )}
+
+      {/* GRID (semaine) */}
+      {view === "semaine" && (<div style={{ flex: 1, display: "flex", overflowX: "auto", overflowY: "auto" }}>
         {/* Time gutter */}
         <div style={{ width: 56, flexShrink: 0, paddingTop: 80 }}>
           {hours.map((h) => (
@@ -818,10 +1006,10 @@ export default function AgendaPage() {
             </div>
           )
         })}
-      </div>
+      </div>)}
 
-      {/* Empty state */}
-      {!agenda.isLoading && agenda.appointments.length === 0 && (
+      {/* Empty state — semaine only */}
+      {view === "semaine" && !agenda.isLoading && agenda.appointments.length === 0 && (
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
           <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.2 }}>📅</div>
           <div style={{ fontSize: 14, fontWeight: 500, color: N.textSoft }}>Aucun rendez-vous cette semaine</div>
