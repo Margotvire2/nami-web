@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    // Auto-reply to requester
-    await resend.emails.send({
-      from: "Margot de Nami <margot@namipourlavie.com>",
+    // Auto-reply to requester (non-blocking — Resend domain config optionnelle)
+    try { await resend.emails.send({
+      from: "Nami <noreply@namipourlavie.com>",
       to: email,
       subject: `Votre demande de démo Nami — confirmation`,
       html: `
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
           </div>
         </div>
       `,
-    });
+    }); } catch (replyErr) { console.warn("Auto-reply non-bloquant:", replyErr); }
 
     return NextResponse.json({ success: true });
   } catch (err) {

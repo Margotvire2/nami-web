@@ -409,9 +409,11 @@ export default function DashboardPage() {
                     <Play size={12} fill="currentColor" /> Démarrer la consultation
                   </button>
                 )}
-                <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.careCaseId ?? selected.patientId}`); }} className="w-full h-9 rounded-xl border border-[#E8ECF4] text-[#374151] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-[#F8FAFC] transition-colors">
-                  Voir le dossier <ChevronRight size={14} />
-                </button>
+                {selected.careCaseId && (
+                  <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.careCaseId}`); }} className="w-full h-9 rounded-xl border border-[#E8ECF4] text-[#374151] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-[#F8FAFC] transition-colors">
+                    Voir le dossier <ChevronRight size={14} />
+                  </button>
+                )}
               </div>
             </motion.div>
           </>

@@ -343,10 +343,10 @@ function PathwayHeader({
               type="button"
               onClick={() => instantiate.mutate()}
               disabled={instantiate.isPending}
-              className="flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white transition-all shadow-sm shadow-teal-200 hover:shadow-teal-300 disabled:opacity-50"
             >
-              {instantiate.isPending ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
-              Démarrer
+              {instantiate.isPending ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} fill="currentColor" />}
+              Démarrer le suivi
             </button>
           )}
           <button
@@ -603,13 +603,16 @@ function TemplateStepsSection({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between px-1">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-          Plan de soins ({steps.length} étapes)
+      <div className="flex items-center justify-between px-1 mb-1">
+        <p className="text-xs font-semibold text-neutral-600">
+          Plan de soins · <span className="text-teal-600">{steps.length} étapes</span>
         </p>
-        <span className="text-[10px] text-neutral-400 italic">
-          Cliquer "Démarrer" pour activer le suivi temps réel
-        </span>
+      </div>
+      <div className="flex items-center gap-2 px-3 py-2.5 mb-2 rounded-xl bg-amber-50 border border-amber-100">
+        <Play size={11} className="text-amber-600 shrink-0" fill="currentColor" />
+        <p className="text-[11px] font-medium text-amber-700">
+          Cliquez <strong>Démarrer le suivi</strong> pour activer le suivi en temps réel et assigner les étapes à l'équipe.
+        </p>
       </div>
       {phases.map((phase, i) => (
         <TemplatePhaseGroup key={phase.label} label={phase.label} steps={phase.steps} defaultOpen={i === 0} />
@@ -628,16 +631,18 @@ function TemplatePhaseGroup({ label, steps, defaultOpen = false }: { label: stri
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-3 px-4 py-3 text-left"
       >
-        <div className="w-3 h-3 rounded-full border-2 border-neutral-200 shrink-0" />
+        <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+          <div className="w-2 h-2 rounded-full bg-teal-500" />
+        </div>
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium text-neutral-700">{label}</span>
-          <p className="text-[10px] text-neutral-400 mt-0.5">
+          <span className="text-sm font-semibold text-neutral-800">{label}</span>
+          <p className="text-[11px] text-neutral-500 mt-0.5">
             {steps.length} étape{steps.length > 1 ? "s" : ""}
-            {required > 0 && ` · ${required} requise${required > 1 ? "s" : ""}`}
+            {required > 0 && ` · ${required} obligatoire${required > 1 ? "s" : ""}`}
           </p>
         </div>
-        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded border bg-neutral-50 text-neutral-400 border-neutral-200 shrink-0">
-          À planifier
+        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-100 shrink-0">
+          Planifié
         </span>
         {open ? <ChevronUp size={14} className="text-neutral-400 shrink-0" /> : <ChevronDown size={14} className="text-neutral-400 shrink-0" />}
       </button>
@@ -648,13 +653,15 @@ function TemplatePhaseGroup({ label, steps, defaultOpen = false }: { label: stri
             {steps.map((step) => (
               <div
                 key={step.id}
-                className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-neutral-50 border border-neutral-100"
+                className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-white border border-neutral-100 hover:border-teal-100 hover:bg-teal-50/30 transition-colors"
               >
-                <Circle size={13} className="text-neutral-200 shrink-0 mt-0.5" />
+                <div className="w-4 h-4 rounded-full border-2 border-teal-200 shrink-0 mt-0.5 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-neutral-700 leading-snug">
+                  <p className="text-xs font-semibold text-neutral-800 leading-snug">
                     {step.actLabel}
-                    {step.isRequired && <span className="ml-1 text-[9px] text-red-400">*</span>}
+                    {step.isRequired && <span className="ml-1 text-[9px] font-bold text-teal-500 uppercase">Requis</span>}
                   </p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <ActBadge type={step.clinicalActType} />
@@ -794,24 +801,31 @@ function EmptyState({ careCaseId }: { careCaseId: string }) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center max-w-3xl">
-      <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mb-4">
-        <Route size={28} className="text-teal-400" />
+    <div className="max-w-3xl">
+      <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 to-white p-8 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-teal-500 flex items-center justify-center mb-5 mx-auto shadow-md shadow-teal-200">
+          <Route size={28} className="text-white" />
+        </div>
+        <h3 className="text-base font-bold text-neutral-800 mb-2">
+          Aucun parcours de soins assigné
+        </h3>
+        <p className="text-sm text-neutral-500 max-w-sm mx-auto mb-6 leading-relaxed">
+          Sélectionnez un protocole HAS, FFAB ou Orphanet pour structurer les phases, les étapes et les délais du suivi.
+        </p>
+        <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
+          {["Anorexie mentale", "Obésité complexe", "PCR Nutrition", "Épilepsie pédiatrique"].map((ex) => (
+            <span key={ex} className="text-[11px] font-medium px-3 py-1 rounded-full bg-teal-100 text-teal-700 border border-teal-200">{ex}</span>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowPanel(true)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold transition-all shadow-sm shadow-teal-200 mx-auto"
+        >
+          <Plus size={14} />
+          Assigner un parcours structuré
+        </button>
       </div>
-      <h3 className="text-sm font-medium text-neutral-700 mb-1">
-        Aucun parcours de soins sélectionné
-      </h3>
-      <p className="text-xs text-neutral-400 max-w-xs mb-5">
-        Assignez un parcours structuré pour organiser les phases, activités et échéances de ce dossier.
-      </p>
-      <button
-        type="button"
-        onClick={() => setShowPanel(true)}
-        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-xs font-medium transition-colors"
-      >
-        <Plus size={13} />
-        Assigner un parcours
-      </button>
     </div>
   );
 }

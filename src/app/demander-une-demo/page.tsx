@@ -92,7 +92,13 @@ export default function DemanderUneDemoPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#FAFAF8", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 24px 80px" }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .demo-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .demo-padding { padding: 32px 20px 60px !important; }
+        }
+      `}</style>
+      <div className="demo-padding" style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 24px 80px" }}>
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 56 }}>
@@ -108,7 +114,7 @@ export default function DemanderUneDemoPage() {
         </div>
 
         {/* 2-col layout */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }}>
+        <div className="demo-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }}>
 
           {/* Left — highlights */}
           <div>
