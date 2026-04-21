@@ -8,27 +8,24 @@ import { authApi, mfaApi } from "@/lib/api"
 import { EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
 import { ShimmerCard } from "@/components/ui/shimmer"
 import {
-  User, Mail, Phone, BadgeCheck, Loader2, Save,
-  Plus, Trash2, LogOut, ChevronDown, ChevronUp,
-  Building2, GraduationCap, Stethoscope, Globe, Settings,
-  Download, Shield,
+  Loader2, Save, Plus, Trash2, LogOut, Download, Shield,
 } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
-// ─── Constantes (miroir exact de l'onboarding) ────────────────────────────────
+// ─── Constantes ───────────────────────────────────────────────────────────────
 
 const EXERCISE_MODES = [
   { id: "LIBERAL",  label: "Libéral" },
   { id: "SALARIED", label: "Salarié" },
   { id: "MIXED",    label: "Mixte" },
-  { id: "HOSPITAL", label: "Hospitalier pur" },
+  { id: "HOSPITAL", label: "Hospitalier" },
 ]
 
 const CONVENTION_SECTORS = [
   { id: "SECTOR_1", label: "Secteur 1" },
   { id: "SECTOR_2", label: "Secteur 2" },
-  { id: "SECTOR_3", label: "Secteur 3 (non conventionné)" },
+  { id: "SECTOR_3", label: "Non conventionné" },
   { id: "OPTAM",    label: "OPTAM / OPTAM-CO" },
 ]
 
@@ -53,7 +50,7 @@ const PATIENT_TYPES = [
 const DELAY_OPTIONS = [
   { id: "WITHIN_WEEK",  label: "Sous une semaine" },
   { id: "WITHIN_MONTH", label: "Sous un mois" },
-  { id: "OVER_MONTH",   label: "Plus d'un mois" },
+  { id: "OVER_MONTH",   label: "Plus d&apos;un mois" },
 ]
 
 const LANGUAGES = [
@@ -67,9 +64,9 @@ const LANGUAGES = [
 ]
 
 const VISIBILITY_OPTIONS = [
-  { id: "ALL",           label: "Profil public",                       description: "Visible par tous les professionnels" },
-  { id: "VERIFIED_ONLY", label: "Professionnels vérifiés uniquement",  description: "RPPS/ADELI validé requis" },
-  { id: "PRIVATE",       label: "Profil privé",                        description: "Non visible dans l'annuaire" },
+  { id: "ALL",           label: "Profil public",                        sub: "Visible par tous les professionnels et patients · indexé Google" },
+  { id: "VERIFIED_ONLY", label: "Professionnels vérifiés uniquement",   sub: "Visible uniquement par les soignants Nami avec RPPS/ADELI validé" },
+  { id: "PRIVATE",       label: "Profil privé",                         sub: "Non visible dans l&apos;annuaire · introuvable publiquement" },
 ]
 
 const ADDRESSING_SCOPE = [
@@ -85,9 +82,7 @@ const STRUCTURE_TYPES = ["Cabinet libéral", "Clinique", "Hôpital", "Centre de 
 interface Structure { id: string; name: string; type: string; address: string; city: string; postalCode: string; phone?: string | null; fax?: string | null }
 interface Certification { id: string; name: string; organism: string; year?: string | null }
 interface ProfileData {
-  // Person
   firstName: string; lastName: string; email: string; phone?: string | null
-  // ProviderProfile
   rppsNumber?: string | null; adeliNumber?: string | null
   specialties: string[]; subSpecialties: string[]
   bio?: string | null
@@ -101,32 +96,76 @@ interface ProfileData {
   professionType?: string | null
 }
 
-// ─── Section card ─────────────────────────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 
-function Section({ title, icon, children, defaultOpen = true }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen)
+const P = "#5B4EC4"
+const PL = "rgba(91,78,196,0.08)"
+const DARK = "#1A1A2E"
+const MID = "#4A4A5A"
+const LIGHT = "#8A8A96"
+const BG = "#FAFAF8"
+const BGALT = "#F5F3EF"
+const BORDER = "rgba(26,26,46,0.08)"
+const BORDERMED = "rgba(26,26,46,0.14)"
+const CARD = "#FFFFFF"
+const SUCCESS = "#2BA84A"
+const DANGER = "#D94F4F"
+const WARNING = "#E6993E"
+
+// ─── Primitives ───────────────────────────────────────────────────────────────
+
+function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <div className="nami-card overflow-hidden">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-[#F8F9FC] transition-colors"
+    <button
+      onClick={onClick}
+      style={{
+        fontSize: 12, fontWeight: 600, padding: "6px 14px", borderRadius: 8, cursor: "pointer",
+        border: active ? "none" : `1px solid ${BORDERMED}`,
+        background: active ? P : CARD,
+        color: active ? "#fff" : MID,
+        transition: "all 0.15s",
+      }}
+    >
+      {label}
+    </button>
+  )
+}
+
+function Toggle({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0" }}>
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 500, color: DARK }}>{label}</div>
+        {sub && <div style={{ fontSize: 12, color: LIGHT, marginTop: 1 }}>{sub}</div>}
+      </div>
+      <div
+        onClick={() => onChange(!checked)}
+        style={{
+          width: 44, height: 24, borderRadius: 12, cursor: "pointer", padding: 2, flexShrink: 0,
+          background: checked ? P : BORDERMED,
+          transition: "background 0.2s cubic-bezier(0.16,1,0.3,1)",
+        }}
       >
-        <div className="flex items-center gap-2.5">
-          <span className="text-[#4F46E5]">{icon}</span>
-          <h2 className="text-[14px] font-semibold text-[#0F172A]">{title}</h2>
-        </div>
-        {open ? <ChevronUp size={16} className="text-[#94A3B8]" /> : <ChevronDown size={16} className="text-[#94A3B8]" />}
-      </button>
-      {open && <div className="px-6 pb-6 pt-2 space-y-4">{children}</div>}
+        <div style={{
+          width: 20, height: 20, borderRadius: "50%", background: "#fff",
+          transform: checked ? "translateX(20px)" : "translateX(0)",
+          transition: "transform 0.2s cubic-bezier(0.16,1,0.3,1)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+        }} />
+      </div>
     </div>
   )
+}
+
+function SL({ children }: { children: React.ReactNode }) {
+  return <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: LIGHT, marginBottom: 10 }}>{children}</div>
 }
 
 function ReadOnlyField({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
-      <label className="text-[11px] font-medium text-[#94A3B8] uppercase tracking-wide">{label}</label>
-      <p className="mt-1 px-3 py-2 rounded-lg bg-[#F8F9FC] border border-[#E8ECF4] text-[13px] text-[#64748B]">{value || "—"}</p>
+      <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 5 }}>{label}</div>
+      <div style={{ padding: "10px 14px", borderRadius: 8, background: BGALT, fontSize: 14, color: LIGHT }}>{value || "—"}</div>
     </div>
   )
 }
@@ -134,45 +173,19 @@ function ReadOnlyField({ label, value }: { label: string; value?: string | null 
 function InputField({ label, value, onChange, type = "text", placeholder }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
     <div>
-      <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">{label}</label>
+      <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 5 }}>{label}</div>
       <input
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] text-[#0F172A] focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] outline-none bg-white"
+        style={{
+          width: "100%", padding: "10px 14px", borderRadius: 8,
+          border: `1px solid ${BORDER}`, background: CARD,
+          fontSize: 14, fontFamily: "inherit", color: DARK, outline: "none",
+        }}
       />
     </div>
-  )
-}
-
-function Toggle({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="flex items-center justify-between py-1">
-      <div>
-        <p className="text-[13px] text-[#0F172A]">{label}</p>
-        {sub && <p className="text-[11px] text-[#94A3B8]">{sub}</p>}
-      </div>
-      <button
-        onClick={() => onChange(!checked)}
-        className={`relative w-10 h-5 rounded-full transition-colors ${checked ? "bg-[#4F46E5]" : "bg-[#E2E8F0]"}`}
-      >
-        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
-      </button>
-    </div>
-  )
-}
-
-function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-colors ${
-        active ? "bg-[#EEF2FF] border-[#4F46E5] text-[#4F46E5]" : "bg-white border-[#E8ECF4] text-[#64748B] hover:border-[#4F46E5]/40"
-      }`}
-    >
-      {label}
-    </button>
   )
 }
 
@@ -186,6 +199,7 @@ export default function ReglagesPage() {
   const [changes, setChanges] = useState<Partial<ProfileData>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [activeSection, setActiveSection] = useState("identite")
 
   // Structures
   const [structureModal, setStructureModal] = useState<{ open: boolean; editing: Structure | null }>({ open: false, editing: null })
@@ -203,7 +217,7 @@ export default function ReglagesPage() {
   const [mfaDisableMode, setMfaDisableMode] = useState(false)
   const [mfaDisableCode, setMfaDisableCode] = useState("")
 
-  // ─── Load ────────────────────────────────────────────────────────────────
+  // ─── Load ─────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     if (!accessToken) return
@@ -249,7 +263,7 @@ export default function ReglagesPage() {
 
   useEffect(() => { load() }, [load])
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   function get<K extends keyof ProfileData>(key: K): ProfileData[K] {
     return (changes[key] ?? profile?.[key]) as ProfileData[K]
@@ -266,7 +280,7 @@ export default function ReglagesPage() {
 
   const hasChanges = Object.keys(changes).length > 0
 
-  // ─── Save ────────────────────────────────────────────────────────────────
+  // ─── Save ──────────────────────────────────────────────────────────────────
 
   async function handleSave() {
     if (!hasChanges || !accessToken) return
@@ -282,7 +296,6 @@ export default function ReglagesPage() {
         throw new Error(err.error || "Erreur serveur")
       }
       const updated = await res.json()
-      // Merge updated data back into profile
       setProfile(p => p ? {
         ...p,
         ...changes,
@@ -299,7 +312,7 @@ export default function ReglagesPage() {
     }
   }
 
-  // ─── Logout ──────────────────────────────────────────────────────────────
+  // ─── Logout ───────────────────────────────────────────────────────────────
 
   async function handleLogout() {
     if (refreshToken) await authApi.logout(refreshToken).catch(() => {})
@@ -308,12 +321,7 @@ export default function ReglagesPage() {
     toast.success("Déconnecté")
   }
 
-  // ─── Structures ──────────────────────────────────────────────────────────
-
-  function openAddStructure() {
-    setStructForm({ name: "", type: "Cabinet libéral", address: "", city: "", postalCode: "", phone: "", fax: "" })
-    setStructureModal({ open: true, editing: null })
-  }
+  // ─── Structures ───────────────────────────────────────────────────────────
 
   async function saveStructure() {
     if (!accessToken) return
@@ -349,7 +357,7 @@ export default function ReglagesPage() {
     }
   }
 
-  // ─── Certifications ──────────────────────────────────────────────────────
+  // ─── Certifications ───────────────────────────────────────────────────────
 
   async function saveCertification() {
     if (!accessToken || !certForm.name || !certForm.organism) return
@@ -383,7 +391,7 @@ export default function ReglagesPage() {
     }
   }
 
-  // ─── MFA handlers ────────────────────────────────────────────────────────
+  // ─── MFA ──────────────────────────────────────────────────────────────────
 
   async function handleMfaSetup() {
     if (!accessToken) return
@@ -439,13 +447,30 @@ export default function ReglagesPage() {
     ? EXPERTISE_THEMES.filter(t => (PROFESSION_THEME_MAP[profile.professionType!] ?? []).includes(t.id))
     : EXPERTISE_THEMES
 
+  // ─── Nav sections ─────────────────────────────────────────────────────────
+
+  const navSections = [
+    { id: "identite",    icon: "👤", label: "Identité professionnelle" },
+    { id: "exercice",    icon: "⚕️", label: "Mode d'exercice" },
+    { id: "consultation",icon: "📋", label: "Consultation" },
+    { id: "structures",  icon: "🏥", label: "Structures d'exercice" },
+    { id: "visibilite",  icon: "🌐", label: "Réseau & Visibilité" },
+    { id: "formations",  icon: "🎓", label: "Formations" },
+    { id: "sep1", sep: true },
+    { id: "securite",    icon: "🔒", label: "Sécurité" },
+    { id: "compte",      icon: "⚙️", label: "Compte" },
+    { id: "rgpd",        icon: "🛡️", label: "Confidentialité & RGPD" },
+  ]
+
+  const activeLabel = navSections.find(s => s.id === activeSection)?.label ?? ""
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className="min-h-full bg-[#F0F2FA]">
-        <div className="max-w-2xl mx-auto px-6 py-8 space-y-4">
-          {[...Array(5)].map((_, i) => <ShimmerCard key={i} />)}
+      <div style={{ minHeight: "100%", background: BG }}>
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px" }}>
+          {[...Array(4)].map((_, i) => <ShimmerCard key={i} />)}
         </div>
       </div>
     )
@@ -453,553 +478,546 @@ export default function ReglagesPage() {
 
   if (!profile) return null
 
+  const card: React.CSSProperties = {
+    background: CARD,
+    borderRadius: 12,
+    border: `1px solid ${BORDER}`,
+    boxShadow: "0 1px 3px rgba(26,26,46,0.04), 0 4px 12px rgba(26,26,46,0.03)",
+  }
+
   return (
-    <div className="min-h-full bg-[#F0F2FA]">
-      <div className="max-w-2xl mx-auto px-6 py-8 space-y-4 pb-32">
+    <div style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif", background: BG, minHeight: "100%", padding: "24px" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto" }}>
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-[#EEF2FF] flex items-center justify-center">
-            <Settings size={18} className="text-[#4F46E5]" />
-          </div>
-          <div>
-            <h1 className="text-[18px] font-bold text-[#0F172A]">Mon profil professionnel</h1>
-            <p className="text-[12px] text-[#94A3B8]">Informations renseignées lors de votre inscription</p>
-          </div>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: DARK, letterSpacing: "-0.02em" }}>Réglages</div>
+          <div style={{ fontSize: 13, color: LIGHT, marginTop: 2 }}>Mon profil professionnel, sécurité et préférences</div>
         </div>
 
-        {/* ── Section 1 : Identité ───────────────────────────────────────── */}
-        <Section title="Identité professionnelle" icon={<User size={16} />}>
-          <div className="grid grid-cols-2 gap-3">
-            <InputField label="Prénom" value={get("firstName") as string} onChange={v => set("firstName", v)} />
-            <InputField label="Nom" value={get("lastName") as string} onChange={v => set("lastName", v)} />
-          </div>
-          <ReadOnlyField label="Email (non modifiable)" value={profile.email} />
-          <InputField label="Téléphone" value={(get("phone") as string) ?? ""} onChange={v => set("phone", v || null)} placeholder="+33 6 …" />
-          {profile.rppsNumber && <ReadOnlyField label="N° RPPS" value={profile.rppsNumber} />}
-          {profile.adeliNumber && <ReadOnlyField label="N° ADELI" value={profile.adeliNumber} />}
+        <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
 
-          {/* Domaines d'expertise */}
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Domaines d&apos;expertise</label>
-            <p className="text-[11px] text-[#94A3B8] mt-0.5 mb-2">Sélectionnez autant de domaines que nécessaire</p>
-            <div className="space-y-3">
-              {relevantThemes.map(theme => (
-                <div key={theme.id}>
-                  <p className="text-[11px] font-semibold text-[#64748B] mb-1.5">{theme.icon} {theme.label}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {theme.domains.map(d => (
-                      <Chip
-                        key={d.id}
-                        label={d.label}
-                        active={(get("specialties") as string[]).includes(d.id)}
-                        onClick={() => toggleArr("specialties", d.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Section>
-
-        {/* ── Section 2 : Mode d'exercice ──────────────────────────────────── */}
-        <Section title="Mode d'exercice" icon={<Stethoscope size={16} />}>
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Mode d&apos;exercice</label>
-            <div className="grid grid-cols-2 gap-2">
-              {EXERCISE_MODES.map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => set("exerciseMode", m.id)}
-                  className={`px-3 py-2 rounded-lg border text-[12px] font-medium transition-colors text-left ${
-                    get("exerciseMode") === m.id ? "bg-[#EEF2FF] border-[#4F46E5] text-[#4F46E5]" : "bg-white border-[#E8ECF4] text-[#64748B] hover:border-[#4F46E5]/40"
-                  }`}
-                >{m.label}</button>
-              ))}
-            </div>
-          </div>
-
-          {(get("exerciseMode") === "LIBERAL" || get("exerciseMode") === "MIXED") && (
-            <div>
-              <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Secteur de convention</label>
-              <div className="grid grid-cols-2 gap-2">
-                {CONVENTION_SECTORS.map(s => (
-                  <button
+          {/* ── Left nav ── */}
+          <div style={{ width: 220, flexShrink: 0 }}>
+            <div style={{ ...card, padding: "8px 6px", position: "sticky", top: 24 }}>
+              {navSections.map(s => {
+                if (s.sep) return <div key={s.id} style={{ height: 1, background: BORDER, margin: "6px 10px" }} />
+                const isActive = activeSection === s.id
+                return (
+                  <div
                     key={s.id}
-                    onClick={() => set("conventionSector", s.id)}
-                    className={`px-3 py-2 rounded-lg border text-[12px] font-medium transition-colors text-left ${
-                      get("conventionSector") === s.id ? "bg-[#EEF2FF] border-[#4F46E5] text-[#4F46E5]" : "bg-white border-[#E8ECF4] text-[#64748B] hover:border-[#4F46E5]/40"
-                    }`}
-                  >{s.label}</button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2 pt-1">
-            <Toggle label="Accepte la CMU-C / CSS" checked={get("acceptsCMU") as boolean} onChange={v => set("acceptsCMU", v)} />
-            <Toggle label="Accepte les patients ALD" checked={get("acceptsALD") as boolean} onChange={v => set("acceptsALD", v)} />
-            <Toggle label="Téléconsultation disponible" checked={get("acceptsTele") as boolean} onChange={v => set("acceptsTele", v)} />
-          </div>
-        </Section>
-
-        {/* ── Section 3 : Consultation ─────────────────────────────────────── */}
-        <Section title="Consultation" icon={<BadgeCheck size={16} />}>
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Modes de consultation</label>
-            <div className="flex flex-wrap gap-2">
-              {CONSULTATION_MODES.map(m => (
-                <Chip key={m.id} label={m.label} active={(get("consultationModes") as string[]).includes(m.id)} onClick={() => toggleArr("consultationModes", m.id)} />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Types de patients acceptés</label>
-            <div className="flex flex-wrap gap-2">
-              {PATIENT_TYPES.map(pt => (
-                <Chip key={pt.id} label={pt.label} active={(get("acceptedPatientTypes") as string[]).includes(pt.id)} onClick={() => toggleArr("acceptedPatientTypes", pt.id)} />
-              ))}
-            </div>
-          </div>
-
-          <Toggle
-            label="Accepte de nouveaux patients"
-            checked={get("acceptsNewPatients") as boolean}
-            onChange={v => set("acceptsNewPatients", v)}
-          />
-
-          {get("acceptsNewPatients") && (
-            <div>
-              <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Délai moyen d&apos;attente</label>
-              <div className="flex flex-wrap gap-2">
-                {DELAY_OPTIONS.map(d => (
-                  <Chip key={d.id} label={d.label} active={get("averageDelay") === d.id} onClick={() => set("averageDelay", d.id)} />
-                ))}
-              </div>
-            </div>
-          )}
-        </Section>
-
-        {/* ── Section 4 : Structures ───────────────────────────────────────── */}
-        <Section title="Structures d'exercice" icon={<Building2 size={16} />}>
-          <div className="space-y-2">
-            {(get("structures") as Structure[]).map(s => (
-              <div key={s.id} className="flex items-start justify-between gap-3 p-3 rounded-xl border border-[#E8ECF4] bg-[#F8F9FC]">
-                <div>
-                  <p className="text-[13px] font-semibold text-[#0F172A]">{s.name}</p>
-                  <p className="text-[11px] text-[#64748B]">{s.type} · {s.address}, {s.postalCode} {s.city}</p>
-                  {s.phone && <p className="text-[11px] text-[#94A3B8]">{s.phone}</p>}
-                </div>
-                <button onClick={() => deleteStructure(s.id)} className="text-[#EF4444] hover:text-[#DC2626] shrink-0 mt-0.5">
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={openAddStructure}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-[#4F46E5]/40 text-[#4F46E5] text-[12px] font-medium hover:bg-[#EEF2FF] transition-colors w-full justify-center"
-          >
-            <Plus size={14} /> Ajouter une structure
-          </button>
-        </Section>
-
-        {/* ── Section 5 : Réseau & Visibilité ─────────────────────────────── */}
-        <Section title="Réseau & Visibilité" icon={<Globe size={16} />}>
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Visibilité du profil</label>
-            <div className="space-y-2">
-              {VISIBILITY_OPTIONS.map(v => (
-                <button
-                  key={v.id}
-                  onClick={() => set("profileVisibility", v.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg border text-[12px] transition-colors ${
-                    get("profileVisibility") === v.id ? "bg-[#EEF2FF] border-[#4F46E5]" : "bg-white border-[#E8ECF4] hover:border-[#4F46E5]/40"
-                  }`}
-                >
-                  <p className={`font-medium ${get("profileVisibility") === v.id ? "text-[#4F46E5]" : "text-[#0F172A]"}`}>{v.label}</p>
-                  <p className="text-[#94A3B8] text-[11px]">{v.description}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Zone d&apos;adressage</label>
-            <div className="flex flex-wrap gap-2">
-              {ADDRESSING_SCOPE.map(s => (
-                <Chip key={s.id} label={s.label} active={get("addressingScope") === s.id} onClick={() => set("addressingScope", s.id)} />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide mb-2 block">Langues parlées</label>
-            <div className="flex flex-wrap gap-1.5">
-              {LANGUAGES.map(l => (
-                <Chip key={l.id} label={l.label} active={(get("languages") as string[]).includes(l.id)} onClick={() => toggleArr("languages", l.id)} />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Biographie professionnelle</label>
-            <textarea
-              value={(get("bio") as string) ?? ""}
-              onChange={e => set("bio", e.target.value || null)}
-              rows={4}
-              placeholder="Décrivez votre approche, vos spécificités, ce qui vous distingue…"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] text-[#0F172A] focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5] outline-none resize-none"
-            />
-          </div>
-        </Section>
-
-        {/* ── Section 6 : Formations ───────────────────────────────────────── */}
-        <Section title="Formations & Certifications" icon={<GraduationCap size={16} />}>
-          <div className="space-y-2">
-            {(get("certifications") as Certification[]).map(c => (
-              <div key={c.id} className="flex items-start justify-between gap-3 p-3 rounded-xl border border-[#E8ECF4] bg-[#F8F9FC]">
-                <div>
-                  <p className="text-[13px] font-semibold text-[#0F172A]">{c.name}</p>
-                  <p className="text-[11px] text-[#64748B]">{c.organism}{c.year ? ` · ${c.year}` : ""}</p>
-                </div>
-                <button onClick={() => deleteCertification(c.id)} className="text-[#EF4444] hover:text-[#DC2626] shrink-0 mt-0.5">
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => setCertModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-[#4F46E5]/40 text-[#4F46E5] text-[12px] font-medium hover:bg-[#EEF2FF] transition-colors w-full justify-center"
-          >
-            <Plus size={14} /> Ajouter une formation
-          </button>
-        </Section>
-
-        {/* ── Section 7 : Sécurité ─────────────────────────────────────────── */}
-        <Section title="Sécurité" icon={<Shield size={16} />} defaultOpen={false}>
-          <div className="space-y-4">
-
-            {/* État 1 : non activé */}
-            {!totpEnabled && !mfaSetup && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FCD34D]">
-                  <p className="text-[12px] text-[#92400E] leading-relaxed">
-                    La double authentification n&apos;est pas activée. Recommandée pour les comptes accédant à des données sensibles.
-                  </p>
-                </div>
-                <button
-                  onClick={handleMfaSetup}
-                  disabled={mfaLoading}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#4F46E5] hover:bg-[#EEF2FF] hover:border-[#C7D2FE] transition-colors disabled:opacity-60"
-                >
-                  {mfaLoading ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
-                  Activer la double authentification (TOTP)
-                </button>
-              </div>
-            )}
-
-            {/* État 2 : setup QR */}
-            {!totpEnabled && mfaSetup && (
-              <div className="space-y-4">
-                <p className="text-[12px] text-[#64748B]">
-                  Scannez ce QR code avec votre application authenticator (Google Authenticator, Authy…), puis entrez le code à 6 chiffres pour confirmer.
-                </p>
-                <div className="flex justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={mfaSetup.qrCodeDataUrl} alt="QR Code TOTP" className="w-40 h-40 rounded-xl border border-[#E8ECF4]" />
-                </div>
-                <div className="p-2 rounded-lg bg-[#F8F9FC] border border-[#E8ECF4]">
-                  <p className="text-[10px] text-[#94A3B8] uppercase tracking-wide mb-0.5">Clé manuelle</p>
-                  <p className="text-[12px] font-mono text-[#64748B] break-all">{mfaSetup.secret}</p>
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Code de vérification</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    value={mfaCode}
-                    onChange={e => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="_ _ _ _ _ _"
-                    className="mt-1 w-full px-3 py-3 rounded-lg border border-[#E8ECF4] text-[18px] text-center tracking-[0.5em] font-mono outline-none focus:border-[#4F46E5]"
-                    autoComplete="one-time-code"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setMfaSetup(null); setMfaCode("") }}
-                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-[#64748B] border border-[#E8ECF4] hover:bg-[#F1F5F9]"
+                    onClick={() => setActiveSection(s.id!)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "9px 12px", borderRadius: 8, cursor: "pointer",
+                      background: isActive ? PL : "transparent",
+                      transition: "background 0.15s",
+                    }}
                   >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={handleMfaEnable}
-                    disabled={mfaLoading || mfaCode.length !== 6}
-                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] disabled:opacity-60 flex items-center justify-center gap-1.5"
-                  >
-                    {mfaLoading && <Loader2 size={13} className="animate-spin" />}
-                    Confirmer
-                  </button>
-                </div>
-              </div>
-            )}
+                    <span style={{ fontSize: 14, width: 20, textAlign: "center" }}>{s.icon}</span>
+                    <span style={{ fontSize: 13, fontWeight: isActive ? 600 : 500, color: isActive ? P : MID }}>{s.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
 
-            {/* État 3 : activé */}
-            {totpEnabled && !mfaDisableMode && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#D1FAE5] flex items-center justify-center shrink-0">
-                    <Shield size={14} className="text-[#059669]" />
+          {/* ── Content panel ── */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={card}>
+              <div style={{ padding: "18px 24px", borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: DARK }}>{activeLabel}</div>
+              </div>
+              <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+                {/* ── Identité ── */}
+                {activeSection === "identite" && <>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <InputField label="Prénom" value={get("firstName") as string} onChange={v => set("firstName", v)} />
+                    <InputField label="Nom" value={get("lastName") as string} onChange={v => set("lastName", v)} />
+                  </div>
+                  <ReadOnlyField label="Email (non modifiable)" value={profile.email} />
+                  <InputField label="Téléphone" value={(get("phone") as string) ?? ""} onChange={v => set("phone", v || null)} placeholder="+33 6 …" />
+                  {profile.rppsNumber && <ReadOnlyField label="N° RPPS" value={profile.rppsNumber} />}
+                  {profile.adeliNumber && <ReadOnlyField label="N° ADELI" value={profile.adeliNumber} />}
+                  <div>
+                    <SL>Domaines d&apos;expertise</SL>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {relevantThemes.map(theme => (
+                        <div key={theme.id}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: MID, marginBottom: 8 }}>{theme.icon} {theme.label}</div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                            {theme.domains.map(d => (
+                              <Chip
+                                key={d.id}
+                                label={d.label}
+                                active={(get("specialties") as string[]).includes(d.id)}
+                                onClick={() => toggleArr("specialties", d.id)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>}
+
+                {/* ── Exercice ── */}
+                {activeSection === "exercice" && <>
+                  <div>
+                    <SL>Mode d&apos;exercice</SL>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {EXERCISE_MODES.map(m => (
+                        <Chip key={m.id} label={m.label} active={get("exerciseMode") === m.id} onClick={() => set("exerciseMode", m.id)} />
+                      ))}
+                    </div>
+                  </div>
+                  {(get("exerciseMode") === "LIBERAL" || get("exerciseMode") === "MIXED") && (
+                    <div>
+                      <SL>Secteur de convention</SL>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {CONVENTION_SECTORS.map(s => (
+                          <Chip key={s.id} label={s.label} active={get("conventionSector") === s.id} onClick={() => set("conventionSector", s.id)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 16 }}>
+                    <Toggle label="Accepte la CMU-C / CSS" checked={get("acceptsCMU") as boolean} onChange={v => set("acceptsCMU", v)} />
+                    <Toggle label="Accepte les patients ALD" checked={get("acceptsALD") as boolean} onChange={v => set("acceptsALD", v)} />
+                    <Toggle label="Téléconsultation disponible" checked={get("acceptsTele") as boolean} onChange={v => set("acceptsTele", v)} />
+                  </div>
+                </>}
+
+                {/* ── Consultation ── */}
+                {activeSection === "consultation" && <>
+                  <div>
+                    <SL>Modes de consultation</SL>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {CONSULTATION_MODES.map(m => (
+                        <Chip key={m.id} label={m.label} active={(get("consultationModes") as string[]).includes(m.id)} onClick={() => toggleArr("consultationModes", m.id)} />
+                      ))}
+                    </div>
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-[#065F46]">Double authentification activée</p>
-                    <p className="text-[11px] text-[#34D399]">Votre compte est protégé par TOTP (RFC 6238)</p>
+                    <SL>Types de patients acceptés</SL>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {PATIENT_TYPES.map(pt => (
+                        <Chip key={pt.id} label={pt.label} active={(get("acceptedPatientTypes") as string[]).includes(pt.id)} onClick={() => toggleArr("acceptedPatientTypes", pt.id)} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => setMfaDisableMode(true)}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#64748B] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] hover:text-[#EF4444] transition-colors"
-                >
-                  Désactiver la double authentification
-                </button>
-              </div>
-            )}
-
-            {/* État 4 : confirmation désactivation */}
-            {totpEnabled && mfaDisableMode && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA]">
-                  <p className="text-[12px] text-[#991B1B] leading-relaxed">
-                    Entrez un code de votre application authenticator pour confirmer la désactivation.
-                  </p>
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Code de confirmation</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    value={mfaDisableCode}
-                    onChange={e => setMfaDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="_ _ _ _ _ _"
-                    className="mt-1 w-full px-3 py-3 rounded-lg border border-[#E8ECF4] text-[18px] text-center tracking-[0.5em] font-mono outline-none focus:border-[#4F46E5]"
-                    autoComplete="one-time-code"
+                  <Toggle
+                    label="Accepte de nouveaux patients"
+                    checked={get("acceptsNewPatients") as boolean}
+                    onChange={v => set("acceptsNewPatients", v)}
                   />
-                </div>
-                <div className="flex gap-2">
+                  {get("acceptsNewPatients") && (
+                    <div>
+                      <SL>Délai moyen d&apos;attente</SL>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {DELAY_OPTIONS.map(d => (
+                          <Chip key={d.id} label={d.label} active={get("averageDelay") === d.id} onClick={() => set("averageDelay", d.id)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ padding: "12px 16px", borderRadius: 8, background: PL, fontSize: 13, color: P }}>
+                    Pour les paramètres fins de l&apos;agenda (créneaux, durées, smart slots), rendez-vous sur{" "}
+                    <a href="/agenda/parametrage" style={{ fontWeight: 700, color: P }}>Paramètres de l&apos;agenda →</a>
+                  </div>
+                </>}
+
+                {/* ── Structures ── */}
+                {activeSection === "structures" && <>
+                  <div style={{ fontSize: 13, color: LIGHT }}>Vos structures d&apos;exercice. La structure principale apparaît en premier sur votre profil public.</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {(get("structures") as Structure[]).map((s, i) => (
+                      <div key={s.id} style={{
+                        display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
+                        borderRadius: 8,
+                        border: `1px solid ${i === 0 ? "rgba(91,78,196,0.2)" : BORDER}`,
+                        background: i === 0 ? PL : CARD,
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>{s.name}</div>
+                          <div style={{ fontSize: 12, color: LIGHT, marginTop: 2 }}>{s.type} · {s.address}, {s.postalCode} {s.city}</div>
+                          {s.phone && <div style={{ fontSize: 12, color: LIGHT }}>{s.phone}</div>}
+                        </div>
+                        {i === 0 && (
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 999, background: PL, color: P, whiteSpace: "nowrap" }}>Principale</span>
+                        )}
+                        <button
+                          onClick={() => deleteStructure(s.id)}
+                          style={{ color: DANGER, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                   <button
-                    onClick={() => { setMfaDisableMode(false); setMfaDisableCode("") }}
-                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-[#64748B] border border-[#E8ECF4] hover:bg-[#F1F5F9]"
+                    onClick={() => {
+                      setStructForm({ name: "", type: "Cabinet libéral", address: "", city: "", postalCode: "", phone: "", fax: "" })
+                      setStructureModal({ open: true, editing: null })
+                    }}
+                    style={{
+                      padding: "12px", borderRadius: 8, border: `2px dashed ${BORDERMED}`,
+                      background: "transparent", fontSize: 13, fontWeight: 600, color: P, cursor: "pointer", width: "100%",
+                    }}
                   >
-                    Annuler
+                    + Rejoindre une structure
                   </button>
+                </>}
+
+                {/* ── Visibilité ── */}
+                {activeSection === "visibilite" && <>
+                  <div>
+                    <SL>Visibilité du profil</SL>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {VISIBILITY_OPTIONS.map(v => (
+                        <div
+                          key={v.id}
+                          onClick={() => set("profileVisibility", v.id)}
+                          style={{
+                            padding: "14px 16px", borderRadius: 8, cursor: "pointer",
+                            border: get("profileVisibility") === v.id ? `2px solid ${P}` : `1px solid ${BORDER}`,
+                            background: get("profileVisibility") === v.id ? PL : CARD,
+                          }}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 600, color: get("profileVisibility") === v.id ? P : DARK }}>{v.label}</div>
+                          <div style={{ fontSize: 12, color: LIGHT, marginTop: 2 }}>{v.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <SL>Zone d&apos;adressage</SL>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {ADDRESSING_SCOPE.map(s => (
+                        <Chip key={s.id} label={s.label} active={get("addressingScope") === s.id} onClick={() => set("addressingScope", s.id)} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <SL>Langues parlées</SL>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {LANGUAGES.map(l => (
+                        <Chip key={l.id} label={l.label} active={(get("languages") as string[]).includes(l.id)} onClick={() => toggleArr("languages", l.id)} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <SL>Biographie professionnelle</SL>
+                    <textarea
+                      value={(get("bio") as string) ?? ""}
+                      onChange={e => set("bio", e.target.value || null)}
+                      rows={4}
+                      placeholder="Décrivez votre approche, vos spécificités, ce qui vous distingue…"
+                      style={{
+                        width: "100%", padding: "12px 14px", borderRadius: 8,
+                        border: `1px solid ${BORDER}`, fontSize: 14, fontFamily: "inherit",
+                        resize: "vertical", minHeight: 100, outline: "none", color: DARK,
+                      }}
+                    />
+                  </div>
+                </>}
+
+                {/* ── Formations ── */}
+                {activeSection === "formations" && <>
+                  <div style={{ fontSize: 13, color: LIGHT }}>Vos diplômes et certifications renforcent la confiance des confrères qui consultent votre profil avant un adressage.</div>
+                  {(get("certifications") as Certification[]).length === 0 && (
+                    <div style={{ padding: "20px", borderRadius: 8, background: BG, textAlign: "center" }}>
+                      <div style={{ fontSize: 13, color: LIGHT }}>Aucune formation renseignée</div>
+                    </div>
+                  )}
+                  {(get("certifications") as Certification[]).map(c => (
+                    <div key={c.id} style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 12, padding: "12px 16px", borderRadius: 8, border: `1px solid ${BORDER}`, background: BGALT }}>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>{c.name}</div>
+                        <div style={{ fontSize: 12, color: LIGHT, marginTop: 2 }}>{c.organism}{c.year ? ` · ${c.year}` : ""}</div>
+                      </div>
+                      <button onClick={() => deleteCertification(c.id)} style={{ color: DANGER, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                   <button
-                    onClick={handleMfaDisable}
-                    disabled={mfaLoading || mfaDisableCode.length !== 6}
-                    className="flex-1 py-2 rounded-lg text-[12px] font-medium text-white bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-60 flex items-center justify-center gap-1.5"
+                    onClick={() => setCertModal(true)}
+                    style={{ padding: "12px", borderRadius: 8, border: `2px dashed ${BORDERMED}`, background: "transparent", fontSize: 13, fontWeight: 600, color: P, cursor: "pointer", width: "100%" }}
                   >
-                    {mfaLoading && <Loader2 size={13} className="animate-spin" />}
-                    Désactiver
+                    + Ajouter une formation
                   </button>
-                </div>
+                </>}
+
+                {/* ── Sécurité ── */}
+                {activeSection === "securite" && <>
+                  {!totpEnabled && !mfaSetup && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div style={{ padding: "16px 18px", borderRadius: 8, background: `rgba(230,153,62,0.08)`, border: `1px solid rgba(230,153,62,0.2)` }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: DARK, marginBottom: 4 }}>Authentification à deux facteurs désactivée</div>
+                        <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>Recommandée pour les comptes accédant à des dossiers de coordination. Obligatoire pour le tier Intelligence et au-delà.</div>
+                      </div>
+                      <button
+                        onClick={handleMfaSetup}
+                        disabled={mfaLoading}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 20px", borderRadius: 8, border: "none", background: P, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+                      >
+                        {mfaLoading ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
+                        Activer le 2FA
+                      </button>
+                    </div>
+                  )}
+                  {!totpEnabled && mfaSetup && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "18px", borderRadius: 8, border: `1px solid ${BORDER}` }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>Configuration du 2FA</div>
+                      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+                        <div style={{ width: 160, height: 160, borderRadius: 8, overflow: "hidden", border: `1px solid ${BORDER}`, flexShrink: 0 }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={mfaSetup.qrCodeDataUrl} alt="QR Code TOTP" style={{ width: "100%", height: "100%" }} />
+                        </div>
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                          <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>Scannez ce QR code avec Authy ou Google Authenticator, puis saisissez le code à 6 chiffres généré.</div>
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Clé manuelle</div>
+                            <div style={{ padding: "8px 12px", borderRadius: 8, background: BGALT, fontSize: 13, fontFamily: "monospace", color: DARK, wordBreak: "break-all" }}>{mfaSetup.secret}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Code de vérification</div>
+                            <input
+                              type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6}
+                              value={mfaCode}
+                              onChange={e => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                              placeholder="_ _ _ _ _ _"
+                              autoComplete="one-time-code"
+                              style={{ width: 140, padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 18, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.2em", outline: "none" }}
+                            />
+                          </div>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button onClick={() => { setMfaSetup(null); setMfaCode("") }} style={{ fontSize: 13, padding: "10px 16px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", color: MID, cursor: "pointer" }}>Annuler</button>
+                            <button
+                              onClick={handleMfaEnable}
+                              disabled={mfaLoading || mfaCode.length !== 6}
+                              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, padding: "10px 20px", borderRadius: 8, border: "none", background: SUCCESS, color: "#fff", cursor: "pointer", opacity: mfaLoading || mfaCode.length !== 6 ? 0.6 : 1 }}
+                            >
+                              {mfaLoading && <Loader2 size={13} className="animate-spin" />}
+                              Vérifier et activer
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {totpEnabled && !mfaDisableMode && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div style={{ padding: "16px 18px", borderRadius: 8, background: `rgba(43,168,74,0.06)`, border: `1px solid rgba(43,168,74,0.15)` }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <span style={{ color: SUCCESS, fontWeight: 700 }}>✓</span>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: SUCCESS }}>Authentification à deux facteurs activée</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: MID }}>Votre compte est protégé par TOTP (RFC 6238)</div>
+                      </div>
+                      <button
+                        onClick={() => setMfaDisableMode(true)}
+                        style={{ fontSize: 13, padding: "10px 16px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", color: DANGER, cursor: "pointer" }}
+                      >
+                        Désactiver la double authentification
+                      </button>
+                    </div>
+                  )}
+                  {totpEnabled && mfaDisableMode && (
+                    <div style={{ padding: "16px 18px", borderRadius: 8, background: `rgba(217,79,79,0.06)`, border: `1px solid rgba(217,79,79,0.15)` }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: DANGER, marginBottom: 8 }}>Confirmer la désactivation du 2FA</div>
+                      <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>Saisissez votre code TOTP actuel pour confirmer.</div>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <input
+                          type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6}
+                          value={mfaDisableCode}
+                          onChange={e => setMfaDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="_ _ _ _ _ _"
+                          autoComplete="one-time-code"
+                          style={{ width: 140, padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 18, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.2em", outline: "none" }}
+                        />
+                        <button
+                          onClick={handleMfaDisable}
+                          disabled={mfaLoading || mfaDisableCode.length !== 6}
+                          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, padding: "10px 20px", borderRadius: 8, border: "none", background: DANGER, color: "#fff", cursor: "pointer", opacity: mfaLoading || mfaDisableCode.length !== 6 ? 0.6 : 1 }}
+                        >
+                          {mfaLoading && <Loader2 size={13} className="animate-spin" />}
+                          Confirmer
+                        </button>
+                        <button onClick={() => { setMfaDisableMode(false); setMfaDisableCode("") }} style={{ fontSize: 13, padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", color: MID, cursor: "pointer" }}>Annuler</button>
+                      </div>
+                    </div>
+                  )}
+                </>}
+
+                {/* ── Compte ── */}
+                {activeSection === "compte" && <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ padding: "14px 16px", borderRadius: 8, background: BGALT }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: LIGHT, marginBottom: 4 }}>Email</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: DARK }}>{user?.email}</div>
+                    </div>
+                    <div style={{ padding: "14px 16px", borderRadius: 8, background: BGALT }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: LIGHT, marginBottom: 4 }}>Nom</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: DARK }}>{user?.firstName} {user?.lastName}</div>
+                    </div>
+                  </div>
+                  <div style={{ padding: "12px 16px", borderRadius: 8, border: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>Abonnement actuel</div>
+                      <div style={{ fontSize: 12, color: LIGHT, marginTop: 1 }}>Pour gérer votre abonnement, contactez support@namipourlavie.com</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: LIGHT }}>Pour changer votre mot de passe, utilisez la fonctionnalité &quot;Mot de passe oublié&quot; sur la page de connexion.</div>
+                  <button
+                    onClick={handleLogout}
+                    style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", fontSize: 14, fontWeight: 500, color: DANGER, cursor: "pointer" }}
+                  >
+                    <LogOut size={14} /> Se déconnecter
+                  </button>
+                </>}
+
+                {/* ── RGPD ── */}
+                {activeSection === "rgpd" && <>
+                  <div style={{ padding: "16px 18px", borderRadius: 8, border: `1px solid ${BORDER}`, background: CARD }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: DARK, marginBottom: 4 }}>Exporter mes données</div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>Téléchargez l&apos;ensemble de vos données personnelles et professionnelles au format JSON (RGPD Art. 20).</div>
+                    <button
+                      onClick={async () => {
+                        if (!user?.personId || !accessToken) return
+                        try {
+                          const res = await fetch(`${API_URL}/persons/${user.personId}/data-export`, {
+                            headers: { Authorization: `Bearer ${accessToken}` },
+                          })
+                          if (!res.ok) throw new Error("Erreur export")
+                          const blob = await res.blob()
+                          const url = URL.createObjectURL(blob)
+                          const a = document.createElement("a")
+                          a.href = url
+                          a.download = `export_rgpd_${new Date().toISOString().slice(0, 10)}.json`
+                          a.click()
+                          URL.revokeObjectURL(url)
+                          toast.success("Export RGPD téléchargé")
+                        } catch {
+                          toast.error("Erreur lors de l&apos;export")
+                        }
+                      }}
+                      style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: CARD, fontSize: 13, fontWeight: 600, color: P, cursor: "pointer" }}
+                    >
+                      <Download size={14} /> Télécharger mes données
+                    </button>
+                  </div>
+
+                  <div style={{ padding: "16px 18px", borderRadius: 8, border: `1px solid ${BORDER}`, background: CARD }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: DARK, marginBottom: 4 }}>Consentements IA</div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>Vous pouvez révoquer le consentement aux traitements IA. Cela désactivera ces fonctionnalités sur votre compte.</div>
+                    <Toggle label="Synthèses IA de dossiers patients" sub="Résumés cliniques générés par Claude" checked={true} onChange={() => {}} />
+                    <Toggle label="Analyse automatique des notes" sub="Extraction de tâches et éléments signalés" checked={true} onChange={() => {}} />
+                    <Toggle label="Génération de lettres d'adressage" sub="Brouillons de courriers de coordination" checked={true} onChange={() => {}} />
+                  </div>
+
+                  <div style={{ padding: "14px 16px", borderRadius: 8, background: `rgba(217,79,79,0.06)`, border: `1px solid rgba(217,79,79,0.15)` }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: DANGER, marginBottom: 4 }}>Supprimer mon compte</div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 8 }}>La suppression nécessite un traitement manuel (archivage RGPD des dossiers associés).</div>
+                    <a href="mailto:dpo@namipourlavie.com" style={{ fontSize: 12, padding: "7px 14px", borderRadius: 8, border: `1px solid rgba(217,79,79,0.3)`, color: DANGER, cursor: "pointer", textDecoration: "none", display: "inline-block" }}>
+                      Contacter le support →
+                    </a>
+                  </div>
+                </>}
+
               </div>
-            )}
-
-          </div>
-        </Section>
-
-        {/* ── Section 8 : Compte ──────────────────────────────────────────── */}
-        <Section title="Compte" icon={<Mail size={16} />} defaultOpen={false}>
-          <div className="space-y-3">
-            <div className="p-3 rounded-xl bg-[#F8F9FC] border border-[#E8ECF4]">
-              <p className="text-[12px] text-[#64748B]">Connecté en tant que</p>
-              <p className="text-[13px] font-semibold text-[#0F172A]">{user?.firstName} {user?.lastName}</p>
-              <p className="text-[12px] text-[#94A3B8]">{user?.email}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#64748B] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] hover:text-[#EF4444] transition-colors"
-            >
-              <LogOut size={14} /> Se déconnecter
-            </button>
-          </div>
-        </Section>
-
-        {/* ── Section 9 : Confidentialité & RGPD ──────────────────────────── */}
-        <Section title="Confidentialité & RGPD" icon={<Shield size={16} />} defaultOpen={false}>
-          <div className="space-y-4">
-            <div className="p-3 rounded-xl bg-[#EEF2FF] border border-[#C7D2FE]">
-              <p className="text-[12px] text-[#4338CA] leading-relaxed">
-                Conformément aux articles 15 et 20 du RGPD, vous pouvez télécharger
-                l&apos;intégralité de vos données personnelles dans un format structuré et lisible.
-              </p>
-            </div>
-            <div>
-              <button
-                onClick={async () => {
-                  if (!user?.personId || !accessToken) return;
-                  try {
-                    const res = await fetch(`${API_URL}/persons/${user.personId}/data-export`, {
-                      headers: { Authorization: `Bearer ${accessToken}` },
-                    });
-                    if (!res.ok) throw new Error("Erreur export");
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `export_rgpd_${new Date().toISOString().slice(0, 10)}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    toast.success("Export RGPD téléchargé");
-                  } catch {
-                    toast.error("Erreur lors de l'export");
-                  }
-                }}
-                className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] font-medium text-[#4F46E5] hover:bg-[#EEF2FF] hover:border-[#C7D2FE] transition-colors"
-              >
-                <Download size={14} /> Exporter mes données (Art. 15 &amp; 20 RGPD)
-              </button>
-              <p className="mt-1.5 text-[11px] text-[#94A3B8]">
-                Télécharge un fichier JSON contenant vos données personnelles, notes, observations,
-                consentements et historique d&apos;activité. Les fichiers binaires (documents) ne sont pas inclus.
-              </p>
-            </div>
-            <div className="border-t border-[#E8ECF4] pt-3">
-              <p className="text-[11px] text-[#94A3B8]">
-                Pour toute demande RGPD (rectification, effacement, opposition) :{" "}
-                <a href="mailto:dpo@namipourlavie.com" className="text-[#4F46E5] hover:underline">
-                  dpo@namipourlavie.com
-                </a>
-              </p>
             </div>
           </div>
-        </Section>
-
+        </div>
       </div>
 
-      {/* ── Sticky save bar ─────────────────────────────────────────────── */}
+      {/* ── Sticky save bar ── */}
       {hasChanges && (
-        <div className="fixed bottom-0 left-[220px] right-0 bg-white border-t border-[#E8ECF4] px-6 py-3 flex items-center justify-between z-40">
-          <p className="text-[12px] text-[#94A3B8]">Modifications non enregistrées</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setChanges({})}
-              className="px-4 py-2 rounded-lg text-[12px] font-medium text-[#64748B] hover:bg-[#F1F5F9] transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] disabled:opacity-60 transition-colors"
-            >
-              {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-              Enregistrer
-            </button>
-          </div>
+        <div style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          padding: "12px 24px", background: CARD, borderTop: `1px solid ${BORDER}`,
+          boxShadow: "0 -4px 16px rgba(26,26,46,0.06)",
+          display: "flex", justifyContent: "center", alignItems: "center", gap: 12, zIndex: 50,
+        }}>
+          <span style={{ fontSize: 12, color: LIGHT }}>Modifications non enregistrées</span>
+          <button
+            onClick={() => setChanges({})}
+            style={{ fontSize: 13, padding: "10px 24px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", color: MID, cursor: "pointer" }}
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, padding: "10px 28px", borderRadius: 8, border: "none", background: P, color: "#fff", cursor: "pointer", opacity: saving ? 0.7 : 1 }}
+          >
+            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+            Enregistrer
+          </button>
         </div>
       )}
 
-      {/* ── Modal structure ─────────────────────────────────────────────── */}
+      {/* ── Modal structure ── */}
       {structureModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setStructureModal({ open: false, editing: null })} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-3" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[15px] font-semibold text-[#0F172A]">
-              {structureModal.editing ? "Modifier la structure" : "Ajouter une structure"}
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Nom *</label>
-                <input value={structForm.name} onChange={e => setStructForm(f => ({ ...f, name: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }} onClick={() => setStructureModal({ open: false, editing: null })} />
+          <div style={{ position: "relative", background: CARD, borderRadius: 16, boxShadow: "0 20px 60px rgba(26,26,46,0.2)", width: "100%", maxWidth: 440, margin: "0 16px", padding: 24, display: "flex", flexDirection: "column", gap: 12 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: DARK }}>{structureModal.editing ? "Modifier la structure" : "Ajouter une structure"}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ gridColumn: "1 / -1" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Nom *</div>
+                <input value={structForm.name} onChange={e => setStructForm(f => ({ ...f, name: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
               </div>
-              <div className="col-span-2">
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Type *</label>
-                <select value={structForm.type} onChange={e => setStructForm(f => ({ ...f, type: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5] bg-white">
+              <div style={{ gridColumn: "1 / -1" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Type *</div>
+                <select value={structForm.type} onChange={e => setStructForm(f => ({ ...f, type: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", background: CARD, fontFamily: "inherit" }}>
                   {STRUCTURE_TYPES.map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <div className="col-span-2">
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Adresse *</label>
-                <input value={structForm.address} onChange={e => setStructForm(f => ({ ...f, address: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Adresse *</div>
+                <input value={structForm.address} onChange={e => setStructForm(f => ({ ...f, address: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Code postal *</label>
-                <input value={structForm.postalCode} onChange={e => setStructForm(f => ({ ...f, postalCode: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+                <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Code postal *</div>
+                <input value={structForm.postalCode} onChange={e => setStructForm(f => ({ ...f, postalCode: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Ville *</label>
-                <input value={structForm.city} onChange={e => setStructForm(f => ({ ...f, city: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
-              </div>
-              <div>
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Téléphone</label>
-                <input value={structForm.phone} onChange={e => setStructForm(f => ({ ...f, phone: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
-              </div>
-              <div>
-                <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Fax</label>
-                <input value={structForm.fax} onChange={e => setStructForm(f => ({ ...f, fax: e.target.value }))}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+                <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Ville *</div>
+                <input value={structForm.city} onChange={e => setStructForm(f => ({ ...f, city: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
               </div>
             </div>
-            <div className="flex gap-2 pt-2">
-              <button onClick={() => setStructureModal({ open: false, editing: null })}
-                className="flex-1 py-2 rounded-lg text-[12px] font-medium text-[#64748B] border border-[#E8ECF4] hover:bg-[#F1F5F9]">
-                Annuler
-              </button>
-              <button onClick={saveStructure}
-                className="flex-1 py-2 rounded-lg text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA]">
-                Enregistrer
-              </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+              <button onClick={() => setStructureModal({ open: false, editing: null })} style={{ flex: 1, padding: "10px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", fontSize: 13, fontWeight: 500, color: MID, cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+              <button onClick={saveStructure} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: P, fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Enregistrer</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Modal certification ─────────────────────────────────────────── */}
+      {/* ── Modal certification ── */}
       {certModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setCertModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-3" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[15px] font-semibold text-[#0F172A]">Ajouter une formation</h3>
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }} onClick={() => setCertModal(false)} />
+          <div style={{ position: "relative", background: CARD, borderRadius: 16, boxShadow: "0 20px 60px rgba(26,26,46,0.2)", width: "100%", maxWidth: 380, margin: "0 16px", padding: 24, display: "flex", flexDirection: "column", gap: 12 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: DARK }}>Ajouter une formation</div>
             <div>
-              <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Intitulé *</label>
-              <input value={certForm.name} onChange={e => setCertForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="ex: DU Nutrition clinique"
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+              <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Intitulé *</div>
+              <input value={certForm.name} onChange={e => setCertForm(f => ({ ...f, name: e.target.value }))} placeholder="ex: DU Nutrition clinique" style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
             </div>
             <div>
-              <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Organisme *</label>
-              <input value={certForm.organism} onChange={e => setCertForm(f => ({ ...f, organism: e.target.value }))}
-                placeholder="ex: Université Paris VI"
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+              <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Organisme *</div>
+              <input value={certForm.organism} onChange={e => setCertForm(f => ({ ...f, organism: e.target.value }))} placeholder="ex: Université Paris VI" style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
             </div>
             <div>
-              <label className="text-[11px] font-medium text-[#64748B] uppercase tracking-wide">Année</label>
-              <input value={certForm.year} onChange={e => setCertForm(f => ({ ...f, year: e.target.value }))}
-                placeholder="ex: 2022"
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-[#E8ECF4] text-[13px] outline-none focus:border-[#4F46E5]" />
+              <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Année</div>
+              <input value={certForm.year} onChange={e => setCertForm(f => ({ ...f, year: e.target.value }))} placeholder="ex: 2022" style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
             </div>
-            <div className="flex gap-2 pt-2">
-              <button onClick={() => setCertModal(false)}
-                className="flex-1 py-2 rounded-lg text-[12px] font-medium text-[#64748B] border border-[#E8ECF4] hover:bg-[#F1F5F9]">
-                Annuler
-              </button>
-              <button onClick={saveCertification}
-                className="flex-1 py-2 rounded-lg text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA]">
-                Ajouter
-              </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+              <button onClick={() => setCertModal(false)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: "transparent", fontSize: 13, fontWeight: 500, color: MID, cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+              <button onClick={saveCertification} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: P, fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Ajouter</button>
             </div>
           </div>
         </div>
