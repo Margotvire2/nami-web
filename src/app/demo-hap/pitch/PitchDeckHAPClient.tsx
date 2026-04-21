@@ -309,11 +309,11 @@ function S9() {
       <Eye>Nouveau modèle</Eye>
       <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Vos services de niche<br />deviennent <span style={G}>rentables</span></h2>
       <p style={{ fontSize: 14, color: C.t2, marginBottom: 28, maxWidth: 540, lineHeight: 1.6 }}>
-        Un service spécialisé n&apos;est rentable qu&apos;avec du volume. Ce volume vient des libéraux de la région — s&apos;ils savent que vous existez et s&apos;ils peuvent coordonner le suivi.
+        Un service spécialisé n&apos;est rentable qu&apos;avec du volume. Ce volume vient des libéraux et des autres structures de la région — s&apos;ils savent que vous existez et s&apos;ils peuvent coordonner le suivi.
       </p>
       <div style={{ display: "flex", gap: 16 }}>
         {[
-          { icon: "🏥→🩺", title: "Adressage entrant", desc: "Les pédiatres de ville identifient un besoin spécialisé. Nami structure l'adressage vers votre service — avec le dossier complet." },
+          { icon: "🏥→🩺", title: "Adressage entrant", desc: "Les pédiatres de ville, les services hospitaliers identifient un besoin spécialisé. Nami structure l'adressage vers votre service — avec le dossier complet." },
           { icon: "🔄", title: "Suivi partagé", desc: "Le patient est suivi en ville ET à l'hôpital. L'équipe hospitalière garde la visibilité sans que le patient vienne physiquement." },
           { icon: "📈", title: "Volume qualifié", desc: "Votre service devient la référence régionale. Les libéraux adressent spontanément car la coordination fonctionne." },
         ].map((item, i) => (
