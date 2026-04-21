@@ -3332,7 +3332,7 @@ function LaboDeltaSection({ careCaseId }: { careCaseId: string }) {
               onClick={() => setActiveDomain(dm)}
               className={`rounded-full px-3 py-1 text-xs font-medium border transition-all ${
                 activeDomain === dm
-                  ? "bg-[#4F46E5] text-white border-[#4F46E5]"
+                  ? "bg-[#5B4EC4] text-white border-[#5B4EC4]"
                   : "bg-white text-gray-500 border-gray-200 hover:border-gray-400"
               }`}
             >

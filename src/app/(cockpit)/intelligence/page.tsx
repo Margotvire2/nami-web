@@ -673,7 +673,7 @@ export default function IntelligencePage() {
       {/* ── Header ── */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <FlaskConical size={18} className="text-[#4F46E5]" />
+          <FlaskConical size={18} className="text-[#5B4EC4]" />
           <h1 className="text-xl font-bold text-gray-900">Références cliniques</h1>
         </div>
         <p className="text-sm text-gray-500">
@@ -693,7 +693,7 @@ export default function IntelligencePage() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Chercher un médicament, une pathologie, un critère diagnostique…"
-          className="w-full pl-11 pr-28 py-3.5 rounded-xl border border-[#E8ECF4] bg-white text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] shadow-sm transition-all"
+          className="w-full pl-11 pr-28 py-3.5 rounded-xl border border-[#E8ECF4] bg-white text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4] shadow-sm transition-all"
           autoFocus
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -708,7 +708,7 @@ export default function IntelligencePage() {
           <button
             onClick={() => doSearch(query)}
             disabled={loading || query.trim().length < 2}
-            className="px-3 py-1.5 bg-[#4F46E5] text-white text-xs font-medium rounded-lg hover:bg-[#4338CA] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 bg-[#5B4EC4] text-white text-xs font-medium rounded-lg hover:bg-[#4940A8] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "…" : "Rechercher"}
           </button>
@@ -724,7 +724,7 @@ export default function IntelligencePage() {
               <button
                 key={q}
                 onClick={() => { setQuery(q); doSearch(q); }}
-                className="text-xs px-3 py-1.5 rounded-lg border border-[#E8ECF4] bg-white text-gray-600 hover:border-[#4F46E5] hover:text-[#4F46E5] transition-all"
+                className="text-xs px-3 py-1.5 rounded-lg border border-[#E8ECF4] bg-white text-gray-600 hover:border-[#5B4EC4] hover:text-[#5B4EC4] transition-all"
               >
                 {q}
               </button>
@@ -740,8 +740,8 @@ export default function IntelligencePage() {
             onClick={() => setActiveSource(null)}
             className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
               activeSource === null
-                ? "bg-[#4F46E5] text-white border-[#4F46E5]"
-                : "border-[#E8ECF4] bg-white text-gray-600 hover:border-[#4F46E5] hover:text-[#4F46E5]"
+                ? "bg-[#5B4EC4] text-white border-[#5B4EC4]"
+                : "border-[#E8ECF4] bg-white text-gray-600 hover:border-[#5B4EC4] hover:text-[#5B4EC4]"
             }`}
           >
             Tous ({results.length})

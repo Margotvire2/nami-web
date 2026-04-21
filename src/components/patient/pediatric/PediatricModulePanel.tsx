@@ -183,7 +183,7 @@ export function PediatricModulePanel({ profileId }: Props) {
                       <button
                         onClick={() => inviteMutation.mutate({ moduleId: m.id })}
                         disabled={!invitePersonId || !inviteRole || inviteMutation.isPending}
-                        className="flex-1 text-xs bg-[#5B4EC4] text-white rounded-lg py-1.5 hover:bg-[#4F46E5] disabled:opacity-50"
+                        className="flex-1 text-xs bg-[#5B4EC4] text-white rounded-lg py-1.5 hover:bg-[#5B4EC4] disabled:opacity-50"
                       >
                         Ajouter
                       </button>
@@ -244,7 +244,7 @@ export function PediatricModulePanel({ profileId }: Props) {
             <button
               onClick={() => activateMutation.mutate()}
               disabled={activateMutation.isPending}
-              className="flex-1 bg-[#5B4EC4] text-white text-xs rounded-lg py-2 hover:bg-[#4F46E5] disabled:opacity-50"
+              className="flex-1 bg-[#5B4EC4] text-white text-xs rounded-lg py-2 hover:bg-[#5B4EC4] disabled:opacity-50"
             >
               {activateMutation.isPending ? "Activation…" : "Activer"}
             </button>

@@ -57,7 +57,7 @@ const EVENT_EMOJI: Record<string, string> = {
 
 // ─── Couleurs par catégorie ─────────────────────────────────────────────────
 const CATEGORY_STYLE: Record<string, { card: string }> = {
-  consultation:  { card: "bg-[#EEF2FF] border-[#C7D2FE]" },
+  consultation:  { card: "bg-[#EEEDFB] border-[#C7D2FE]" },
   note:          { card: "bg-[#F8FAFC] border-[#E2E8F0]" },
   alert:         { card: "bg-[#FEF2F2] border-[#FECACA]" },
   coordination:  { card: "bg-[#F5F3FF] border-[#DDD6FE]" },
@@ -166,7 +166,7 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
             <div className="flex mb-3 rounded-xl overflow-hidden border border-[#E8ECF4]">
               {phases.map((phase, i) => {
                 const width = ((phase.endIndex - phase.startIndex) / Math.max(trajectory.length - 1, 1)) * 100;
-                const colors = ["bg-[#EEF2FF] text-[#6366F1]", "bg-[#F0F9FF] text-[#0EA5E9]", "bg-[#F0FDF4] text-[#059669]"];
+                const colors = ["bg-[#EEEDFB] text-[#6366F1]", "bg-[#F0F9FF] text-[#0EA5E9]", "bg-[#F0FDF4] text-[#059669]"];
                 return (
                   <div key={i} className={cn("py-1.5 px-3 text-center text-[11px] font-semibold uppercase tracking-[0.06em]", colors[i])} style={{ width: `${Math.max(width, 20)}%`, fontFamily: "var(--font-inter)" }}>
                     {phase.label}
@@ -196,7 +196,7 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
                   >
                     <div className={cn(
                       "relative flex items-center justify-center rounded-full transition-all duration-150",
-                      isCurrent ? "w-10 h-10 ring-2 ring-[#4F46E5] ring-offset-2 shadow-lg" : isSelected ? "w-9 h-9 ring-2 ring-[#CBD5E1] ring-offset-1" : "w-8 h-8",
+                      isCurrent ? "w-10 h-10 ring-2 ring-[#5B4EC4] ring-offset-2 shadow-lg" : isSelected ? "w-9 h-9 ring-2 ring-[#CBD5E1] ring-offset-1" : "w-8 h-8",
                       "bg-white shadow-sm border border-[#E8ECF4] group-hover:shadow-md",
                     )}>
                       <span className={isCurrent ? "text-lg" : "text-sm"}>{emoji}</span>
@@ -205,7 +205,7 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
                       )}
                       {isCurrent && <span className="absolute inset-0 rounded-full animate-ping bg-[#C7D2FE] opacity-30" />}
                     </div>
-                    <span className={cn("mt-2 text-[11px] whitespace-nowrap", isCurrent ? "text-[#4F46E5] font-semibold" : "text-[#94A3B8]")} style={{ fontFamily: "var(--font-inter)" }}>
+                    <span className={cn("mt-2 text-[11px] whitespace-nowrap", isCurrent ? "text-[#5B4EC4] font-semibold" : "text-[#94A3B8]")} style={{ fontFamily: "var(--font-inter)" }}>
                       {formatShortDate(event.occurredAt)}
                     </span>
                     {/* Tooltip */}

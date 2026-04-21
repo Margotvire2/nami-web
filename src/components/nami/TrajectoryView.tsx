@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 // ─── Couleurs par série ──────────────────────────────────────────────────────
 
-const SERIES_COLORS = ["#4F46E5", "#059669", "#D97706", "#DC2626", "#7C3AED", "#0891B2"];
+const SERIES_COLORS = ["#5B4EC4", "#059669", "#D97706", "#DC2626", "#7C3AED", "#0891B2"];
 
 const TREND_CONFIG: Record<TrendDirection, { icon: typeof TrendingUp; label: string; color: string }> = {
   improving:         { icon: TrendingUp,   label: "En amélioration", color: "text-green-600" },

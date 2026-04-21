@@ -476,11 +476,11 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
               <AreaChart data={points} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
                 <defs>
                   <linearGradient id={`grad-${c.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#5B4EC4" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#5B4EC4" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="v" stroke="#4F46E5" strokeWidth={1.5} fill={`url(#grad-${c.id})`} dot={false} isAnimationActive={false} />
+                <Area type="monotone" dataKey="v" stroke="#5B4EC4" strokeWidth={1.5} fill={`url(#grad-${c.id})`} dot={false} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (

@@ -540,6 +540,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState<string | null>(null);
+  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: diff } = useQuery<SummaryDiff>({
@@ -594,8 +595,11 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
           // Recharge le résumé depuis la DB
           const { data } = await api.get<{ clinicalSummary: string | null }>(`/care-cases/${careCaseId}`);
           setStreamText(data.clinicalSummary ?? "");
+          setFallbackMessage(null);
           setStreaming(false);
         } else if (status === "failed") {
+          const jobData = await statusRes.json() as { status: string; error?: string };
+          setFallbackMessage(jobData.error ?? "La génération a échoué. Réessayez dans quelques instants.");
           setStreaming(false);
         } else {
           pollTimerRef.current = setTimeout(poll, 3000) as unknown as ReturnType<typeof setTimeout>;
@@ -613,17 +617,25 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
 
   if (!displayText && !streaming) {
     return (
-      <div className="rounded-xl border border-dashed border-[#5B4EC4]/30 bg-[#F8F7FD] p-5 flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-700">Synthèse clinique</p>
-          <p className="text-xs text-gray-400 mt-0.5">Aucune synthèse générée. Lancez la génération pour obtenir une synthèse structurée.</p>
+      <div className="space-y-2">
+        {fallbackMessage && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-2">
+            <span className="text-amber-500 text-sm mt-0.5">⚠️</span>
+            <p className="text-sm text-amber-800">{fallbackMessage}</p>
+          </div>
+        )}
+        <div className="rounded-xl border border-dashed border-[#5B4EC4]/30 bg-[#F8F7FD] p-5 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-700">Synthèse clinique</p>
+            <p className="text-xs text-gray-400 mt-0.5">Aucune synthèse générée. Lancez la génération pour obtenir une synthèse structurée.</p>
+          </div>
+          <button
+            onClick={startStream}
+            className="flex-shrink-0 ml-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#5B4EC4] text-white text-sm font-medium hover:bg-[#4A3DB3] transition-colors"
+          >
+            <span>✨</span> Générer
+          </button>
         </div>
-        <button
-          onClick={startStream}
-          className="flex-shrink-0 ml-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#5B4EC4] text-white text-sm font-medium hover:bg-[#4A3DB3] transition-colors"
-        >
-          <span>✨</span> Générer
-        </button>
       </div>
     );
   }

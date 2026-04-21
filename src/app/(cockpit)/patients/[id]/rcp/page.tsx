@@ -346,7 +346,7 @@ export default function RcpListPage({ params }: { params: Promise<{ id: string }
   const closed  = rcps.filter((r) =>  ["CLOSED","CANCELLED"].includes(r.status));
 
   return (
-    <div className="min-h-screen bg-[#F0F2FA]">
+    <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

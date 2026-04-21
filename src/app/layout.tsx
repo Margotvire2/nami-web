@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     default: "Nami — Coordination des parcours de soins complexes",
     template: "%s | Nami",
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
+  },
   description:
     "Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de 564 000+ professionnels en France.",
   keywords: [

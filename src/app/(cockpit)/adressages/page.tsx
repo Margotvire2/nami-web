@@ -161,7 +161,7 @@ export default function AdressagesPage() {
           </div>
           <div className="flex gap-1">
             {(["all", "received", "sent"] as const).map((d) => (
-              <button key={d} onClick={() => setDirFilter(d)} className={cn("px-2.5 py-1 rounded-md text-[12px] font-medium transition-all", dirFilter === d ? "bg-[#EEF2FF] text-[#4F46E5]" : "text-[#94A3B8] hover:text-[#64748B]")}>
+              <button key={d} onClick={() => setDirFilter(d)} className={cn("px-2.5 py-1 rounded-md text-[12px] font-medium transition-all", dirFilter === d ? "bg-[#EEEDFB] text-[#5B4EC4]" : "text-[#94A3B8] hover:text-[#64748B]")}>
                 {d === "all" ? "Tous" : d === "received" ? "Reçus" : "Envoyés"}
               </button>
             ))}
@@ -169,7 +169,7 @@ export default function AdressagesPage() {
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto bg-[#F0F2FA] p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto bg-[#FAFAF8] p-4 space-y-2">
           <AnimatePresence>
             {filtered.length === 0 ? (
               <EmptyState
@@ -233,7 +233,7 @@ function ReferralCard({ referral: r, direction, isSelected, onSelect }: {
     <div onClick={onSelect} className={cn(
       "bg-white rounded-xl p-5 cursor-pointer transition-all duration-150",
       isSelected
-        ? "border-l-[3px] border-l-[#4F46E5] bg-[#FAFBFF] shadow-lg"
+        ? "border-l-[3px] border-l-[#5B4EC4] bg-[#FAFBFF] shadow-lg"
         : r.priority === "EMERGENCY"
         ? "border-l-[3px] border-l-red-500 border border-red-100 bg-red-50/30 hover:shadow-md"
         : r.priority === "URGENT"
@@ -381,13 +381,13 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
                   <div className="flex flex-col items-center">
                     <div className={cn(
                       "w-6 h-6 rounded-full flex items-center justify-center shrink-0",
-                      isDone ? "bg-[#059669]" : isCurrent ? "bg-[#4F46E5] ring-4 ring-[#EEF2FF]" : "bg-[#E2E8F0]"
+                      isDone ? "bg-[#059669]" : isCurrent ? "bg-[#5B4EC4] ring-4 ring-[#EEEDFB]" : "bg-[#E2E8F0]"
                     )}>
                       {isDone ? <Check size={12} className="text-white" /> : <div className={cn("w-2 h-2 rounded-full", isCurrent ? "bg-white" : "bg-[#94A3B8]")} />}
                     </div>
                     {i < STEPPER_STEPS.length - 1 && <div className={cn("w-px h-4 mt-1", isDone ? "bg-[#059669]" : "bg-[#E2E8F0]")} />}
                   </div>
-                  <p className={cn("text-[13px] pt-0.5", isDone ? "text-[#059669] font-medium" : isCurrent ? "text-[#4F46E5] font-semibold" : "text-[#CBD5E1]")}>
+                  <p className={cn("text-[13px] pt-0.5", isDone ? "text-[#059669] font-medium" : isCurrent ? "text-[#5B4EC4] font-semibold" : "text-[#CBD5E1]")}>
                     {step.label}
                   </p>
                 </div>
@@ -553,7 +553,7 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
             <>
               <button
                 onClick={() => setAcceptOpen(true)}
-                className="w-full py-2.5 rounded-lg bg-[#4F46E5] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#4338CA] transition"
+                className="w-full py-2.5 rounded-lg bg-[#5B4EC4] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#4940A8] transition"
               >
                 <Check size={14} /> Accepter
               </button>

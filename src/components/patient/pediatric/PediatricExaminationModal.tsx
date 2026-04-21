@@ -111,7 +111,7 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
         <button
           onClick={() => saveMutation.mutate()}
           disabled={saveMutation.isPending}
-          className="w-full flex items-center justify-center gap-2 bg-[#5B4EC4] text-white text-sm font-medium rounded-xl py-2.5 hover:bg-[#4F46E5] disabled:opacity-50 transition-colors"
+          className="w-full flex items-center justify-center gap-2 bg-[#5B4EC4] text-white text-sm font-medium rounded-xl py-2.5 hover:bg-[#5B4EC4] disabled:opacity-50 transition-colors"
         >
           {saveMutation.isPending ? (
             <><Loader2 size={14} className="animate-spin" /> Enregistrement…</>

@@ -29,7 +29,7 @@ const WEEKDAY_LABEL: Record<number, string> = {
 const DURATION_OPTIONS = [15, 30, 45, 60, 90]
 
 const LOCATION_COLORS = [
-  { name: "indigo", hex: "#4F46E5" },
+  { name: "indigo", hex: "#5B4EC4" },
   { name: "teal", hex: "#0F6E56" },
   { name: "amber", hex: "#D97706" },
   { name: "purple", hex: "#7C3AED" },

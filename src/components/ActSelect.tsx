@@ -186,7 +186,7 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Acte NGAP/CCAM… (ex: G, AMK, déglutition)"
-          className="w-full pl-9 pr-8 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30"
+          className="w-full pl-9 pr-8 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30"
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 animate-spin" />
@@ -200,8 +200,8 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
           className={cn(
             "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
             !activeCategory
-              ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] font-medium"
-              : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]/50"
+              ? "border-[#5B4EC4] bg-[#EEEDFB] text-[#5B4EC4] font-medium"
+              : "border-[#E8ECF4] text-muted-foreground hover:border-[#5B4EC4]/50"
           )}
         >
           Tous ({professionTariffs.length})
@@ -214,7 +214,7 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
               "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
               activeCategory === cat
                 ? CATEGORY_META[cat].activeChip
-                : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]/50"
+                : "border-[#E8ECF4] text-muted-foreground hover:border-[#5B4EC4]/50"
             )}
           >
             {CATEGORY_META[cat].label} {categoryCounts[cat]}
@@ -245,7 +245,7 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
             <div className="flex-1 min-w-0">
               <p className="text-[12px] text-[#0F172A] truncate">{t.label}</p>
               {t.cumulRules && (
-                <p className="text-[10px] text-[#4F46E5]/70 truncate mt-0.5">⟳ {t.cumulRules}</p>
+                <p className="text-[10px] text-[#5B4EC4]/70 truncate mt-0.5">⟳ {t.cumulRules}</p>
               )}
             </div>
             <div className="shrink-0 flex items-center gap-2">
@@ -254,7 +254,7 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
               </span>
               <button
                 onClick={() => openModal(t)}
-                className="w-6 h-6 rounded-full bg-[#EEF2FF] hover:bg-[#4F46E5] text-[#4F46E5] hover:text-white flex items-center justify-center transition-colors"
+                className="w-6 h-6 rounded-full bg-[#EEEDFB] hover:bg-[#5B4EC4] text-[#5B4EC4] hover:text-white flex items-center justify-center transition-colors"
                 title={`Ajouter ${t.code}`}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -300,13 +300,13 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
               <div className="bg-[#F8FAFF] rounded-lg px-3 py-2.5 space-y-1.5">
                 {modal.conditions && (
                   <p className="text-[11px] text-[#475569]">
-                    <span className="font-semibold text-[#4F46E5]">Conditions : </span>
+                    <span className="font-semibold text-[#5B4EC4]">Conditions : </span>
                     {modal.conditions}
                   </p>
                 )}
                 {modal.cumulRules && (
                   <p className="text-[11px] text-[#475569]">
-                    <span className="font-semibold text-[#4F46E5]">Cumul : </span>
+                    <span className="font-semibold text-[#5B4EC4]">Cumul : </span>
                     {modal.cumulRules}
                   </p>
                 )}
@@ -323,7 +323,7 @@ export function ActSelect({ profession, sector, isOPTAM, onAdd, className }: Pro
                   max={99}
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="mt-1 w-full h-9 border border-neutral-200 rounded-lg px-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30"
+                  className="mt-1 w-full h-9 border border-neutral-200 rounded-lg px-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30"
                 />
               </div>
               <div>

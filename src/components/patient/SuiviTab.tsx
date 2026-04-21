@@ -362,7 +362,7 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
                 <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 9 }} width={35} />
                 <Tooltip contentStyle={{ fontSize: 11 }} />
                 {targetWeight && <ReferenceArea y1={targetWeight} y2={targetWeight + 20} fill="#10B981" fillOpacity={0.08} />}
-                <Line type="monotone" dataKey="poids" stroke="#4F46E5" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="poids" stroke="#5B4EC4" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

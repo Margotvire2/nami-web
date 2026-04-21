@@ -100,7 +100,7 @@ export function CockpitPreview({ firstName, lastName, professionLabel, patientFi
         </div>
 
         {/* Main area */}
-        <div style={{ flex: 1, background: "#F0F2FA", padding: 16, overflowY: "auto" }}>
+        <div style={{ flex: 1, background: "#FAFAF8", padding: 16, overflowY: "auto" }}>
 
           {confirmed ? (
             /* Confirmed state */

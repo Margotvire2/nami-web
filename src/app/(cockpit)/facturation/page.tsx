@@ -79,7 +79,7 @@ export default function FacturationPage() {
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
                 tab === key
-                  ? "bg-[#EEF2FF] text-[#4F46E5]"
+                  ? "bg-[#EEEDFB] text-[#5B4EC4]"
                   : "text-muted-foreground hover:text-[#0F172A] hover:bg-[#F8FAFF]"
               )}
             >
@@ -139,7 +139,7 @@ export default function FacturationPage() {
               onClick={() => { setSelected(inv); setShowNew(false); }}
               className={cn(
                 "w-full text-left px-4 py-3 hover:bg-[#F8FAFF] transition-colors",
-                selected?.id === inv.id && "bg-[#EEF2FF]"
+                selected?.id === inv.id && "bg-[#EEEDFB]"
               )}
             >
               <div className="flex items-start justify-between gap-2">
@@ -278,8 +278,8 @@ function NewInvoiceForm({
                 className={cn(
                   "flex-1 text-[10px] py-1.5 rounded-lg border transition-colors",
                   paymentMode === m
-                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] font-medium"
-                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]"
+                    ? "border-[#5B4EC4] bg-[#EEEDFB] text-[#5B4EC4] font-medium"
+                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#5B4EC4]"
                 )}
               >
                 {m === "PAIEMENT_DIRECT" ? "Direct" : m === "TIERS_PAYANT_PARTIEL" ? "TP partiel" : "TP total"}
@@ -447,7 +447,7 @@ function InvoiceDetail({
               return (
                 <div key={l.actCode} className="flex items-center justify-between bg-[#F8FAFF] rounded-lg px-3 py-2">
                   <div>
-                    <span className="text-[12px] font-semibold text-[#4F46E5]">{l.actCode}</span>
+                    <span className="text-[12px] font-semibold text-[#5B4EC4]">{l.actCode}</span>
                     {existing && (
                       <span className="text-[11px] text-muted-foreground ml-2">{existing.actLabel}</span>
                     )}
@@ -481,10 +481,10 @@ function InvoiceDetail({
                   <button
                     key={t.id}
                     onClick={() => addTariff(t)}
-                    className="w-full text-left px-3 py-2 hover:bg-[#EEF2FF] transition-colors flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 hover:bg-[#EEEDFB] transition-colors flex items-center justify-between"
                   >
                     <div>
-                      <span className="text-[12px] font-semibold text-[#4F46E5]">{t.code}</span>
+                      <span className="text-[12px] font-semibold text-[#5B4EC4]">{t.code}</span>
                       <span className="text-[11px] text-muted-foreground ml-2 truncate">{t.label}</span>
                     </div>
                     <span className="text-[12px] font-medium shrink-0 ml-2">{fmt(t.priceMetropole)}</span>
@@ -630,8 +630,8 @@ function BillingConfigTab({ api }: { api: Api }) {
                 className={cn(
                   "flex-1 text-[11px] py-1.5 rounded-lg border transition-colors",
                   val("sector") === s
-                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] font-medium"
-                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]"
+                    ? "border-[#5B4EC4] bg-[#EEEDFB] text-[#5B4EC4] font-medium"
+                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#5B4EC4]"
                 )}
               >
                 {s === "1" ? "Secteur 1" : s === "2" ? "Secteur 2" : "Non conventionné"}
@@ -822,7 +822,7 @@ function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api:
         <div className="flex items-center justify-between pt-1">
           <button
             onClick={() => setLines((prev) => [...prev, { description: "", unitPrice: 0, quantity: 1 }])}
-            className="flex items-center gap-1 text-[11px] text-[#4F46E5] hover:text-[#4338CA]"
+            className="flex items-center gap-1 text-[11px] text-[#5B4EC4] hover:text-[#4940A8]"
           >
             <Plus size={12} /> Ajouter une prestation
           </button>
@@ -848,8 +848,8 @@ function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api:
                 className={cn(
                   "text-[11px] px-3 py-1.5 rounded-lg border transition-colors",
                   paymentMethod === m
-                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] font-medium"
-                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#4F46E5]"
+                    ? "border-[#5B4EC4] bg-[#EEEDFB] text-[#5B4EC4] font-medium"
+                    : "border-[#E8ECF4] text-muted-foreground hover:border-[#5B4EC4]"
                 )}>
                 {m}
               </button>
@@ -863,7 +863,7 @@ function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api:
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Ex : Suivi dans le cadre d'un parcours pluridisciplinaire TCA"
             rows={2}
-            className="w-full mt-1 rounded-lg border border-[#E8ECF4] px-3 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
+            className="w-full mt-1 rounded-lg border border-[#E8ECF4] px-3 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4]"
           />
         </div>
       </div>

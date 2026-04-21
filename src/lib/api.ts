@@ -1412,19 +1412,73 @@ export const bioExtractionApi = {
 
 // ─── Intelligence ────────────────────────────────────────────────────────────
 
+export interface StructuredContext {
+  bloc1_situation: {
+    caseTitle: string;
+    caseType: string;
+    status: string;
+    riskLevel: string;
+    mainConcern: string | null;
+    pathwayLabel: string | null;
+    currentStage: string | null;
+    openedAt: string;
+    weightKg: number | null;
+    weightDate: string | null;
+    weightDeltaKg: number | null;
+    weightRatePerWeek: number | null;
+    heightCm: number | null;
+    bmi: number | null;
+    calorieNeeds: string | null;
+  };
+  bloc2_compliance: {
+    score: number;
+    total: number;
+    percentage: number;
+    source: string;
+    unmetCriteria: { label: string; met: boolean; action: string | null; source?: string }[];
+  };
+  bloc3_nextSteps: {
+    label: string;
+    specialty: string | null;
+    phase: string | null;
+    expectedDate: string | null;
+    daysOverdue: number | null;
+    isRequired: boolean;
+  }[];
+  bloc4_alerts: { severity: string; title: string; description: string | null; createdAt: string }[];
+  bloc5_questionnaires: {
+    key: string;
+    label: string;
+    value: number;
+    date: string;
+    previous: number | undefined;
+    delta: number | undefined;
+  }[];
+  bloc6_teamSynthesis: { name: string; role: "lead" | "member"; specialties: string[] }[];
+}
+
 export interface SummaryResult {
   careCaseId: string;
   generatedAt: string;
   persisted: boolean;
+  isFallback: boolean;
   summary: {
-    overview: string;
-    recentEvolution: string;
-    careTeamAssessment: string;
-    keyFindings: string[];
-    recommendations: string[];
-    riskAssessment: string;
+    overview?: string;
+    recentEvolution?: string;
+    careTeamAssessment?: string;
+    keyFindings?: string[];
+    recommendations?: string[];
+    riskAssessment?: string;
+    situationActuelle?: string;
+    conformiteRecommandations?: string;
+    prochainesEtapes?: string;
+    alertesKnowledge?: string;
+    questionnaires?: string;
+    syntheseEquipe?: string;
   };
-  gapsSummary: { total: number; critical: number; high: number; warning: number; info: number };
+  structuredContext: StructuredContext;
+  gapsSummary?: { total: number; critical: number; high: number; warning: number; info: number };
+  fallbackReason?: string;
 }
 
 // ─── Messagerie Pro ─────────────────────────────────────────────────────────

@@ -168,12 +168,12 @@ export function PatientOverview({ patient, careCaseId }: PatientOverviewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
-                  <Calendar size={13} className="text-[#4F46E5]" /> {new Date(nextApt.startAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })} · {new Date(nextApt.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                  <Calendar size={13} className="text-[#5B4EC4]" /> {new Date(nextApt.startAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })} · {new Date(nextApt.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5">{nextApt.practitionerName} — {nextApt.mode === "in_person" ? "Présentiel" : "Téléconsultation"}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{nextApt.reason}</p>
               </div>
-              <Link href="/agenda" className="text-xs text-[#4F46E5] font-medium hover:underline whitespace-nowrap ml-4">Agenda →</Link>
+              <Link href="/agenda" className="text-xs text-[#5B4EC4] font-medium hover:underline whitespace-nowrap ml-4">Agenda →</Link>
             </div>
           </div>
         )}
@@ -195,7 +195,7 @@ function AISnapshotBlock({ summary, expanded, onToggle }: { summary: string; exp
       </div>
       <p className={cn("text-sm text-slate-700 leading-relaxed", !expanded ? "line-clamp-3" : "")}>{summary}</p>
       {summary.length > 150 && (
-        <button onClick={onToggle} className="text-xs text-[#4F46E5] font-medium hover:underline mt-2 flex items-center gap-1">
+        <button onClick={onToggle} className="text-xs text-[#5B4EC4] font-medium hover:underline mt-2 flex items-center gap-1">
           {expanded ? <><ChevronUp size={12} /> Réduire</> : <><ChevronDown size={12} /> Voir plus</>}
         </button>
       )}
