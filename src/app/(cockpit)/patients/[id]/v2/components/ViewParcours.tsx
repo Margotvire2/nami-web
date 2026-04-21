@@ -379,8 +379,8 @@ function PathwayHeader({
         <div className="mt-4">
           <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-teal-500 rounded-full transition-all duration-500"
-              style={{ width: `${completionPercent}%` }}
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${completionPercent}%`, background: "linear-gradient(90deg, #5B4EC4, #2BA89C)" }}
             />
           </div>
           <div className="flex items-center gap-3 mt-2 text-[10px] text-neutral-400">

@@ -55,7 +55,7 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="lg:col-span-3 space-y-5">
-          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} />
+          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} careCaseId={careCaseId} />
           {isMinor && careCase && (
             <GrowthCharts
               patientId={careCase.patient.id}
@@ -493,11 +493,13 @@ function DeltaTickerBanner({ indicators, questionnaires, profile }: {
 // INDICATEURS CLÉS
 // ══════════════════════════════════════════════════════
 
-function KeyIndicatorsGrid({ indicators, questionnaires, profile }: {
+function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId }: {
   indicators: DashboardIndicator[];
   questionnaires: PatientDashboard["questionnaires"];
   profile: ClinicalProfile;
+  careCaseId: string;
 }) {
+  const [addObsOpen, setAddObsOpen] = useState(false);
   const withValues = indicators.filter((i) => i.value !== null || i.status === "CRITICAL" || i.status === "ALERT" || i.required);
   const byDomain = new Map<string, DashboardIndicator[]>();
   for (const ind of withValues) {
@@ -508,9 +510,16 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile }: {
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
+      {addObsOpen && (
+        <AddObservationModal
+          careCaseId={careCaseId}
+          indicators={indicators}
+          onClose={() => setAddObsOpen(false)}
+        />
+      )}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-900">Indicateurs</h3>
-        <button className="text-xs text-[#5B4EC4] hover:underline font-medium">+ Saisir une observation</button>
+        <button onClick={() => setAddObsOpen(true)} className="text-xs text-[#5B4EC4] hover:underline font-medium">+ Saisir une observation</button>
       </div>
       <div className="space-y-4">
         {Array.from(byDomain.entries()).map(([domain, inds]) => (
@@ -1003,3 +1012,96 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 function fv(v: number): string { return Number.isInteger(v) ? v.toString() : v.toFixed(1); }
+
+// ══════════════════════════════════════════════════════
+// MODAL SAISIE OBSERVATION
+// ══════════════════════════════════════════════════════
+
+function AddObservationModal({ careCaseId, indicators, onClose }: {
+  careCaseId: string;
+  indicators: DashboardIndicator[];
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const numericIndicators = indicators.filter((i) => i.unit !== null || i.value !== null);
+  const [metricKey, setMetricKey] = useState(numericIndicators[0]?.metricKey ?? "");
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const selectedInd = numericIndicators.find((i) => i.metricKey === metricKey);
+
+  async function handleSubmit() {
+    const parsed = parseFloat(value);
+    if (!value || isNaN(parsed)) return;
+    setSaving(true);
+    try {
+      await api.post(`/care-cases/${careCaseId}/observations`, {
+        observations: [{
+          metricKey,
+          valueNumeric: parsed,
+          unit: selectedInd?.unit ?? undefined,
+          effectiveAt: new Date().toISOString(),
+          source: "PROVIDER_ENTRY",
+        }],
+      });
+      qc.invalidateQueries({ queryKey: ["dashboard", careCaseId] });
+      toast.success("Observation enregistrée");
+      onClose();
+    } catch {
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-base font-semibold text-gray-900">Saisir une observation</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1.5">Indicateur</label>
+            <select
+              value={metricKey}
+              onChange={(e) => { setMetricKey(e.target.value); setValue(""); }}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] bg-white"
+            >
+              {numericIndicators.map((i) => (
+                <option key={i.metricKey} value={i.metricKey}>{i.label}{i.unit ? ` (${i.unit})` : ""}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1.5">
+              Valeur{selectedInd?.unit ? ` — ${selectedInd.unit}` : ""}
+            </label>
+            <input
+              type="number"
+              step="any"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+              placeholder={selectedInd?.value != null ? `Dernière : ${fv(selectedInd.value)}` : "Valeur numérique"}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]"
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className="flex gap-2 mt-6">
+          <button onClick={onClose} className="flex-1 text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
+            Annuler
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving || !value.trim()}
+            className="flex-1 text-sm px-4 py-2 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50 font-medium"
+          >
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -12,7 +12,7 @@ import { useState, useEffect, useMemo } from "react"
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW"
+export type AppointmentStatus = "PENDING" | "CONFIRMED" | "PATIENT_ARRIVED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "ABSENCE"
 export type ViewMode = "day" | "location"
 
 export interface AgendaAppointment {

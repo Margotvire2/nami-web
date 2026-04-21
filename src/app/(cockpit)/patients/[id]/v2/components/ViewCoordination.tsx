@@ -132,6 +132,9 @@ function MessagesPanel({ careCaseId }: { careCaseId: string }) {
             {sendMutation.isPending ? "…" : "Envoyer"}
           </button>
         </div>
+        <p className="text-[10px] text-red-400 mt-1.5 text-center">
+          Cette messagerie n&apos;est pas un canal d&apos;urgence — En cas d&apos;urgence vitale : 15 / 112
+        </p>
       </div>
     </div>
   );
@@ -288,6 +291,11 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
     ACCEPTED: "bg-green-100 text-green-700", DECLINED: "bg-red-100 text-red-700",
     COMPLETED: "bg-gray-100 text-gray-500",
   };
+  const statusLabels: Record<string, string> = {
+    PENDING: "En attente", SENT: "Envoyé", ACCEPTED: "Accepté",
+    DECLINED: "Refusé", COMPLETED: "Terminé", IN_PROGRESS: "En cours",
+    CANCELLED: "Annulé", EXPIRED: "Expiré",
+  };
 
   return (
     <>
@@ -332,7 +340,7 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
                   <p className="text-sm text-gray-900">→ {r.toProvider?.firstName} {r.toProvider?.lastName || r.toSpecialty || "Spécialiste"}</p>
                   <p className="text-xs text-gray-400">{r.mode || "Consultation"} · {new Date(r.createdAt).toLocaleDateString("fr-FR")}</p>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[r.status] || "bg-gray-100 text-gray-500"}`}>{r.status}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[r.status] || "bg-gray-100 text-gray-500"}`}>{statusLabels[r.status] || r.status}</span>
               </div>
             ))}
           </div>
@@ -358,6 +366,9 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
     OPEN: "bg-blue-100 text-blue-700", IN_PROGRESS: "bg-amber-100 text-amber-700",
     CLOSED: "bg-green-100 text-green-700", CANCELLED: "bg-gray-100 text-gray-500",
   };
+  const rcpStatusLabels: Record<string, string> = {
+    OPEN: "Ouverte", IN_PROGRESS: "En cours", CLOSED: "Clôturée", CANCELLED: "Annulée",
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
@@ -371,7 +382,7 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
             <div key={rcp.id} className="border border-gray-100 rounded-lg p-3 hover:shadow-sm transition-shadow cursor-pointer">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900">{rcp.title}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[rcp.status] || ""}`}>{rcp.status}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[rcp.status] || ""}`}>{rcpStatusLabels[rcp.status] || rcp.status}</span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 {rcp.type === "ASYNC" ? "Asynchrone" : "Synchrone"} · {new Date(rcp.createdAt).toLocaleDateString("fr-FR")}
@@ -418,7 +429,10 @@ function EquipePanel({ careCaseId }: { careCaseId: string }) {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</p>
-                  <p className="text-xs text-gray-500">{m.roleInCase || m.role || ""}</p>
+                  <p className="text-xs text-gray-500">
+                    {m.roleInCase || m.specialty || ""}
+                    {m.lastContactAt ? ` · Dernier contact ${new Date(m.lastContactAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : ""}
+                  </p>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[m.role] || roleColors.MEMBER}`}>
                   {m.role === "LEAD" ? "Responsable" : m.role || "Membre"}

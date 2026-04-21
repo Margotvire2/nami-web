@@ -730,24 +730,38 @@ function QAClinique() {
                 <div className="px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-gray-100 shadow-sm text-[13px] text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {msg.content}
                 </div>
+                {msg.confidence !== undefined && (
+                  <div className="px-1">
+                    {(() => {
+                      const pct = Math.round(msg.confidence * 100);
+                      const cfg = msg.confidence >= 0.7
+                        ? { label: "Élevée", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+                        : msg.confidence >= 0.4
+                        ? { label: "Moyenne", cls: "bg-amber-50 text-amber-700 border-amber-200" }
+                        : { label: "Faible", cls: "bg-red-50 text-red-600 border-red-200" };
+                      return (
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.cls}`}>
+                          Confiance {cfg.label} · {pct}%
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
                 {msg.sources && msg.sources.length > 0 && (
                   <div className="px-1">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Sources</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {msg.sources.map((s, j) => (
-                        <span key={j} className="text-[10px] px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
-                          {s.title || s.slug}
-                        </span>
-                      ))}
+                      {msg.sources.map((s, j) => {
+                        const cat = slugToCategory(s.slug ?? "");
+                        const meta = CATEGORY_META[cat];
+                        return (
+                          <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: meta?.bg ?? "rgba(138,138,150,0.10)", color: meta?.color ?? "#8A8A96", border: `1px solid ${meta?.color ?? "#8A8A96"}22` }}>
+                            [{j + 1}] {s.title || s.slug}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
-                {msg.confidence !== undefined && (
-                  <p className="text-[10px] text-gray-400 px-1">
-                    Confiance : <span className={`font-semibold ${msg.confidence >= 0.7 ? "text-green-600" : msg.confidence >= 0.4 ? "text-amber-600" : "text-red-500"}`}>
-                      {Math.round(msg.confidence * 100)}%
-                    </span>
-                  </p>
                 )}
               </div>
             )}

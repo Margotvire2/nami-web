@@ -25,11 +25,13 @@ const N = {
 }
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  CONFIRMED: { label: "Confirmé", color: N.success, bg: N.successBg, icon: "✓" },
-  PENDING: { label: "En attente", color: N.warning, bg: N.warningBg, icon: "⏳" },
-  CANCELLED: { label: "Annulé", color: N.danger, bg: N.dangerBg, icon: "✕" },
-  COMPLETED: { label: "Terminé", color: N.primary, bg: N.primaryLight, icon: "✓" },
-  NO_SHOW: { label: "Absent", color: N.danger, bg: N.dangerBg, icon: "✕" },
+  CONFIRMED:       { label: "Confirmé",       color: N.success,  bg: N.successBg,  icon: "✓" },
+  PENDING:         { label: "En attente",     color: N.warning,  bg: N.warningBg,  icon: "⏳" },
+  PATIENT_ARRIVED: { label: "Patient arrivé", color: "#2BA84A",  bg: "#EDF7F0",    icon: "🟢" },
+  CANCELLED:       { label: "Annulé",         color: N.danger,   bg: N.dangerBg,   icon: "✕" },
+  COMPLETED:       { label: "Terminé",        color: N.textSoft, bg: "#F2F2F4",    icon: "✓" },
+  NO_SHOW:         { label: "Absent",         color: "#C0792A",  bg: "#FFF4E8",    icon: "✕" },
+  ABSENCE:         { label: "Indisponible",   color: N.textSoft, bg: "#F2F2F4",    icon: "—" },
 }
 
 import { getCareTypeColor, getCareTypeLabel } from "@/lib/caseType"
@@ -123,7 +125,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
           ? `0 0 0 2px ${bandColor}50, 0 4px 20px ${bandColor}25`
           : hovered ? `0 4px 18px ${bandColor}35` : "0 1px 3px rgba(0,0,0,0.05)",
         transform: hovered ? "translateX(1px) scale(1.01)" : "none",
-        opacity: isCancelled ? 0.45 : 1,
+        opacity: isCancelled ? 0.35 : appt.status === "COMPLETED" ? 0.6 : 1,
       }}
     >
       {/* Pathology badge + location icon */}
@@ -345,12 +347,12 @@ function DayView({
                           Préparer →
                         </button>
                       )}
-                      {appt.status === "CONFIRMED" && appt.careCaseId && (
+                      {(appt.status === "CONFIRMED" || appt.status === "PATIENT_ARRIVED") && appt.careCaseId && (
                         <button
                           onClick={() => window.dispatchEvent(new CustomEvent("nami-start-consultation", {
                             detail: { careCaseId: appt.careCaseId, patientName: name }
                           }))}
-                          style={{ fontSize: 12, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.text, cursor: "pointer", fontFamily: "inherit" }}
+                          style={{ fontSize: 12, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: appt.status === "PATIENT_ARRIVED" ? "none" : `1px solid ${N.border}`, background: appt.status === "PATIENT_ARRIVED" ? "#2BA84A" : N.card, color: appt.status === "PATIENT_ARRIVED" ? "#fff" : N.text, cursor: "pointer", fontFamily: "inherit" }}
                         >
                           🎙 Démarrer
                         </button>
