@@ -47,18 +47,29 @@ const jsonLd = {
   "@type": "WebPage",
   name: "Annuaire des professionnels de santé en France",
   description: "564 000+ professionnels de santé. Médecins, paramédicaux, centres de santé.",
-  url: "https://nami-web-orpin.vercel.app/annuaire-public",
-  isPartOf: { "@type": "WebSite", name: "Nami", url: "https://nami-web-orpin.vercel.app" },
-  about: {
-    "@type": "MedicalBusiness",
-    name: "Professionnels de santé en France",
-  },
+  url: "https://namipourlavie.com/annuaire-public",
+  isPartOf: { "@type": "WebSite", name: "Nami", url: "https://namipourlavie.com" },
+  about: { "@type": "MedicalBusiness", name: "Professionnels de santé en France" },
+}
+
+const jsonLdSpecialties = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Spécialités médicales — Annuaire Nami",
+  description: "Liste des spécialités médicales disponibles dans l'annuaire Nami.",
+  itemListElement: TOP_SPECIALTIES.map((s, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: s.label,
+    url: `https://namipourlavie.com/annuaire-public/${s.slug}`,
+  })),
 }
 
 export default function AnnuairePublicPage() {
   return (
     <div className="min-h-screen bg-[#F0F2FA]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSpecialties) }} />
 
       {/* Navbar */}
       <nav className="border-b bg-white">

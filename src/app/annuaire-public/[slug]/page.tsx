@@ -123,7 +123,7 @@ export default async function AnnuaireSlugPage({ params }: { params: Promise<{ s
   const titleStr = `${specialty}${locationStr}`
 
   // JSON-LD
-  const jsonLd = {
+  const jsonLdList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: `${specialty}${locationStr}`,
@@ -142,9 +142,20 @@ export default async function AnnuaireSlugPage({ params }: { params: Promise<{ s
     })),
   }
 
+  const jsonLdBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Nami", item: "https://namipourlavie.com" },
+      { "@type": "ListItem", position: 2, name: "Annuaire", item: "https://namipourlavie.com/annuaire-public" },
+      { "@type": "ListItem", position: 3, name: titleStr, item: `https://namipourlavie.com/annuaire-public/${slug}` },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-[#F0F2FA]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }} />
 
       <nav className="border-b bg-white">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">

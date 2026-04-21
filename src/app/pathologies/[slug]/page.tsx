@@ -127,6 +127,7 @@ export default async function PathologyPage({
       url: "https://namipourlavie.com",
       logo: { "@type": "ImageObject", url: "https://namipourlavie.com/logo.png" },
     },
+    datePublished: "2026-04-01",
     dateModified: new Date().toISOString().split("T")[0],
     isAccessibleForFree: true,
     speakable: {

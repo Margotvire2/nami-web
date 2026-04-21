@@ -106,19 +106,40 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
-    headline: article.title,
+    name: article.title,
     description: article.metaDescription ?? article.excerpt,
     url: `https://namipourlavie.com/blog/${slug}`,
     datePublished: article.publishedAt,
     dateModified: article.publishedAt,
-    author: { "@type": "Organization", name: article.authorName },
-    publisher: { "@type": "Organization", name: "Nami", url: "https://namipourlavie.com" },
+    author: {
+      "@type": "Person",
+      name: article.authorName,
+      jobTitle: article.authorRole ?? "Professionnel de santé",
+      worksFor: { "@type": "Organization", name: "Nami", url: "https://namipourlavie.com" },
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Nami",
+      url: "https://namipourlavie.com",
+      logo: { "@type": "ImageObject", url: "https://namipourlavie.com/og-default.png" },
+    },
     inLanguage: "fr",
     isAccessibleForFree: true,
     keywords: article.keywords.join(", "),
     medicalAudience: article.audience === "professional"
       ? { "@type": "MedicalAudience", audienceType: "Clinician" }
       : { "@type": "MedicalAudience", audienceType: "Patient" },
+  }
+
+  // JSON-LD Breadcrumb
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Nami", item: "https://namipourlavie.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://namipourlavie.com/blog" },
+      { "@type": "ListItem", position: 3, name: article.title, item: `https://namipourlavie.com/blog/${slug}` },
+    ],
   }
 
   // JSON-LD FAQ
@@ -137,6 +158,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   return (
     <div className="min-h-screen bg-[#F0F2FA]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
 
       <div className="mx-auto max-w-3xl px-4 py-8">
