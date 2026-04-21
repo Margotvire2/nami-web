@@ -355,11 +355,23 @@ function DaySummaryBar({ appointments }: { appointments: AgendaAppointment[] }) 
         {inPersonCount} consult{inPersonCount > 1 ? "s" : ""}
         {videoCount > 0 ? ` + ${videoCount} téléconsult` : ""}
       </span>
-      {nextInLabel && (
+      {nextAppt && nextInLabel && (
         <>
           <span style={{ color: N.textSoft }}>·</span>
-          <span style={{ color: "#4A4A5A" }}>
-            Prochain dans <strong style={{ color: N.primary }}>{nextInLabel}</strong>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "#5B4EC4", color: "#fff",
+            padding: "3px 12px", borderRadius: 999,
+            fontWeight: 600, fontSize: 12,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.6)", flexShrink: 0 }} />
+            {nextAppt.patient?.firstName
+              ? `${nextAppt.patient.firstName} ${nextAppt.patient.lastName ?? ""}`.trim()
+              : "Prochain RDV"}
+            {" · "}
+            {format(parseISO(nextAppt.startAt), "HH:mm")}
+            {" · dans "}
+            {nextInLabel}
           </span>
         </>
       )}
