@@ -332,6 +332,171 @@ function ConsultationCard({ consult, locations, onUpdate, onRemove, isOpen, onTo
   );
 }
 
+/* ─── DISPONIBILITÉS ─── */
+
+function DisponibilitesTab() {
+  const [activeDays, setActiveDays] = useState([true, true, true, true, true, false, false]);
+  const [defaultDuration, setDefaultDuration] = useState(30);
+  const cardStyle: React.CSSProperties = { background: "#FFFFFF", borderRadius: 14, border: `1px solid ${NAMI.border}`, marginBottom: 12, overflow: "hidden" };
+  const sectionLabelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: NAMI.textSoft, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 };
+
+  return (
+    <div>
+      <SectionHeader icon="📅" title="Disponibilités" sub="Horaires habituels et jours de consultation" />
+      <div style={{ marginTop: 12 }}>
+        {/* Horaires généraux */}
+        <div style={cardStyle}>
+          <div style={{ padding: "16px 18px" }}>
+            <div style={sectionLabelStyle}>Horaires généraux</div>
+            <p style={{ fontSize: 13, color: NAMI.textSoft, marginBottom: 14, lineHeight: 1.5 }}>
+              Définissez vos plages de disponibilité par défaut. Les patients ne pourront réserver que dans ces créneaux.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: NAMI.textSoft, textTransform: "uppercase" as const, letterSpacing: "0.04em", marginBottom: 4 }}>Début de journée</div>
+                <div style={{ padding: "10px 14px", borderRadius: 10, border: `1px solid ${NAMI.border}`, fontSize: 14, fontWeight: 600, color: NAMI.text, background: "#FAFAFD" }}>08:00</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: NAMI.textSoft, textTransform: "uppercase" as const, letterSpacing: "0.04em", marginBottom: 4 }}>Fin de journée</div>
+                <div style={{ padding: "10px 14px", borderRadius: 10, border: `1px solid ${NAMI.border}`, fontSize: 14, fontWeight: 600, color: NAMI.text, background: "#FAFAFD" }}>18:00</div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: NAMI.textSoft, textTransform: "uppercase" as const, letterSpacing: "0.04em", marginBottom: 8 }}>Durée de consultation par défaut</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const }}>
+                {[15, 20, 30, 45, 60, 90].map((d) => (
+                  <button key={d} onClick={() => setDefaultDuration(d)}
+                    style={{ ...S.chip, background: defaultDuration === d ? NAMI.primary : "#F3F2FA", color: defaultDuration === d ? "#fff" : NAMI.text, fontSize: 13 }}>
+                    {d} min
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Jours de consultation */}
+        <div style={cardStyle}>
+          <div style={{ padding: "16px 18px" }}>
+            <div style={sectionLabelStyle}>Jours de consultation</div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+              {WEEK_DAYS.map((day, i) => (
+                <div key={day} style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10,
+                  background: activeDays[i] ? "#FFFFFF" : "#FAFAFD", border: `1px solid ${activeDays[i] ? NAMI.border : "transparent"}`,
+                  opacity: activeDays[i] ? 1 : 0.5,
+                }}>
+                  <div onClick={() => { const n = [...activeDays]; n[i] = !n[i]; setActiveDays(n); }} style={{
+                    width: 20, height: 20, borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    background: activeDays[i] ? NAMI.primary : "transparent",
+                    border: activeDays[i] ? "none" : `2px solid ${NAMI.border}`,
+                    flexShrink: 0,
+                  }}>
+                    {activeDays[i] && <span style={{ color: "#fff", fontSize: 11, fontWeight: 700 }}>✓</span>}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: NAMI.text, minWidth: 76 }}>{day}</span>
+                  {activeDays[i] ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, flexWrap: "wrap" as const }}>
+                      <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: `1px solid ${NAMI.border}`, color: NAMI.text }}>08:00</span>
+                      <span style={{ fontSize: 12, color: NAMI.textSoft }}>→</span>
+                      <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: `1px solid ${NAMI.border}`, color: NAMI.text }}>12:00</span>
+                      <span style={{ fontSize: 12, color: NAMI.textSoft, margin: "0 2px" }}>·</span>
+                      <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: `1px solid ${NAMI.border}`, color: NAMI.text }}>14:00</span>
+                      <span style={{ fontSize: 12, color: NAMI.textSoft }}>→</span>
+                      <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: `1px solid ${NAMI.border}`, color: NAMI.text }}>18:00</span>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 12, color: NAMI.textSoft }}>Non disponible</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Exceptions */}
+        <div style={cardStyle}>
+          <div style={{ padding: "16px 18px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={sectionLabelStyle}>Exceptions</div>
+              <button style={{ fontSize: 12, fontWeight: 600, padding: "6px 14px", borderRadius: 8, border: `1px solid ${NAMI.border}`, background: "#FFFFFF", color: NAMI.primary, cursor: "pointer" }}>
+                + Ajouter une exception
+              </button>
+            </div>
+            <div style={{ padding: "16px", borderRadius: 10, background: "#FAFAFD", textAlign: "center" as const }}>
+              <div style={{ fontSize: 13, color: NAMI.textSoft }}>Aucune exception configurée</div>
+              <div style={{ fontSize: 12, color: NAMI.textSoft, marginTop: 4, opacity: 0.7, lineHeight: 1.5 }}>
+                Ajoutez des jours exceptionnels (formation, congé, remplacement) pour bloquer ou ouvrir des créneaux ponctuels.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── NOTIFICATIONS ─── */
+
+function NotificationsTab() {
+  const [r7d, setR7d] = useState(false);
+  const [r24h, setR24h] = useState(true);
+  const [r2h, setR2h] = useState(true);
+  const [soignant, setSoignant] = useState(true);
+  const cardStyle: React.CSSProperties = { background: "#FFFFFF", borderRadius: 14, border: `1px solid ${NAMI.border}`, marginBottom: 12, overflow: "hidden" };
+  const sectionLabelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: NAMI.textSoft, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 };
+
+  return (
+    <div>
+      <SectionHeader icon="🔔" title="Notifications" sub="Rappels patients et alertes soignant" />
+      <div style={{ marginTop: 12 }}>
+        {/* Rappels patients */}
+        <div style={cardStyle}>
+          <div style={{ padding: "16px 18px" }}>
+            <div style={sectionLabelStyle}>Rappels patients</div>
+            <p style={{ fontSize: 13, color: NAMI.textSoft, marginBottom: 14, lineHeight: 1.5 }}>
+              Les rappels sont envoyés automatiquement aux patients par email et notification push.
+            </p>
+            <div style={{ borderRadius: 10, border: `1px solid ${NAMI.border}`, overflow: "hidden" }}>
+              <div style={{ padding: "4px 16px", borderBottom: `1px solid ${NAMI.border}` }}>
+                <Toggle label="Rappel J-7 (une semaine avant)" value={r7d} onChange={setR7d} />
+              </div>
+              <div style={{ padding: "4px 16px", borderBottom: `1px solid ${NAMI.border}` }}>
+                <Toggle label="Rappel J-1 (veille du RDV)" value={r24h} onChange={setR24h} />
+              </div>
+              <div style={{ padding: "4px 16px" }}>
+                <Toggle label="Rappel H-2 (2 heures avant — push uniquement)" value={r2h} onChange={setR2h} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Rappels soignant */}
+        <div style={cardStyle}>
+          <div style={{ padding: "16px 18px" }}>
+            <div style={sectionLabelStyle}>Rappels soignant</div>
+            <div style={{ borderRadius: 10, border: `1px solid ${NAMI.border}`, overflow: "hidden" }}>
+              <div style={{ padding: "4px 16px" }}>
+                <Toggle label="Notification quand un patient est marqué arrivé" value={soignant} onChange={setSoignant} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contenu notifications — RGPD */}
+        <div style={cardStyle}>
+          <div style={{ padding: "16px 18px" }}>
+            <div style={sectionLabelStyle}>Contenu des notifications</div>
+            <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(230,153,62,0.06)", border: "1px solid rgba(230,153,62,0.2)", fontSize: 13, lineHeight: 1.6, color: "#C67B00" }}>
+              ⚠ Pour des raisons de confidentialité (RGPD), les notifications push n&apos;affichent que &ldquo;Nouveau rendez-vous&rdquo; ou &ldquo;Rappel de rendez-vous&rdquo; — jamais le nom du patient ni le motif.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── HELPERS: API ↔ Draft conversion ─── */
 
 function apiLocationToDraft(loc: ConsultationLocation): LocationDraft {
@@ -542,22 +707,37 @@ export default function ParametresAgenda() {
             </div>
             <h1 style={{ fontSize: 22, fontWeight: 600, color: NAMI.text, letterSpacing: "-0.5px" }}>Paramètres de l&apos;agenda</h1>
           </div>
-          <p style={{ fontSize: 13, color: NAMI.textSoft, paddingLeft: 42 }}>Lieux, consultations et préférences</p>
+          <p style={{ fontSize: 13, color: NAMI.textSoft, paddingLeft: 42 }}>Disponibilités, lieux, consultations, agenda intelligent et notifications</p>
         </div>
 
         {/* TABS */}
-        <div style={S.tabs}>
+        <div style={{ display: "flex", gap: 0, borderBottom: `2px solid ${NAMI.border}`, marginBottom: 20 }}>
           {[
+            { id: "disponibilites", label: "Disponibilités", icon: "📅" },
             { id: "lieux", label: "Lieux", icon: "📍" },
             { id: "consultations", label: "Consultations", icon: "🩺" },
-            { id: "preferences", label: "Préférences", icon: "⚙️" },
+            { id: "preferences", label: "Agenda intelligent", icon: "⚡" },
+            { id: "notifications", label: "Notifications", icon: "🔔" },
           ].map((tab) => (
             <button key={tab.id} onClick={() => { setSection(tab.id); setExpandedId(null); }}
-              style={{ ...S.tab, background: section === tab.id ? NAMI.primary : "transparent", color: section === tab.id ? "#fff" : NAMI.textSoft, fontWeight: section === tab.id ? 600 : 400 }}>
-              <span style={{ fontSize: 13 }}>{tab.icon}</span> {tab.label}
+              style={{
+                padding: "10px 14px", border: "none", background: "transparent", cursor: "pointer",
+                fontFamily: "inherit", fontSize: 13, fontWeight: section === tab.id ? 600 : 400,
+                color: section === tab.id ? NAMI.primary : NAMI.textSoft,
+                borderBottom: section === tab.id ? `2px solid ${NAMI.primary}` : "2px solid transparent",
+                marginBottom: -2, transition: "all 0.15s", display: "flex", alignItems: "center", gap: 5,
+                whiteSpace: "nowrap" as const,
+              }}>
+              <span style={{ fontSize: 12 }}>{tab.icon}</span> {tab.label}
             </button>
           ))}
         </div>
+
+        {/* ── DISPONIBILITÉS ── */}
+        {section === "disponibilites" && <DisponibilitesTab />}
+
+        {/* ── NOTIFICATIONS ── */}
+        {section === "notifications" && <NotificationsTab />}
 
         {/* ── LIEUX ── */}
         {section === "lieux" && (
@@ -609,7 +789,7 @@ export default function ParametresAgenda() {
         {/* ── PREFERENCES ── */}
         {section === "preferences" && (
           <div>
-            <SectionHeader icon="⚙️" title="Préférences d&apos;agenda" sub="Compactage intelligent, buffer entre RDV" />
+            <SectionHeader icon="⚡" title="Agenda intelligent" sub="Compactage intelligent, buffer entre RDV, délai de préavis" />
 
             <div style={{ ...S.card, marginTop: 12 }}>
               <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 20 }}>
@@ -635,6 +815,23 @@ export default function ParametresAgenda() {
                   </div>
                   <div style={{ fontSize: 12, color: NAMI.textSoft, marginTop: 6 }}>Temps entre deux consultations pour notes, déplacement…</div>
                 </div>
+
+                {/* Aperçu buffer */}
+                {smartCompact && (
+                  <div style={{ background: "#FAFAFD", borderRadius: 10, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.05em", color: NAMI.textSoft, marginBottom: 10 }}>Aperçu</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <div style={{ padding: "7px 12px", borderRadius: 6, background: NAMI.primaryLight, border: `1px solid rgba(91,78,196,0.15)`, fontSize: 12, fontWeight: 600, color: NAMI.primary }}>10:00 — 10:30</div>
+                      <div style={{ width: Math.max(4, buffer * 3), height: 2, background: NAMI.border, borderRadius: 1, position: "relative" as const }}>
+                        {buffer > 0 && <span style={{ position: "absolute" as const, top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: NAMI.textSoft, whiteSpace: "nowrap" as const }}>{buffer} min</span>}
+                      </div>
+                      <div style={{ padding: "7px 12px", borderRadius: 6, background: "rgba(43,168,156,0.08)", border: "1px solid rgba(43,168,156,0.15)", fontSize: 12, fontWeight: 600, color: "#2BA89C" }}>
+                        {`10:${(30 + buffer).toString().padStart(2, "0")} — 11:${buffer.toString().padStart(2, "0")}`}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: NAMI.textSoft, marginTop: 8, lineHeight: 1.5 }}>Le créneau adjacent est proposé en priorité aux patients car il optimise votre planning.</div>
+                  </div>
+                )}
 
                 <button onClick={() => saveRulesMutation.mutate()}
                   style={{ ...S.chip, background: NAMI.primary, color: "#fff", alignSelf: "flex-start", padding: "10px 20px", fontSize: 14, fontWeight: 600 }}>

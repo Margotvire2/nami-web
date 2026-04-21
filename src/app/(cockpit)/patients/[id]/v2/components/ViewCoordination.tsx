@@ -90,6 +90,10 @@ function MessagesPanel({ careCaseId }: { careCaseId: string }) {
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
+      {/* Triple barrière urgence — Art. L.1110-4 CSP */}
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-b border-red-100 rounded-t-xl">
+        <span className="text-red-600 text-[11px] font-bold tracking-wide">🚨 En cas d&apos;urgence vitale : appelez le 15 ou le 112</span>
+      </div>
       <div ref={scrollRef} className="max-h-[500px] overflow-y-auto p-4 space-y-3">
         {messages && Array.isArray(messages) && messages.length > 0 ? (
           messages.map((m: any) => (
