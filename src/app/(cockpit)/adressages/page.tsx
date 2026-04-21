@@ -376,6 +376,13 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
             {STEPPER_STEPS.map((step, i) => {
               const isDone = i < currentStep;
               const isCurrent = i === currentStep;
+              // Derive timestamp per step from referral fields
+              const stepTs: string | null = (() => {
+                if (i === 0) return r.createdAt;
+                if (i === 2 && r.respondedAt && isDone) return r.respondedAt;
+                if (i === 3 && r.desiredAppointmentDate && isDone) return r.desiredAppointmentDate;
+                return null;
+              })();
               return (
                 <div key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
@@ -387,9 +394,16 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
                     </div>
                     {i < STEPPER_STEPS.length - 1 && <div className={cn("w-px h-4 mt-1", isDone ? "bg-[#059669]" : "bg-[#E2E8F0]")} />}
                   </div>
-                  <p className={cn("text-[13px] pt-0.5", isDone ? "text-[#059669] font-medium" : isCurrent ? "text-[#5B4EC4] font-semibold" : "text-[#CBD5E1]")}>
-                    {step.label}
-                  </p>
+                  <div className="pt-0.5 min-w-0">
+                    <p className={cn("text-[13px]", isDone ? "text-[#059669] font-medium" : isCurrent ? "text-[#5B4EC4] font-semibold" : "text-[#CBD5E1]")}>
+                      {step.label}
+                    </p>
+                    {stepTs && (isDone || isCurrent) && (
+                      <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                        {new Date(stepTs).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    )}
+                  </div>
                 </div>
               );
             })}

@@ -166,6 +166,11 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
         />
       )}
 
+      {/* ─── À anticiper ─── */}
+      {hasNodes && graphData?.nodes && (
+        <AnticipateSection nodes={graphData.nodes} />
+      )}
+
       {/* ─── Équipe + RDV ─── */}
       {(config?.team?.length || config?.nextAppointment) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -222,6 +227,60 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── À anticiper — étapes APPROACHING (préparation soignant) ─────────────────
+
+const ANTICIPATE_HINTS: Partial<Record<string, { hint: string; icon: string }>> = {
+  CONSULTATION: { hint: "Planifier une consultation", icon: "📅" },
+  BILAN:        { hint: "Prescrire le bilan dès maintenant", icon: "🧪" },
+  QUESTIONNAIRE:{ hint: "Envoyer le questionnaire au patient", icon: "📋" },
+  PRESCRIPTION: { hint: "Préparer l'ordonnance", icon: "💊" },
+  SUIVI:        { hint: "Prévoir le suivi", icon: "📈" },
+  DOCUMENT:     { hint: "Rassembler les documents", icon: "📄" },
+};
+
+function AnticipateSection({ nodes }: { nodes: PathwayNode[] }) {
+  const approaching = nodes.filter(n => n.status === "APPROACHING").slice(0, 3);
+  if (approaching.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base">⏳</span>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-amber-700">À anticiper</p>
+        <span className="text-[10px] text-amber-500 font-medium">— à préparer dans les prochains jours</span>
+      </div>
+      <div className="space-y-2">
+        {approaching.map((node) => {
+          const hint = ANTICIPATE_HINTS[node.clinicalActType];
+          return (
+            <div
+              key={node.id}
+              className="flex items-start gap-3 bg-white rounded-xl px-4 py-3 border border-amber-100 shadow-sm"
+            >
+              <span className="text-lg shrink-0 mt-0.5">{hint?.icon ?? "📌"}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-neutral-800 leading-snug">{node.actLabel}</p>
+                <p className="text-[11px] text-amber-600 mt-0.5">{hint?.hint}</p>
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  {node.specialty && <span className="text-[10px] text-neutral-400">{node.specialty}</span>}
+                  {node.expectedDate && (
+                    <span className="text-[10px] text-amber-500 font-medium">
+                      · À faire avant le {new Date(node.expectedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border bg-amber-50 text-amber-600 border-amber-200">
+                Bientôt
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

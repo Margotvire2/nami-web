@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type KnowledgeSearchResult } from "@/lib/api";
@@ -15,6 +15,9 @@ import {
   ChevronDown,
   ChevronUp,
   Activity,
+  MessageSquare,
+  Send,
+  AlertCircle,
 } from "lucide-react";
 import { ShimmerCard } from "@/components/ui/shimmer";
 
@@ -622,10 +625,176 @@ function KnowledgeContentRenderer({ content, source }: { content: string; source
   return <div className="space-y-0 px-1">{elements}</div>;
 }
 
+// ─── QA Clinique ──────────────────────────────────────────────────────────────
+
+interface QAMessage {
+  role: "user" | "assistant";
+  content: string;
+  sources?: { title: string; slug: string }[];
+  confidence?: number;
+}
+
+function QAClinique() {
+  const { accessToken } = useAuthStore();
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState<QAMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const ask = async () => {
+    const q = question.trim();
+    if (!q || loading) return;
+    setQuestion("");
+    setMessages(prev => [...prev, { role: "user", content: q }]);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/intelligence/qa`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ question: q }),
+      });
+      if (!res.ok) throw new Error("Erreur API");
+      const data = await res.json() as {
+        answer: string;
+        sources?: { title: string; slug: string }[];
+        confidence?: number;
+      };
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: data.answer,
+        sources: data.sources,
+        confidence: data.confidence,
+      }]);
+    } catch {
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "Désolé, une erreur s'est produite. Réessayez ou utilisez la Recherche documentaire.",
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const EXAMPLES = [
+    "Critères diagnostiques DSM-5 de l'anorexie mentale",
+    "Quelle est la prise en charge nutritionnelle en phase de renutrition ?",
+    "Indications de l'hospitalisation en TCA",
+    "Seuils biologiques d'alerte en anorexie",
+  ];
+
+  return (
+    <div className="flex flex-col h-full min-h-[500px]">
+      {/* MDR Disclaimer — non masquable */}
+      <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2">
+        <AlertCircle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+        <p className="text-[11px] text-amber-700 leading-snug">
+          <strong>Brouillon IA — à vérifier par le soignant.</strong> Les réponses sont générées à partir de la base documentaire Nami et ne constituent pas un avis médical. Toujours croiser avec les sources citées. Conforme AI Act Art. 50.
+        </p>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 space-y-4 overflow-y-auto pb-4 min-h-[200px]">
+        {messages.length === 0 && (
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Questions fréquentes</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {EXAMPLES.map((ex) => (
+                <button
+                  key={ex}
+                  onClick={() => { setQuestion(ex); }}
+                  className="text-left text-[12px] px-4 py-3 rounded-xl border border-gray-100 bg-white text-gray-600 hover:border-[#5B4EC4] hover:text-[#5B4EC4] hover:bg-[rgba(91,78,196,0.04)] transition-all leading-snug"
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            {msg.role === "user" ? (
+              <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-[#5B4EC4] text-white text-[13px] leading-relaxed">
+                {msg.content}
+              </div>
+            ) : (
+              <div className="max-w-[90%] space-y-2">
+                <div className="px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-gray-100 shadow-sm text-[13px] text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {msg.content}
+                </div>
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="px-1">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Sources</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {msg.sources.map((s, j) => (
+                        <span key={j} className="text-[10px] px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
+                          {s.title || s.slug}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {msg.confidence !== undefined && (
+                  <p className="text-[10px] text-gray-400 px-1">
+                    Confiance : <span className={`font-semibold ${msg.confidence >= 0.7 ? "text-green-600" : msg.confidence >= 0.4 ? "text-amber-600" : "text-red-500"}`}>
+                      {Math.round(msg.confidence * 100)}%
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {loading && (
+          <div className="flex justify-start">
+            <div className="px-4 py-3 rounded-2xl rounded-tl-md bg-white border border-gray-100 shadow-sm">
+              <div className="flex gap-1 items-center">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#5B4EC4] animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="mt-4 flex gap-2 items-end">
+        <textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
+          placeholder="Posez une question clinique… (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
+          rows={2}
+          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4] resize-none transition-all"
+        />
+        <button
+          onClick={ask}
+          disabled={loading || !question.trim()}
+          className="h-[52px] w-[52px] flex items-center justify-center rounded-xl bg-[#5B4EC4] text-white hover:bg-[#4940A8] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+        >
+          <Send size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function IntelligencePage() {
   const { accessToken } = useAuthStore();
+  const [mode, setMode] = useState<"search" | "qa">("search");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KnowledgeSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -671,18 +840,45 @@ export default function IntelligencePage() {
     <>
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       {/* ── Header ── */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <FlaskConical size={18} className="text-[#5B4EC4]" />
-          <h1 className="text-xl font-bold text-gray-900">Références cliniques</h1>
+      <div className="mb-6">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <FlaskConical size={18} className="text-[#5B4EC4]" />
+            <h1 className="text-xl font-bold text-gray-900">Intelligence clinique</h1>
+          </div>
+          {/* Mode toggle */}
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+            <button
+              onClick={() => setMode("search")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={mode === "search" ? { background: "#fff", color: "#5B4EC4", boxShadow: "0 1px 3px rgba(26,26,46,0.08)" } : { color: "#8A8A96" }}
+            >
+              <Search size={13} /> Recherche documentaire
+            </button>
+            <button
+              onClick={() => setMode("qa")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={mode === "qa" ? { background: "#fff", color: "#5B4EC4", boxShadow: "0 1px 3px rgba(26,26,46,0.08)" } : { color: "#8A8A96" }}
+            >
+              <MessageSquare size={13} /> QA Clinique
+            </button>
+          </div>
         </div>
-        <p className="text-sm text-gray-500">
-          Recherche dans la base unifiée : FFAB · HAS · Fiches pathologies · Algorithmes diagnostiques
+        <p className="text-sm text-gray-500 mt-1">
+          {mode === "search"
+            ? "Recherche dans la base unifiée : FFAB · HAS · Fiches pathologies · Algorithmes diagnostiques"
+            : "Posez une question clinique — réponse structurée avec sources et niveau de confiance"}
         </p>
       </div>
 
-      {/* ── Quality Dashboard ── */}
-      <QualityDashboard />
+      {/* ── Quality Dashboard (search mode only) ── */}
+      {mode === "search" && <QualityDashboard />}
+
+      {/* ── QA Clinique mode ── */}
+      {mode === "qa" && <QAClinique />}
+
+      {/* ── Search mode ── */}
+      {mode === "search" && <>
 
       {/* ── Search bar ── */}
       <div className="relative mb-6">
@@ -827,6 +1023,8 @@ export default function IntelligencePage() {
           })}
         </div>
       )}
+
+      </>}
     </div>
 
     {selectedResult && (
