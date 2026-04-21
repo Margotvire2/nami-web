@@ -4,37 +4,47 @@ import { useState } from "react";
 import Link from "next/link";
 
 const SPECIALTIES = [
-  "Médecin généraliste", "Pédiatre", "Psychiatre", "Endocrinologue",
-  "Diététicien·ne-nutritionniste", "Psychologue", "Kinésithérapeute",
-  "Orthophoniste", "Infirmier·ère", "Sage-femme",
-  "Cardiologue", "Neurologue", "Gastro-entérologue", "Pneumologue",
-  "Rhumatologue", "Oncologue", "Gériatre", "Chirurgien·ne",
-  "Coordinateur·trice de parcours", "Directeur·trice médical·e",
-  "Cadre de santé", "Secrétaire médical·e", "Autre",
+  "Diététicien(ne)-Nutritionniste",
+  "Médecin généraliste",
+  "Psychiatre",
+  "Psychologue",
+  "Endocrinologue",
+  "Pédiatre",
+  "Infirmier(ère) coordinateur(trice)",
+  "Kinésithérapeute",
+  "Orthophoniste",
+  "Médecin spécialiste (autre)",
+  "Paramédical (autre)",
+  "Coordinateur(trice) de réseau / CPTS",
+  "Directeur(trice) médical(e)",
+  "Cadre de santé",
+  "Autre",
 ];
 
 const VOLUMES = [
-  "Moins de 20 patients / semaine",
-  "20 à 50 patients / semaine",
-  "50 à 100 patients / semaine",
+  "Moins de 10",
+  "10 à 30",
+  "30 à 100",
   "Plus de 100",
-  "Je coordonne un réseau",
+  "Je coordonne un réseau / une structure",
 ];
 
 const SOURCES = [
-  "Confrère / consoeur",
-  "LinkedIn",
   "Recherche Google",
-  "Congrès médical",
+  "Bouche-à-oreille / Recommandation d'un confrère",
+  "Réseau TCA Francilien / FFAB",
+  "LinkedIn",
+  "Congrès / Formation",
+  "Annuaire Nami",
   "Article de blog",
   "Autre",
 ];
 
 const HIGHLIGHTS = [
-  { icon: "🗂️", title: "Dossier de coordination partagé", desc: "Un espace unique pour toute l'équipe pluridisciplinaire." },
-  { icon: "📨", title: "Adressage structuré en 2 clics", desc: "Transmettez un patient avec son contexte clinique complet." },
-  { icon: "🤖", title: "Synthèses IA sourcées", desc: "Résumés de dossier générés et validés par les professionnels." },
-  { icon: "📊", title: "Suivi longitudinal du parcours", desc: "Visualisez l'avancement et identifiez les étapes manquantes." },
+  { icon: "🎙️", title: "Dictée → compte rendu structuré", desc: "Enregistrez la consultation, Nami génère un brouillon à valider." },
+  { icon: "🗺️", title: "Parcours guidés HAS", desc: "Chaque étape du parcours est planifiée, traçable, partageable entre soignants." },
+  { icon: "👥", title: "Coordination de l'équipe", desc: "Adressages, messages, tâches — toute l'équipe dans un seul espace." },
+  { icon: "📊", title: "Vision complète du dossier", desc: "Biologie, observations, questionnaires : plus rien ne se perd entre les consultations." },
 ];
 
 type FormState = "idle" | "submitting" | "success" | "error";
@@ -58,6 +68,11 @@ export default function DemanderUneDemoPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.firstName.trim() || !form.lastName.trim()) { setErrorMsg("Prénom et nom sont obligatoires."); return; }
+    if (!form.email.includes("@")) { setErrorMsg("Veuillez renseigner un email valide."); return; }
+    if (!form.specialty) { setErrorMsg("Veuillez sélectionner votre spécialité."); return; }
+    if (!form.patientVolume) { setErrorMsg("Veuillez indiquer votre volume de patients."); return; }
+    if (!form.source) { setErrorMsg("Veuillez indiquer comment vous avez connu Nami."); return; }
     if (!form.acceptTerms) { setErrorMsg("Veuillez accepter la politique de confidentialité."); return; }
     setState("submitting");
     setErrorMsg("");
@@ -146,8 +161,8 @@ export default function DemanderUneDemoPage() {
                 <SelectField label="Spécialité *" name="specialty" value={form.specialty} onChange={handleChange} options={SPECIALTIES} required style={{ marginBottom: 14 }} />
                 <Field label="Structure / établissement" name="structure" value={form.structure} onChange={handleChange} style={{ marginBottom: 14 }} />
 
-                <SelectField label="Volume de patients coordonnés" name="patientVolume" value={form.patientVolume} onChange={handleChange} options={VOLUMES} style={{ marginBottom: 14 }} />
-                <SelectField label="Comment avez-vous connu Nami ?" name="source" value={form.source} onChange={handleChange} options={SOURCES} style={{ marginBottom: 14 }} />
+                <SelectField label="Nb patients coordonnés *" name="patientVolume" value={form.patientVolume} onChange={handleChange} options={VOLUMES} required style={{ marginBottom: 14 }} />
+                <SelectField label="Comment avez-vous connu Nami ? *" name="source" value={form.source} onChange={handleChange} options={SOURCES} required style={{ marginBottom: 14 }} />
 
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: "#4A4A5A", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>

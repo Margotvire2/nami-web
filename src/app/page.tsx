@@ -191,10 +191,10 @@ export default function HomePage() {
             </p>
 
             <div className="hero-cta landing-hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/signup" className="btn-primary"
+              <Link href="/demander-une-demo" className="btn-primary"
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "var(--nami-primary)", color: "#fff", fontSize: 15, fontWeight: 700, padding: "15px 38px", borderRadius: 100, textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.3)" }}
               >
-                Accéder à Nami
+                Demander une démo
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
               <Link href="/login" className="btn-secondary"

@@ -166,20 +166,6 @@ export default async function PathologyPage({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }} />
       )}
 
-      {/* Navbar */}
-      <nav className="border-b bg-white sticky top-0 z-10 shadow-sm">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold text-[#5B4EC4]">nami</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/pathologies" className="hidden sm:block text-sm text-gray-500 hover:text-gray-700 transition-colors">Pathologies</Link>
-            <Link href="/soignants" className="hidden sm:block text-sm text-gray-500 hover:text-gray-700 transition-colors">Annuaire</Link>
-            <Link href="/login" className="rounded-lg bg-[#5B4EC4] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity">
-              Se connecter
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="mx-auto max-w-3xl px-4 py-8">
 
         {/* Breadcrumb */}
