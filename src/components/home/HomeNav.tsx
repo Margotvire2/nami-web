@@ -56,9 +56,9 @@ export function HomeNav() {
               onMouseEnter={e => (e.currentTarget.style.color = "var(--nami-primary)")}
               onMouseLeave={e => (e.currentTarget.style.color = "var(--nami-text-2)")}
             >Connexion</Link>
-            <Link href="/signup" className="btn-primary"
+            <Link href="/demander-une-demo" className="btn-primary"
               style={{ background: "var(--nami-primary)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 22px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 10px rgba(91,78,196,0.25)" }}
-            >Démarrer</Link>
+            >Demander une démo</Link>
           </div>
           <button
             className="landing-nav-burger"
@@ -85,7 +85,7 @@ export function HomeNav() {
             ))}
             <div style={{ height: 1, background: "rgba(26,26,46,0.07)", margin: "8px 0" }} />
             <Link href="/login" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text-2)", textDecoration: "none", minHeight: 44 }}>Connexion</Link>
-            <Link href="/signup" onClick={() => setMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 700, color: "#fff", background: "var(--nami-primary)", textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.30)", minHeight: 44 }}>Créer un compte →</Link>
+            <Link href="/demander-une-demo" onClick={() => setMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 700, color: "#fff", background: "var(--nami-primary)", textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.30)", minHeight: 44 }}>Demander une démo →</Link>
           </div>
         </div>
       )}

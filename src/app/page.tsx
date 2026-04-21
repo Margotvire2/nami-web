@@ -399,10 +399,10 @@ export default function HomePage() {
                 Rejoignez les premiers soignants sur Nami.<br />Accès gratuit. Aucune carte de crédit.
               </p>
               <div className="landing-cta-btns" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-                <Link href="/signup" className="btn-primary"
+                <Link href="/demander-une-demo" className="btn-primary"
                   style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "var(--nami-primary)", color: "#fff", fontSize: 16, fontWeight: 700, padding: "17px 44px", borderRadius: 100, textDecoration: "none", boxShadow: "0 4px 24px rgba(91,78,196,0.4)" }}
                 >
-                  Créer un compte gratuit
+                  Demander une démo
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                 </Link>
                 <Link href="/trouver-un-soignant" className="cta-annuaire"
@@ -426,7 +426,7 @@ export default function HomePage() {
               </p>
             </div>
             {[
-              { title: "Produit", links: [{ l: "Fonctionnalités", h: "/fonctionnalites" }, { l: "Connexion", h: "/login" }, { l: "Créer un compte", h: "/signup" }] },
+              { title: "Produit", links: [{ l: "Fonctionnalités", h: "/fonctionnalites" }, { l: "Connexion", h: "/login" }, { l: "Demander une démo", h: "/demander-une-demo" }] },
               { title: "Ressources", links: [{ l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Spécialités", h: "/professions" }, { l: "Pathologies", h: "/pathologies" }, { l: "Blog", h: "/blog" }] },
               { title: "Légal", links: [{ l: "CGU", h: "/cgu" }, { l: "Confidentialité", h: "/confidentialite" }, { l: "Mentions légales", h: "/mentions-legales" }] },
             ].map(col => (

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 // ─── AnimatedCounter ──────────────────────────────────────────────────────────
@@ -1124,7 +1123,6 @@ function FooterSection() {
 export function CliniquePedPage() {
   return (
     <div style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}>
-      <PublicNavbar />
       <HeroSection />
       <ApportSection />
       <ProduitSection />

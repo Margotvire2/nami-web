@@ -96,11 +96,11 @@ export function PublicNavbar() {
               onMouseEnter={e => { e.currentTarget.style.color = "#5B4EC4"; e.currentTarget.style.background = "rgba(91,78,196,0.06)"; }}
               onMouseLeave={e => { e.currentTarget.style.color = "#4A4A5A"; e.currentTarget.style.background = "transparent"; }}
             >Connexion</Link>
-            <Link href="/signup"
+            <Link href="/demander-une-demo"
               style={{ background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 20px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)", transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#4A3EA6"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(91,78,196,0.35)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "#5B4EC4"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(91,78,196,0.25)"; }}
-            >Démarrer</Link>
+            >Demander une démo</Link>
           </div>
 
           {/* Burger button — mobile only */}
@@ -207,7 +207,7 @@ export function PublicNavbar() {
             Connexion
           </Link>
           <Link
-            href="/signup"
+            href="/demander-une-demo"
             onClick={() => setMenuOpen(false)}
             style={{
               display: "flex",
@@ -224,7 +224,7 @@ export function PublicNavbar() {
               minHeight: 44,
             }}
           >
-            Créer un compte →
+            Demander une démo →
           </Link>
         </div>
       </div>
