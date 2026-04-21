@@ -15,6 +15,7 @@ const FOOTER_COLS = [
     title: "Ressources",
     links: [
       { l: "Annuaire", h: "/trouver-un-soignant" },
+      { l: "Spécialités", h: "/professions" },
       { l: "Pathologies", h: "/pathologies" },
       { l: "Blog", h: "/blog" },
     ],
