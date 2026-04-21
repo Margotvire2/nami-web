@@ -6,7 +6,7 @@ import { apiWithToken, type PathwayNode, type PathwayNodeStatus, type PathwayTem
 import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
-import { groupByFamily, getFamilyLabel } from "@/lib/pathwayFamilyLabels";
+import { groupByFamily, getFamilyLabel, getPhaseLabel } from "@/lib/pathwayFamilyLabels";
 import { toast } from "sonner";
 import {
   Route, CheckCircle2, Circle, ChevronDown, ChevronUp,
@@ -453,7 +453,7 @@ function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
   const phases: { label: string; nodes: PathwayNode[] }[] = [];
   const seen = new Map<string, PathwayNode[]>();
   for (const node of nodes) {
-    const key = node.phaseLabel ?? "Sans phase";
+    const key = getPhaseLabel(node.phaseLabel ?? "");
     if (!seen.has(key)) { seen.set(key, []); phases.push({ label: key, nodes: seen.get(key)! }); }
     seen.get(key)!.push(node);
   }
@@ -596,7 +596,7 @@ function TemplateStepsSection({
   const phases: { label: string; steps: PathwayTemplateStep[] }[] = [];
   const seen = new Map<string, PathwayTemplateStep[]>();
   for (const step of steps) {
-    const key = step.phaseLabel ?? "Sans phase";
+    const key = getPhaseLabel(step.phaseLabel ?? "");
     if (!seen.has(key)) { seen.set(key, []); phases.push({ label: key, steps: seen.get(key)! }); }
     seen.get(key)!.push(step);
   }

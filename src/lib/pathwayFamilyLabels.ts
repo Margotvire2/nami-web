@@ -70,6 +70,36 @@ export function getFamilyLabel(family: string): string {
   return SPECIALTY_LABELS[family] ?? family;
 }
 
+/** Labels français des phases de parcours (stockées en SCREAMING_SNAKE_CASE en DB) */
+export const PHASE_LABELS: Record<string, string> = {
+  EVALUATION_INITIALE:    "Évaluation initiale",
+  TRAITEMENT_ACTIF:       "Traitement actif",
+  REEVALUATION:           "Réévaluation",
+  BILAN_COMPLEMENTAIRE:   "Bilan complémentaire",
+  ANNONCE_PLAN:           "Annonce du plan de soins",
+  SUIVI_LONG_COURS:       "Suivi au long cours",
+  ESCALADE:               "Escalade",
+  BILAN:                  "Bilan",
+  CONSULTATION:           "Consultation",
+  EDUCATION:              "Éducation thérapeutique",
+  PRESCRIPTION:           "Prescription",
+  QUESTIONNAIRE:          "Questionnaire",
+  SUIVI:                  "Suivi",
+};
+
+/**
+ * Retourne le label français d'une phase de parcours.
+ * Fallback élégant pour les clés inconnues : "MOT_CLE" → "Mot clé"
+ */
+export function getPhaseLabel(key: string): string {
+  if (!key) return "Sans phase";
+  if (PHASE_LABELS[key]) return PHASE_LABELS[key];
+  // Fallback : déjà en français (clés créées par les nouveaux scripts)
+  if (/[a-zàâéèêëîïôùûüçœæ]/.test(key)) return key;
+  // SCREAMING_SNAKE_CASE inconnu → Title Case
+  return key.replace(/_/g, " ").toLowerCase().replace(/^\w/, c => c.toUpperCase());
+}
+
 /** Grouper une liste de templates par famille, triée par label français */
 export function groupByFamily<T extends { family: string }>(
   items: T[]
