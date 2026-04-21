@@ -140,6 +140,7 @@ export default function OrthophonistePage() {
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", background: "#FAFAF8", color: "#1A1A2E", minHeight: "100vh" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500&display=swap');`}</style>
       {/* NAV */}
 
       {/* HERO */}
@@ -271,12 +272,12 @@ export default function OrthophonistePage() {
       </section>
 
       {/* QUOTE */}
-      <section style={{ background: "#5B4EC4", padding: "64px 24px", textAlign: "center" }}>
+      <section style={{ background: "#F5F3EF", padding: "28px 24px", textAlign: "center" }}>
         <Fade>
-          <p style={{ fontSize: 24, fontWeight: 700, color: "#fff", maxWidth: 680, margin: "0 auto 16px" }}>
-            "Le pédiatre m'a appelée pour me remercier d'avoir partagé le bilan avant la consultation. Pour la première fois, on était vraiment alignées."
+          <p style={{ fontSize: "clamp(1rem,2.2vw,1.25rem)", fontStyle: "italic", color: "#1A1A2E", maxWidth: 560, margin: "0 auto", lineHeight: 1.55, fontFamily: "'Playfair Display',serif" }}>
+            &ldquo;L&rsquo;orthophoniste travaille en lien étroit avec le neuropédiatre, l&rsquo;enseignant et les parents. Nami facilite ce travail commun au quotidien.&rdquo;
           </p>
-          <p style={{ color: "#C7D2FE" }}>— Camille D., orthophoniste libérale, Lyon</p>
+          <p style={{ fontSize: 13, color: "#8A8A96", marginTop: 12, fontFamily: "'Inter',sans-serif" }}>Margot Vire, Diététicienne, fondatrice de Nami</p>
         </Fade>
       </section>
 
@@ -287,9 +288,10 @@ export default function OrthophonistePage() {
           <Fade delay={0.1}><p style={{ textAlign: "center", color: "#6B7280", marginBottom: 48 }}>Sans engagement, résiliable à tout moment</p></Fade>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>
             <Tier name="Gratuit" price="0€" note="Pour découvrir" features={["3 patients actifs", "Dossier patient simple", "Partage manuel PDF"]} />
-            <Tier name="Essentiel" price="19€" note="AMO/AMI intégrée" features={["Patients illimités", "Bilans structurés", "Interface famille", "Facturation AMO"]} />
-            <Tier name="Coordination" price="79€" note="Pour les suivis complexes" features={["Tout Essentiel", "Partage équipe temps réel", "App parents enrichie", "Adressages structurés"]} highlight />
-            <Tier name="Intelligence" price="149€" note="IA clinique" features={["Tout Coordination", "Dictée → SOAP IA", "Suivi objectifs automatisé", "Rapports prescripteur IA"]} />
+            <Tier name="Coordination" price="79€" note="Pour les suivis complexes" features={["Tout Gratuit inclus", "Partage équipe temps réel", "App parents enrichie", "Adressages structurés"]} />
+            <Tier name="Intelligence" price="149€" note="IA clinique" features={["Tout Coordination", "Dictée → SOAP IA", "Suivi objectifs automatisé", "Rapports prescripteur IA"]} highlight />
+
+            <Tier name="Pilotage" price="299€" note="Le cockpit financier" features={["Tout Intelligence", "CA + charges temps réel", "Pré-déclarations fiscales", "Export comptable"]} />
           </div>
         </div>
       </section>
@@ -312,6 +314,12 @@ export default function OrthophonistePage() {
       </section>
 
       {/* FOOTER */}
+      <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
+        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+          Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
+        </p>
+      </footer>
+
     </div>
   );
 }

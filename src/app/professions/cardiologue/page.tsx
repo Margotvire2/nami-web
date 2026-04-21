@@ -353,6 +353,12 @@ export default function CardiologuePage() {
         </Fade>
       </section>
 
+      <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
+        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+          Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
+        </p>
+      </footer>
+
     </div>
   );
 }

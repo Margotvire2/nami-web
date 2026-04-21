@@ -139,6 +139,7 @@ export default function SageFemmePage() {
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", background: "#FAFAF8", color: "#1A1A2E", minHeight: "100vh" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500&display=swap');`}</style>
 
       <section style={{ padding: "96px 24px 72px", maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <Fade>
@@ -262,12 +263,12 @@ export default function SageFemmePage() {
         </div>
       </section>
 
-      <section style={{ background: "#5B4EC4", padding: "64px 24px", textAlign: "center" }}>
+      <section style={{ background: "#F5F3EF", padding: "28px 24px", textAlign: "center" }}>
         <Fade>
-          <p style={{ fontSize: 24, fontWeight: 700, color: "#fff", maxWidth: 680, margin: "0 auto 16px" }}>
-            "La sage de salle avait le dossier complet dès l'arrivée de la patiente. Pour la première fois, je n'avais pas à tout réexpliquer par téléphone à 3h du matin."
+          <p style={{ fontSize: "clamp(1rem,2.2vw,1.25rem)", fontStyle: "italic", color: "#1A1A2E", maxWidth: 560, margin: "0 auto", lineHeight: 1.55, fontFamily: "'Playfair Display',serif" }}>
+            &ldquo;Le suivi périnatal est l&rsquo;affaire de toute une équipe. Nami connecte sage-femme, gynécologue, diét et pédiatre sur le même dossier partagé.&rdquo;
           </p>
-          <p style={{ color: "#C7D2FE" }}>— Claire B., sage-femme libérale, Paris 14e</p>
+          <p style={{ fontSize: 13, color: "#8A8A96", marginTop: 12, fontFamily: "'Inter',sans-serif" }}>Margot Vire, Diététicienne, fondatrice de Nami</p>
         </Fade>
       </section>
 
@@ -276,9 +277,10 @@ export default function SageFemmePage() {
           <Fade><h2 style={{ textAlign: "center", fontSize: 32, fontWeight: 800, marginBottom: 48 }}>Tarifs</h2></Fade>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>
             <Tier name="Gratuit" price="0€" note="Pour découvrir" features={["3 patientes actives", "Dossier patient simple", "Partage manuel PDF"]} />
-            <Tier name="Essentiel" price="19€" note="CCAM/AMO intégrée" features={["Patientes illimitées", "Suivi prénatal structuré", "Facturation CCAM/AMO", "Post-natal + allaitement"]} />
-            <Tier name="Coordination" price="79€" note="Pour le suivi partagé" features={["Tout Essentiel", "Dossier partagé maternité", "Coordination gynécologue", "Courbes nourrisson"]} highlight />
-            <Tier name="Intelligence" price="149€" note="IA clinique" features={["Tout Coordination", "Dictée CR visite IA", "Plan de naissance partagé", "Suivi post-natal IA"]} />
+            <Tier name="Coordination" price="79€" note="Pour le suivi partagé" features={["Tout Gratuit inclus", "Dossier partagé maternité", "Coordination gynécologue", "Courbes nourrisson"]} />
+            <Tier name="Intelligence" price="149€" note="IA clinique" features={["Tout Coordination", "Dictée CR visite IA", "Plan de naissance partagé", "Suivi post-natal IA"]} highlight />
+
+            <Tier name="Pilotage" price="299€" note="Le cockpit financier" features={["Tout Intelligence", "CA + charges temps réel", "Pré-déclarations fiscales", "Export comptable"]} />
           </div>
         </div>
       </section>
@@ -297,6 +299,12 @@ export default function SageFemmePage() {
           <a href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 14, padding: "16px 40px", fontWeight: 800, fontSize: 18, textDecoration: "none" }}>Commencer maintenant</a>
         </Fade>
       </section>
+
+      <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
+        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+          Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
+        </p>
+      </footer>
 
     </div>
   );

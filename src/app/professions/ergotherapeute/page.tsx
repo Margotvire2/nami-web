@@ -137,6 +137,7 @@ export default function ErgotherapeutePage() {
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", background: "#FAFAF8", color: "#1A1A2E", minHeight: "100vh" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500&display=swap');`}</style>
 
       <section style={{ padding: "96px 24px 72px", maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <Fade>
@@ -260,12 +261,12 @@ export default function ErgotherapeutePage() {
         </div>
       </section>
 
-      <section style={{ background: "#5B4EC4", padding: "64px 24px", textAlign: "center" }}>
+      <section style={{ background: "#F5F3EF", padding: "28px 24px", textAlign: "center" }}>
         <Fade>
-          <p style={{ fontSize: 24, fontWeight: 700, color: "#fff", maxWidth: 680, margin: "0 auto 16px" }}>
-            "Le neurologue a vu ma progression fonctionnelle avant la consultation de suivi. Pour la première fois, on a vraiment parlé du retour à domicile."
+          <p style={{ fontSize: "clamp(1rem,2.2vw,1.25rem)", fontStyle: "italic", color: "#1A1A2E", maxWidth: 560, margin: "0 auto", lineHeight: 1.55, fontFamily: "'Playfair Display',serif" }}>
+            &ldquo;L&rsquo;ergothérapeute travaille pour rendre l&rsquo;autonomie possible. Neurologue, kiné, orthophoniste, famille &mdash; Nami fait circuler les bilans et les objectifs entre tous.&rdquo;
           </p>
-          <p style={{ color: "#C7D2FE" }}>— Mélanie D., ergothérapeute libérale, Lille</p>
+          <p style={{ fontSize: 13, color: "#8A8A96", marginTop: 12, fontFamily: "'Inter',sans-serif" }}>Margot Vire, Diététicienne, fondatrice de Nami</p>
         </Fade>
       </section>
 
@@ -274,9 +275,10 @@ export default function ErgotherapeutePage() {
           <Fade><h2 style={{ textAlign: "center", fontSize: 32, fontWeight: 800, marginBottom: 48 }}>Tarifs</h2></Fade>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>
             <Tier name="Gratuit" price="0€" note="Pour découvrir" features={["3 patients actifs", "Dossier patient simple", "Partage manuel PDF"]} />
-            <Tier name="Essentiel" price="19€" note="AMO intégrée" features={["Patients illimités", "Bilans AVQ templates", "Facturation AMO", "Interface famille"]} />
-            <Tier name="Coordination" price="79€" note="Pour les suivis complexes" features={["Tout Essentiel", "Dossier partagé équipe", "Objectifs fonctionnels suivi", "Préconisations domicile"]} highlight />
-            <Tier name="Intelligence" price="149€" note="IA clinique" features={["Tout Coordination", "Dictée bilan → structure IA", "Progression automatisée", "Rapports prescripteur"]} />
+            <Tier name="Coordination" price="79€" note="Pour les suivis complexes" features={["Tout Gratuit inclus", "Dossier partagé équipe", "Objectifs fonctionnels suivi", "Préconisations domicile"]} />
+            <Tier name="Intelligence" price="149€" note="IA clinique" features={["Tout Coordination", "Dictée bilan → structure IA", "Progression automatisée", "Rapports prescripteur"]} highlight />
+
+            <Tier name="Pilotage" price="299€" note="Le cockpit financier" features={["Tout Intelligence", "CA + charges temps réel", "Pré-déclarations fiscales", "Export comptable"]} />
           </div>
         </div>
       </section>
@@ -295,6 +297,12 @@ export default function ErgotherapeutePage() {
           <a href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 14, padding: "16px 40px", fontWeight: 800, fontSize: 18, textDecoration: "none" }}>Commencer maintenant</a>
         </Fade>
       </section>
+
+      <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
+        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+          Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
+        </p>
+      </footer>
 
     </div>
   );

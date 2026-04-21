@@ -137,6 +137,7 @@ export default function MedecinNutritionnistePage() {
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", background: "#FAFAF8", color: "#1A1A2E", minHeight: "100vh" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500&display=swap');`}</style>
 
       <section style={{ padding: "96px 24px 72px", maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <Fade>
@@ -260,12 +261,12 @@ export default function MedecinNutritionnistePage() {
         </div>
       </section>
 
-      <section style={{ background: "#5B4EC4", padding: "64px 24px", textAlign: "center" }}>
+      <section style={{ background: "#F5F3EF", padding: "28px 24px", textAlign: "center" }}>
         <Fade>
-          <p style={{ fontSize: 24, fontWeight: 700, color: "#fff", maxWidth: 680, margin: "0 auto 16px" }}>
-            "L'APA a ajusté son programme en voyant les résultats BIA entre les consultations. C'est la première fois qu'on travrait vraiment en équipe."
+          <p style={{ fontSize: "clamp(1rem,2.2vw,1.25rem)", fontStyle: "italic", color: "#1A1A2E", maxWidth: 560, margin: "0 auto", lineHeight: 1.55, fontFamily: "'Playfair Display',serif" }}>
+            &ldquo;La prise en charge de l&rsquo;obésité complexe implique cinq spécialistes minimum. Nami leur permet de travailler ensemble sur le même dossier partagé.&rdquo;
           </p>
-          <p style={{ color: "#C7D2FE" }}>— Dr Isabelle C., médecin nutritionniste, Toulouse</p>
+          <p style={{ fontSize: 13, color: "#8A8A96", marginTop: 12, fontFamily: "'Inter',sans-serif" }}>Margot Vire, Diététicienne, fondatrice de Nami</p>
         </Fade>
       </section>
 
@@ -295,6 +296,12 @@ export default function MedecinNutritionnistePage() {
           <a href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 14, padding: "16px 40px", fontWeight: 800, fontSize: 18, textDecoration: "none" }}>Commencer maintenant</a>
         </Fade>
       </section>
+
+      <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
+        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+          Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
+        </p>
+      </footer>
 
     </div>
   );

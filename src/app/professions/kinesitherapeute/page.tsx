@@ -325,9 +325,9 @@ export default function KinesitherapeutePage() {
           </Fade>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, alignItems: "stretch" }}>
             <Tier name="Gratuit" price="0€" sub="Agenda, messagerie, annuaire" features={["Agenda + prise de RDV", "Messagerie patients & médecins", "Annuaire soignants", "Fiche patient basique"]} cta="Commencer" delay={0} />
-            <Tier name="Essentiel" price="19€" sub="Facturation AMK intégrée" features={["Tout Gratuit inclus", "Facturation AMK + télétransmission", "Notes d'honoraires", "Export comptable"]} cta="Essayer" delay={0.06} />
-            <Tier name="Coordination" price="79€" sub="Traçage progression + équipe" highlighted features={["Tout Essentiel inclus", "Traçage de la progression séance/séance", "Lien chirurgien/prescripteur", "Adressages entrants", "App patient", "Essai 14 jours gratuit"]} cta="Essai gratuit" delay={0.12} />
-            <Tier name="Intelligence" price="149€" sub="IA + protocoles + analyse" features={["Tout Coordination", "Enregistrement bilan IA", "Protocoles rééducation HAS", "60 000+ sources cliniques"]} cta="Découvrir" delay={0.18} />
+            <Tier name="Coordination" price="79€" sub="Traçage progression + équipe" features={["Tout Gratuit inclus", "Traçage de la progression séance/séance", "Lien chirurgien/prescripteur", "Adressages entrants", "App patient", "Essai 14 jours gratuit"]} cta="Essai gratuit" delay={0.12} />
+            <Tier name="Intelligence" price="149€" sub="IA + protocoles + analyse" features={["Tout Coordination", "Enregistrement bilan IA", "Protocoles rééducation HAS", "60 000+ sources cliniques"]} cta="Découvrir" highlighted delay={0.18} />
+            <Tier name="Pilotage" price="299€" sub="Le cockpit financier" features={["Tout Intelligence", "CA + charges temps réel", "Pré-déclarations fiscales", "Export comptable"]} cta="Découvrir" delay={0.18} />
           </div>
         </div>
       </section>
@@ -353,6 +353,12 @@ export default function KinesitherapeutePage() {
           <button style={{ padding: "16px 36px", borderRadius: 11, border: "none", background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: f, boxShadow: "0 6px 24px rgba(91,78,196,.25)", marginTop: 8 }}>Commencer gratuitement</button>
         </Fade>
       </section>
+
+      <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
+        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+          Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
+        </p>
+      </footer>
 
     </div>
   );
