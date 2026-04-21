@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
 import { PATHOLOGIES } from "@/lib/data/pathologies"
 
-const BASE = "https://nami-web-orpin.vercel.app"
+const BASE = "https://namipourlavie.com"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date().toISOString()

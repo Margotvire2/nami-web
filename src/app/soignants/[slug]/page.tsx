@@ -88,11 +88,11 @@ export default async function ProfilSoignantPage({
     name: `${provider.firstName} ${provider.lastName}`,
     medicalSpecialty: specialty,
     description: provider.publicBio ?? `${provider.firstName} ${provider.lastName}, ${specialty} sur Nami.`,
-    url: `https://nami-web-orpin.vercel.app/soignants/${provider.slug}`,
+    url: `https://namipourlavie.com/soignants/${provider.slug}`,
     ...(city ? { address: { "@type": "PostalAddress", addressLocality: city, addressCountry: "FR" } } : {}),
     ...(provider.teleconsultAvailable ? { availableService: { "@type": "MedicalTherapy", name: "Téléconsultation" } } : {}),
     ...(provider.badges.rppsVerified ? { identifier: { "@type": "PropertyValue", name: "RPPS", value: "Vérifié" } } : {}),
-    memberOf: { "@type": "Organization", name: "Nami", url: "https://nami-web-orpin.vercel.app" },
+    memberOf: { "@type": "Organization", name: "Nami", url: "https://namipourlavie.com" },
     knowsAbout: provider.publicSpecialties.map((ps: string) => ({ "@type": "MedicalCondition", name: ps })),
   }
 

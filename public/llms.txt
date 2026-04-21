@@ -1,5 +1,5 @@
 # Nami — Système nerveux du parcours de soins complexes
-# https://nami-web-orpin.vercel.app
+# https://namipourlavie.com
 
 > Nami est une plateforme française de coordination clinique pluridisciplinaire
 > pour les parcours de soins complexes. Elle permet aux professionnels de santé
@@ -89,5 +89,5 @@ mais des indicateurs de complétude et une centralisation de l'information.
 
 ## Contact
 
-Site : https://nami-web-orpin.vercel.app
+Site : https://namipourlavie.com
 Fondatrice : Margot Vire, diététicienne spécialisée TCA

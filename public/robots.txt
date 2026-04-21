@@ -1,5 +1,5 @@
 # Nami — Robots.txt
-# https://nami-web-orpin.vercel.app
+# https://namipourlavie.com
 
 User-agent: *
 Allow: /
@@ -33,7 +33,7 @@ Disallow: /api/
 
 # LLM-specific
 # Voir llms.txt et llms-full.txt pour le contexte IA
-# https://nami-web-orpin.vercel.app/llms.txt
-# https://nami-web-orpin.vercel.app/llms-full.txt
+# https://namipourlavie.com/llms.txt
+# https://namipourlavie.com/llms-full.txt
 
-Sitemap: https://nami-web-orpin.vercel.app/sitemap.xml
+Sitemap: https://namipourlavie.com/sitemap.xml

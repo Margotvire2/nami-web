@@ -3,6 +3,13 @@
 @import "shadcn/tailwind.css";
 @import "../styles/cockpit-tokens.css";
 
+/* ── Prevent horizontal overflow globally ────────────────────────────────────── */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
 /* ── Shimmer loading ─────────────────────────────────────────────────────────── */
 @keyframes nami-shimmer {
   0%   { background-position: -400px 0; }

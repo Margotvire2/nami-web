@@ -12,7 +12,7 @@ const G = { background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)", Web
 
 function Slide({ bg = C.bg, dark = false, children }: { bg?: string; dark?: boolean; children: React.ReactNode }) {
   return (
-    <div style={{ width: "100%", height: "100vh", background: bg, display: "flex", flexDirection: "column", justifyContent: "center", padding: "clamp(24px,5vh,60px) clamp(32px,6vw,80px)", position: "relative", overflow: "hidden", color: dark ? "#fff" : C.t1, boxSizing: "border-box" }}>
+    <div style={{ width: "100%", height: "100svh", background: bg, display: "flex", flexDirection: "column", justifyContent: "center", padding: "clamp(24px,5vh,60px) clamp(16px,6vw,80px)", position: "relative", overflow: "hidden", color: dark ? "#fff" : C.t1, boxSizing: "border-box" }}>
       {children}
     </div>
   );
@@ -435,21 +435,24 @@ export function PitchDeckTCAClient() {
   const SC = SLIDES[current];
 
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", fontFamily: "var(--font-jakarta, system-ui, sans-serif)" }}>
+    <div style={{ width: "100%", height: "100svh", overflow: "hidden", position: "relative", fontFamily: "var(--font-jakarta, system-ui, sans-serif)" }}>
       <style>{`
         @keyframes nps { from { opacity: 0; transform: translateX(${animDir > 0 ? "30" : "-30"}px); } to { opacity: 1; transform: translateX(0); } }
         .nps-anim { animation: nps 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .nps-nav-btn { min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+        .nps-dot-wrap { padding: 8px 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
       `}</style>
       <div className="nps-anim" key={animKey} style={{ width: "100%", height: "100%" }}><SC /></div>
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 16, padding: "12px 0 16px", background: "linear-gradient(transparent, rgba(0,0,0,0.15))", zIndex: 50 }}>
-        <button onClick={() => go(-1)} disabled={current === 0} style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "none", color: current === 0 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 16, cursor: current === 0 ? "default" : "pointer", padding: "6px 12px", borderRadius: 8 }}>←</button>
-        <div style={{ display: "flex", gap: 5 }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "8px 0 max(16px, env(safe-area-inset-bottom))", background: "linear-gradient(transparent, rgba(0,0,0,0.15))", zIndex: 50 }}>
+        <button onClick={() => go(-1)} disabled={current === 0} className="nps-nav-btn" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "none", color: current === 0 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 16, cursor: current === 0 ? "default" : "pointer", borderRadius: 8 }}>←</button>
+        <div style={{ display: "flex", gap: 0 }}>
           {SLIDES.map((_, i) => (
-            <div key={i} onClick={() => { setAnimDir(i > current ? 1 : -1); setAnimKey((k) => k + 1); setCurrent(i); }}
-              style={{ width: i === current ? 20 : 7, height: 7, borderRadius: 4, background: i === current ? C.nami : i < current ? "rgba(91,78,196,0.5)" : "rgba(255,255,255,0.25)", transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)", cursor: "pointer" }} />
+            <div key={i} className="nps-dot-wrap" onClick={() => { setAnimDir(i > current ? 1 : -1); setAnimKey((k) => k + 1); setCurrent(i); }}>
+              <div style={{ width: i === current ? 20 : 7, height: 7, borderRadius: 4, background: i === current ? C.nami : i < current ? "rgba(91,78,196,0.5)" : "rgba(255,255,255,0.25)", transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)" }} />
+            </div>
           ))}
         </div>
-        <button onClick={() => go(1)} disabled={current === SLIDES.length - 1} style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "none", color: current === SLIDES.length - 1 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 16, cursor: current === SLIDES.length - 1 ? "default" : "pointer", padding: "6px 12px", borderRadius: 8 }}>→</button>
+        <button onClick={() => go(1)} disabled={current === SLIDES.length - 1} className="nps-nav-btn" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "none", color: current === SLIDES.length - 1 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 16, cursor: current === SLIDES.length - 1 ? "default" : "pointer", borderRadius: 8 }}>→</button>
         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-inter, Inter, sans-serif)" }}>{current + 1}/{SLIDES.length}</span>
       </div>
     </div>

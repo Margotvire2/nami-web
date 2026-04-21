@@ -26,11 +26,11 @@ const jsonLd = {
   "@type": "WebPage",
   name: "Trouver un soignant spécialisé",
   description: "Recherchez un professionnel de santé spécialisé. Profils vérifiés RPPS.",
-  url: "https://nami-web-orpin.vercel.app/trouver-un-soignant",
-  isPartOf: { "@type": "WebSite", name: "Nami", url: "https://nami-web-orpin.vercel.app" },
+  url: "https://namipourlavie.com/trouver-un-soignant",
+  isPartOf: { "@type": "WebSite", name: "Nami", url: "https://namipourlavie.com" },
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://nami-web-orpin.vercel.app/trouver-un-soignant?q={search_term_string}",
+    target: "https://namipourlavie.com/trouver-un-soignant?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
 }

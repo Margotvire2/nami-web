@@ -20,7 +20,7 @@ export default function CguPage() {
         </p>
         <p className="text-sm text-gray-600 leading-relaxed">
           Les présentes Conditions Générales d&apos;Utilisation (CGU) régissent l&apos;accès et l&apos;utilisation
-          de la plateforme accessible à l&apos;adresse <strong>nami-web-orpin.vercel.app</strong>.
+          de la plateforme accessible à l&apos;adresse <strong>namipourlavie.com</strong>.
         </p>
       </section>
 

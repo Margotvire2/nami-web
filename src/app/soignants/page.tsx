@@ -164,7 +164,7 @@ export default async function SoignantsPage() {
         "@type": "Physician",
         name: `${p.firstName} ${p.lastName}`,
         medicalSpecialty: p.specialties[0] ?? "Professionnel de santé",
-        url: `https://nami-web-orpin.vercel.app/soignants/${p.slug}`,
+        url: `https://namipourlavie.com/soignants/${p.slug}`,
         ...(p.consultationCity ? { address: { "@type": "PostalAddress", addressLocality: p.consultationCity } } : {}),
       },
     })),
