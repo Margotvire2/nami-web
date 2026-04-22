@@ -4,8 +4,10 @@
 @import "../styles/cockpit-tokens.css";
 
 /* ── Prevent horizontal overflow globally ────────────────────────────────────── */
+/* overflow-x: clip (not hidden) — clip doesn't create a scroll container,
+   so position: sticky keeps working inside the page */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
   max-width: 100%;
 }
