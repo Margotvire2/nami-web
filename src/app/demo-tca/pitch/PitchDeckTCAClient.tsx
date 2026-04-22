@@ -285,7 +285,7 @@ function S9() {
       <p style={{ fontSize: 13, color: C.t2, marginBottom: 24, maxWidth: 560, lineHeight: 1.6 }}>
         Le Réseau a l'annuaire, le centre de ressources, et la téléexpertise Omnidoc. Il manque la couche qui suit le patient après l'avis — sur des mois, avec 6+ professionnels.
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
+      <div className="nps-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
         <div style={{ background: C.bgAlt, borderRadius: 12, padding: "14px 16px", textAlign: "center", border: `1px solid ${C.bl}` }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: C.tm, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>CARE-TCA ✓</div>
           <div style={{ fontSize: 13, fontWeight: 700 }}>Annuaire</div>
@@ -302,7 +302,7 @@ function S9() {
           <div style={{ fontSize: 10, color: C.tm, marginTop: 2 }}>Obtenir un avis ponctuel</div>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+      <div className="nps-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
         {[
           { icon: "📋", title: "Parcours coordonné", desc: "Le suivi continu après l'avis : qui fait quoi, quand, sur des mois. Le patient ne se perd plus entre deux consultations." },
           { icon: "💬", title: "Communication dans le dossier", desc: "Les échanges entre pros sont rattachés au patient — pas dans un mail, pas dans une visio Zoom. Tracé et horodaté." },
@@ -441,6 +441,10 @@ export function PitchDeckTCAClient() {
         .nps-anim { animation: nps 0.3s cubic-bezier(0.16,1,0.3,1); }
         .nps-nav-btn { min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
         .nps-dot-wrap { padding: 8px 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        @media (max-width: 639px) {
+          .nps-grid-3 { grid-template-columns: 1fr 1fr !important; }
+          .nps-flex-wrap { flex-wrap: wrap !important; }
+        }
       `}</style>
       <div className="nps-anim" key={animKey} style={{ width: "100%", height: "100%" }}><SC /></div>
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "8px 0 max(16px, env(safe-area-inset-bottom))", background: "linear-gradient(transparent, rgba(0,0,0,0.15))", zIndex: 50 }}>

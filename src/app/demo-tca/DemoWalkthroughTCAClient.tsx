@@ -46,7 +46,7 @@ function BrowserFrame({ children }: { children: React.ReactNode }) {
 
 function Sidebar({ active }: { active: string }) {
   return (
-    <div style={{ width: 160, background: "#fff", borderRight: `1px solid ${C.bl}`, padding: "12px 8px", flexShrink: 0 }}>
+    <div className="demo-sidebar" style={{ width: 160, background: "#fff", borderRight: `1px solid ${C.bl}`, padding: "12px 8px", flexShrink: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 8px", marginBottom: 16 }}>
         <div style={{ width: 22, height: 22, borderRadius: 6, background: C.nami, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <span style={{ color: "#fff", fontSize: 9, fontWeight: 800 }}>N</span>
@@ -69,7 +69,7 @@ function MockDashboard() {
       <div style={{ flex: 1, padding: 20 }}>
         <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Bonjour, Pr. Hanachi 👋</div>
         <div style={{ fontSize: 11, color: C.tm, marginBottom: 16, fontFamily: FI }}>Mercredi 23 avril 2026</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
+        <div className="demo-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
           {[{ n: "24", l: "Patients actifs", c: C.nami }, { n: "3", l: "Consultations aujourd'hui", c: C.teal }, { n: "4", l: "Adressages en attente", c: "#F59E0B" }, { n: "78%", l: "Complétude dossiers", c: "#10B981" }].map((s, i) => (
             <div key={i} style={{ background: "#fff", border: `1px solid ${C.bl}`, borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: s.c, fontFamily: FI }}>{s.n}</div>
@@ -288,7 +288,7 @@ function MockPatientData() {
             <span>HC J+0</span><span>J+7</span><span>J+14</span><span>J+21</span><span>J+28</span><span>J+35</span><span>J+42</span>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+        <div className="demo-metric-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           {[
             { icon: "📊", label: "Score EDE-Q", value: "3.2", sub: "vs 4.1 à l'entrée", color: C.teal },
             { icon: "💛", label: "Score PHQ-9", value: "12", sub: "dépression modérée", color: "#F59E0B" },
@@ -325,6 +325,13 @@ const STEPS = [
 export function DemoWalkthroughTCAClient() {
   return (
     <div style={{ fontFamily: FJ, color: C.t1, background: C.bg, overflowX: "hidden" }}>
+      <style>{`
+        @media (max-width: 479px) {
+          .demo-sidebar { display: none !important; }
+          .demo-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .demo-metric-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
       <TCANav />
       <section style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px 60px" }}>
         <div style={{ maxWidth: 800 }}>

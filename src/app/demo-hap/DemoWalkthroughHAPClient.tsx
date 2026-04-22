@@ -47,7 +47,7 @@ function MiniSidebar({ active }: { active: string }) {
     { icon: "📋", label: "Facturation", id: "billing" },
   ]
   return (
-    <div style={{ width: 160, background: "#fff", borderRight: `1px solid ${C.bl}`, padding: "12px 8px", flexShrink: 0 }}>
+    <div className="demo-hap-sidebar" style={{ width: 160, background: "#fff", borderRight: `1px solid ${C.bl}`, padding: "12px 8px", flexShrink: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 8px", marginBottom: 16 }}>
         <div style={{ width: 22, height: 22, borderRadius: 6, background: C.nami, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <span style={{ color: "#fff", fontSize: 9, fontWeight: 800 }}>N</span>
@@ -76,7 +76,7 @@ function MockDashboard() {
       <div style={{ flex: 1, padding: 20 }}>
         <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Bonjour, Dr. Bellaiche 👋</div>
         <div style={{ fontSize: 11, color: C.tm, marginBottom: 16, fontFamily: FI }}>Lundi 21 avril 2026 · Hôpital Américain de Paris</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
+        <div className="demo-hap-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
           {[
             { n: "18", l: "Patients actifs", c: C.nami },
             { n: "5", l: "Consultations aujourd'hui", c: C.teal },
@@ -324,7 +324,7 @@ function MockPatientData() {
             <span>Naissance</span><span>6 mois</span><span>1 an</span><span>18 mois</span><span>2 ans</span><span>3 ans</span><span>4 ans</span>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+        <div className="demo-hap-metric-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           {[
             { icon: "🍼", label: "Repas renseignés", value: "6/7 j.", sub: "par la maman", color: C.teal },
             { icon: "😴", label: "Sommeil moyen", value: "10h30", sub: "stable cette semaine", color: C.nami },
@@ -393,6 +393,13 @@ const STEPS = [
 export function DemoWalkthroughHAPClient() {
   return (
     <div style={{ fontFamily: FJ, color: C.t1, background: C.bg, overflowX: "hidden" }}>
+      <style>{`
+        @media (max-width: 479px) {
+          .demo-hap-sidebar { display: none !important; }
+          .demo-hap-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .demo-hap-metric-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
 
       <HAPNav />
 
