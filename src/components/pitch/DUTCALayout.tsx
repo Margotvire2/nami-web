@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ProtocoleRecherche } from "./ProtocoleRecherche";
 import { RevueLitterature } from "./RevueLitterature";
+import { GuideEntretien } from "./GuideEntretien";
 
 const C = {
   primary: "#5B4EC4",
@@ -14,7 +15,7 @@ const C = {
 const f = "'Plus Jakarta Sans',system-ui,sans-serif";
 const m = "'Inter',system-ui,sans-serif";
 
-type Tab = "protocole" | "revue";
+type Tab = "protocole" | "revue" | "guide";
 
 export function DUTCALayout() {
   const [active, setActive] = useState<Tab>("protocole");
@@ -59,7 +60,8 @@ export function DUTCALayout() {
             {([
               { key: "protocole", label: "Protocole", icon: "🔬" },
               { key: "revue", label: "Revue", icon: "📚" },
-            ] as { key: Tab; label: string; icon: string }[]).map((tab) => (
+              { key: "guide", label: "Guide", icon: "🎙️" },
+            ] as { key: Tab; label: string; icon: string }[]).map((tab: { key: Tab; label: string; icon: string }) => (
               <button
                 key={tab.key}
                 onClick={() => setActive(tab.key)}
@@ -96,6 +98,9 @@ export function DUTCALayout() {
       </div>
       <div style={{ display: active === "revue" ? "block" : "none" }}>
         <RevueLitterature />
+      </div>
+      <div style={{ display: active === "guide" ? "block" : "none" }}>
+        <GuideEntretien />
       </div>
     </div>
   );
