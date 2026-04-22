@@ -363,7 +363,7 @@ function DayView({
                         </button>
                       )}
                       {appt.status === "COMPLETED" && appt.careCaseId && (
-                        <Link href={`/patients/${appt.patient.id}`} style={{ fontSize: 12, padding: "8px 14px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.primary, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "flex", alignItems: "center" }}>
+                        <Link href={`/patients/${appt.careCaseId}`} style={{ fontSize: 12, padding: "8px 14px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.primary, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "flex", alignItems: "center" }}>
                           Voir dossier →
                         </Link>
                       )}

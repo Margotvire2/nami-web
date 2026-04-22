@@ -340,7 +340,7 @@ export default function DashboardPage() {
                   <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8]" style={{ fontFamily: "var(--font-inter)" }}>ACTUALITÉS</p>
-                      <button className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir →</button>
+                      <Link href="/reseau" className="text-[12px] font-medium text-[#5B4EC4] hover:underline">Tout voir →</Link>
                     </div>
                     <div className="divide-y divide-[#F1F5F9]">
                       {NEWS_ITEMS.map((item) => (
