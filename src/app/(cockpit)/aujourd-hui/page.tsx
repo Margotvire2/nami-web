@@ -404,14 +404,22 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="px-5 py-4 border-t border-[#E8ECF4] shrink-0 space-y-2">
-                {selected.careCaseId && (
-                  <button onClick={() => handleStartConsultation(selected)} className="w-full h-9 rounded-xl bg-[#5B4EC4] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#4A3EA6] transition-colors">
-                    <Play size={12} fill="currentColor" /> Démarrer la consultation
-                  </button>
-                )}
-                {selected.careCaseId && (
+                <button
+                  onClick={() => handleStartConsultation(selected)}
+                  disabled={!selected.careCaseId}
+                  className="w-full h-9 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: selected.careCaseId ? "#5B4EC4" : "#94A3B8", color: "white" }}
+                  title={!selected.careCaseId ? "Aucun dossier de coordination lié à ce RDV" : undefined}
+                >
+                  <Play size={12} fill="currentColor" /> Démarrer la consultation
+                </button>
+                {selected.careCaseId ? (
                   <button onClick={() => { setSelectedId(null); router.push(`/patients/${selected.careCaseId}`); }} className="w-full h-9 rounded-xl border border-[#E8ECF4] text-[#374151] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-[#F8FAFC] transition-colors">
                     Voir le dossier <ChevronRight size={14} />
+                  </button>
+                ) : (
+                  <button onClick={() => { setSelectedId(null); router.push("/patients"); }} className="w-full h-9 rounded-xl border border-[#E8ECF4] text-[#374151] text-[13px] font-medium flex items-center justify-center gap-2 hover:bg-[#F8FAFC] transition-colors">
+                    Voir les patients <ChevronRight size={14} />
                   </button>
                 )}
               </div>
