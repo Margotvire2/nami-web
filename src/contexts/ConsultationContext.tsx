@@ -284,7 +284,11 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       if (res.status === 409 && err.existingConsultation) {
-        // Déjà une consultation active — rouvrir
+        // Guard: ne jamais rouvrir une consultation d'un autre patient
+        if (err.existingConsultation.careCaseId !== params.careCaseId) {
+          throw new Error(err.error || "Erreur démarrage consultation");
+        }
+        // Même patient — rouvrir
         setState((s) => ({
           ...s,
           isActive: true,
