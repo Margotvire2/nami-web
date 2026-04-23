@@ -23,6 +23,7 @@ const PUBLIC_PATHS = [
   "/demo",
   "/demo-hap",
   "/demo-tca",
+  "/pitch-reseau",
   "/api",
   "/sitemap.xml",
   "/robots.txt",
