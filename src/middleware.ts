@@ -25,6 +25,7 @@ const PUBLIC_PATHS = [
   "/demo-tca",
   "/pitch-reseau",
   "/gabrielle",
+  "/protocole-recherche",
   "/api",
   "/sitemap.xml",
   "/robots.txt",
