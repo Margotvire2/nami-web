@@ -684,16 +684,14 @@ function S11Fondatrice() {
   const parcours = [
     "Diététicienne-nutritionniste — Hôpital Américain de Paris & exercice libéral",
     "Recherche AP-HP : impact de la télésurveillance sur les parcours ville-hôpital",
-    "Recherche en cours — complications somatiques de l'anorexie précoce (Paul-Brousse, FFAB)",
-    "DU TCA CMME · DU TCA enfants & adolescents · Nutrition & obésité pédiatrique · PMA & infertilité · Alimentation, sport, santé",
+    "Recherche Paul-Brousse / FFAB : complications somatiques de l\u2019anorexie précoce",
+    "DU TCA CMME, DU TCA enfants & adolescents · Nutrition & obésité pédiatrique · PMA & infertilité · Alimentation, sport, santé",
     "ESSEC Business School · HSBC Investment Banking · Startups seed & scale",
-    "A construit l'intégralité de la plateforme — 120+ modèles de données, 3 dépôts de code",
-  ];
-  const signaux = [
-    "Pr Hanachi (référent TCA adulte, Paul-Brousse AP-HP) — retour positif en démo live, avril 2026",
-    "Pr Gervaix & Dr Bellaiche (Hôpital Américain de Paris) — démo réalisée, pilote en cours",
-    "Protocole de recherche Paul-Brousse en cours de formalisation",
-    "Réseau TCA Francilien — présentation prévue, comité CA mai ou septembre 2026",
+    "A construit l\u2019intégralité de la plateforme — 94 modèles de données, 3 repos",
+    "Incubée par Wilco — incubateur santé, Paris",
+    "Accompagnée par Le Catalyseur Santé",
+    "Accompagnée par Medicen — pôle de compétitivité santé Île-de-France",
+    "Soutenue par la Ville de Suresnes",
   ];
   return (
     <Section bg={V.cream} minH="85vh">
@@ -716,22 +714,9 @@ function S11Fondatrice() {
               </div>
             </Reveal>
           ))}
-          <Reveal delay={650}><div style={{ height: 1, background: V.border, margin: "16px 0" }} /></Reveal>
-          <Reveal delay={700}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: V.t2, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
-              Signaux terrain
-            </div>
-          </Reveal>
-          {signaux.map((s, i) => (
-            <Reveal key={i} delay={750 + i * 60}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: V.t2, lineHeight: 1.5, padding: "3px 0" }}>
-                <span style={{ color: V.nami, fontWeight: 700, flexShrink: 0 }}>→</span>{s}
-              </div>
-            </Reveal>
-          ))}
-          <Reveal delay={1000}>
+          <Reveal delay={900}>
             <p style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 13, color: V.tm, marginTop: 20, maxWidth: 500 }}>
-              « J&apos;ai vu une patiente de 10 ans perdre 4 mois parce que ses 5 soignants n&apos;avaient aucun outil commun. J&apos;ai décidé de le construire. »
+              &laquo;&nbsp;Le founder-market fit le plus dur à répliquer&nbsp;: une clinicienne qui code, qui soigne, et qui utilise son propre produit.&nbsp;&raquo;
             </p>
           </Reveal>
         </div>
