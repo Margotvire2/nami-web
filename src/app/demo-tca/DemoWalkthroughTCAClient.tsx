@@ -377,7 +377,10 @@ export function DemoWalkthroughTCAClient() {
             <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 20 }}>
               Maintenant, voyons pourquoi c&apos;est <span style={GRAD}>stratégique</span>
             </h2>
-            <a href="/demo-tca/pitch" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: C.nami, color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 20px rgba(91,78,196,0.30)" }}>Voir la vision · 3 min →</a>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+              <a href="/demo-tca/pitch" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: C.nami, color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 20px rgba(91,78,196,0.30)" }}>Voir la vision · 3 min →</a>
+              <a href="/gabrielle" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: "#fff", color: C.nami, borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", border: `1.5px solid rgba(91,78,196,0.2)`, boxShadow: "0 2px 12px rgba(91,78,196,0.08)" }}>Parcours de Gabrielle →</a>
+            </div>
           </ScrollReveal>
         </div>
       </section>
