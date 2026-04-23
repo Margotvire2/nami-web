@@ -162,12 +162,13 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
       setState("transcribing");
       const uploadResult = await api.recordings.upload(blob, seconds);
 
-      // 3. Analyze
+      // 3. Analyze — consent must be forwarded to backend (Zod schema requires it)
       setState("analyzing");
       const analysisResult = await api.recordings.analyze({
         transcription: uploadResult.transcription,
         careCaseId,
         appointmentId,
+        consentConfirmed: consent,
       });
 
       return analysisResult;
@@ -228,8 +229,10 @@ export function ConsultationRecorder({ careCaseId, patientName, appointmentId, o
                   className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 <span className="text-sm text-gray-700 leading-relaxed">
-                  Le patient a été informé et a <span className="font-medium">consenti à l&apos;enregistrement</span> de cette consultation.
-                  La transcription sera stockée dans son dossier médical.
+                  J&apos;atteste avoir informé <span className="font-medium">{patientName}</span> et avoir obtenu son{" "}
+                  <span className="font-medium">accord verbal explicite</span> pour l&apos;enregistrement de cette consultation.
+                  La transcription sera traitée par un outil IA et conservée dans le dossier de coordination, conformément à nos{" "}
+                  <Link href="/cgu" target="_blank" className="underline text-indigo-600">CGU</Link>.
                 </span>
               </label>
 

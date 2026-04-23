@@ -40,7 +40,7 @@ const ORG_TYPE_ICONS: Record<string, string> = {
 type Member = NonNullable<OrgDetail["members"]>[0];
 
 function MemberCard({ m }: { m: Member }) {
-  const initials = `${m.firstName[0]}${m.lastName[0]}`;
+  const initials = `${m.firstName?.[0] ?? "?"}${m.lastName?.[0] ?? ""}`;
   return (
     <div className="bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-4 hover:border-[rgba(91,78,196,0.15)] transition-all" style={{ boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
       <div className="flex items-start gap-3">

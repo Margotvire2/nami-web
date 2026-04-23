@@ -192,7 +192,7 @@ function AdressageDemo() {
   const steps: AdressageStep[] = [
     { label: "Le patient", content: "Docteur, vous connaissez un bon endocrino ? Celui d'avant a 8 mois d'attente…", type: "patient" },
     { label: "Vous ouvrez Nami", content: "Recherche : endocrinologue · diabète type 2 · IdF sud · dispo < 6 semaines", type: "search" },
-    { label: "Nami recommande", type: "results", results: [
+    { label: "Dans votre réseau", type: "results", results: [
       { name: "Dr. Durand", spec: "Endocrino, diabète & métabolisme", zone: "Massy (91)", dispo: "3 sem.", match: "97%", vf: true },
       { name: "Dr. Karim", spec: "Endocrino, obésité & NASH", zone: "Palaiseau (91)", dispo: "5 sem.", match: "84%", vf: true },
     ]},

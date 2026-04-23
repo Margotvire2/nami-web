@@ -84,12 +84,16 @@ async function fetchOrgs(token: string, params?: { type?: string; search?: strin
   if (params?.type && params.type !== "ALL") url.searchParams.set("type", params.type);
   if (params?.search) url.searchParams.set("search", params.search);
   const r = await fetch(url.toString(), { headers: { Authorization: `Bearer ${token}` } });
-  return r.json() as Promise<OrgCard[]>;
+  if (!r.ok) throw new Error(`fetchOrgs: ${r.status}`);
+  const data = await r.json();
+  return (Array.isArray(data) ? data : []) as OrgCard[];
 }
 
 async function fetchMyOrgs(token: string) {
   const r = await fetch(`${API}/organizations/mine`, { headers: { Authorization: `Bearer ${token}` } });
-  return r.json() as Promise<OrgCard[]>;
+  if (!r.ok) throw new Error(`fetchMyOrgs: ${r.status}`);
+  const data = await r.json();
+  return (Array.isArray(data) ? data : []) as OrgCard[];
 }
 
 async function joinOrg(token: string, orgId: string, message?: string) {
@@ -331,7 +335,7 @@ function PatientRow({ p }: { p: NetworkPatient }) {
         className="w-9 h-9 rounded-[10px] flex items-center justify-center text-[12px] font-bold text-white shrink-0"
         style={{ background: `linear-gradient(135deg, ${typeColor}CC, ${typeColor}88)` }}
       >
-        {p.patient.firstName[0]}{p.patient.lastName[0]}
+        {p.patient.firstName?.[0] ?? "?"}{p.patient.lastName?.[0] ?? ""}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -480,6 +484,12 @@ export default function ReseauPage() {
               <div className="flex items-center justify-center py-16 gap-3 text-[#94A3B8]">
                 <Loader2 size={20} className="animate-spin" />
                 <span className="text-[13px]">Chargement de vos réseaux…</span>
+              </div>
+            )}
+            {myOrgsQuery.isError && (
+              <div className="flex flex-col items-center justify-center py-16 gap-2">
+                <p className="text-[13px] text-[#94A3B8]">Impossible de charger vos réseaux.</p>
+                <button onClick={() => myOrgsQuery.refetch()} className="text-[12px] text-[#5B4EC4] hover:underline">Réessayer</button>
               </div>
             )}
             {!myOrgsQuery.isLoading && myOrgsQuery.data && myOrgsQuery.data.length === 0 && (

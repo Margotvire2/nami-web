@@ -45,11 +45,15 @@ export default function MessagesPage() {
         </p>
       </div>
 
-      {/* [LEGAL] Bannière permanente — coordination uniquement */}
+      {/* [LEGAL] Triple barrière anti-urgence — Art. 50 AI Act + MDR */}
       <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 shrink-0 flex items-center gap-2">
         <span className="text-amber-600 text-xs font-semibold">⚠</span>
         <p className="text-xs text-amber-700">
-          Cette messagerie est réservée à la coordination entre professionnels. En cas d&apos;urgence : <span className="font-semibold">15</span> ou <span className="font-semibold">112</span>.
+          Messagerie réservée à la <strong>coordination non urgente</strong> entre professionnels.{" "}
+          En cas d&apos;urgence vitale :{" "}
+          <a href="tel:15" className="font-bold underline hover:text-amber-900">15 (SAMU)</a>
+          {" "}ou{" "}
+          <a href="tel:112" className="font-bold underline hover:text-amber-900">112</a>.
         </p>
       </div>
 

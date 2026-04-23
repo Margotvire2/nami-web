@@ -236,7 +236,7 @@ export default function FeaturesPage() {
               solution={{ teaser: "Dicter, formater, envoyer par courrier…", title: "Enregistrez. L'IA structure.", desc: "Enregistrez votre consultation. L'IA produit un brouillon structuré et sourcé. Vous validez. Le rendu part vers l'équipe automatiquement." }}
               delay={0.06} />
             <PainBlock icon="🔍" time="30min" pain="Chercher le bon spécialiste"
-              solution={{ teaser: "3 noms dans le carnet, 6 mois d'attente…", title: "Adressage intelligent", desc: "Recherchez par pathologie, zone et disponibilité. Nami recommande les soignants vérifiés. Adressez avec le contexte clinique en 30 secondes." }}
+              solution={{ teaser: "3 noms dans le carnet, 6 mois d'attente…", title: "Adressage intelligent", desc: "Recherchez par pathologie, zone et disponibilité. Nami affiche les soignants vérifiés de votre réseau. Adressez avec le contexte clinique en 30 secondes." }}
               delay={0.12} />
             <PainBlock icon="📖" time="25min" pain="Vérifier un protocole"
               solution={{ teaser: "GLP-1, switch d'antidépresseur, parcours PCR…", title: "131 protocoles sourcés HAS", desc: "Le protocole est dans Nami : examens, ordre, orientation, seuils. Sourcé HAS, PNDS, sociétés savantes. Accessible pendant la consultation." }}

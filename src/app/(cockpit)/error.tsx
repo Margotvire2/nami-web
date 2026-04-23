@@ -29,7 +29,7 @@ export default function CockpitError({
           Une erreur est survenue
         </h1>
 
-        <p className="text-sm text-[#64748B] mb-8 leading-relaxed">
+        <p className="text-sm text-[#64748B] mb-4 leading-relaxed">
           Quelque chose s'est mal passé. Vous pouvez réessayer ou revenir à l'accueil.
           {error.digest && (
             <span className="block mt-2 text-xs text-[#94A3B8] font-mono">
@@ -37,6 +37,13 @@ export default function CockpitError({
             </span>
           )}
         </p>
+
+        {process.env.NODE_ENV === "development" && (
+          <pre className="mb-6 text-left text-[11px] text-[#DC2626] bg-red-50 border border-red-200 rounded-lg p-3 overflow-auto max-h-40 text-wrap">
+            {error?.message ?? String(error)}
+            {error?.stack ? "\n\n" + error.stack : ""}
+          </pre>
+        )}
 
         <div className="flex items-center justify-center gap-3">
           <button
