@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Stethoscope, ArrowLeftRight, Clock, ChevronRight, X,
   MapPin, Video, Phone, Mail, Check, Play, ClipboardList,
-  AlertTriangle,
+  AlertTriangle, BookOpen, User, Calendar,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
@@ -747,6 +747,80 @@ function AppointmentRequestCard({
   );
 }
 
+// ─── REFERRAL DETAIL PANEL ────────────────────────────────────────────────────
+
+function ReferralDetailPanel({ referral: r }: { referral: Referral }) {
+  const patient = r.careCase?.patient;
+  const age = patient?.birthDate
+    ? Math.floor((Date.now() - new Date(patient.birthDate).getTime()) / (365.25 * 86400000))
+    : null;
+
+  return (
+    <div className="space-y-3">
+      {/* Patient */}
+      {patient && (
+        <div className="flex items-center gap-2">
+          <User size={12} className="text-[#94A3B8] shrink-0" />
+          <span className="text-[12px] font-semibold text-[#0F172A]">
+            {patient.firstName} {patient.lastName}
+            {age !== null && <span className="font-normal text-[#64748B]">, {age} ans</span>}
+          </span>
+        </div>
+      )}
+
+      {/* RDV souhaité */}
+      {r.desiredAppointmentDate && (
+        <div className="flex items-center gap-2">
+          <Calendar size={12} className="text-[#94A3B8] shrink-0" />
+          <span className="text-[12px] text-[#64748B]">
+            RDV souhaité : {new Date(r.desiredAppointmentDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+          </span>
+        </div>
+      )}
+
+      {/* Urgency */}
+      {r.urgencyNote && (
+        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+          <AlertTriangle size={12} className="text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-[12px] text-amber-800 leading-snug">{r.urgencyNote}</p>
+        </div>
+      )}
+
+      {/* Motif clinique */}
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] mb-1">Motif clinique</p>
+        <p className="text-[13px] text-[#374151] leading-relaxed whitespace-pre-wrap">{r.clinicalReason}</p>
+      </div>
+
+      {/* Message personnel */}
+      {r.personalMessage && (
+        <div className="px-3 py-2.5 rounded-lg bg-indigo-50 border border-indigo-100">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400 mb-1">
+            Message de {r.sender?.firstName} {r.sender?.lastName}
+          </p>
+          <p className="text-[13px] text-indigo-900 leading-relaxed italic">&ldquo;{r.personalMessage}&rdquo;</p>
+        </div>
+      )}
+
+      {/* Zone / spécialité souhaitée */}
+      {(r.preferredSpecialty || r.preferredZone) && (
+        <div className="flex gap-3 flex-wrap">
+          {r.preferredSpecialty && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#64748B] border border-[#E8ECF4]">
+              Spécialité : {r.preferredSpecialty}
+            </span>
+          )}
+          {r.preferredZone && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#64748B] border border-[#E8ECF4]">
+              Zone : {r.preferredZone}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DEMANDES DE COORDINATION REÇUES (Referrals) ─────────────────────────────
 
 function IncomingReferralsSection() {
@@ -773,6 +847,15 @@ function IncomingReferralsSection() {
 
   const [declRefId, setDeclRefId] = useState<string | null>(null);
   const [declRefReason, setDeclRefReason] = useState("");
+  const [detailRefId, setDetailRefId] = useState<string | null>(null);
+
+  // Charge le détail complet de l'adressage sélectionné
+  const { data: detailRef, isLoading: detailLoading } = useQuery({
+    queryKey: ["referral-detail", detailRefId],
+    queryFn: () => api.referrals.get(detailRefId!),
+    enabled: !!detailRefId,
+    staleTime: 60_000,
+  });
 
   const pending = (referrals as any[]).filter(
     (r: any) => ["SENT", "RECEIVED", "UNDER_REVIEW"].includes(r.status)
@@ -835,14 +918,35 @@ function IncomingReferralsSection() {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button onClick={() => acceptRefMut.mutate(ref.id)} disabled={acceptRefMut.isPending}
                     className="h-7 px-3 rounded-lg bg-[#5B4EC4] text-white text-[11px] font-medium hover:bg-[#4A3EA6] transition-colors disabled:opacity-50">
                     {acceptRefMut.isPending ? "…" : "Accepter"}</button>
                   <button onClick={() => setDeclRefId(ref.id)}
                     className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors">Décliner</button>
-                  <Link href={`/patients/${ref.careCaseId}`}
-                    className="h-7 px-2.5 rounded-lg border border-[#E8ECF4] text-[#64748B] text-[11px] font-medium hover:bg-[#F1F5F9] transition-colors flex items-center">Voir le dossier</Link>
+                  <button
+                    onClick={() => setDetailRefId(prev => prev === ref.id ? null : ref.id)}
+                    className={`h-7 px-2.5 rounded-lg border text-[11px] font-medium transition-colors flex items-center gap-1 ${
+                      detailRefId === ref.id
+                        ? "border-[#5B4EC4] bg-[#EEEDFB] text-[#5B4EC4]"
+                        : "border-[#E8ECF4] text-[#64748B] hover:bg-[#F1F5F9]"
+                    }`}>
+                    <BookOpen size={11} />
+                    {detailRefId === ref.id ? "Fermer" : "Voir le dossier"}
+                  </button>
+                </div>
+              )}
+              {/* Panel détail adressage */}
+              {detailRefId === ref.id && (
+                <div className="mt-3 pt-3 border-t border-[#E8ECF4]">
+                  {detailLoading ? (
+                    <div className="flex items-center gap-2 text-[12px] text-[#94A3B8]">
+                      <div className="w-3 h-3 rounded-full border-2 border-[#5B4EC4] border-t-transparent animate-spin" />
+                      Chargement…
+                    </div>
+                  ) : detailRef ? (
+                    <ReferralDetailPanel referral={detailRef} />
+                  ) : null}
                 </div>
               )}
             </div>

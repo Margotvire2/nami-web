@@ -419,6 +419,7 @@ export interface Referral {
   status: ReferralStatus;
   priority: ReferralPriority;
   clinicalReason: string;
+  personalMessage?: string | null;
   urgencyNote: string | null;
   preferredSpecialty: string | null;
   preferredZone: string | null;
@@ -436,7 +437,12 @@ export interface Referral {
     person: { firstName: string; lastName: string };
     specialties?: string[];
   } | null;
-  careCase: { id: string; caseTitle: string; caseType: string };
+  careCase: {
+    id: string;
+    caseTitle: string;
+    caseType: string;
+    patient?: { firstName: string; lastName: string; birthDate?: string | null } | null;
+  };
   candidates?: ReferralCandidate[];
   _count?: { documents: number };
 }

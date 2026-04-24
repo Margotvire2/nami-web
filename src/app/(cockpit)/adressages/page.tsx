@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { getCareType } from "@/lib/caseType";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store";
 import { useOutgoingReferrals, useIncomingReferrals } from "@/hooks/useReferrals";
@@ -305,8 +305,21 @@ function stepIndex(status: ReferralStatus): number {
 
 function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; direction: "sent" | "received"; onClose: () => void }) {
   const { accessToken } = useAuthStore();
+  const api = referralsApi;
   const qc = useQueryClient();
   const currentStep = stepIndex(r.status);
+
+  // Charge le détail complet pour avoir personalMessage + patient name/age
+  const { data: fullRef } = useQuery({
+    queryKey: ["referral-detail", r.id],
+    queryFn: () => api.get(accessToken!, r.id),
+    staleTime: 60_000,
+  });
+  const detail = fullRef ?? r;
+  const patient = (detail as any).careCase?.patient ?? null;
+  const age = patient?.birthDate
+    ? Math.floor((Date.now() - new Date(patient.birthDate).getTime()) / (365.25 * 86400000))
+    : null;
   const statusMeta = getStatusMeta(r.status);
 
   // Action states
@@ -357,6 +370,12 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
           {r.careCase?.caseType && (() => { const ct = getCareType(r.careCase.caseType); return (
             <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: ct.bg, color: ct.color, display: "inline-block", marginTop: 2 }}>{ct.label}</span>
           ); })()}
+          {patient && (
+            <p className="text-[13px] text-[#374151] mt-2 font-medium">
+              {patient.firstName} {patient.lastName}
+              {age !== null && <span className="font-normal text-[#64748B]">, {age} ans</span>}
+            </p>
+          )}
           <div className="flex items-center gap-2 mt-2">
             <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full border", statusMeta.badgeClass)}>
               {statusMeta.label}
@@ -413,11 +432,23 @@ function DetailPanel({ referral: r, direction, onClose }: { referral: Referral; 
         {/* Clinical reason */}
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-2">Motif clinique</p>
-          <p className="text-[13px] text-[#374151] leading-relaxed">{r.clinicalReason}</p>
-          {r.urgencyNote && (
-            <p className="text-[13px] text-amber-700 mt-2 bg-amber-50 rounded-lg p-2">{r.urgencyNote}</p>
+          <p className="text-[13px] text-[#374151] leading-relaxed whitespace-pre-wrap">{detail.clinicalReason}</p>
+          {detail.urgencyNote && (
+            <p className="text-[13px] text-amber-700 mt-2 bg-amber-50 rounded-lg p-2">{detail.urgencyNote}</p>
           )}
         </div>
+
+        {/* Message personnel du médecin */}
+        {detail.personalMessage && (
+          <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-indigo-400 mb-2">
+              Message de {r.sender?.firstName} {r.sender?.lastName}
+            </p>
+            <p className="text-[13px] text-indigo-900 leading-relaxed italic">
+              &ldquo;{detail.personalMessage}&rdquo;
+            </p>
+          </div>
+        )}
 
         {/* Sender */}
         {r.sender && (
