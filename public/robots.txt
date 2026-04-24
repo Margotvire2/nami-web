@@ -1,38 +1,48 @@
-# Nami — Robots.txt
+# Nami — robots.txt
 # https://namipourlavie.com
 
 User-agent: *
-Allow: /
-Allow: /soignants
-Allow: /soignants/
-Allow: /trouver-un-soignant
-Allow: /pathologies/
-Allow: /guides/
-Allow: /annuaire-public/
-Allow: /blog/
 
-# Pages privées (cockpit soignant)
+# Cockpit soignant (authentifié)
 Disallow: /patients/
-Disallow: /agenda
-Disallow: /aujourd-hui
+Disallow: /agenda/
+Disallow: /aujourd-hui/
 Disallow: /documents/
 Disallow: /messages/
-Disallow: /alertes
-Disallow: /taches
-Disallow: /adressages
-Disallow: /collaboration
-Disallow: /equipe
-Disallow: /annuaire
-Disallow: /protocoles
-Disallow: /upgrade
-Disallow: /onboarding
-Disallow: /dashboard
+Disallow: /taches/
+Disallow: /adressages/
+Disallow: /collaboration/
+Disallow: /equipe/
+Disallow: /facturation/
+Disallow: /intelligence/
+Disallow: /reglages/
+Disallow: /protocoles/
+Disallow: /annuaire/
+
+# Pages non indexables (pitch VC, démos internes, design)
+Disallow: /pitch
+Disallow: /pitch-tca
+Disallow: /pitch-reseau
+Disallow: /decouvrir
+Disallow: /demo
+Disallow: /demo-hap
+Disallow: /demo-tca
+Disallow: /design-system
+Disallow: /landing-page
+Disallow: /shared/
+
+# Flux d'authentification
+Disallow: /invite/
+Disallow: /onboarding/
+Disallow: /validation-en-cours/
+Disallow: /verify-email/
+Disallow: /welcome/
+Disallow: /upgrade/
 
 # API
 Disallow: /api/
 
-# LLM-specific
-# Voir llms.txt et llms-full.txt pour le contexte IA
+# LLMs — contexte IA disponible sur llms.txt
 # https://namipourlavie.com/llms.txt
 # https://namipourlavie.com/llms-full.txt
 

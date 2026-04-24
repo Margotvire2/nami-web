@@ -54,8 +54,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: article.metaDescription ?? article.excerpt ?? undefined,
       type: "article",
       publishedTime: article.publishedAt ?? undefined,
-      authors: [article.authorName],
+      authors: ["Nami"],
       tags: article.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: (article.metaTitle ?? article.title) + " | Nami",
+      description: article.metaDescription ?? article.excerpt ?? undefined,
     },
     alternates: { canonical: `/blog/${slug}` },
   }
@@ -112,10 +117,9 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
     datePublished: article.publishedAt,
     dateModified: article.publishedAt,
     author: {
-      "@type": "Person",
-      name: article.authorName,
-      jobTitle: article.authorRole ?? "Professionnel de santé",
-      worksFor: { "@type": "Organization", name: "Nami", url: "https://namipourlavie.com" },
+      "@type": "Organization",
+      name: "Nami",
+      url: "https://namipourlavie.com",
     },
     publisher: {
       "@type": "Organization",
@@ -129,6 +133,17 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
     medicalAudience: article.audience === "professional"
       ? { "@type": "MedicalAudience", audienceType: "Clinician" }
       : { "@type": "MedicalAudience", audienceType: "Patient" },
+    ...(article.pathologySlug && {
+      about: {
+        "@type": "MedicalCondition",
+        name: article.pathologySlug.replace(/-/g, " "),
+        url: `https://namipourlavie.com/pathologies/${article.pathologySlug}`,
+      },
+    }),
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", ".article-body", ".article-faq"],
+    },
   }
 
   // JSON-LD Breadcrumb
@@ -171,7 +186,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{article.title}</h1>
           <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-500">
             {publishDate && <span className="flex items-center gap-1"><Calendar className="size-3" /> {publishDate}</span>}
-            <span className="flex items-center gap-1"><User className="size-3" /> {article.authorName}{article.authorRole ? ` — ${article.authorRole}` : ""}</span>
+            <span className="flex items-center gap-1"><User className="size-3" /> Équipe Nami</span>
             {article.reviewedBy && <span className="text-emerald-600">Relu par {article.reviewedBy}</span>}
           </div>
           <div className="flex flex-wrap gap-1.5 mt-3">
@@ -184,13 +199,13 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
         </header>
 
         {/* Article content */}
-        <article className="rounded-xl border bg-white p-6 shadow-sm">
+        <article className="rounded-xl border bg-white p-6 shadow-sm article-body">
           <div dangerouslySetInnerHTML={{ __html: renderMarkdown(preprocessContent(article.content)) }} />
         </article>
 
         {/* FAQ */}
         {faq.length > 0 && (
-          <div className="rounded-xl border bg-white p-6 shadow-sm mt-4">
+          <div className="rounded-xl border bg-white p-6 shadow-sm mt-4 article-faq">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Questions fr&eacute;quentes</h2>
             <div className="space-y-4">
               {faq.map((f, i) => (
@@ -247,10 +262,19 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
           </div>
         </div>
 
-        <p className="text-[10px] text-gray-400 text-center mt-8">
-          Cet article ne remplace pas une consultation m&eacute;dicale. Sources cit&eacute;es dans l&apos;article.
-          &copy; {new Date().getFullYear()} Nami
-        </p>
+        <div className="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-4 text-center">
+          <p className="text-[11px] text-gray-500 leading-relaxed">
+            Contenu élaboré par l&apos;équipe Nami à partir des recommandations de la HAS, de la FFAB et des sociétés savantes françaises. Revu régulièrement par des professionnels de santé.
+          </p>
+          <p className="text-[10px] text-gray-400 mt-1.5">
+            Cet article est informatif et ne remplace pas une consultation médicale.{" "}
+            En cas d&apos;urgence : <strong className="text-gray-500">15 ou 112</strong>.{" "}
+            <Link href="/mentions-legales" className="underline hover:text-gray-600">Mentions légales</Link>
+            {" "}·{" "}
+            <Link href="/methodologie-editoriale" className="underline hover:text-gray-600">Notre méthode éditoriale</Link>
+            {" "}· © {new Date().getFullYear()} Nami
+          </p>
+        </div>
       </div>
     </div>
   )

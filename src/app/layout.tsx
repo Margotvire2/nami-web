@@ -103,6 +103,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={`${jakarta.variable} ${inter.variable} ${playfair.variable} h-full`}>
       <head>
+        <link rel="preconnect" href="https://nami-production-f268.up.railway.app" />
+        <link rel="dns-prefetch" href="https://nami-production-f268.up.railway.app" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }} />
       </head>
       <body className="h-full bg-background font-sans antialiased">

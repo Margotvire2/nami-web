@@ -2,7 +2,22 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { PATHOLOGIES, getPathologyBySlug, CATEGORY_LABELS } from "@/lib/data/pathologies"
-import { ChevronRight, Stethoscope, BookOpen, HelpCircle } from "lucide-react"
+import { ChevronRight, Stethoscope, BookOpen, HelpCircle, Search } from "lucide-react"
+
+const CATEGORY_SPECIALISTS: Record<string, { label: string; query: string }[]> = {
+  tca:           [{ label: "Diététicien-nutritionniste", query: "diététicien" }, { label: "Psychiatre", query: "psychiatre" }, { label: "Psychologue", query: "psychologue" }],
+  metabolique:   [{ label: "Endocrinologue", query: "endocrinologue" }, { label: "Diététicien-nutritionniste", query: "diététicien" }, { label: "Médecin généraliste", query: "médecin généraliste" }],
+  pediatrie:     [{ label: "Pédiatre", query: "pédiatre" }, { label: "Diététicien-nutritionniste", query: "diététicien" }, { label: "Psychologue", query: "psychologue" }],
+  psy:           [{ label: "Psychiatre", query: "psychiatre" }, { label: "Psychologue", query: "psychologue" }],
+  cardio:        [{ label: "Cardiologue", query: "cardiologue" }, { label: "Diététicien-nutritionniste", query: "diététicien" }],
+  rhumatologie:  [{ label: "Rhumatologue", query: "rhumatologue" }, { label: "Médecin généraliste", query: "médecin généraliste" }],
+  endocrinologie:[{ label: "Endocrinologue", query: "endocrinologue" }, { label: "Diététicien-nutritionniste", query: "diététicien" }],
+  pneumologie:   [{ label: "Pneumologue", query: "pneumologue" }, { label: "Médecin généraliste", query: "médecin généraliste" }],
+  neurologie:    [{ label: "Neurologue", query: "neurologue" }, { label: "Neuropsychologue", query: "neuropsychologue" }],
+  oncologie:     [{ label: "Oncologue", query: "oncologue" }, { label: "Diététicien-nutritionniste", query: "diététicien" }, { label: "Psychologue", query: "psychologue" }],
+  nephrologie:   [{ label: "Néphrologue", query: "néphrologue" }, { label: "Diététicien-nutritionniste", query: "diététicien" }],
+  infectieux:    [{ label: "Infectiologue", query: "infectiologue" }, { label: "Médecin généraliste", query: "médecin généraliste" }],
+}
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
@@ -32,6 +47,11 @@ export async function generateMetadata({
       type: "article",
       siteName: "Nami",
       locale: "fr_FR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: p.title + " | Nami",
+      description: p.description,
     },
     alternates: { canonical: `/pathologies/${slug}` },
     robots: { index: true, follow: true },
@@ -343,6 +363,30 @@ export default async function PathologyPage({
           </div>
         )}
 
+        {/* Bloc spécialistes à consulter */}
+        {CATEGORY_SPECIALISTS[meta.category] && (
+          <div className="rounded-2xl border bg-white p-6 shadow-sm mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="size-4 text-[#5B4EC4]" />
+              <h2 className="text-sm font-bold text-[#1A1A2E]">Trouver un spécialiste</h2>
+            </div>
+            <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+              Cette pathologie implique généralement plusieurs professionnels de santé. Vous pouvez les rechercher directement dans l&apos;annuaire Nami.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORY_SPECIALISTS[meta.category].map((s) => (
+                <Link
+                  key={s.query}
+                  href={`/trouver-un-soignant?q=${encodeURIComponent(s.query)}`}
+                  className="rounded-lg border border-[#5B4EC4]/20 bg-[#5B4EC4]/5 px-3 py-1.5 text-xs font-medium text-[#5B4EC4] hover:bg-[#5B4EC4]/10 transition-colors"
+                >
+                  {s.label} →
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Bloc expertise Nami — visible de tous, ne révèle pas l'IP */}
         <div className="rounded-2xl border bg-white p-6 shadow-sm mb-6">
           <div className="flex items-start gap-3">
@@ -375,11 +419,18 @@ export default async function PathologyPage({
         </div>
 
         {/* Footer légal */}
-        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-          Les informations de cette page sont destinées aux professionnels de santé et au grand public
-          à titre informatif. Elles ne remplacent pas un avis médical.
-          Nami n&apos;est pas un dispositif médical. Sources : HAS, SFP, sociétés savantes françaises.
-        </p>
+        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-center">
+          <p className="text-[11px] text-gray-500 leading-relaxed">
+            Contenu élaboré par l&apos;équipe Nami à partir des recommandations de la HAS, de la SFP et des sociétés savantes françaises. Revu régulièrement par des professionnels de santé.
+          </p>
+          <p className="text-[10px] text-gray-400 mt-1.5">
+            Ces informations sont destinées aux professionnels de santé et au grand public à titre informatif.
+            Elles ne remplacent pas un avis médical. Nami n&apos;est pas un dispositif médical.{" "}
+            <Link href="/mentions-legales" className="underline hover:text-gray-600">Mentions légales</Link>
+            {" "}·{" "}
+            <Link href="/methodologie-editoriale" className="underline hover:text-gray-600">Notre méthode éditoriale</Link>
+          </p>
+        </div>
 
       </div>
     </div>
