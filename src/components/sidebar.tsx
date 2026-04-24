@@ -29,6 +29,7 @@ const NAV_PATIENTS = [
   { href: "/protocoles",   label: "Références",         emoji: "📋" },
   { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
   { href: "/documents",    label: "Documents",          emoji: "📄" },
+  { href: "/import",       label: "Importer l'historique", emoji: "📥" },
 ];
 
 const NAV_NETWORK = [
