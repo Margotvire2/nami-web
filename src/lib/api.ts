@@ -223,6 +223,16 @@ export const careCasesApi = {
 export type PathwayNodeStatus =
   | "FUTURE" | "APPROACHING" | "IN_WINDOW" | "OVERDUE" | "COMPLETED" | "SKIPPED";
 
+export interface ProtocolContent {
+  checklist: { category: string; items: string[] }[];
+  toPrescribe?: string[];
+  toOrder?: string[];
+  toCreateInNami?: { type: string; description: string }[];
+  redFlags?: string[];
+  duration?: string;
+  sources: string[];
+}
+
 export interface PathwayNode {
   id: string;
   nodeType: string;
@@ -243,6 +253,7 @@ export interface PathwayNode {
   phaseLabel: string | null;
   sourceRef: string | null;
   ProviderProfile: { id: string; specialtyView: string | null; person: { firstName: string; lastName: string } } | null;
+  PathwayTemplateStep: { protocolContent: ProtocolContent | null } | null;
 }
 
 export interface PathwayTemplateStep {
@@ -255,6 +266,7 @@ export interface PathwayTemplateStep {
   expectedDayOffset: number;
   phaseLabel: string | null;
   sourceRef: string | null;
+  protocolContent: ProtocolContent | null;
 }
 
 export interface PathwayGraphResponse {

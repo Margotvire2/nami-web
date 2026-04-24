@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiWithToken, type PathwayNode, type PathwayNodeStatus, type PathwayTemplateStep } from "@/lib/api";
+import { apiWithToken, type PathwayNode, type PathwayNodeStatus, type PathwayTemplateStep, type ProtocolContent } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import {
   Users, CalendarClock, Loader2, Activity, AlertTriangle,
   Clock, Search, Plus, Stethoscope, FlaskConical, FileText,
   ClipboardList, Pill, BarChart3, Zap, Play,
+  BookOpen, X, Timer, AlertCircle, PlusCircle, ListChecks,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -84,6 +85,180 @@ const NODE_STATUS_CFG: Record<PathwayNodeStatus, { label: string; cls: string; i
   COMPLETED:  { label: "Réalisé",    cls: "bg-teal-50 text-teal-600 border-teal-100",            icon: <CheckCircle2 size={13} className="text-teal-500 shrink-0" /> },
   SKIPPED:    { label: "Ignoré",     cls: "bg-neutral-50 text-neutral-400 border-neutral-200",   icon: <Circle size={13} className="text-neutral-200 shrink-0" /> },
 };
+
+// ─── StepProtocolPanel — "Comment faire" drawer inline ───────────────────────
+
+const PROTOCOL_TYPE_ICONS: Record<string, string> = {
+  note_consultation: "📝",
+  prescription: "💊",
+  adressage: "📬",
+  observation: "👁",
+};
+
+function StepProtocolPanel({
+  actLabel,
+  clinicalActType,
+  protocol,
+  onClose,
+}: {
+  actLabel: string;
+  clinicalActType: string;
+  protocol: ProtocolContent;
+  onClose: () => void;
+}) {
+  const hasPrescribe = (protocol.toPrescribe?.length ?? 0) > 0;
+  const hasOrder = (protocol.toOrder?.length ?? 0) > 0;
+  const hasCreate = (protocol.toCreateInNami?.length ?? 0) > 0;
+  const hasRedFlags = (protocol.redFlags?.length ?? 0) > 0;
+  const hasSources = (protocol.sources?.length ?? 0) > 0;
+
+  return (
+    <div className="rounded-xl border border-[rgba(91,78,196,0.18)] bg-[rgba(91,78,196,0.02)] overflow-hidden">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-[rgba(91,78,196,0.1)]"
+        style={{ background: "rgba(91,78,196,0.04)" }}>
+        <div className="flex items-start gap-2.5 min-w-0">
+          <BookOpen size={14} className="text-[#5B4EC4] shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#5B4EC4]">Protocole · {clinicalActType}</p>
+            <p className="text-sm font-semibold text-[#1A1A2E] leading-snug mt-0.5 truncate">{actLabel}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {protocol.duration && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-white border border-[rgba(91,78,196,0.15)] text-[#5B4EC4]">
+              <Timer size={9} /> {protocol.duration}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700">
+            Brouillon IA — à vérifier
+          </span>
+          <button
+            onClick={onClose}
+            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-[rgba(91,78,196,0.1)] transition-colors"
+          >
+            <X size={13} className="text-neutral-400" />
+          </button>
+        </div>
+      </div>
+
+      <div className="px-4 py-3 space-y-4">
+        {/* Checklist */}
+        {protocol.checklist.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <ListChecks size={12} className="text-[#5B4EC4]" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#5B4EC4]">Checklist</p>
+            </div>
+            <div className="space-y-3">
+              {protocol.checklist.map((cat, ci) => (
+                <div key={ci}>
+                  <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wide mb-1">{cat.category}</p>
+                  <ul className="space-y-1">
+                    {cat.items.map((item, ii) => (
+                      <li key={ii} className="flex items-start gap-2">
+                        <div className="w-4 h-4 rounded border border-[rgba(91,78,196,0.25)] bg-white flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-1.5 h-1.5 rounded-sm bg-[rgba(91,78,196,0.3)]" />
+                        </div>
+                        <span className="text-xs text-neutral-700 leading-snug">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* À prescrire */}
+        {hasPrescribe && (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Pill size={11} className="text-emerald-600" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">À prescrire</p>
+            </div>
+            <ul className="space-y-1">
+              {protocol.toPrescribe!.map((item, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 shrink-0" />
+                  <span className="text-xs text-neutral-700">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* À commander */}
+        {hasOrder && (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <FlaskConical size={11} className="text-blue-600" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Examens à prescrire</p>
+            </div>
+            <ul className="space-y-1">
+              {protocol.toOrder!.map((item, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-blue-400 shrink-0" />
+                  <span className="text-xs text-neutral-700">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* À créer dans Nami */}
+        {hasCreate && (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <PlusCircle size={11} className="text-indigo-600" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">À créer dans Nami après</p>
+            </div>
+            <div className="space-y-1">
+              {protocol.toCreateInNami!.map((item, i) => (
+                <div key={i} className="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100">
+                  <span className="text-sm shrink-0">{PROTOCOL_TYPE_ICONS[item.type] ?? "📌"}</span>
+                  <span className="text-xs text-indigo-800 leading-snug">{item.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Critères d'escalade */}
+        {hasRedFlags && (
+          <div className="rounded-lg border border-red-100 bg-red-50/50 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 mb-2">
+              <AlertCircle size={11} className="text-red-500" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-red-600">Critères d'escalade</p>
+            </div>
+            <ul className="space-y-1">
+              {protocol.redFlags!.map((flag, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-red-400 shrink-0 text-xs">›</span>
+                  <span className="text-xs text-red-700 leading-snug">{flag}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Sources */}
+        {hasSources && (
+          <div className="pt-1 border-t border-neutral-100">
+            <p className="text-[9px] font-semibold uppercase tracking-wider text-neutral-400 mb-1">Sources</p>
+            <div className="flex flex-wrap gap-1">
+              {protocol.sources.map((src, i) => (
+                <span key={i} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 border border-neutral-200">
+                  {src}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ─── ViewParcours ─────────────────────────────────────────────────────────────
 
@@ -397,8 +572,9 @@ function PathwayHeader({
 
 // ─── CIE Nodes — groupés par phaseLabel ───────────────────────────────────────
 
-function NextStepHero({ node }: { node: PathwayNode }) {
+function NextStepHero({ node, onShowProtocol }: { node: PathwayNode; onShowProtocol?: () => void }) {
   const isOverdue = node.status === "OVERDUE";
+  const hasProtocol = !!node.PathwayTemplateStep?.protocolContent;
   return (
     <div
       className="rounded-2xl p-5"
@@ -424,12 +600,16 @@ function NextStepHero({ node }: { node: PathwayNode }) {
         )}
       </div>
       <div className="flex gap-2 mt-4">
-        <button
-          className="text-[13px] font-semibold px-4 py-2 rounded-lg text-white"
-          style={{ background: isOverdue ? "#D94F4F" : "#5B4EC4", border: "none", cursor: "pointer" }}
-        >
-          Comment faire →
-        </button>
+        {hasProtocol && (
+          <button
+            onClick={onShowProtocol}
+            className="flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2 rounded-lg text-white transition-all"
+            style={{ background: isOverdue ? "#D94F4F" : "#5B4EC4", border: "none", cursor: "pointer" }}
+          >
+            <BookOpen size={13} />
+            Comment faire →
+          </button>
+        )}
         <button
           className="text-[13px] px-4 py-2 rounded-lg"
           style={{ border: "1px solid rgba(26,26,46,0.12)", background: "transparent", color: "#4A4A5A", cursor: "pointer" }}
@@ -442,12 +622,17 @@ function NextStepHero({ node }: { node: PathwayNode }) {
 }
 
 function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
   // Find next actionable step (OVERDUE first, then IN_WINDOW)
   const nextStep =
     nodes.find(n => n.status === "OVERDUE") ??
     nodes.find(n => n.status === "IN_WINDOW") ??
     nodes.find(n => n.status === "APPROACHING") ??
     null;
+
+  const selectedNode = selectedNodeId ? nodes.find(n => n.id === selectedNodeId) ?? null : null;
+  const selectedProtocol = selectedNode?.PathwayTemplateStep?.protocolContent ?? null;
 
   // Group by phaseLabel
   const phases: { label: string; nodes: PathwayNode[] }[] = [];
@@ -462,21 +647,49 @@ function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
 
   return (
     <div className="space-y-3">
-      {nextStep && <NextStepHero node={nextStep} />}
+      {nextStep && (
+        <NextStepHero
+          node={nextStep}
+          onShowProtocol={() => setSelectedNodeId(prev => prev === nextStep.id ? null : nextStep.id)}
+        />
+      )}
+      {selectedProtocol && selectedNode && (
+        <StepProtocolPanel
+          actLabel={selectedNode.actLabel}
+          clinicalActType={selectedNode.clinicalActType}
+          protocol={selectedProtocol}
+          onClose={() => setSelectedNodeId(null)}
+        />
+      )}
       <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 px-1">
         Toutes les étapes ({nodes.length})
       </p>
       {phases.map((phase) => {
         const hasActive = phase.nodes.some(n => activeStatuses.has(n.status));
         return (
-          <CIEPhaseGroup key={phase.label} label={phase.label} nodes={phase.nodes} defaultOpen={hasActive} />
+          <CIEPhaseGroup
+            key={phase.label}
+            label={phase.label}
+            nodes={phase.nodes}
+            defaultOpen={hasActive}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={(id) => setSelectedNodeId(prev => prev === id ? null : id)}
+          />
         );
       })}
     </div>
   );
 }
 
-function CIEPhaseGroup({ label, nodes, defaultOpen }: { label: string; nodes: PathwayNode[]; defaultOpen?: boolean }) {
+function CIEPhaseGroup({
+  label, nodes, defaultOpen, selectedNodeId, onSelectNode,
+}: {
+  label: string;
+  nodes: PathwayNode[];
+  defaultOpen?: boolean;
+  selectedNodeId: string | null;
+  onSelectNode: (id: string) => void;
+}) {
   const completed = nodes.filter(n => n.status === "COMPLETED").length;
   const overdue = nodes.filter(n => n.status === "OVERDUE").length;
   const [open, setOpen] = useState(defaultOpen ?? false);
@@ -512,7 +725,14 @@ function CIEPhaseGroup({ label, nodes, defaultOpen }: { label: string; nodes: Pa
       {open && (
         <div className="px-3 pb-3 pt-0 border-t border-neutral-100">
           <div className="space-y-1.5 pt-2">
-            {nodes.map((node) => <CIENodeRow key={node.id} node={node} />)}
+            {nodes.map((node) => (
+              <CIENodeRow
+                key={node.id}
+                node={node}
+                isSelected={selectedNodeId === node.id}
+                onToggleProtocol={() => onSelectNode(node.id)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -520,47 +740,81 @@ function CIEPhaseGroup({ label, nodes, defaultOpen }: { label: string; nodes: Pa
   );
 }
 
-function CIENodeRow({ node }: { node: PathwayNode }) {
+function CIENodeRow({
+  node, isSelected, onToggleProtocol,
+}: {
+  node: PathwayNode;
+  isSelected: boolean;
+  onToggleProtocol: () => void;
+}) {
   const cfg = NODE_STATUS_CFG[node.status] ?? NODE_STATUS_CFG.FUTURE;
+  const hasProtocol = !!node.PathwayTemplateStep?.protocolContent;
+  const protocol = node.PathwayTemplateStep?.protocolContent ?? null;
+
   return (
-    <div className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg border ${
-      node.status === "OVERDUE" ? "bg-red-50/50 border-red-100"
-      : node.status === "COMPLETED" ? "bg-teal-50/30 border-teal-100"
-      : node.status === "IN_WINDOW" ? "bg-blue-50/30 border-blue-100"
-      : "bg-neutral-50 border-neutral-100"
-    }`}>
-      <div className="mt-0.5">{cfg.icon}</div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <p className={`text-xs font-medium leading-snug ${node.status === "SKIPPED" ? "line-through text-neutral-400" : "text-neutral-700"}`}>
-            {node.actLabel}
-            {node.isRequired && <span className="ml-1 text-[9px] text-red-400">*</span>}
-          </p>
-          <span className={`shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls}`}>
-            {cfg.label}
-          </span>
+    <div>
+      <div className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg border ${
+        node.status === "OVERDUE" ? "bg-red-50/50 border-red-100"
+        : node.status === "COMPLETED" ? "bg-teal-50/30 border-teal-100"
+        : node.status === "IN_WINDOW" ? "bg-blue-50/30 border-blue-100"
+        : "bg-neutral-50 border-neutral-100"
+      } ${isSelected ? "border-[rgba(91,78,196,0.3)]" : ""}`}>
+        <div className="mt-0.5">{cfg.icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className={`text-xs font-medium leading-snug ${node.status === "SKIPPED" ? "line-through text-neutral-400" : "text-neutral-700"}`}>
+              {node.actLabel}
+              {node.isRequired && <span className="ml-1 text-[9px] text-red-400">*</span>}
+            </p>
+            <span className={`shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls}`}>
+              {cfg.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <ActBadge type={node.clinicalActType} />
+            {node.specialty && (
+              <span className="text-[10px] text-neutral-400">{node.specialty}</span>
+            )}
+            {node.status === "OVERDUE" && node.daysOverdue !== null && (
+              <span className="text-[10px] font-medium text-red-500">{node.daysOverdue}j de retard</span>
+            )}
+            {node.status === "COMPLETED" && node.realizedDate && (
+              <span className="text-[10px] text-teal-600">{formatDate(node.realizedDate)}</span>
+            )}
+            {node.expectedDate && node.status !== "COMPLETED" && (
+              <span className="text-[10px] text-neutral-400">Prévu {formatDate(node.expectedDate)}</span>
+            )}
+            {hasProtocol && (
+              <button
+                onClick={onToggleProtocol}
+                className={cn(
+                  "text-[9px] font-medium px-1.5 py-0.5 rounded border transition-colors",
+                  isSelected
+                    ? "bg-[rgba(91,78,196,0.1)] border-[rgba(91,78,196,0.3)] text-[#5B4EC4]"
+                    : "bg-white border-neutral-200 text-neutral-400 hover:border-[rgba(91,78,196,0.3)] hover:text-[#5B4EC4]"
+                )}
+              >
+                {isSelected ? "✕ Fermer" : "Comment faire →"}
+              </button>
+            )}
+          </div>
+          {node.ProviderProfile && (
+            <p className="text-[10px] text-indigo-500 mt-0.5">
+              {node.ProviderProfile.person.firstName} {node.ProviderProfile.person.lastName}
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <ActBadge type={node.clinicalActType} />
-          {node.specialty && (
-            <span className="text-[10px] text-neutral-400">{node.specialty}</span>
-          )}
-          {node.status === "OVERDUE" && node.daysOverdue !== null && (
-            <span className="text-[10px] font-medium text-red-500">{node.daysOverdue}j de retard</span>
-          )}
-          {node.status === "COMPLETED" && node.realizedDate && (
-            <span className="text-[10px] text-teal-600">{formatDate(node.realizedDate)}</span>
-          )}
-          {node.expectedDate && node.status !== "COMPLETED" && (
-            <span className="text-[10px] text-neutral-400">Prévu {formatDate(node.expectedDate)}</span>
-          )}
-        </div>
-        {node.ProviderProfile && (
-          <p className="text-[10px] text-indigo-500 mt-0.5">
-            {node.ProviderProfile.person.firstName} {node.ProviderProfile.person.lastName}
-          </p>
-        )}
       </div>
+      {isSelected && protocol && (
+        <div className="mt-1.5">
+          <StepProtocolPanel
+            actLabel={node.actLabel}
+            clinicalActType={node.clinicalActType}
+            protocol={protocol}
+            onClose={onToggleProtocol}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -617,12 +871,14 @@ function TemplateStepsSection({
       {phases.map((phase, i) => (
         <TemplatePhaseGroup key={phase.label} label={phase.label} steps={phase.steps} defaultOpen={i === 0} />
       ))}
+
     </div>
   );
 }
 
 function TemplatePhaseGroup({ label, steps, defaultOpen = false }: { label: string; steps: PathwayTemplateStep[]; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const required = steps.filter(s => s.isRequired).length;
 
   return (
@@ -650,34 +906,65 @@ function TemplatePhaseGroup({ label, steps, defaultOpen = false }: { label: stri
       {open && (
         <div className="px-3 pb-3 pt-0 border-t border-neutral-100">
           <div className="space-y-1.5 pt-2">
-            {steps.map((step) => (
-              <div
-                key={step.id}
-                className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-white border border-neutral-100 hover:border-teal-100 hover:bg-teal-50/30 transition-colors"
-              >
-                <div className="w-4 h-4 rounded-full border-2 border-teal-200 shrink-0 mt-0.5 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-teal-300" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-neutral-800 leading-snug">
-                    {step.actLabel}
-                    {step.isRequired && <span className="ml-1 text-[9px] font-bold text-teal-500 uppercase">Requis</span>}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <ActBadge type={step.clinicalActType} />
-                    {step.specialty && (
-                      <span className="text-[10px] text-neutral-400">{step.specialty}</span>
+            {steps.map((step) => {
+              const isSelected = selectedStepId === step.id;
+              const hasProtocol = !!step.protocolContent;
+              return (
+                <div key={step.id}>
+                  <div
+                    className={cn(
+                      "flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-white border transition-colors",
+                      isSelected ? "border-[rgba(91,78,196,0.25)] bg-[rgba(91,78,196,0.02)]" : "border-neutral-100 hover:border-teal-100 hover:bg-teal-50/30"
                     )}
-                    {step.expectedDayOffset > 0 && (
-                      <span className="text-[10px] text-neutral-400">J+{step.expectedDayOffset}</span>
-                    )}
-                    {step.sourceRef && (
-                      <span className="text-[9px] font-mono text-neutral-300">{step.sourceRef}</span>
-                    )}
+                  >
+                    <div className="w-4 h-4 rounded-full border-2 border-teal-200 shrink-0 mt-0.5 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-neutral-800 leading-snug">
+                        {step.actLabel}
+                        {step.isRequired && <span className="ml-1 text-[9px] font-bold text-teal-500 uppercase">Requis</span>}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <ActBadge type={step.clinicalActType} />
+                        {step.specialty && (
+                          <span className="text-[10px] text-neutral-400">{step.specialty}</span>
+                        )}
+                        {step.expectedDayOffset > 0 && (
+                          <span className="text-[10px] text-neutral-400">J+{step.expectedDayOffset}</span>
+                        )}
+                        {step.sourceRef && (
+                          <span className="text-[9px] font-mono text-neutral-300">{step.sourceRef}</span>
+                        )}
+                        {hasProtocol && (
+                          <button
+                            onClick={() => setSelectedStepId(prev => prev === step.id ? null : step.id)}
+                            className={cn(
+                              "text-[9px] font-medium px-1.5 py-0.5 rounded border transition-colors",
+                              isSelected
+                                ? "bg-[rgba(91,78,196,0.1)] border-[rgba(91,78,196,0.3)] text-[#5B4EC4]"
+                                : "bg-white border-neutral-200 text-neutral-400 hover:border-[rgba(91,78,196,0.3)] hover:text-[#5B4EC4]"
+                            )}
+                          >
+                            {isSelected ? "✕ Fermer" : "Comment faire →"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
+                  {isSelected && step.protocolContent && (
+                    <div className="mt-1.5">
+                      <StepProtocolPanel
+                        actLabel={step.actLabel}
+                        clinicalActType={step.clinicalActType}
+                        protocol={step.protocolContent}
+                        onClose={() => setSelectedStepId(null)}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
