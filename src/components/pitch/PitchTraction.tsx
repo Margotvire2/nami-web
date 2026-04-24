@@ -58,7 +58,7 @@ export function PitchTraction() {
           }}>
             Pas un claim.<br />Des preuves.
           </h2>
-          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 52, maxWidth: 520, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16, color: "#374151", marginBottom: 52, maxWidth: 520, lineHeight: 1.6 }}>
             Nami réunit dans un seul outil les frictions du quotidien soignant — agenda, coordination d&apos;équipe, adressage, messagerie, intelligence documentaire. Conçu par une professionnelle de santé qui les a toutes vécues.
           </p>
         </ScrollReveal>
@@ -83,9 +83,9 @@ export function PitchTraction() {
                 <div style={{ fontSize: 11, fontWeight: 700, color: card.color, letterSpacing: "0.04em", textTransform: "uppercase" }}>{card.label}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
                   <span style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.03em", fontFamily: "var(--font-jakarta)" }}>{card.metric}</span>
-                  <span style={{ fontSize: 12, color: "#8A8A96", fontWeight: 500 }}>{card.unit}</span>
+                  <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 500 }}>{card.unit}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "#4A4A5A", lineHeight: 1.6, flex: 1 }}>{card.body}</div>
+                <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, flex: 1 }}>{card.body}</div>
               </div>
             </ScrollReveal>
           ))}
@@ -110,7 +110,7 @@ export function PitchTraction() {
                 border: "1px solid rgba(91,78,196,0.09)",
               }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#5B4EC4", marginBottom: 6 }}>{item.label}</div>
-                <div style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.6 }}>{item.body}</div>
+                <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{item.body}</div>
               </div>
             ))}
           </div>

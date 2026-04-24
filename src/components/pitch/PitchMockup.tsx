@@ -53,7 +53,7 @@ export function PitchMockup() {
             <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />
           ))}
         </div>
-        <div style={{ flex: 1, background: "rgba(255,255,255,0.75)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#8A8A96", textAlign: "center" }}>
+        <div style={{ flex: 1, background: "rgba(255,255,255,0.75)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#6B7280", textAlign: "center" }}>
           app.namipourlavie.com/aujourd-hui
         </div>
       </div>
@@ -68,7 +68,7 @@ export function PitchMockup() {
         </div>
         <div style={{ display: "flex", gap: 14 }}>
           {["Patients","Agenda","Messages"].map(l => (
-            <span key={l} style={{ fontSize: 11, color: "#8A8A96" }}>{l}</span>
+            <span key={l} style={{ fontSize: 11, color: "#6B7280" }}>{l}</span>
           ))}
         </div>
         <div style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(91,78,196,0.10)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -80,11 +80,11 @@ export function PitchMockup() {
       <div style={{ background: "#FAFAF8", borderBottom: "1px solid rgba(26,26,46,0.04)", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A2E" }}>Bonjour, Margot</div>
-          <div style={{ fontSize: 11, color: "#8A8A96", marginTop: 1 }}>3 dossiers actifs · Aujourd&apos;hui</div>
+          <div style={{ fontSize: 11, color: "#6B7280", marginTop: 1 }}>3 dossiers actifs · Aujourd&apos;hui</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", borderRadius: 8, padding: "5px 10px", border: "1px solid rgba(26,26,46,0.08)" }}>
-          <Search size={11} color="#8A8A96" />
-          <span style={{ fontSize: 11, color: "#8A8A96" }}>Rechercher…</span>
+          <Search size={11} color="#6B7280" />
+          <span style={{ fontSize: 11, color: "#6B7280" }}>Rechercher…</span>
         </div>
       </div>
 
@@ -104,7 +104,7 @@ export function PitchMockup() {
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#1A1A2E" }}>{row.name} · {row.age} ans</span>
                 <span style={{ fontSize: 10, fontWeight: 600, color: row.badgeColor, background: row.badgeBg, padding: "1px 6px", borderRadius: 4 }}>{row.badge}</span>
               </div>
-              <div style={{ fontSize: 11, color: "#8A8A96", marginTop: 1 }}>{row.condition}</div>
+              <div style={{ fontSize: 11, color: "#6B7280", marginTop: 1 }}>{row.condition}</div>
               <div style={{ display: "flex", gap: 5, marginTop: 5, flexWrap: "wrap" }}>
                 {row.tags.map(t => (
                   <span key={t.label} style={{
@@ -125,7 +125,7 @@ export function PitchMockup() {
 
       {/* Footer */}
       <div style={{ background: "#FAFAF8", borderTop: "1px solid rgba(26,26,46,0.04)", padding: "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: 10, color: "#8A8A96" }}>Conforme RGPD · Art. L.1110-12 CSP</span>
+        <span style={{ fontSize: 10, color: "#6B7280" }}>Conforme RGPD · Art. L.1110-12 CSP</span>
         <span style={{ fontSize: 10, color: "rgba(91,78,196,0.5)" }}>nami</span>
       </div>
     </div>

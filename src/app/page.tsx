@@ -60,8 +60,8 @@ export default function HomePage() {
           --nami-dark: #1A1A2E;
           --nami-dark-2: #252540;
           --nami-text: #1A1A2E;
-          --nami-text-2: #4A4A5A;
-          --nami-text-3: #8A8A96;
+          --nami-text-2: #374151;
+          --nami-text-3: #6B7280;
         }
         * { box-sizing: border-box; }
         .nami-gradient-text {

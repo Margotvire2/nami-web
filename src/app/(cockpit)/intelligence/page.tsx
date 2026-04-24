@@ -210,7 +210,7 @@ function slugToCategory(slug: string): string {
 const CATEGORY_META: Record<string, { label: string; color: string; bg: string; desc: string }> = {
   SEM:  { label: "Sémantique", color: "#5B4EC4", bg: "rgba(91,78,196,0.08)",    desc: "Fiches pathologies sémantiques" },
   ALGO: { label: "Algorithme", color: "#2BA89C", bg: "rgba(43,168,156,0.08)",   desc: "Arbres décisionnels cliniques" },
-  KE:   { label: "Fiche",      color: "#8A8A96", bg: "rgba(138,138,150,0.10)",  desc: "Fiches de référence" },
+  KE:   { label: "Fiche",      color: "#6B7280", bg: "rgba(138,138,150,0.10)",  desc: "Fiches de référence" },
   PCR:  { label: "PCR",        color: "#7C3AED", bg: "rgba(124,58,237,0.08)",   desc: "Parcours de soins complexe" },
   REF:  { label: "Référence",  color: "#2563EB", bg: "rgba(37,99,235,0.08)",    desc: "Sources HAS / guidelines" },
 };
@@ -268,7 +268,7 @@ function ScoreDots({ score }: { score: number }) {
           }}
         />
       ))}
-      <span style={{ fontSize: 10, color: "#8A8A96", marginLeft: 4, fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ fontSize: 10, color: "#6B7280", marginLeft: 4, fontVariantNumeric: "tabular-nums" }}>
         {Math.round(score * 100)}%
       </span>
     </div>
@@ -333,7 +333,7 @@ function ResultCard({
           style={{
             fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
             textTransform: "uppercase",
-            color: meta?.color ?? "#8A8A96",
+            color: meta?.color ?? "#6B7280",
             background: meta?.bg ?? "rgba(138,138,150,0.10)",
             padding: "2px 8px", borderRadius: 6,
             flexShrink: 0,
@@ -347,7 +347,7 @@ function ResultCard({
             Qualité source limitée
           </span>
         )}
-        <span style={{ fontSize: 10, color: "#8A8A96", marginLeft: "auto" }}>
+        <span style={{ fontSize: 10, color: "#6B7280", marginLeft: "auto" }}>
           {result.qualityScore > 0 ? `${Math.round(result.qualityScore * 100)}%` : ""}
         </span>
       </div>
@@ -358,15 +358,15 @@ function ResultCard({
       </h3>
 
       {/* Source slug */}
-      <p style={{ fontSize: 10, color: "#8A8A96", marginBottom: 8, letterSpacing: "0.02em" }}>
+      <p style={{ fontSize: 10, color: "#6B7280", marginBottom: 8, letterSpacing: "0.02em" }}>
         {result.slug}
       </p>
 
       {/* Content prose */}
-      <p style={{ fontSize: 12, color: "#4A4A5A", lineHeight: 1.65 }}>
+      <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.65 }}>
         {expanded
           ? highlightTerms(clean, query)
-          : <>{highlightTerms(preview, query)}{hasMore && <span style={{ color: "#8A8A96" }}>…</span>}</>}
+          : <>{highlightTerms(preview, query)}{hasMore && <span style={{ color: "#6B7280" }}>…</span>}</>}
       </p>
 
       {/* Voir plus / Réduire */}
@@ -420,9 +420,9 @@ function KnowledgeDetailModal({
             <div
               style={{
                 marginTop: 2, flexShrink: 0, padding: "6px",
-                borderRadius: 8, border: `1px solid ${meta?.color ?? "#8A8A96"}22`,
+                borderRadius: 8, border: `1px solid ${meta?.color ?? "#6B7280"}22`,
                 background: meta?.bg ?? "rgba(138,138,150,0.10)",
-                color: meta?.color ?? "#8A8A96",
+                color: meta?.color ?? "#6B7280",
               }}
             >
               <Icon size={14} />
@@ -436,7 +436,7 @@ function KnowledgeDetailModal({
                   style={{
                     fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
                     textTransform: "uppercase",
-                    color: meta?.color ?? "#8A8A96",
+                    color: meta?.color ?? "#6B7280",
                     background: meta?.bg ?? "rgba(138,138,150,0.10)",
                     padding: "2px 8px", borderRadius: 6,
                   }}
@@ -755,7 +755,7 @@ function QAClinique() {
                         const cat = slugToCategory(s.slug ?? "");
                         const meta = CATEGORY_META[cat];
                         return (
-                          <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: meta?.bg ?? "rgba(138,138,150,0.10)", color: meta?.color ?? "#8A8A96", border: `1px solid ${meta?.color ?? "#8A8A96"}22` }}>
+                          <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: meta?.bg ?? "rgba(138,138,150,0.10)", color: meta?.color ?? "#6B7280", border: `1px solid ${meta?.color ?? "#6B7280"}22` }}>
                             [{j + 1}] {s.title || s.slug}
                           </span>
                         );
@@ -865,14 +865,14 @@ export default function IntelligencePage() {
             <button
               onClick={() => setMode("search")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={mode === "search" ? { background: "#fff", color: "#5B4EC4", boxShadow: "0 1px 3px rgba(26,26,46,0.08)" } : { color: "#8A8A96" }}
+              style={mode === "search" ? { background: "#fff", color: "#5B4EC4", boxShadow: "0 1px 3px rgba(26,26,46,0.08)" } : { color: "#6B7280" }}
             >
               <Search size={13} /> Recherche documentaire
             </button>
             <button
               onClick={() => setMode("qa")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={mode === "qa" ? { background: "#fff", color: "#5B4EC4", boxShadow: "0 1px 3px rgba(26,26,46,0.08)" } : { color: "#8A8A96" }}
+              style={mode === "qa" ? { background: "#fff", color: "#5B4EC4", boxShadow: "0 1px 3px rgba(26,26,46,0.08)" } : { color: "#6B7280" }}
             >
               <MessageSquare size={13} /> QA Clinique
             </button>
@@ -968,7 +968,7 @@ export default function IntelligencePage() {
                   borderRadius: 8, border: "1px solid",
                   cursor: "pointer", transition: "all 0.15s",
                   borderColor: isActive ? (meta?.color ?? "#5B4EC4") : "rgba(26,26,46,0.08)",
-                  color: isActive ? (meta?.color ?? "#5B4EC4") : "#4A4A5A",
+                  color: isActive ? (meta?.color ?? "#5B4EC4") : "#374151",
                   background: isActive ? (meta?.bg ?? "rgba(91,78,196,0.08)") : "#fff",
                 }}
               >

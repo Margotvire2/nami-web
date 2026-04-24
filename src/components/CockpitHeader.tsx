@@ -93,7 +93,7 @@ export function CockpitHeader() {
           const e = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
           window.dispatchEvent(e)
         }}
-        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[#8A8A96] text-xs hover:border-[#5B4EC4] hover:text-[#5B4EC4] transition-colors shrink-0"
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[#6B7280] text-xs hover:border-[#5B4EC4] hover:text-[#5B4EC4] transition-colors shrink-0"
         title="Recherche rapide (⌘K)"
       >
         <span className="text-xs">🔍</span>
@@ -109,7 +109,7 @@ export function CockpitHeader() {
             "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold shrink-0 transition-all duration-150",
             actionVariant === "primary" && "bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] shadow-sm hover:shadow-md",
             actionVariant === "danger"  && "bg-red-500 text-white hover:bg-red-600",
-            actionVariant === "ghost"   && "bg-transparent border border-[#E2E8F0] text-[#4A4A5A] hover:bg-[#F8F9FA]",
+            actionVariant === "ghost"   && "bg-transparent border border-[#E2E8F0] text-[#374151] hover:bg-[#F8F9FA]",
           )}
           style={{ fontFamily: "var(--font-jakarta)" }}
         >

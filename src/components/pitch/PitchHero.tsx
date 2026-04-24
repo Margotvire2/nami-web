@@ -127,7 +127,7 @@ export function PitchHero({ variant }: Props) {
         {/* Subtitle */}
         <p style={{
           fontSize: "clamp(14px, 1.8vw, 18px)",
-          color: "#4A4A5A",
+          color: "#374151",
           lineHeight: 1.65,
           maxWidth: 560,
           margin: "0 0 32px",
@@ -175,7 +175,7 @@ export function PitchHero({ variant }: Props) {
             href={c.ctaSecondary.startsWith("mailto") || c.ctaSecondary.startsWith("#") ? c.ctaSecondary : "#demo"}
             style={{
               fontSize: 14,
-              color: "#8A8A96",
+              color: "#6B7280",
               textDecoration: "none",
               fontFamily: "inherit",
               minHeight: 44,
@@ -191,7 +191,7 @@ export function PitchHero({ variant }: Props) {
         <div style={{
           marginTop: 32,
           fontSize: 11,
-          color: "#8A8A96",
+          color: "#6B7280",
           opacity: visible ? 1 : 0,
           transition: "opacity 0.6s ease 900ms",
         }}>

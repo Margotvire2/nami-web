@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 import { AmbientGlowCTA } from "@/components/pitch/AmbientGlow"
 
-const C = { nami: "#5B4EC4", namiH: "#4c44b0", teal: "#2BA89C", bg: "#FAFAF8", bgAlt: "#F5F3EF", dark: "#1A1A2E", t1: "#1A1A2E", t2: "#4A4A5A", tm: "#8A8A96", bl: "rgba(26,26,46,0.06)", bm: "rgba(26,26,46,0.12)" }
+const C = { nami: "#5B4EC4", namiH: "#4c44b0", teal: "#2BA89C", bg: "#FAFAF8", bgAlt: "#F5F3EF", dark: "#1A1A2E", t1: "#1A1A2E", t2: "#374151", tm: "#6B7280", bl: "rgba(26,26,46,0.06)", bm: "rgba(26,26,46,0.12)" }
 const GRAD: React.CSSProperties = { background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }
 const CTR: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: "0 clamp(20px, 5vw, 80px)" }
 const EYE = (light = false): React.CSSProperties => ({ fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: light ? "rgba(255,255,255,0.35)" : C.nami, marginBottom: 16 })
@@ -36,7 +36,7 @@ function BrowserFrame({ children }: { children: React.ReactNode }) {
       <div style={{ background: "#F1F3F5", padding: "9px 14px", display: "flex", gap: 6, alignItems: "center" }}>
         {["#FF6058","#FFBC2E","#29CA41"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <div style={{ background: "#E8E8ED", borderRadius: 6, padding: "3px 40px", fontSize: 10, color: "#8A8A96", fontFamily: FI }}>app.namipourlavie.com</div>
+          <div style={{ background: "#E8E8ED", borderRadius: 6, padding: "3px 40px", fontSize: 10, color: "#6B7280", fontFamily: FI }}>app.namipourlavie.com</div>
         </div>
       </div>
       <div style={{ background: "#fff", minHeight: 340 }}>{children}</div>

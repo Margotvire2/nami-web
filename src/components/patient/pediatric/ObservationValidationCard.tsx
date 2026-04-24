@@ -43,7 +43,7 @@ export function ObservationValidationCard({ obs, onValidate, onReject }: Props) 
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs font-semibold text-[#1A1A2E]">{obs.metric.label}</p>
-          <p className="text-[10px] text-[#8A8A96]">
+          <p className="text-[10px] text-[#6B7280]">
             {format(new Date(obs.effectiveAt), "d MMMM yyyy", { locale: fr })}
           </p>
         </div>
@@ -63,7 +63,7 @@ export function ObservationValidationCard({ obs, onValidate, onReject }: Props) 
           )}
           <button
             onClick={() => setEditing((e) => !e)}
-            className="text-[#8A8A96] hover:text-[#5B4EC4] transition-colors"
+            className="text-[#6B7280] hover:text-[#5B4EC4] transition-colors"
             title="Corriger la valeur"
           >
             <Edit3 size={12} />

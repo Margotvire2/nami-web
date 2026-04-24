@@ -33,14 +33,14 @@ const TIER_STYLE: Record<string, { bg: string; color: string }> = {
   EXPERT:       { bg: "rgba(91,78,196,0.08)",  color: "#5B4EC4" },
   COORDINATION: { bg: "rgba(43,168,156,0.08)", color: "#2BA89C" },
   PRO:          { bg: "rgba(230,153,62,0.08)", color: "#E6993E" },
-  PRESENCE:     { bg: "#F5F3EF",               color: "#8A8A96" },
-  FREE:         { bg: "#F5F3EF",               color: "#8A8A96" },
+  PRESENCE:     { bg: "#F5F3EF",               color: "#6B7280" },
+  FREE:         { bg: "#F5F3EF",               color: "#6B7280" },
 };
 
 const ROLE_STYLE: Record<string, { bg: string; color: string }> = {
   ADMIN:    { bg: "rgba(91,78,196,0.08)",  color: "#5B4EC4" },
   PROVIDER: { bg: "rgba(43,168,156,0.08)", color: "#2BA89C" },
-  PATIENT:  { bg: "#F5F3EF",               color: "#8A8A96" },
+  PATIENT:  { bg: "#F5F3EF",               color: "#6B7280" },
 };
 
 function Badge({ text, bg, color }: { text: string; bg: string; color: string }) {
@@ -101,7 +101,7 @@ function DetailPanel({ user, onClose }: { user: AdminUser; onClose: () => void }
             onClick={onClose}
             style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(26,26,46,0.05)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <X size={16} style={{ color: "#8A8A96" }} />
+            <X size={16} style={{ color: "#6B7280" }} />
           </button>
         </div>
 
@@ -110,7 +110,7 @@ function DetailPanel({ user, onClose }: { user: AdminUser; onClose: () => void }
           <Avatar first={user.firstName} last={user.lastName} size={48} />
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E" }}>{user.firstName} {user.lastName}</p>
-            <p style={{ fontSize: 12, color: "#8A8A96", marginTop: 2 }}>{user.email}</p>
+            <p style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{user.email}</p>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ function DetailPanel({ user, onClose }: { user: AdminUser; onClose: () => void }
           user.providerProfile?.specialties?.length ? { label: "Spécialités", value: (user.providerProfile.specialties as string[]).slice(0, 3).join(", ") } : null,
         ].filter(Boolean).map((item) => item && (
           <div key={item.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, padding: "10px 0", borderBottom: "1px solid rgba(26,26,46,0.06)" }}>
-            <span style={{ fontSize: 13, color: "#8A8A96" }}>{item.label}</span>
+            <span style={{ fontSize: 13, color: "#6B7280" }}>{item.label}</span>
             <span style={{ fontSize: 13, fontWeight: 500, color: "#1A1A2E" }}>{item.value}</span>
           </div>
         ))}
@@ -196,7 +196,7 @@ export default function AdminUtilisateursPage() {
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         {/* Search */}
         <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
-          <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#8A8A96" }} />
+          <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#6B7280" }} />
           <input
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
@@ -245,7 +245,7 @@ export default function AdminUtilisateursPage() {
                 fontWeight: roleFilter === value ? 600 : 400,
                 cursor: "pointer",
                 background: roleFilter === value ? "rgba(91,78,196,0.08)" : "transparent",
-                color: roleFilter === value ? "#5B4EC4" : "#8A8A96",
+                color: roleFilter === value ? "#5B4EC4" : "#6B7280",
                 transition: "all 0.2s",
               }}
             >
@@ -261,7 +261,7 @@ export default function AdminUtilisateursPage() {
           <thead>
             <tr style={{ borderBottom: "1px solid rgba(26,26,46,0.06)" }}>
               {["Nom", "Email", "Rôle", "Tier", "Date"].map((col) => (
-                <th key={col} style={{ padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "#8A8A96", textAlign: "left", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <th key={col} style={{ padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "#6B7280", textAlign: "left", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   {col}
                 </th>
               ))}
@@ -270,13 +270,13 @@ export default function AdminUtilisateursPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} style={{ padding: 40, textAlign: "center", color: "#8A8A96", fontSize: 13 }}>
+                <td colSpan={5} style={{ padding: 40, textAlign: "center", color: "#6B7280", fontSize: 13 }}>
                   Chargement…
                 </td>
               </tr>
             ) : (data?.users ?? []).length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: 40, textAlign: "center", color: "#8A8A96", fontSize: 13 }}>
+                <td colSpan={5} style={{ padding: 40, textAlign: "center", color: "#6B7280", fontSize: 13 }}>
                   Aucun utilisateur trouvé
                 </td>
               </tr>
@@ -306,7 +306,7 @@ export default function AdminUtilisateursPage() {
                         </span>
                       </div>
                     </td>
-                    <td style={{ padding: "10px 16px", fontSize: 13, color: "#8A8A96" }}>{user.email}</td>
+                    <td style={{ padding: "10px 16px", fontSize: 13, color: "#6B7280" }}>{user.email}</td>
                     <td style={{ padding: "10px 16px" }}>
                       <Badge text={user.roleType} bg={roleStyle.bg} color={roleStyle.color} />
                     </td>
@@ -317,7 +317,7 @@ export default function AdminUtilisateursPage() {
                         <span style={{ fontSize: 12, color: "#E8ECF4" }}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: "10px 16px", fontSize: 12, color: "#8A8A96" }}>
+                    <td style={{ padding: "10px 16px", fontSize: 12, color: "#6B7280" }}>
                       {new Date(user.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                     </td>
                   </tr>
@@ -341,9 +341,9 @@ export default function AdminUtilisateursPage() {
               opacity: page === 1 ? 0.4 : 1,
             }}
           >
-            <ChevronLeft size={16} style={{ color: "#4A4A5A" }} />
+            <ChevronLeft size={16} style={{ color: "#374151" }} />
           </button>
-          <span style={{ fontSize: 13, color: "#4A4A5A" }}>
+          <span style={{ fontSize: 13, color: "#374151" }}>
             {page} / {totalPages}
           </span>
           <button
@@ -356,7 +356,7 @@ export default function AdminUtilisateursPage() {
               opacity: page === totalPages ? 0.4 : 1,
             }}
           >
-            <ChevronRight size={16} style={{ color: "#4A4A5A" }} />
+            <ChevronRight size={16} style={{ color: "#374151" }} />
           </button>
         </div>
       )}

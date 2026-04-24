@@ -49,7 +49,7 @@ export default function DecouvrirPage() {
             }}>
               22 308 sources cliniques.<br />Une seule recherche.
             </h2>
-            <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 16, color: "#374151", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
               Protocoles HAS, consensus internationaux, fiches parcours — tout structuré et consultable en quelques secondes.
             </p>
           </ScrollReveal>
@@ -83,7 +83,7 @@ export default function DecouvrirPage() {
             }}>
               Construit pour le secret médical,<br />pas adapté après coup.
             </h2>
-            <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 16, color: "#374151", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
               La conformité n&apos;est pas une case à cocher. C&apos;est l&apos;architecture de base.
             </p>
           </ScrollReveal>

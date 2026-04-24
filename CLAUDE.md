@@ -56,7 +56,7 @@ Le vocabulaire technique sert en meeting. Les pages publiques utilisent le vocab
 - Fond alterné : #F5F3EF
 - Section sombre : #1A1A2E (max 2 par page, JAMAIS #000000)
 - Surface sombre : #252540
-- Texte : #1A1A2E (titres), #4A4A5A (body), #8A8A96 (muted)
+- Texte : #1A1A2E (titres), #374151 (body), #6B7280 (muted — WCAG AA 4.6:1)
 - Cards : #FFFFFF avec border rgba(26,26,46,0.06)
 - Font : Plus Jakarta Sans
 - Gradient text : linear-gradient(135deg, #5B4EC4, #2BA89C)

@@ -108,7 +108,7 @@ export default function DemanderUneDemoPage() {
           <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 800, color: "#1A1A2E", lineHeight: 1.2, margin: "0 0 16px" }}>
             Voyez Nami dans votre contexte clinique
           </h1>
-          <p style={{ fontSize: 17, color: "#4A4A5A", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>
+          <p style={{ fontSize: 17, color: "#374151", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>
             30 minutes avec Margot. On part de votre parcours de soins le plus complexe et on construit le dossier ensemble.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function DemanderUneDemoPage() {
                   <span style={{ fontSize: 24, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
                   <div>
                     <p style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", margin: "0 0 4px" }}>{title}</p>
-                    <p style={{ fontSize: 13, color: "#8A8A96", margin: 0, lineHeight: 1.55 }}>{desc}</p>
+                    <p style={{ fontSize: 13, color: "#6B7280", margin: 0, lineHeight: 1.55 }}>{desc}</p>
                   </div>
                 </div>
               ))}
@@ -132,7 +132,7 @@ export default function DemanderUneDemoPage() {
 
             {/* Social proof */}
             <div style={{ padding: "24px", background: "rgba(91,78,196,0.04)", border: "1px solid rgba(91,78,196,0.1)", borderRadius: 14 }}>
-              <p style={{ fontSize: 14, color: "#4A4A5A", lineHeight: 1.7, margin: "0 0 14px", fontStyle: "italic" }}>
+              <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.7, margin: "0 0 14px", fontStyle: "italic" }}>
                 &ldquo;On perdait 4 mois entre les soignants sur chaque dossier complexe. Avec Nami, toute l&apos;équipe voit l&apos;avancement du parcours en temps réel.&rdquo;
               </p>
               <p style={{ fontSize: 12, fontWeight: 700, color: "#5B4EC4", margin: 0 }}>Pr A. Hanachi — Médecin interniste, Hôpital Paul Brousse</p>
@@ -145,7 +145,7 @@ export default function DemanderUneDemoPage() {
               <div style={{ textAlign: "center", padding: "24px 0" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
                 <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1A1A2E", margin: "0 0 12px" }}>Demande envoyée !</h2>
-                <p style={{ fontSize: 15, color: "#4A4A5A", lineHeight: 1.65, margin: "0 0 24px" }}>
+                <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.65, margin: "0 0 24px" }}>
                   Margot vous recontacte personnellement dans les 24 heures. Vérifiez votre boîte mail.
                 </p>
                 <Link href="/" style={{ display: "inline-block", background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 100, textDecoration: "none" }}>
@@ -171,7 +171,7 @@ export default function DemanderUneDemoPage() {
                 <SelectField label="Comment avez-vous connu Nami ? *" name="source" value={form.source} onChange={handleChange} options={SOURCES} required style={{ marginBottom: 14 }} />
 
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#4A4A5A", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                     Message (optionnel)
                   </label>
                   <textarea
@@ -187,7 +187,7 @@ export default function DemanderUneDemoPage() {
                 <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, cursor: "pointer" }}>
                   <input type="checkbox" name="acceptTerms" checked={form.acceptTerms} onChange={handleChange}
                     style={{ marginTop: 2, flexShrink: 0, accentColor: "#5B4EC4" }} />
-                  <span style={{ fontSize: 12, color: "#8A8A96", lineHeight: 1.55 }}>
+                  <span style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>
                     J&apos;accepte la{" "}
                     <Link href="/confidentialite" style={{ color: "#5B4EC4" }}>politique de confidentialité</Link>
                     {" "}et le traitement de mes données à des fins de démonstration.
@@ -202,7 +202,7 @@ export default function DemanderUneDemoPage() {
                   type="submit"
                   disabled={state === "submitting"}
                   style={{
-                    width: "100%", padding: "14px 24px", background: state === "submitting" ? "#8A8A96" : "#5B4EC4",
+                    width: "100%", padding: "14px 24px", background: state === "submitting" ? "#6B7280" : "#5B4EC4",
                     color: "#fff", fontSize: 15, fontWeight: 700, borderRadius: 100, border: "none",
                     cursor: state === "submitting" ? "not-allowed" : "pointer",
                     boxShadow: "0 4px 16px rgba(91,78,196,0.3)", transition: "all 0.2s",
@@ -211,7 +211,7 @@ export default function DemanderUneDemoPage() {
                   {state === "submitting" ? "Envoi en cours…" : "Demander ma démo →"}
                 </button>
 
-                <p style={{ fontSize: 11, color: "#8A8A96", textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11, color: "#6B7280", textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>
                   Réponse sous 24h. Aucun engagement, aucune carte de crédit.
                 </p>
               </form>
@@ -239,7 +239,7 @@ function Field({
 }) {
   return (
     <div style={style}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: "#4A4A5A", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
       </label>
       <input
@@ -258,12 +258,12 @@ function SelectField({
 }) {
   return (
     <div style={style}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: "#4A4A5A", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
       </label>
       <select
         name={name} value={value} onChange={onChange} required={required}
-        style={{ width: "100%", padding: "10px 14px", border: "1.5px solid rgba(26,26,46,0.12)", borderRadius: 10, fontSize: 14, color: value ? "#1A1A2E" : "#8A8A96", background: "#FAFAF8", fontFamily: "inherit", boxSizing: "border-box", appearance: "none" }}
+        style={{ width: "100%", padding: "10px 14px", border: "1.5px solid rgba(26,26,46,0.12)", borderRadius: 10, fontSize: 14, color: value ? "#1A1A2E" : "#6B7280", background: "#FAFAF8", fontFamily: "inherit", boxSizing: "border-box", appearance: "none" }}
       >
         <option value="">— Choisir —</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}

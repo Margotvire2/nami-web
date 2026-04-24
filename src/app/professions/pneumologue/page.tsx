@@ -276,7 +276,7 @@ export default function PneumologuePage() {
           <p style={{ fontSize: "clamp(1rem,2.2vw,1.25rem)", fontStyle: "italic", color: "#1A1A2E", maxWidth: 560, margin: "0 auto", lineHeight: 1.55, fontFamily: "'Playfair Display',serif" }}>
             &ldquo;L&rsquo;asthme sévère nécessite un allergologue, une diét, un kiné respiratoire et un psy. Nami synchronise ces expertises en un seul dossier partagé.&rdquo;
           </p>
-          <p style={{ fontSize: 13, color: "#8A8A96", marginTop: 12, fontFamily: "'Inter',sans-serif" }}>Margot Vire, Diététicienne, fondatrice de Nami</p>
+          <p style={{ fontSize: 13, color: "#6B7280", marginTop: 12, fontFamily: "'Inter',sans-serif" }}>Margot Vire, Diététicienne, fondatrice de Nami</p>
         </Fade>
       </section>
 
@@ -308,7 +308,7 @@ export default function PneumologuePage() {
       </section>
 
       <footer style={{ padding: "20px 24px", textAlign: "center", borderTop: "1px solid rgba(26,26,46,0.06)", background: "#FAFAF8" }}>
-        <p style={{ fontSize: 11, color: "#8A8A96", fontFamily: "'Inter',sans-serif" }}>
+        <p style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Inter',sans-serif" }}>
           Outil de coordination · Non dispositif médical · Conforme RGPD · © 2026 Nami
         </p>
       </footer>

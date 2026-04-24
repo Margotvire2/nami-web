@@ -16,9 +16,9 @@ const STATUS_CONFIG = {
   DONE:      { icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", label: "Réalisé" },
   DUE:       { icon: Clock,        color: "text-[#5B4EC4]",   bg: "bg-[#5B4EC4]/5", label: "À documenter" },
   OVERDUE:   { icon: AlertTriangle,color: "text-amber-600",   bg: "bg-amber-50",    label: "Non documenté" },
-  UPCOMING:  { icon: Clock,        color: "text-[#8A8A96]",   bg: "bg-[#FAFAF8]",  label: "À venir" },
-  SKIPPED:   { icon: SkipForward,  color: "text-[#8A8A96]",   bg: "bg-[#FAFAF8]",  label: "Non réalisé" },
-  CANCELLED: { icon: SkipForward,  color: "text-[#8A8A96]",   bg: "bg-[#FAFAF8]",  label: "Annulé" },
+  UPCOMING:  { icon: Clock,        color: "text-[#6B7280]",   bg: "bg-[#FAFAF8]",  label: "À venir" },
+  SKIPPED:   { icon: SkipForward,  color: "text-[#6B7280]",   bg: "bg-[#FAFAF8]",  label: "Non réalisé" },
+  CANCELLED: { icon: SkipForward,  color: "text-[#6B7280]",   bg: "bg-[#FAFAF8]",  label: "Annulé" },
 };
 
 export function PediatricExaminationTimeline({ examinations, profileId }: Props) {
@@ -86,7 +86,7 @@ function ExamRow({ exam, onClick }: { exam: PediatricExamination; onClick: () =>
       <Icon size={14} className={cfg.color} />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-[#1A1A2E] truncate">{exam.label}</p>
-        <p className="text-[10px] text-[#8A8A96]">
+        <p className="text-[10px] text-[#6B7280]">
           {exam.performedDate
             ? `Réalisé le ${format(new Date(exam.performedDate), "d MMM yyyy", { locale: fr })}`
             : `Prévu ${format(new Date(exam.dueDate), "d MMM yyyy", { locale: fr })}`}

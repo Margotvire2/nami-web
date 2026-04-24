@@ -36,8 +36,8 @@ export function ProblemStats({ stats }: { stats: [StatItem, StatItem, StatItem] 
                 s.staticValue
               )}
             </div>
-            <div style={{ fontSize: 14, color: "#4A4A5A", lineHeight: 1.5, fontWeight: 500 }}>{s.label}</div>
-            <div style={{ fontSize: 11, color: "#8A8A96", borderTop: "1px solid rgba(26,26,46,0.06)", paddingTop: 8, marginTop: 2 }}>
+            <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5, fontWeight: 500 }}>{s.label}</div>
+            <div style={{ fontSize: 11, color: "#6B7280", borderTop: "1px solid rgba(26,26,46,0.06)", paddingTop: 8, marginTop: 2 }}>
               {s.source}
             </div>
           </div>

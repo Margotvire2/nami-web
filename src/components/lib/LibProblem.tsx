@@ -52,7 +52,7 @@ export function LibProblem() {
           }}>
             Vous passez autant de temps<br />à documenter qu&apos;à soigner.
           </h2>
-          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 56, maxWidth: 520, lineHeight: 1.65 }}>
+          <p style={{ fontSize: 16, color: "#374151", marginBottom: 56, maxWidth: 520, lineHeight: 1.65 }}>
             Ce n&apos;est pas un manque d&apos;organisation. C&apos;est une infrastructure qui n&apos;a jamais été conçue pour les libéraux.
           </p>
         </ScrollReveal>
@@ -75,7 +75,7 @@ export function LibProblem() {
               }}>
                 <div style={{ fontSize: 28 }}>{pain.icon}</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>{pain.title}</div>
-                <div style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.6, flex: 1 }}>{pain.body}</div>
+                <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, flex: 1 }}>{pain.body}</div>
               </div>
             </ScrollReveal>
           ))}
@@ -100,8 +100,8 @@ export function LibProblem() {
                 }}>
                   {"static" in s ? s.static : <AnimatedCounter target={s.value} suffix={s.suffix} duration={2000} />}
                 </div>
-                <div style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.5, fontWeight: 500 }}>{s.label}</div>
-                <div style={{ fontSize: 11, color: "#8A8A96", fontStyle: "italic" }}>Source : {s.source}</div>
+                <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 11, color: "#6B7280", fontStyle: "italic" }}>Source : {s.source}</div>
               </div>
             ))}
           </div>

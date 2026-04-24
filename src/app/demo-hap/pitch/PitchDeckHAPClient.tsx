@@ -6,7 +6,7 @@ import { HAPNav } from "../HAPNav"
 const C = {
   nami: "#5B4EC4", namiH: "#4c44b0", teal: "#2BA89C",
   bg: "#FAFAF8", bgAlt: "#F5F3EF", dark: "#1A1A2E",
-  t1: "#1A1A2E", t2: "#4A4A5A", tm: "#8A8A96",
+  t1: "#1A1A2E", t2: "#374151", tm: "#6B7280",
   bl: "rgba(26,26,46,0.06)",
 }
 const G: React.CSSProperties = {

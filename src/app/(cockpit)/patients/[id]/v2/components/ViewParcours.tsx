@@ -601,10 +601,10 @@ function NextStepHero({
       </p>
       <p className="text-[16px] font-bold text-[#1A1A2E] leading-snug">{node.actLabel}</p>
       <div className="flex items-center gap-3 mt-2 flex-wrap">
-        {node.specialty && <span className="text-[12px] text-[#4A4A5A]">{node.specialty}</span>}
-        {node.phaseLabel && <span className="text-[12px] text-[#8A8A96]">· {node.phaseLabel}</span>}
+        {node.specialty && <span className="text-[12px] text-[#374151]">{node.specialty}</span>}
+        {node.phaseLabel && <span className="text-[12px] text-[#6B7280]">· {node.phaseLabel}</span>}
         {node.expectedDate && (
-          <span className="text-[12px] text-[#8A8A96]">
+          <span className="text-[12px] text-[#6B7280]">
             · à faire avant le {new Date(node.expectedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
           </span>
         )}
@@ -625,7 +625,7 @@ function NextStepHero({
           onClick={onMarkDone}
           disabled={markingDone}
           className="flex items-center gap-1.5 text-[13px] font-medium px-4 py-2 rounded-lg transition-all disabled:opacity-50"
-          style={{ border: "1px solid rgba(26,26,46,0.12)", background: "transparent", color: "#4A4A5A", cursor: markingDone ? "not-allowed" : "pointer" }}
+          style={{ border: "1px solid rgba(26,26,46,0.12)", background: "transparent", color: "#374151", cursor: markingDone ? "not-allowed" : "pointer" }}
         >
           {markingDone ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} className="text-teal-500" />}
           Marquer comme fait

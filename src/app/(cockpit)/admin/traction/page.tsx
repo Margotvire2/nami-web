@@ -70,7 +70,7 @@ function KpiCard({
   sub?: string;
 }) {
   const DeltaIcon = delta == null ? Minus : delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
-  const deltaColor = delta == null ? "#8A8A96" : delta > 0 ? "#2BA89C" : delta < 0 ? "#D94F4F" : "#8A8A96";
+  const deltaColor = delta == null ? "#6B7280" : delta > 0 ? "#2BA89C" : delta < 0 ? "#D94F4F" : "#6B7280";
 
   return (
     <div
@@ -95,7 +95,7 @@ function KpiCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 13, fontWeight: 500, color: "#8A8A96" }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 500, color: "#6B7280" }}>{label}</span>
         <div style={{ width: 36, height: 36, borderRadius: 10, background: `${accent}14`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon size={16} color={accent} strokeWidth={1.75} />
         </div>
@@ -116,7 +116,7 @@ function KpiCard({
       </div>
 
       {(deltaLabel || sub) && (
-        <span style={{ fontSize: 12, color: "#8A8A96" }}>{deltaLabel ?? sub}</span>
+        <span style={{ fontSize: 12, color: "#6B7280" }}>{deltaLabel ?? sub}</span>
       )}
     </div>
   );
@@ -141,7 +141,7 @@ export default function TractionPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: 40, display: "flex", alignItems: "center", gap: 10, color: "#8A8A96" }}>
+      <div style={{ padding: 40, display: "flex", alignItems: "center", gap: 10, color: "#6B7280" }}>
         <div style={{ width: 18, height: 18, border: "2px solid #E8E6F5", borderTopColor: "#5B4EC4", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
         <span style={{ fontSize: 14 }}>Chargement des métriques…</span>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -162,7 +162,7 @@ export default function TractionPage() {
           <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.02em", margin: 0 }}>
             Traction
           </h2>
-          <p style={{ fontSize: 13, color: "#8A8A96", margin: "4px 0 0" }}>
+          <p style={{ fontSize: 13, color: "#6B7280", margin: "4px 0 0" }}>
             Mis à jour {new Date(data.generatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
@@ -223,12 +223,12 @@ export default function TractionPage() {
         <div style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.06)", borderRadius: 16, padding: "24px 28px", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
           <div style={{ marginBottom: 16 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E" }}>Utilisateurs actifs quotidiens</span>
-            <span style={{ marginLeft: 8, fontSize: 12, color: "#8A8A96" }}>30 derniers jours (logins)</span>
+            <span style={{ marginLeft: 8, fontSize: 12, color: "#6B7280" }}>30 derniers jours (logins)</span>
           </div>
           <BarChart data={data.dailyActiveUsers} />
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-            <span style={{ fontSize: 11, color: "#8A8A96" }}>{data.dailyActiveUsers[0]?.date}</span>
-            <span style={{ fontSize: 11, color: "#8A8A96" }}>Aujourd&apos;hui</span>
+            <span style={{ fontSize: 11, color: "#6B7280" }}>{data.dailyActiveUsers[0]?.date}</span>
+            <span style={{ fontSize: 11, color: "#6B7280" }}>Aujourd&apos;hui</span>
           </div>
         </div>
 
@@ -236,11 +236,11 @@ export default function TractionPage() {
         <div style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.06)", borderRadius: 16, padding: "24px 28px", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
           <div style={{ marginBottom: 16 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E" }}>Top soignants actifs</span>
-            <span style={{ marginLeft: 8, fontSize: 12, color: "#8A8A96" }}>notes / 7j</span>
+            <span style={{ marginLeft: 8, fontSize: 12, color: "#6B7280" }}>notes / 7j</span>
           </div>
 
           {data.topActiveProviders.length === 0 ? (
-            <p style={{ fontSize: 13, color: "#8A8A96", margin: 0 }}>Aucune activité cette semaine.</p>
+            <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Aucune activité cette semaine.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {data.topActiveProviders.map((p, i) => {

@@ -120,13 +120,13 @@ function KpiCard({
       >
         <AnimatedCounter target={value} />
       </div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: "#8A8A96", marginTop: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 500, color: "#6B7280", marginTop: 4 }}>{label}</div>
       {delta !== undefined && (
         <div
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: delta > 0 ? "#2BA84A" : "#8A8A96",
+            color: delta > 0 ? "#2BA84A" : "#6B7280",
             marginTop: 6,
           }}
         >
@@ -162,7 +162,7 @@ function ActivityDot({ type }: { type: string }) {
     pending:   { color: "#E6993E", bg: "rgba(230,153,62,0.12)" },
     validated: { color: "#2BA84A", bg: "rgba(43,168,74,0.12)" },
     case:      { color: "#5B4EC4", bg: "rgba(91,78,196,0.12)" },
-    default:   { color: "#8A8A96", bg: "rgba(138,138,150,0.12)" },
+    default:   { color: "#6B7280", bg: "rgba(138,138,150,0.12)" },
   };
   const { color, bg } = cfg[type] ?? cfg.default;
   return (
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
   return (
     <div style={{ maxWidth: 1100 }}>
       {/* Date */}
-      <p style={{ fontSize: 12, color: "#8A8A96", marginBottom: 20 }}>{today}</p>
+      <p style={{ fontSize: 12, color: "#6B7280", marginBottom: 20 }}>{today}</p>
 
       {/* KPI grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 20 }}>
@@ -314,13 +314,13 @@ export default function AdminDashboard() {
               >
                 <ActivityDot type={act.type} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.4 }}>{act.description}</p>
-                  <p style={{ fontSize: 11, color: "#8A8A96", marginTop: 2 }}>{timeAgo(act.date)}</p>
+                  <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.4 }}>{act.description}</p>
+                  <p style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{timeAgo(act.date)}</p>
                 </div>
               </div>
             ))}
             {(!stats?.recentActivity?.length) && (
-              <p style={{ fontSize: 13, color: "#8A8A96" }}>Aucune activité récente</p>
+              <p style={{ fontSize: 13, color: "#6B7280" }}>Aucune activité récente</p>
             )}
           </div>
         </div>
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
                   marginBottom: 8,
                 }}
               >
-                <span style={{ fontSize: 13, color: "#4A4A5A" }}>{label}</span>
+                <span style={{ fontSize: 13, color: "#374151" }}>{label}</span>
                 <span
                   style={{
                     display: "flex",
@@ -380,7 +380,7 @@ export default function AdminDashboard() {
                 alignItems: "center",
                 gap: 4,
                 fontSize: 11,
-                color: "#8A8A96",
+                color: "#6B7280",
                 textDecoration: "none",
               }}
             >
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
                   marginBottom: 6,
                 }}
               >
-                <span style={{ fontSize: 12, color: "#8A8A96" }}>{label}</span>
+                <span style={{ fontSize: 12, color: "#6B7280" }}>{label}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#1A1A2E" }}>
                   {value.toLocaleString("fr-FR")}
                 </span>
@@ -440,7 +440,7 @@ export default function AdminDashboard() {
         style={{ display: "flex", alignItems: "center", gap: 12 }}
       >
         <Activity size={16} style={{ color: "#5B4EC4", flexShrink: 0 }} />
-        <p style={{ fontSize: 13, color: "#4A4A5A", flex: 1 }}>
+        <p style={{ fontSize: 13, color: "#374151", flex: 1 }}>
           {(stats?.pending ?? 0) > 0
             ? `${stats!.pending} compte${stats!.pending > 1 ? "s" : ""} en attente de validation professionnelle.`
             : "Tous les comptes soignants sont validés."}

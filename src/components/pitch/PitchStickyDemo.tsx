@@ -43,7 +43,7 @@ function BrowserFrame({ children, sceneLabel, sceneColor }: { children: React.Re
           borderRadius: 6,
           padding: "3px 10px",
           fontSize: 11,
-          color: "#8A8A96",
+          color: "#6B7280",
           textAlign: "center",
         }}>
           app.namipourlavie.com
@@ -94,7 +94,7 @@ export function PitchStickyDemo({ caption }: { caption?: React.ReactNode }) {
           </BrowserFrame>
         ))}
         <div style={{ textAlign: "center", paddingTop: 8 }}>
-          <span style={{ fontSize: 12, color: "#8A8A96" }}>
+          <span style={{ fontSize: 12, color: "#6B7280" }}>
             60 000+ sources cliniques · 425 pathologies · 131 parcours
           </span>
         </div>
@@ -178,7 +178,7 @@ export function PitchStickyDemo({ caption }: { caption?: React.ReactNode }) {
               borderRadius: 6,
               padding: "3px 10px",
               fontSize: 11,
-              color: "#8A8A96",
+              color: "#6B7280",
               textAlign: "center",
             }}>
               app.namipourlavie.com/patients/gabriel
@@ -210,7 +210,7 @@ export function PitchStickyDemo({ caption }: { caption?: React.ReactNode }) {
           <div style={{ textAlign: "center" }}>{caption}</div>
         ) : (
           <div style={{ textAlign: "center" }}>
-            <span style={{ fontSize: 12, color: "#8A8A96" }}>
+            <span style={{ fontSize: 12, color: "#6B7280" }}>
               60 000+ sources cliniques indexées · 425 pathologies · 131 parcours structurés
             </span>
           </div>
@@ -222,7 +222,7 @@ export function PitchStickyDemo({ caption }: { caption?: React.ReactNode }) {
           bottom: 24,
           right: 32,
           fontSize: 10,
-          color: "#8A8A96",
+          color: "#6B7280",
           display: "flex",
           alignItems: "center",
           gap: 4,

@@ -116,7 +116,7 @@ export default function SignupPage() {
               style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}>
               Créez votre espace.
             </h1>
-            <p className="text-sm" style={{ color: "#8A8A96" }}>
+            <p className="text-sm" style={{ color: "#6B7280" }}>
               Rejoignez les soignants qui coordonnent mieux.
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function SignupPage() {
 
             {/* Role selector */}
             <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Je suis…</p>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Je suis…</p>
               <div className="grid grid-cols-2 gap-3">
                 {(["PROVIDER", "PATIENT"] as const).map((r, idx) => (
                   <button
@@ -136,7 +136,7 @@ export default function SignupPage() {
                     style={{
                       borderColor: form.roleType === r ? "#5B4EC4" : "rgba(26,26,46,0.1)",
                       background: form.roleType === r ? "rgba(91,78,196,0.05)" : "#fff",
-                      color: form.roleType === r ? "#5B4EC4" : "#4A4A5A",
+                      color: form.roleType === r ? "#5B4EC4" : "#374151",
                       boxShadow: form.roleType === r ? "0 0 0 2px rgba(91,78,196,0.15)" : "none",
                     }}
                   >
@@ -150,12 +150,12 @@ export default function SignupPage() {
             {/* Name row */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Prénom</Label>
+                <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Prénom</Label>
                 <Input id="firstName" value={form.firstName} onChange={(e) => set("firstName", e.target.value)}
                   className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Nom</Label>
+                <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Nom</Label>
                 <Input id="lastName" value={form.lastName} onChange={(e) => set("lastName", e.target.value)}
                   className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
               </div>
@@ -163,7 +163,7 @@ export default function SignupPage() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Email</Label>
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Email</Label>
               <Input id="email" type="email" autoComplete="email" value={form.email}
                 onChange={(e) => set("email", e.target.value)} placeholder="vous@exemple.com"
                 className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
@@ -171,7 +171,7 @@ export default function SignupPage() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Mot de passe</Label>
+              <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Mot de passe</Label>
               <Input id="password" type="password" autoComplete="new-password" value={form.password}
                 onChange={(e) => set("password", e.target.value)} placeholder="8 caractères minimum"
                 className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
@@ -181,7 +181,7 @@ export default function SignupPage() {
             {form.roleType === "PROVIDER" && (
               <>
                 <div className="space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Je pratique en tant que…</p>
+                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Je pratique en tant que…</p>
                   <div className="grid grid-cols-3 gap-2">
                     {PROFESSION_TYPES.map((pt) => (
                       <button key={pt.value} type="button"
@@ -190,7 +190,7 @@ export default function SignupPage() {
                         style={{
                           borderColor: form.professionType === pt.value ? "#5B4EC4" : "rgba(26,26,46,0.1)",
                           background: form.professionType === pt.value ? "rgba(91,78,196,0.05)" : "#fff",
-                          color: form.professionType === pt.value ? "#5B4EC4" : "#4A4A5A",
+                          color: form.professionType === pt.value ? "#5B4EC4" : "#374151",
                           boxShadow: form.professionType === pt.value ? "0 0 0 2px rgba(91,78,196,0.15)" : "none",
                         }}>
                         <div style={{ fontSize: 16, marginBottom: 2 }}>{pt.emoji}</div>
@@ -200,14 +200,14 @@ export default function SignupPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rpps" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>
+                  <Label htmlFor="rpps" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>
                     RPPS <span style={{ color: "#B0B0BA", fontWeight: 400 }}>(optionnel)</span>
                   </Label>
                   <Input id="rpps" value={form.rppsNumber} onChange={(e) => set("rppsNumber", e.target.value)}
                     placeholder="11 chiffres" className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#4A4A5A" }}>Spécialité(s)</p>
+                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>Spécialité(s)</p>
                   <div className="flex flex-wrap gap-2">
                     {SPECIALTIES.map((s) => (
                       <button key={s} type="button" onClick={() => toggleSpecialty(s)}
@@ -215,7 +215,7 @@ export default function SignupPage() {
                         style={{
                           borderColor: form.specialties.includes(s) ? "#5B4EC4" : "rgba(26,26,46,0.12)",
                           background: form.specialties.includes(s) ? "rgba(91,78,196,0.08)" : "#fff",
-                          color: form.specialties.includes(s) ? "#5B4EC4" : "#4A4A5A",
+                          color: form.specialties.includes(s) ? "#5B4EC4" : "#374151",
                         }}>
                         {s}
                       </button>
@@ -231,7 +231,7 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm mt-6" style={{ color: "#8A8A96" }}>
+          <p className="text-center text-sm mt-6" style={{ color: "#6B7280" }}>
             Déjà un compte ?{" "}
             <Link href="/login" className="font-semibold hover:underline underline-offset-2" style={{ color: "#5B4EC4" }}>
               Se connecter

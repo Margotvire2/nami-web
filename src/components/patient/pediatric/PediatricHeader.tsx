@@ -42,7 +42,7 @@ export function PediatricHeader({ profile }: Props) {
         </div>
         <div>
           <p className="text-sm font-semibold text-[#1A1A2E]">{age}</p>
-          <p className="text-xs text-[#8A8A96]">
+          <p className="text-xs text-[#6B7280]">
             Né(e) le {format(new Date(profile.birthDate), "d MMMM yyyy", { locale: fr })}
             {profile.gestationalWeeks ? ` · ${profile.gestationalWeeks} SA` : ""}
             {profile.sex === "MALE" ? " · Garçon" : " · Fille"}
@@ -77,7 +77,7 @@ export function PediatricHeader({ profile }: Props) {
 
       {/* Ligne 3 — infos naissance */}
       {(profile.birthWeight || profile.apgarScore1 != null || profile.targetHeight) && (
-        <div className="flex flex-wrap gap-4 pt-1 border-t border-[rgba(26,26,46,0.04)] text-xs text-[#4A4A5A]">
+        <div className="flex flex-wrap gap-4 pt-1 border-t border-[rgba(26,26,46,0.04)] text-xs text-[#374151]">
           {profile.birthWeight && <span>Poids naiss. <strong>{profile.birthWeight} g</strong></span>}
           {profile.apgarScore1 != null && (
             <span>Apgar <strong>{profile.apgarScore1}/{profile.apgarScore5 ?? "—"}</strong></span>
@@ -106,16 +106,16 @@ function MeasureCard({
   status?: string | null;
   icon: React.ReactNode;
 }) {
-  const statusClass = status ? (STATUS_COLOR[status] ?? "text-[#4A4A5A]") : "text-[#4A4A5A]";
+  const statusClass = status ? (STATUS_COLOR[status] ?? "text-[#374151]") : "text-[#374151]";
   return (
     <div className="bg-[#FAFAF8] rounded-lg p-3 space-y-1">
-      <div className="flex items-center gap-1 text-xs text-[#8A8A96]">
+      <div className="flex items-center gap-1 text-xs text-[#6B7280]">
         {icon}
         <span>{label}</span>
       </div>
       <p className={`text-sm font-semibold ${statusClass}`}>{value}</p>
       {date && (
-        <p className="text-[10px] text-[#8A8A96]">
+        <p className="text-[10px] text-[#6B7280]">
           {format(new Date(date), "d MMM yy", { locale: fr })}
           {status === "PENDING_VALIDATION" && (
             <span className="ml-1 text-amber-500">· à vérifier</span>

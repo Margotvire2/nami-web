@@ -56,7 +56,7 @@ export function PendingObservationsPanel({ profileId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#8A8A96] py-4">
+      <div className="flex items-center gap-2 text-xs text-[#6B7280] py-4">
         <Loader2 size={14} className="animate-spin" />
         Chargement…
       </div>
@@ -65,7 +65,7 @@ export function PendingObservationsPanel({ profileId }: Props) {
 
   if (!observations?.length) {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#8A8A96] py-4">
+      <div className="flex items-center gap-2 text-xs text-[#6B7280] py-4">
         <Inbox size={14} />
         Aucune mesure en attente de vérification
       </div>

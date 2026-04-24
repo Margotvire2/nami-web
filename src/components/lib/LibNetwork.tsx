@@ -55,7 +55,7 @@ export function LibNetwork() {
           }}>
             Orientez vos patients<br />vers des soignants que vous connaissez.
           </h2>
-          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 56, maxWidth: 540, lineHeight: 1.65 }}>
+          <p style={{ fontSize: 16, color: "#374151", marginBottom: 56, maxWidth: 540, lineHeight: 1.65 }}>
             Donner sa confiance à un confrère inconnu ou orienter un patient vers quelqu&apos;un qu&apos;on n&apos;a jamais vu, c&apos;est une prise de risque réelle. Nami vous donne les moyens de construire un réseau de confiance vérifiée — et de coordonner ce réseau sans friction.
           </p>
         </ScrollReveal>
@@ -79,7 +79,7 @@ export function LibNetwork() {
               }}>
                 <div style={{ fontSize: 30 }}>{f.icon}</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>{f.title}</div>
-                <div style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.65, flex: 1 }}>{f.body}</div>
+                <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.65, flex: 1 }}>{f.body}</div>
               </div>
             </ScrollReveal>
           ))}

@@ -104,16 +104,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     padding: "8px 14px 12px",
                     fontSize: 13,
                     fontWeight: isActive ? 600 : 400,
-                    color: isActive ? "#5B4EC4" : "#8A8A96",
+                    color: isActive ? "#5B4EC4" : "#6B7280",
                     textDecoration: "none",
                     transition: "color 0.2s",
                     whiteSpace: "nowrap",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "#4A4A5A";
+                    if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "#374151";
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "#8A8A96";
+                    if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "#6B7280";
                   }}
                 >
                   <Icon size={14} strokeWidth={1.75} />

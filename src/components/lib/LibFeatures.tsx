@@ -41,7 +41,7 @@ export function LibFeatures() {
           }}>
             Tout ce que Doctolib<br />facture 149€, Nami l&apos;offre.
           </h2>
-          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16, color: "#374151", marginBottom: 48, maxWidth: 480, lineHeight: 1.6 }}>
             Agenda, messagerie, réseau, référencement — gratuit. L&apos;IA, l&apos;adressage structuré et la base documentaire arrivent quand vous en avez besoin.
           </p>
         </ScrollReveal>

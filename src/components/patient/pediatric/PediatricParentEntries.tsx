@@ -268,7 +268,7 @@ export function PediatricParentEntries({ profileId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#8A8A96] py-2">
+      <div className="flex items-center gap-2 text-xs text-[#6B7280] py-2">
         <Loader2 size={13} className="animate-spin" /> Chargement…
       </div>
     );
@@ -277,9 +277,9 @@ export function PediatricParentEntries({ profileId }: Props) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <Smartphone size={28} className="text-[#8A8A96]" />
-        <p className="text-xs text-[#8A8A96]">Aucune saisie parent enregistrée.</p>
-        <p className="text-[10px] text-[#8A8A96]">Les données apparaîtront ici dès que la famille utilise l'application.</p>
+        <Smartphone size={28} className="text-[#6B7280]" />
+        <p className="text-xs text-[#6B7280]">Aucune saisie parent enregistrée.</p>
+        <p className="text-[10px] text-[#6B7280]">Les données apparaîtront ici dès que la famille utilise l'application.</p>
       </div>
     );
   }
@@ -306,7 +306,7 @@ export function PediatricParentEntries({ profileId }: Props) {
     <div className="space-y-5">
       {/* 7-day summary card */}
       <div className="rounded-xl border border-[#E8ECF4] bg-[#F8F9FF] p-4">
-        <p className="text-[10px] font-semibold text-[#8A8A96] uppercase tracking-wide mb-3">
+        <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide mb-3">
           Moyennes sur {weekStats.days} jour{weekStats.days > 1 ? "s" : ""}
         </p>
         <div className="grid grid-cols-3 gap-3">
@@ -315,21 +315,21 @@ export function PediatricParentEntries({ profileId }: Props) {
             <p className="text-base font-bold text-[#1A1A2E]">
               {weekStats.avgMl > 0 ? `${weekStats.avgMl}ml` : "—"}
             </p>
-            <p className="text-[10px] text-[#8A8A96]">Lait/j</p>
+            <p className="text-[10px] text-[#6B7280]">Lait/j</p>
           </div>
           <div className="text-center">
             <p className="text-lg">😴</p>
             <p className="text-base font-bold text-[#1A1A2E]">
               {weekStats.avgSleepMin > 0 ? minutesToDisplay(weekStats.avgSleepMin) : "—"}
             </p>
-            <p className="text-[10px] text-[#8A8A96]">Sommeil/j</p>
+            <p className="text-[10px] text-[#6B7280]">Sommeil/j</p>
           </div>
           <div className="text-center">
             <p className="text-lg">🧷</p>
             <p className="text-base font-bold text-[#1A1A2E]">
               {weekStats.avgDiapers > 0 ? weekStats.avgDiapers : "—"}
             </p>
-            <p className="text-[10px] text-[#8A8A96]">Couches/j</p>
+            <p className="text-[10px] text-[#6B7280]">Couches/j</p>
           </div>
         </div>
       </div>
@@ -369,10 +369,10 @@ export function PediatricParentEntries({ profileId }: Props) {
           <div key={g.dateKey}>
             {/* Day header with totals */}
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-semibold text-[#8A8A96] uppercase tracking-wide">
+              <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">
                 {g.date}
               </p>
-              <div className="flex items-center gap-2 text-[10px] text-[#4A4A5A]">
+              <div className="flex items-center gap-2 text-[10px] text-[#374151]">
                 {totals.totalMl > 0 && (
                   <span className="flex items-center gap-0.5">
                     <span>🍼</span>
@@ -427,7 +427,7 @@ export function PediatricParentEntries({ profileId }: Props) {
                       <p className="text-xs font-medium text-[#1A1A2E]">
                         {summarize(e.type, e.data)}
                       </p>
-                      <p className="text-[10px] text-[#8A8A96]">{meta.label}</p>
+                      <p className="text-[10px] text-[#6B7280]">{meta.label}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       {isWeight && (
@@ -440,7 +440,7 @@ export function PediatricParentEntries({ profileId }: Props) {
                           Réaction
                         </span>
                       )}
-                      <span className="text-[10px] text-[#8A8A96]">
+                      <span className="text-[10px] text-[#6B7280]">
                         {formatTime(e.occurredAt)}
                       </span>
                     </div>
@@ -452,7 +452,7 @@ export function PediatricParentEntries({ profileId }: Props) {
         );
       })}
 
-      <p className="text-[10px] text-[#8A8A96] text-center pt-1">
+      <p className="text-[10px] text-[#6B7280] text-center pt-1">
         {entries.length} saisie{entries.length > 1 ? "s" : ""} · Données saisies par la famille via l'application Nami
       </p>
     </div>

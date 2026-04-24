@@ -47,7 +47,7 @@ export function PediatricDossier({ careCaseId }: Props) {
       <div className="bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-8 text-center space-y-2">
         <Baby size={32} className="text-[#5B4EC4]/40 mx-auto" />
         <p className="text-sm font-medium text-[#1A1A2E]">Profil pédiatrique non configuré</p>
-        <p className="text-xs text-[#8A8A96]">Le profil pédiatrique n'a pas encore été créé pour ce dossier.</p>
+        <p className="text-xs text-[#6B7280]">Le profil pédiatrique n'a pas encore été créé pour ce dossier.</p>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export function PediatricDossier({ careCaseId }: Props) {
                     {g.firstName} {g.lastName}
                     {g.isMainGuardian && <span className="ml-1 text-[10px] text-[#5B4EC4]">· Principal</span>}
                   </p>
-                  <p className="text-[10px] text-[#8A8A96]">
+                  <p className="text-[10px] text-[#6B7280]">
                     {GUARDIAN_LABELS[g.relationship] ?? g.relationship}
                     {g.phone && ` · ${g.phone}`}
                   </p>

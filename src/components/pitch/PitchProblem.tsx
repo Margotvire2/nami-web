@@ -99,7 +99,7 @@ export function PitchProblem({ variant }: Props) {
               Nami n&apos;est pas un outil dans un marché existant. Nami est l&apos;infrastructure qui crée le marché du parcours ambulatoire coordonné.
             </p>
             {variant === "hospital" && (
-              <p style={{ marginTop: 12, fontSize: 15, color: "#4A4A5A", maxWidth: 560, margin: "12px auto 0", lineHeight: 1.65, textAlign: "center" }}>
+              <p style={{ marginTop: 12, fontSize: 15, color: "#374151", maxWidth: 560, margin: "12px auto 0", lineHeight: 1.65, textAlign: "center" }}>
                 Marc, 52 ans, obésité complexe — même problème.
                 Léo, 8 ans, épilepsie — même problème.
                 La pathologie change. Le défaut de coordination, jamais.
@@ -125,8 +125,8 @@ export function PitchProblem({ variant }: Props) {
                     <AnimatedCounter target={s.value} suffix={s.suffix} duration={2200} />
                   )}
                 </div>
-                <div style={{ fontSize: 14, color: "#4A4A5A", lineHeight: 1.5, fontWeight: 500 }}>{s.label}</div>
-                <div style={{ fontSize: 11, color: "#8A8A96", fontStyle: "italic" }}>Source : {s.source}</div>
+                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5, fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: 11, color: "#6B7280", fontStyle: "italic" }}>Source : {s.source}</div>
               </div>
             </ScrollReveal>
           ))}

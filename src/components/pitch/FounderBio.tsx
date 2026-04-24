@@ -1,8 +1,8 @@
 export function FounderBio({ variant = "light" }: { variant?: "light" | "dark" }) {
   const isDark = variant === "dark"
   const textPrimary = isDark ? "#FFFFFF" : "#1A1A2E"
-  const textMuted = isDark ? "rgba(255,255,255,0.55)" : "#8A8A96"
-  const textBody = isDark ? "rgba(255,255,255,0.80)" : "#4A4A5A"
+  const textMuted = isDark ? "rgba(255,255,255,0.55)" : "#6B7280"
+  const textBody = isDark ? "rgba(255,255,255,0.80)" : "#374151"
   const borderColor = isDark ? "rgba(255,255,255,0.10)" : "rgba(26,26,46,0.08)"
 
   return (
@@ -81,7 +81,7 @@ export function FounderBio({ variant = "light" }: { variant?: "light" | "dark" }
             <span key={tag} style={{
               fontSize: 11,
               fontWeight: 600,
-              color: isDark ? "rgba(255,255,255,0.65)" : "#8A8A96",
+              color: isDark ? "rgba(255,255,255,0.65)" : "#6B7280",
               padding: "4px 10px",
               borderRadius: 6,
               border: `1px solid ${borderColor}`,

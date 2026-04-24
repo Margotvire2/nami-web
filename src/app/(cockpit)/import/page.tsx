@@ -40,13 +40,13 @@ export default function ImportPage() {
     <div className="min-h-screen bg-[#FAFAF8] px-6 py-10">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <Link href="/patients" className="text-sm text-[#8A8A96] hover:text-[#4A4A5A]">
+          <Link href="/patients" className="text-sm text-[#6B7280] hover:text-[#374151]">
             ← Retour
           </Link>
           <h1 className="mt-3 text-[32px] font-semibold tracking-tight text-[#1A1A2E]">
             Ajouter l'historique d'un patient
           </h1>
-          <p className="mt-2 text-[15px] text-[#4A4A5A]">
+          <p className="mt-2 text-[15px] text-[#374151]">
             Importez vos consultations passées. Une note structurée est générée automatiquement en brouillon IA.
           </p>
         </div>
@@ -57,7 +57,7 @@ export default function ImportPage() {
               key={m}
               onClick={() => setMode(m)}
               className={`rounded-[8px] px-4 py-2 text-sm font-medium transition-colors ${
-                mode === m ? 'bg-white text-[#1A1A2E] shadow-sm' : 'text-[#4A4A5A] hover:text-[#1A1A2E]'
+                mode === m ? 'bg-white text-[#1A1A2E] shadow-sm' : 'text-[#374151] hover:text-[#1A1A2E]'
               }`}
             >
               {m === 'single' ? 'Une consultation' : 'Plusieurs consultations'}
@@ -66,7 +66,7 @@ export default function ImportPage() {
         </div>
 
         {loadingPatients ? (
-          <div className="rounded-[12px] border border-[rgba(26,26,46,0.06)] bg-white p-12 text-center text-sm text-[#8A8A96]">
+          <div className="rounded-[12px] border border-[rgba(26,26,46,0.06)] bg-white p-12 text-center text-sm text-[#6B7280]">
             Chargement des patients…
           </div>
         ) : mode === 'single' ? (
@@ -76,7 +76,7 @@ export default function ImportPage() {
         )}
 
         <div className="mt-8 rounded-[12px] border border-[rgba(26,26,46,0.06)] bg-white p-5">
-          <p className="text-[13px] leading-relaxed text-[#4A4A5A]">
+          <p className="text-[13px] leading-relaxed text-[#374151]">
             <span className="font-medium text-[#1A1A2E]">Important — </span>
             La transcription brute reste privée, visible uniquement par vous. La note structurée générée est un brouillon IA, à vérifier avant d'être partagée avec l'équipe.
             Conforme RGPD · Art. L.1110-4 CSP.
@@ -206,7 +206,7 @@ function ImportSingleForm({ patients, accessToken }: { patients: PatientOption[]
           className="w-full rounded-[10px] border border-[rgba(26,26,46,0.1)] px-4 py-3 text-[15px] focus:border-[#5B4EC4] focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/20"
           style={{ fontFamily: 'Inter, sans-serif' }}
         />
-        <div className="mt-1.5 flex justify-between text-xs text-[#8A8A96]">
+        <div className="mt-1.5 flex justify-between text-xs text-[#6B7280]">
           <span>{transcript.length.toLocaleString('fr-FR')} caractères</span>
           {originalFilename && <span>{originalFilename}</span>}
         </div>
@@ -217,7 +217,7 @@ function ImportSingleForm({ patients, accessToken }: { patients: PatientOption[]
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-xs text-[#8A8A96]">Note structurée générée en brouillon IA.</p>
+        <p className="text-xs text-[#6B7280]">Note structurée générée en brouillon IA.</p>
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
@@ -320,12 +320,12 @@ function ImportBatchForm({ patients, accessToken }: { patients: PatientOption[];
         <input ref={fileInputRef} type="file" accept=".txt,.md,.docx" multiple className="hidden"
           onChange={(e) => { if (e.target.files) handleFilesDrop(e.target.files); }} />
         <p className="text-[15px] font-medium text-[#1A1A2E]">Glissez vos fichiers ici</p>
-        <p className="mt-1 text-sm text-[#8A8A96]">ou cliquez · .txt, .md, .docx</p>
+        <p className="mt-1 text-sm text-[#6B7280]">ou cliquez · .txt, .md, .docx</p>
       </div>
 
       {items.length > 0 && (
         <div className="mb-6 space-y-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-[#8A8A96]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[#6B7280]">
             {items.length} fichier{items.length > 1 ? 's' : ''} à importer
           </p>
           {items.map((item) => (
@@ -333,10 +333,10 @@ function ImportBatchForm({ patients, accessToken }: { patients: PatientOption[];
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-[#1A1A2E]">{item.filename}</p>
-                  <p className="text-xs text-[#8A8A96]">{item.transcript.length.toLocaleString('fr-FR')} caractères</p>
+                  <p className="text-xs text-[#6B7280]">{item.transcript.length.toLocaleString('fr-FR')} caractères</p>
                 </div>
                 <button onClick={() => setItems((prev) => prev.filter((it) => it.id !== item.id))}
-                  className="text-xs text-[#8A8A96] hover:text-red-600">Retirer</button>
+                  className="text-xs text-[#6B7280] hover:text-red-600">Retirer</button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <select
@@ -367,7 +367,7 @@ function ImportBatchForm({ patients, accessToken }: { patients: PatientOption[];
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-xs text-[#8A8A96]">Chaque fichier génère une note structurée en brouillon IA.</p>
+        <p className="text-xs text-[#6B7280]">Chaque fichier génère une note structurée en brouillon IA.</p>
         <button
           onClick={handleSubmit}
           disabled={isSubmitting || items.length === 0}

@@ -127,7 +127,7 @@ function ConfirmModal({
         <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
           {action === "VALIDATE" ? "Valider ce compte ?" : "Refuser ce compte ?"}
         </h2>
-        <p style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.6, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, marginBottom: 16 }}>
           {action === "VALIDATE" ? (
             <>
               <strong>{provider.firstName} {provider.lastName}</strong> recevra un email de confirmation et
@@ -142,7 +142,7 @@ function ConfirmModal({
 
         {action === "REJECT" && (
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#8A8A96", display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B7280", display: "block", marginBottom: 6 }}>
               Motif (optionnel)
             </label>
             <input
@@ -175,7 +175,7 @@ function ConfirmModal({
               fontWeight: 500,
               cursor: "pointer",
               background: "transparent",
-              color: "#8A8A96",
+              color: "#6B7280",
             }}
           >
             Annuler
@@ -270,7 +270,7 @@ export default function AdminValidationsPage() {
     <div style={{ maxWidth: 860, fontFamily: "var(--font-jakarta)" }}>
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
-        <p style={{ fontSize: 14, color: "#8A8A96" }}>
+        <p style={{ fontSize: 14, color: "#6B7280" }}>
           {pending.length > 0
             ? `${pending.length} compte${pending.length > 1 ? "s" : ""} en attente de vérification`
             : "Aucun compte en attente"}
@@ -297,7 +297,7 @@ export default function AdminValidationsPage() {
               fontSize: 13,
               fontWeight: tab === id ? 600 : 400,
               background: tab === id ? "rgba(91,78,196,0.08)" : "transparent",
-              color: tab === id ? "#5B4EC4" : "#8A8A96",
+              color: tab === id ? "#5B4EC4" : "#6B7280",
               transition: "all 0.2s",
             }}
           >
@@ -310,7 +310,7 @@ export default function AdminValidationsPage() {
                 padding: "1px 7px",
                 borderRadius: 8,
                 background: tab === id ? (id === "pending" && count > 0 ? "#D94F4F" : "rgba(91,78,196,0.15)") : "rgba(26,26,46,0.06)",
-                color: tab === id ? (id === "pending" && count > 0 ? "#fff" : "#5B4EC4") : "#8A8A96",
+                color: tab === id ? (id === "pending" && count > 0 ? "#fff" : "#5B4EC4") : "#6B7280",
               }}
             >
               {count}
@@ -321,7 +321,7 @@ export default function AdminValidationsPage() {
 
       {/* List */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: 60, color: "#8A8A96", fontSize: 13 }}>
+        <div style={{ textAlign: "center", padding: 60, color: "#6B7280", fontSize: 13 }}>
           Chargement…
         </div>
       ) : currentList.length === 0 ? (
@@ -330,7 +330,7 @@ export default function AdminValidationsPage() {
           style={{ textAlign: "center", padding: "48px 24px" }}
         >
           <Users size={32} style={{ color: "#E8ECF4", margin: "0 auto 12px" }} />
-          <p style={{ fontSize: 14, fontWeight: 600, color: "#8A8A96" }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#6B7280" }}>
             {tab === "pending" ? "Aucun compte en attente" : "Aucun compte validé"}
           </p>
         </div>
@@ -363,15 +363,15 @@ export default function AdminValidationsPage() {
                         </span>
                       )}
                     </div>
-                    <p style={{ fontSize: 12, color: "#8A8A96", margin: "2px 0 6px" }}>{provider.email}</p>
-                    <p style={{ fontSize: 12, color: "#4A4A5A", marginBottom: 4 }}>
+                    <p style={{ fontSize: 12, color: "#6B7280", margin: "2px 0 6px" }}>{provider.email}</p>
+                    <p style={{ fontSize: 12, color: "#374151", marginBottom: 4 }}>
                       {provider.profession}
                     </p>
                     <RppsStatus rppsNumber={provider.rppsNumber} />
                   </div>
 
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <p style={{ fontSize: 11, color: "#8A8A96", marginBottom: 10 }}>
+                    <p style={{ fontSize: 11, color: "#6B7280", marginBottom: 10 }}>
                       {timeAgo(provider.registeredAt)}
                     </p>
                     {tab === "pending" && (

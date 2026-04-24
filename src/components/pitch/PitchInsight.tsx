@@ -63,7 +63,7 @@ export function PitchInsight() {
         <p style={{
           marginTop: 32,
           fontSize: 12,
-          color: "#8A8A96",
+          color: "#6B7280",
           lineHeight: 1.6,
           opacity: lineVisible[1] ? 1 : 0,
           transition: "opacity 0.6s ease 300ms",
@@ -77,7 +77,7 @@ export function PitchInsight() {
         <p style={{
           marginTop: 28,
           fontSize: "clamp(14px, 1.5vw, 16px)",
-          color: "#4A4A5A",
+          color: "#374151",
           maxWidth: 520,
           margin: "28px auto 0",
           lineHeight: 1.7,

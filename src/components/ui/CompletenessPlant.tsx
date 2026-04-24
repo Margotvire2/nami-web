@@ -239,11 +239,11 @@ export function CompletenessPlant({
             {percentage}% — indicateur de complétude
           </div>
           {missingItems.length > 0 && (
-            <div style={{ color: "#8A8A96", fontSize: 10 }}>
+            <div style={{ color: "#6B7280", fontSize: 10 }}>
               {missingItems.map((item, i) => <div key={i}>· {item}</div>)}
             </div>
           )}
-          <div style={{ color: "#4A4A5A", fontSize: 9, marginTop: 4 }}>
+          <div style={{ color: "#374151", fontSize: 9, marginTop: 4 }}>
             Indicateurs non cliniques, destinés à l'organisation du dossier
           </div>
         </div>

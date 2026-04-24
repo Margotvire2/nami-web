@@ -9,8 +9,8 @@ interface Props {
 export function PitchFounder({ variant = "light" }: Props) {
   const isDark = variant === "dark"
   const text = isDark ? "#fff" : "#1A1A2E"
-  const muted = isDark ? "rgba(255,255,255,0.50)" : "#8A8A96"
-  const body = isDark ? "rgba(255,255,255,0.75)" : "#4A4A5A"
+  const muted = isDark ? "rgba(255,255,255,0.50)" : "#6B7280"
+  const body = isDark ? "rgba(255,255,255,0.75)" : "#374151"
   const quoteColor = isDark ? "rgba(255,255,255,0.85)" : "#1A1A2E"
 
   return (

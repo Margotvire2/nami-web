@@ -132,7 +132,7 @@ export default function LoginPage() {
             >
               Bon retour
             </h1>
-            <p className="text-sm" style={{ color: "#8A8A96" }}>
+            <p className="text-sm" style={{ color: "#6B7280" }}>
               Connectez-vous à votre cockpit soignant
             </p>
           </div>
@@ -145,7 +145,7 @@ export default function LoginPage() {
                   <Label
                     htmlFor="email"
                     className="text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: "#4A4A5A" }}
+                    style={{ color: "#374151" }}
                   >
                     Email
                   </Label>
@@ -166,7 +166,7 @@ export default function LoginPage() {
                   <Label
                     htmlFor="password"
                     className="text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: "#4A4A5A" }}
+                    style={{ color: "#374151" }}
                   >
                     Mot de passe
                   </Label>
@@ -192,7 +192,7 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              <p className="text-center text-sm mt-8" style={{ color: "#8A8A96" }}>
+              <p className="text-center text-sm mt-8" style={{ color: "#6B7280" }}>
                 Pas encore de compte ?{" "}
                 <Link
                   href="/signup"
@@ -216,7 +216,7 @@ export default function LoginPage() {
                 <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
                   Vérification en deux étapes
                 </p>
-                <p className="text-xs" style={{ color: "#8A8A96" }}>
+                <p className="text-xs" style={{ color: "#6B7280" }}>
                   Entrez le code à 6 chiffres de votre application authenticator
                 </p>
               </div>
@@ -225,7 +225,7 @@ export default function LoginPage() {
                 <Label
                   htmlFor="totp"
                   className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: "#4A4A5A" }}
+                  style={{ color: "#374151" }}
                 >
                   Code à 6 chiffres
                 </Label>
@@ -254,7 +254,7 @@ export default function LoginPage() {
                 {loading ? "Vérification…" : "Vérifier"}
               </Button>
 
-              <p className="text-center text-xs" style={{ color: "#8A8A96" }}>
+              <p className="text-center text-xs" style={{ color: "#6B7280" }}>
                 Le code expire toutes les 30 secondes •{" "}
                 <button
                   type="button"

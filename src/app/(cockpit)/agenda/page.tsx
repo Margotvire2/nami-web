@@ -517,7 +517,7 @@ function DaySummaryBar({ appointments }: { appointments: AgendaAppointment[] }) 
         {todayAppts.length} patient{todayAppts.length > 1 ? "s" : ""}
       </span>
       <span style={{ color: N.textSoft }}>·</span>
-      <span style={{ color: "#4A4A5A" }}>
+      <span style={{ color: "#374151" }}>
         {inPersonCount} consult{inPersonCount > 1 ? "s" : ""}
         {videoCount > 0 ? ` + ${videoCount} téléconsult` : ""}
       </span>

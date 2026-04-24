@@ -53,7 +53,7 @@ export function SecurityGrid() {
           <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>
             {item.title}
           </div>
-          <div style={{ fontSize: 13, color: "#4A4A5A", lineHeight: 1.55 }}>
+          <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.55 }}>
             {item.body}
           </div>
         </div>

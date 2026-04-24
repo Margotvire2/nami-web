@@ -105,7 +105,7 @@ function PhaseTimeline({
               {i + 1 === current && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} />}
             </div>
             <span style={{
-              fontSize: 9, color: i + 1 <= current ? "#4A4A5A" : "#8A8A96",
+              fontSize: 9, color: i + 1 <= current ? "#374151" : "#6B7280",
               whiteSpace: "nowrap", fontWeight: i + 1 === current ? 700 : 400,
             }}>
               {phase}
@@ -171,14 +171,14 @@ export function PatientScene({
               {p.badge}
             </span>
           </div>
-          <div style={{ fontSize: 12, color: "#8A8A96", marginTop: 2 }}>{p.condition}</div>
+          <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{p.condition}</div>
         </div>
       </div>
 
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 16, flex: 1, overflowY: "auto" }}>
         {/* Team */}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 8 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 8 }}>
             Équipe ({p.team.length} soignants)
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -191,7 +191,7 @@ export function PatientScene({
                 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: m.color }}>{m.initials}</span>
                 </div>
-                <span style={{ fontSize: 9, color: "#8A8A96" }}>{m.role}</span>
+                <span style={{ fontSize: 9, color: "#6B7280" }}>{m.role}</span>
               </div>
             ))}
           </div>
@@ -199,7 +199,7 @@ export function PatientScene({
 
         {/* Sparkline */}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 6 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 6 }}>
             {p.sparkLabel}
           </div>
           <div style={{ background: "#FAFAF8", borderRadius: 10, padding: "10px 12px" }}>
@@ -214,7 +214,7 @@ export function PatientScene({
 
         {/* Metrics */}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 8 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 8 }}>
             Indicateurs
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -224,7 +224,7 @@ export function PatientScene({
                 background: m.ok ? "#F0FDF4" : "#FFFBEB",
                 border: `1px solid ${m.ok ? "#BBF7D0" : "#FDE68A"}`,
               }}>
-                <div style={{ fontSize: 9, color: "#8A8A96", marginBottom: 2 }}>{m.key}</div>
+                <div style={{ fontSize: 9, color: "#6B7280", marginBottom: 2 }}>{m.key}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: m.ok ? "#059669" : "#D97706" }}>
                   {m.value}
                 </div>
@@ -235,7 +235,7 @@ export function PatientScene({
 
         {/* Phase */}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 8 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 8 }}>
             Parcours
           </div>
           <PhaseTimeline current={p.currentPhase} phases={p.phases} color={p.badgeColor} />

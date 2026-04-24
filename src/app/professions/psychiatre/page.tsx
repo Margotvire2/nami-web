@@ -9,8 +9,8 @@ const C = {
   bgAlt: "#F5F3EF",
   dark: "#1A1A2E",
   text: "#1A1A2E",
-  textSec: "#4A4A5A",
-  textMut: "#8A8A96",
+  textSec: "#374151",
+  textMut: "#6B7280",
   border: "rgba(26,26,46,0.06)",
   grad: "linear-gradient(135deg,#5B4EC4,#2BA89C)",
 };

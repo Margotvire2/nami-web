@@ -46,7 +46,7 @@ function PhaseTimeline({ current, phases }: { current: 1 | 2 | 3; phases: [strin
               {n < current && <Check size={11} color="#fff" />}
               {n === current && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} />}
             </div>
-            <span style={{ fontSize: 9, color: n <= current ? "#4A4A5A" : "#8A8A96", whiteSpace: "nowrap", fontWeight: n === current ? 600 : 400 }}>
+            <span style={{ fontSize: 9, color: n <= current ? "#374151" : "#6B7280", whiteSpace: "nowrap", fontWeight: n === current ? 600 : 400 }}>
               {phases[n - 1]}
             </span>
           </div>
@@ -148,7 +148,7 @@ export function PatientTab() {
             padding: "8px 16px", borderRadius: 100,
             border: `1.5px solid ${active === i ? p.badgeColor : "rgba(26,26,46,0.10)"}`,
             background: active === i ? p.badgeBg : "#fff",
-            color: active === i ? p.badgeColor : "#8A8A96",
+            color: active === i ? p.badgeColor : "#6B7280",
             fontSize: 13, fontWeight: active === i ? 600 : 400,
             cursor: "pointer", fontFamily: "inherit",
             transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
@@ -182,21 +182,21 @@ export function PatientTab() {
               <span style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E" }}>{p.name} · {p.age} ans</span>
               <span style={{ fontSize: 11, fontWeight: 600, color: p.badgeColor, background: p.badgeBg, padding: "2px 8px", borderRadius: 6 }}>{p.badge}</span>
             </div>
-            <div style={{ fontSize: 13, color: "#8A8A96", marginTop: 2 }}>{p.condition}</div>
+            <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>{p.condition}</div>
           </div>
         </div>
 
         <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Team */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 10 }}>Équipe ({p.team.length} soignants)</div>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 10 }}>Équipe ({p.team.length} soignants)</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {p.team.map(m => (
                 <div key={m.initials} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                   <div style={{ width: 36, height: 36, borderRadius: "50%", background: m.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: m.color }}>{m.initials}</span>
                   </div>
-                  <span style={{ fontSize: 10, color: "#8A8A96" }}>{m.role}</span>
+                  <span style={{ fontSize: 10, color: "#6B7280" }}>{m.role}</span>
                 </div>
               ))}
             </div>
@@ -204,7 +204,7 @@ export function PatientTab() {
 
           {/* Sparkline */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 8 }}>
               {p.sparkLabel}
             </div>
             <div style={{ background: "#FAFAF8", borderRadius: 10, padding: "10px 14px" }}>
@@ -214,7 +214,7 @@ export function PatientTab() {
 
           {/* Metrics */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 10 }}>Indicateurs</div>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 10 }}>Indicateurs</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {p.metrics.map(m => (
                 <div key={m.key} style={{
@@ -222,7 +222,7 @@ export function PatientTab() {
                   background: m.ok ? "#F0FDF4" : "#FFFBEB",
                   border: `1px solid ${m.ok ? "#BBF7D0" : "#FDE68A"}`,
                 }}>
-                  <div style={{ fontSize: 10, color: "#8A8A96", marginBottom: 2 }}>{m.key}</div>
+                  <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 2 }}>{m.key}</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: m.ok ? "#059669" : "#D97706" }}>{m.value}</div>
                 </div>
               ))}
@@ -231,7 +231,7 @@ export function PatientTab() {
 
           {/* Phase timeline */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 10 }}>Parcours</div>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 10 }}>Parcours</div>
             <PhaseTimeline current={p.currentPhase} phases={p.phases} />
           </div>
         </div>
@@ -247,7 +247,7 @@ export function PatientTab() {
 
       {/* Knowledge base footnote */}
       <div style={{ textAlign: "center", marginTop: 14 }}>
-        <span style={{ fontSize: 12, color: "#8A8A96" }}>
+        <span style={{ fontSize: 12, color: "#6B7280" }}>
           60 000+ sources cliniques indexées · 425 pathologies · 131 parcours structurés
         </span>
       </div>

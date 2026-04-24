@@ -159,7 +159,7 @@ function NotePreview({ body }: { body: string }) {
           <p className="text-[10px] text-[#94A3B8]">Aujourd'hui</p>
         </div>
       </div>
-      <div className="min-h-[80px] text-xs text-[#4A4A5A] leading-relaxed whitespace-pre-wrap">
+      <div className="min-h-[80px] text-xs text-[#374151] leading-relaxed whitespace-pre-wrap">
         {body || <span className="text-[#CBD5E1] italic">Votre première observation apparaît ici…</span>}
       </div>
       <div className="mt-3 pt-3 border-t border-[#F8F9FA] flex items-center gap-1.5">
@@ -375,7 +375,7 @@ export default function OnboardingPage() {
 
               {/* Profession */}
               <div>
-                <label className="text-xs font-semibold text-[#4A4A5A] uppercase tracking-wide mb-2.5 block">
+                <label className="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-2.5 block">
                   Votre profession
                 </label>
                 {/* Groupes par catégorie */}
@@ -400,7 +400,7 @@ export default function OnboardingPage() {
                               "px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all duration-150",
                               professionId === p.id
                                 ? "bg-[#5B4EC4] text-white border-[#5B4EC4] shadow"
-                                : "bg-white text-[#4A4A5A] border-[#E2E8F0] hover:border-[#5B4EC4] hover:text-[#5B4EC4]"
+                                : "bg-white text-[#374151] border-[#E2E8F0] hover:border-[#5B4EC4] hover:text-[#5B4EC4]"
                             )}
                           >
                             {p.label}
@@ -415,7 +415,7 @@ export default function OnboardingPage() {
               {/* Domaines d'expertise — s'affiche quand une profession est choisie */}
               {professionId && availableThemes.length > 0 && (
                 <div>
-                  <label className="text-xs font-semibold text-[#4A4A5A] uppercase tracking-wide mb-2.5 block">
+                  <label className="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-2.5 block">
                     Vos domaines d'expertise <span className="text-[#94A3B8] font-normal normal-case">(sélection multiple)</span>
                   </label>
                   <div className="space-y-2">
@@ -530,7 +530,7 @@ export default function OnboardingPage() {
                     >
                       {checked && <Check size={11} color="#fff" strokeWidth={3} />}
                     </div>
-                    <span className="text-sm text-[#4A4A5A] leading-relaxed">{text}</span>
+                    <span className="text-sm text-[#374151] leading-relaxed">{text}</span>
                   </label>
                 ))}
               </div>
@@ -575,7 +575,7 @@ export default function OnboardingPage() {
               <div className="space-y-3.5">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-[#4A4A5A] mb-1.5 block">Prénom <span className="text-red-400">*</span></label>
+                    <label className="text-xs font-semibold text-[#374151] mb-1.5 block">Prénom <span className="text-red-400">*</span></label>
                     <input
                       type="text"
                       value={patientFirstName}
@@ -585,7 +585,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[#4A4A5A] mb-1.5 block">Nom <span className="text-red-400">*</span></label>
+                    <label className="text-xs font-semibold text-[#374151] mb-1.5 block">Nom <span className="text-red-400">*</span></label>
                     <input
                       type="text"
                       value={patientLastName}
@@ -597,7 +597,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#4A4A5A] mb-1.5 block">Date de naissance <span className="text-[#94A3B8] font-normal">(optionnel)</span></label>
+                  <label className="text-xs font-semibold text-[#374151] mb-1.5 block">Date de naissance <span className="text-[#94A3B8] font-normal">(optionnel)</span></label>
                   <input
                     type="date"
                     value={patientBirthDate}
@@ -607,7 +607,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#4A4A5A] mb-1.5 block">Type de parcours</label>
+                  <label className="text-xs font-semibold text-[#374151] mb-1.5 block">Type de parcours</label>
                   <div className="flex flex-wrap gap-1.5">
                     {CASE_TYPES.map((ct) => (
                       <button
@@ -617,7 +617,7 @@ export default function OnboardingPage() {
                           "px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all duration-150",
                           caseType === ct.id
                             ? "bg-[#5B4EC4] text-white border-[#5B4EC4] shadow"
-                            : "bg-white text-[#4A4A5A] border-[#E2E8F0] hover:border-[#5B4EC4] hover:text-[#5B4EC4]"
+                            : "bg-white text-[#374151] border-[#E2E8F0] hover:border-[#5B4EC4] hover:text-[#5B4EC4]"
                         )}
                       >
                         {ct.label}
@@ -668,7 +668,7 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#4A4A5A] mb-1.5 block">
+                <label className="text-xs font-semibold text-[#374151] mb-1.5 block">
                   Observation pour{" "}
                   <span className="text-[#5B4EC4]">{patientFirstName} {patientLastName}</span>
                 </label>

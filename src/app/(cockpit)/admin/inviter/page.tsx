@@ -50,7 +50,7 @@ function Field({
           display: "block",
           fontSize: 12,
           fontWeight: 600,
-          color: "#4A4A5A",
+          color: "#374151",
           marginBottom: 6,
           letterSpacing: "0.01em",
         }}
@@ -118,7 +118,7 @@ function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
     PENDING:  { label: "En attente", color: "#E6993E", bg: "rgba(230,153,62,0.10)", icon: <Clock size={10} /> },
     ACCEPTED: { label: "Acceptée",   color: "#2BA84A", bg: "rgba(43,168,74,0.10)",  icon: <CheckCircle2 size={10} /> },
-    EXPIRED:  { label: "Expirée",    color: "#8A8A96", bg: "rgba(138,138,150,0.10)",icon: <XCircle size={10} /> },
+    EXPIRED:  { label: "Expirée",    color: "#6B7280", bg: "rgba(138,138,150,0.10)",icon: <XCircle size={10} /> },
   };
   const { label, color, bg, icon } = cfg[status] ?? cfg.PENDING;
   return (
@@ -237,7 +237,7 @@ export default function InviterPage() {
             <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.01em" }}>
               Inviter un soignant
             </h2>
-            <p style={{ fontSize: 12, color: "#8A8A96", marginTop: 4, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4, lineHeight: 1.5 }}>
               L&apos;invitation envoie un lien d&apos;accès direct. Le soignant crée son compte en 2 min et arrive dans le cockpit avec le dossier de démonstration.
             </p>
           </div>
@@ -254,7 +254,7 @@ export default function InviterPage() {
                       left: 10,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      color: "#8A8A96",
+                      color: "#6B7280",
                       pointerEvents: "none",
                     }}
                   />
@@ -294,7 +294,7 @@ export default function InviterPage() {
                     left: 10,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#8A8A96",
+                    color: "#6B7280",
                     pointerEvents: "none",
                   }}
                 />
@@ -321,7 +321,7 @@ export default function InviterPage() {
                     left: 10,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#8A8A96",
+                    color: "#6B7280",
                     pointerEvents: "none",
                   }}
                 />
@@ -354,7 +354,7 @@ export default function InviterPage() {
                     position: "absolute",
                     left: 10,
                     top: 11,
-                    color: "#8A8A96",
+                    color: "#6B7280",
                     pointerEvents: "none",
                   }}
                 />
@@ -471,7 +471,7 @@ export default function InviterPage() {
                   Invitation envoyée à <span style={{ color: "#2BA84A" }}>{result.email}</span>
                 </p>
               </div>
-              <p style={{ fontSize: 11, color: "#8A8A96", marginBottom: 10 }}>
+              <p style={{ fontSize: 11, color: "#6B7280", marginBottom: 10 }}>
                 Un email a été envoyé. Vous pouvez aussi partager le lien directement par WhatsApp ou SMS.
               </p>
               <div
@@ -524,7 +524,7 @@ export default function InviterPage() {
                 alignItems: "center",
                 gap: 4,
                 fontSize: 11,
-                color: "#8A8A96",
+                color: "#6B7280",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -554,7 +554,7 @@ export default function InviterPage() {
               style={{
                 padding: "32px 0",
                 textAlign: "center",
-                color: "#8A8A96",
+                color: "#6B7280",
                 fontSize: 13,
               }}
             >
@@ -585,7 +585,7 @@ export default function InviterPage() {
                       <p style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 1 }}>
                         {inv.firstName} {inv.lastName}
                       </p>
-                      <p style={{ fontSize: 11, color: "#8A8A96", marginBottom: 4 }}>
+                      <p style={{ fontSize: 11, color: "#6B7280", marginBottom: 4 }}>
                         {inv.email}
                         {inv.specialty && (
                           <span style={{ marginLeft: 6, color: "#5B4EC4" }}>· {inv.specialty}</span>
@@ -593,7 +593,7 @@ export default function InviterPage() {
                       </p>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <StatusBadge status={inv.status} />
-                        <span style={{ fontSize: 10, color: "#8A8A96" }}>{timeAgo(inv.createdAt)}</span>
+                        <span style={{ fontSize: 10, color: "#6B7280" }}>{timeAgo(inv.createdAt)}</span>
                       </div>
                     </div>
                     {inv.status === "PENDING" && (

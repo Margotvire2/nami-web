@@ -181,7 +181,7 @@ export default function OrgDetailPage() {
             {org.description && (
               <div className="bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-5" style={{ boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
                 <div className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-2">À propos</div>
-                <p className="text-[14px] text-[#4A4A5A] leading-relaxed">{org.description}</p>
+                <p className="text-[14px] text-[#374151] leading-relaxed">{org.description}</p>
               </div>
             )}
             {isMember && org.conversations && org.conversations.length > 0 && (

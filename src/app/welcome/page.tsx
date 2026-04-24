@@ -144,7 +144,7 @@ export default function WelcomePage() {
             >
               {slide.title}
             </h1>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: "#4A4A5A" }}>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "#374151" }}>
               {slide.subtitle}
             </p>
 
@@ -154,7 +154,7 @@ export default function WelcomePage() {
                 {slide.points.map((pt, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <CheckCircle2 size={16} className="shrink-0 mt-0.5" style={{ color: "#2BA89C" }} />
-                    <span className="text-sm" style={{ color: "#4A4A5A" }}>{pt}</span>
+                    <span className="text-sm" style={{ color: "#374151" }}>{pt}</span>
                   </li>
                 ))}
               </ul>
@@ -187,7 +187,7 @@ export default function WelcomePage() {
               <button
                 onClick={() => caseId ? router.push(`/patients/${caseId}`) : router.push("/aujourd-hui")}
                 className="w-full mt-3 h-9 text-xs font-medium"
-                style={{ color: "#8A8A96" }}
+                style={{ color: "#6B7280" }}
               >
                 Passer l'introduction
               </button>

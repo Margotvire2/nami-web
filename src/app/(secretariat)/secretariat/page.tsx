@@ -116,17 +116,17 @@ function CreateApptModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8ECF4]">
           <h3 className="text-sm font-semibold text-[#1A1A2E]">Nouveau rendez-vous</h3>
-          <button onClick={onClose} className="text-[#8A8A96] hover:text-[#1A1A2E]"><X size={16} /></button>
+          <button onClick={onClose} className="text-[#6B7280] hover:text-[#1A1A2E]"><X size={16} /></button>
         </div>
         <div className="p-5 space-y-4">
           {/* Patient */}
           <div>
-            <label className="text-[11px] font-medium text-[#4A4A5A] mb-1 block">Patient</label>
+            <label className="text-[11px] font-medium text-[#374151] mb-1 block">Patient</label>
             {selectedPatient ? (
               <div className="flex items-center gap-2 p-2 border border-[#E8ECF4] rounded-lg bg-[#F5F3EF]">
                 <User size={13} className="text-[#5B4EC4]" />
                 <span className="text-[12px] font-medium">{selectedPatient.firstName} {selectedPatient.lastName}</span>
-                <button onClick={() => setSelectedPatient(null)} className="ml-auto text-[#8A8A96] hover:text-red-500">
+                <button onClick={() => setSelectedPatient(null)} className="ml-auto text-[#6B7280] hover:text-red-500">
                   <X size={12} />
                 </button>
               </div>
@@ -147,12 +147,12 @@ function CreateApptModal({
                         className="w-full text-left px-3 py-2 hover:bg-[#F5F3EF] text-[11px]"
                       >
                         <p className="font-medium">{p.firstName} {p.lastName}</p>
-                        <p className="text-[#8A8A96]">{p.email}</p>
+                        <p className="text-[#6B7280]">{p.email}</p>
                       </button>
                     ))}
                   </div>
                 )}
-                {searching && <p className="text-[10px] text-[#8A8A96] mt-1">Recherche…</p>}
+                {searching && <p className="text-[10px] text-[#6B7280] mt-1">Recherche…</p>}
               </div>
             )}
           </div>
@@ -160,7 +160,7 @@ function CreateApptModal({
           {/* Heure */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-[11px] font-medium text-[#4A4A5A] mb-1 block">Heure</label>
+              <label className="text-[11px] font-medium text-[#374151] mb-1 block">Heure</label>
               <select
                 value={hour}
                 onChange={(e) => setHour(Number(e.target.value))}
@@ -172,7 +172,7 @@ function CreateApptModal({
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-medium text-[#4A4A5A] mb-1 block">Minutes</label>
+              <label className="text-[11px] font-medium text-[#374151] mb-1 block">Minutes</label>
               <select
                 value={minute}
                 onChange={(e) => setMinute(Number(e.target.value))}
@@ -184,7 +184,7 @@ function CreateApptModal({
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-medium text-[#4A4A5A] mb-1 block">Durée</label>
+              <label className="text-[11px] font-medium text-[#374151] mb-1 block">Durée</label>
               <select
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
@@ -199,7 +199,7 @@ function CreateApptModal({
 
           {/* Motif */}
           <div>
-            <label className="text-[11px] font-medium text-[#4A4A5A] mb-1 block">Motif (optionnel)</label>
+            <label className="text-[11px] font-medium text-[#374151] mb-1 block">Motif (optionnel)</label>
             <input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -209,7 +209,7 @@ function CreateApptModal({
           </div>
         </div>
         <div className="flex gap-2 px-5 pb-4">
-          <button onClick={onClose} className="flex-1 text-[12px] py-2 rounded-lg border border-[#E8ECF4] text-[#4A4A5A] hover:bg-[#F5F3EF]">
+          <button onClick={onClose} className="flex-1 text-[12px] py-2 rounded-lg border border-[#E8ECF4] text-[#374151] hover:bg-[#F5F3EF]">
             Annuler
           </button>
           <button
@@ -266,7 +266,7 @@ function ApptDetailModal({
               {statusCfg.label}
             </span>
           </div>
-          <button onClick={onClose} className="text-[#8A8A96] hover:text-[#1A1A2E]"><X size={16} /></button>
+          <button onClick={onClose} className="text-[#6B7280] hover:text-[#1A1A2E]"><X size={16} /></button>
         </div>
         <div className="px-5 py-4 space-y-3">
           {appt.patient && (
@@ -285,13 +285,13 @@ function ApptDetailModal({
             </div>
           )}
           {appt.consultationType && (
-            <div className="flex items-center gap-2 text-[11px] text-[#4A4A5A]">
-              <Clock size={13} className="text-[#8A8A96]" />
+            <div className="flex items-center gap-2 text-[11px] text-[#374151]">
+              <Clock size={13} className="text-[#6B7280]" />
               {appt.consultationType.name} — {appt.consultationType.durationMinutes} min
             </div>
           )}
           {appt.notes && (
-            <p className="text-[11px] text-[#4A4A5A] italic bg-[#F5F3EF] rounded-lg px-3 py-2">
+            <p className="text-[11px] text-[#374151] italic bg-[#F5F3EF] rounded-lg px-3 py-2">
               {appt.notes}
             </p>
           )}
@@ -353,7 +353,7 @@ function AgendaColumn({
         {/* Header soignant */}
         <div className="sticky top-0 z-10 bg-white border-b border-[#E8ECF4] px-3 py-2">
           <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{agenda.providerName}</p>
-          <p className="text-[9px] text-[#8A8A96] truncate">{agenda.specialties[0] ?? ""}</p>
+          <p className="text-[9px] text-[#6B7280] truncate">{agenda.specialties[0] ?? ""}</p>
         </div>
 
         {/* Grille horaire */}
@@ -391,7 +391,7 @@ function AgendaColumn({
                   {format(start, "HH:mm")} {appt.patient ? `· ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
                 </p>
                 {appt.consultationType && height > 30 && (
-                  <p className="text-[9px] text-[#8A8A96] truncate">{appt.consultationType.name}</p>
+                  <p className="text-[9px] text-[#6B7280] truncate">{appt.consultationType.name}</p>
                 )}
               </div>
             );
@@ -489,7 +489,7 @@ export default function SecretariatPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setDate((d) => subDays(d, 1))}
-            className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#4A4A5A]"
+            className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#374151]"
           >
             <ChevronLeft size={16} />
           </button>
@@ -505,7 +505,7 @@ export default function SecretariatPage() {
           </div>
           <button
             onClick={() => setDate((d) => addDays(d, 1))}
-            className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#4A4A5A]"
+            className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#374151]"
           >
             <ChevronRight size={16} />
           </button>
@@ -531,7 +531,7 @@ export default function SecretariatPage() {
           <button
             onClick={refresh}
             disabled={agendasQuery.isFetching}
-            className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#8A8A96] disabled:opacity-50"
+            className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#6B7280] disabled:opacity-50"
           >
             <RefreshCw size={14} className={agendasQuery.isFetching ? "animate-spin" : ""} />
           </button>
@@ -550,7 +550,7 @@ export default function SecretariatPage() {
                 className="absolute left-0 right-0 flex items-start justify-end pr-1"
                 style={{ top: i * SLOT_HEIGHT - 7 }}
               >
-                <span className="text-[9px] text-[#8A8A96]">{String(i + DAY_START).padStart(2, "0")}h</span>
+                <span className="text-[9px] text-[#6B7280]">{String(i + DAY_START).padStart(2, "0")}h</span>
               </div>
             ))}
           </div>
@@ -559,11 +559,11 @@ export default function SecretariatPage() {
         {/* Colonnes soignants */}
         <div className="flex-1 flex overflow-y-auto overflow-x-auto">
           {agendasQuery.isLoading ? (
-            <div className="flex-1 flex items-center justify-center text-[12px] text-[#8A8A96]">
+            <div className="flex-1 flex items-center justify-center text-[12px] text-[#6B7280]">
               Chargement des agendas…
             </div>
           ) : agendas.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-[12px] text-[#8A8A96]">
+            <div className="flex-1 flex items-center justify-center text-[12px] text-[#6B7280]">
               Aucun soignant affecté
             </div>
           ) : (
@@ -592,7 +592,7 @@ export default function SecretariatPage() {
               {waiting.map((entry) => (
                 <div key={entry.appointmentId} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                   <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{entry.patientName}</p>
-                  <p className="text-[9px] text-[#8A8A96] truncate">{entry.providerName}</p>
+                  <p className="text-[9px] text-[#6B7280] truncate">{entry.providerName}</p>
                   <p className="text-[9px] text-blue-600 mt-0.5">
                     {entry.waitingMinutes > 0 ? `Attend depuis ${entry.waitingMinutes} min` : "Vient d'arriver"}
                   </p>

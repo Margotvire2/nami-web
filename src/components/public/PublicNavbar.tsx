@@ -76,14 +76,14 @@ export function PublicNavbar() {
               return (
                 <Link key={label} href={href}
                   style={{
-                    color: active ? "#5B4EC4" : "#8A8A96",
+                    color: active ? "#5B4EC4" : "#6B7280",
                     fontSize: 14,
                     fontWeight: active ? 600 : 500,
                     textDecoration: "none",
                     transition: "color 0.2s",
                   }}
                   onMouseEnter={e => { if (!active) e.currentTarget.style.color = "#1A1A2E"; }}
-                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = "#8A8A96"; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = "#6B7280"; }}
                 >{label}</Link>
               );
             })}
@@ -92,9 +92,9 @@ export function PublicNavbar() {
           {/* Desktop auth */}
           <div className="nav-desktop-auth" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Link href="/login"
-              style={{ color: "#4A4A5A", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 16px", borderRadius: 100, transition: "all 0.2s" }}
+              style={{ color: "#374151", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 16px", borderRadius: 100, transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.color = "#5B4EC4"; e.currentTarget.style.background = "rgba(91,78,196,0.06)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#4A4A5A"; e.currentTarget.style.background = "transparent"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#374151"; e.currentTarget.style.background = "transparent"; }}
             >Connexion</Link>
             <Link href="/demander-une-demo"
               style={{ background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 20px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)", transition: "all 0.2s" }}
@@ -199,7 +199,7 @@ export function PublicNavbar() {
               borderRadius: 12,
               fontSize: 16,
               fontWeight: 500,
-              color: "#4A4A5A",
+              color: "#374151",
               textDecoration: "none",
               minHeight: 44,
             }}

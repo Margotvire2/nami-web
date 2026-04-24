@@ -39,7 +39,7 @@ function SecretarySidebar() {
         </div>
         <div>
           <p className="text-[11px] font-bold text-[#1A1A2E] leading-none">Nami</p>
-          <p className="text-[9px] text-[#8A8A96] leading-none mt-0.5">Secrétariat</p>
+          <p className="text-[9px] text-[#6B7280] leading-none mt-0.5">Secrétariat</p>
         </div>
       </div>
 
@@ -58,10 +58,10 @@ function SecretarySidebar() {
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors",
                 isActive
                   ? "bg-[#EEEDFB] text-[#5B4EC4]"
-                  : "text-[#4A4A5A] hover:bg-[#F5F3EF] hover:text-[#1A1A2E]"
+                  : "text-[#374151] hover:bg-[#F5F3EF] hover:text-[#1A1A2E]"
               )}
             >
-              <Icon size={15} className={isActive ? "text-[#5B4EC4]" : "text-[#8A8A96]"} />
+              <Icon size={15} className={isActive ? "text-[#5B4EC4]" : "text-[#6B7280]"} />
               {label}
               {isActive && <ChevronRight size={12} className="ml-auto text-[#5B4EC4]" />}
             </Link>
@@ -79,12 +79,12 @@ function SecretarySidebar() {
             <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-[9px] text-[#8A8A96] truncate">Secrétaire médicale</p>
+            <p className="text-[9px] text-[#6B7280] truncate">Secrétaire médicale</p>
           </div>
         </div>
         <button
           onClick={() => { clearAuth(); router.replace("/login"); }}
-          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-[11px] text-[#8A8A96] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
+          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-[11px] text-[#6B7280] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
         >
           <LogOut size={13} />
           Déconnexion

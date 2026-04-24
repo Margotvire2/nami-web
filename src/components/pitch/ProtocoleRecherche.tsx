@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 
 const C = {
   primary: "#5B4EC4", teal: "#2BA89C", bg: "#FAFAF8", bgAlt: "#F5F3EF",
-  dark: "#1A1A2E", text: "#4A4A5A", light: "#8A8A96", border: "rgba(26,26,46,0.06)",
+  dark: "#1A1A2E", text: "#374151", light: "#6B7280", border: "rgba(26,26,46,0.06)",
   card: "#FEFEFE", red: "#D94F4F", green: "#2D9B6E", amber: "#D4922A",
 };
 const f = "'Plus Jakarta Sans',system-ui,sans-serif";

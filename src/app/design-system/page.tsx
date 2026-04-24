@@ -12,8 +12,8 @@ const N = {
   bg: "#FAFAF8",
   bgAlt: "#F5F3EF",
   dark: "#1A1A2E",
-  textMid: "#4A4A5A",
-  textLight: "#8A8A96",
+  textMid: "#374151",
+  textLight: "#6B7280",
   card: "#FFFFFF",
   border: "rgba(26,26,46,0.06)",
   borderMed: "rgba(26,26,46,0.12)",
@@ -152,8 +152,8 @@ export default function DesignSystemPage() {
             <SubSection title="Texte">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <Swatch color={N.dark} name="Text Dark" hex="#1A1A2E" sub="Titres, labels importants" />
-                <Swatch color={N.textMid} name="Text Body" hex="#4A4A5A" sub="Corps de texte, descriptions" />
-                <Swatch color={N.textLight} name="Text Muted" hex="#8A8A96" sub="Labels secondaires, timestamps" />
+                <Swatch color={N.textMid} name="Text Body" hex="#374151" sub="Corps de texte, descriptions" />
+                <Swatch color={N.textLight} name="Text Muted" hex="#6B7280" sub="Labels secondaires, timestamps" />
               </div>
             </SubSection>
 
@@ -405,7 +405,7 @@ export default function DesignSystemPage() {
                   { label: "PENDING", color: "#E6993E", desc: "En attente" },
                   { label: "CONFIRMED", color: "#5B4EC4", desc: "Confirmé" },
                   { label: "ARRIVED", color: "#2BA84A", desc: "Patient arrivé" },
-                  { label: "COMPLETED", color: "#8A8A96", desc: "Terminé" },
+                  { label: "COMPLETED", color: "#6B7280", desc: "Terminé" },
                   { label: "CANCELLED", color: "#D94F4F", desc: "Annulé" },
                   { label: "NO_SHOW", color: "#C0792A", desc: "Absent" },
                   { label: "ABSENCE", color: "#B4B2A9", desc: "Indisponible" },

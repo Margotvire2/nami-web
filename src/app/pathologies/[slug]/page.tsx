@@ -232,7 +232,7 @@ export default async function PathologyPage({
             {/* Article content */}
             <article className="rounded-2xl border bg-white p-6 shadow-sm mb-6">
               {article.excerpt && (
-                <p className="text-sm text-[#4A4A5A] leading-relaxed mb-5 pb-5 border-b border-gray-100 font-medium">
+                <p className="text-sm text-[#374151] leading-relaxed mb-5 pb-5 border-b border-gray-100 font-medium">
                   {article.excerpt}
                 </p>
               )}

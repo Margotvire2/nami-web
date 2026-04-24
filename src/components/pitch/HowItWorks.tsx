@@ -49,7 +49,7 @@ export function HowItWorks() {
           }}>
             Simple à déployer.<br />Immédiat à utiliser.
           </h2>
-          <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 60, maxWidth: 480, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16, color: "#374151", marginBottom: 60, maxWidth: 480, lineHeight: 1.6 }}>
             Aucune formation de deux jours. Aucun paramétrage complexe. En 15 minutes, votre première équipe est active.
           </p>
         </ScrollReveal>
@@ -95,7 +95,7 @@ export function HowItWorks() {
 
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>{step.title}</div>
-                  <div style={{ fontSize: 14, color: "#4A4A5A", lineHeight: 1.65 }}>{step.body}</div>
+                  <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>{step.body}</div>
                 </div>
               </div>
             </ScrollReveal>

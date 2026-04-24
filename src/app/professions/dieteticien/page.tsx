@@ -11,8 +11,8 @@ const COLORS = {
   bgAlt: "#F5F3EF",
   dark: "#1A1A2E",
   text: "#1A1A2E",
-  textSecondary: "#4A4A5A",
-  textMuted: "#8A8A96",
+  textSecondary: "#374151",
+  textMuted: "#6B7280",
   border: "rgba(26,26,46,0.06)",
   gradient: "linear-gradient(135deg, #5B4EC4, #2BA89C)",
 };

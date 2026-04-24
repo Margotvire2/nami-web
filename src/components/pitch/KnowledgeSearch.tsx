@@ -48,7 +48,7 @@ export function KnowledgeSearch() {
           padding: "14px 18px",
           borderBottom: "1px solid rgba(26,26,46,0.06)",
         }}>
-          <Search size={16} color="#8A8A96" />
+          <Search size={16} color="#6B7280" />
           <span style={{
             fontSize: 14,
             color: "#1A1A2E",
@@ -97,7 +97,7 @@ export function KnowledgeSearch() {
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4, marginBottom: 3 }}>
                   {r.title}
                 </div>
-                <div style={{ fontSize: 11, color: "#8A8A96" }}>
+                <div style={{ fontSize: 11, color: "#6B7280" }}>
                   {r.meta}
                 </div>
               </div>
@@ -117,12 +117,12 @@ export function KnowledgeSearch() {
         <span style={{ fontSize: 13, fontWeight: 700, color: "#5B4EC4" }}>
           <AnimatedCounter target={22308} duration={2000} /> sources
         </span>
-        <span style={{ fontSize: 13, color: "#8A8A96" }}>·</span>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>·</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: "#5B4EC4" }}>
           <AnimatedCounter target={116000} duration={2200} /> liens
         </span>
-        <span style={{ fontSize: 13, color: "#8A8A96" }}>·</span>
-        <span style={{ fontSize: 13, color: "#8A8A96" }}>Recherche &lt; 200ms</span>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>·</span>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>Recherche &lt; 200ms</span>
       </div>
 
       {/* Source badges */}
@@ -131,7 +131,7 @@ export function KnowledgeSearch() {
           <span key={b} style={{
             fontSize: 11,
             fontWeight: 600,
-            color: "#8A8A96",
+            color: "#6B7280",
             padding: "4px 10px",
             borderRadius: 6,
             border: "1px solid rgba(26,26,46,0.08)",

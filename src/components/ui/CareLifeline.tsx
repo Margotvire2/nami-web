@@ -15,7 +15,7 @@ const PROFESSION_RULES: [string[], string][] = [
   [["diétét", "nutrition", "diét"],                       "#2BA89C"],
   [["psycholog", "psychothérap", "psy "],                 "#5B4EC4"],
   [["psychiatr"],                                          "#7B6FD4"],
-  [["biolog", "labo"],                                     "#8A8A96"],
+  [["biolog", "labo"],                                     "#6B7280"],
   [["activité physique", "apa", "kinésith", "kiné"],      "#E6993E"],
   [["psychomotr"],                                         "#D94F78"],
   [["endocrinolog"],                                       "#2B98AC"],
@@ -128,7 +128,7 @@ function EventTooltip({ event, x, containerWidth }: { event: LifelineEvent; x: n
           {event.specialty}
         </div>
       )}
-      <div style={{ fontSize: 10, color: "#8A8A96", marginBottom: event.summary ? 6 : 0 }}>
+      <div style={{ fontSize: 10, color: "#6B7280", marginBottom: event.summary ? 6 : 0 }}>
         {format(event.date, "d MMMM yyyy", { locale: fr })}
       </div>
       {event.summary && (
@@ -196,7 +196,7 @@ export function CareLifeline({ careCaseId, members, startDate, caseTitle }: Care
         borderBottom: "1px solid #E8ECF4",
         padding: "12px 24px",
         fontSize: 12,
-        color: "#8A8A96",
+        color: "#6B7280",
         fontStyle: "italic",
       }}>
         Ligne de vie — aucun événement enregistré pour ce dossier
@@ -224,19 +224,19 @@ export function CareLifeline({ careCaseId, members, startDate, caseTitle }: Care
     >
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingInline: 24, marginBottom: 12 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: "#8A8A96", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "#6B7280", letterSpacing: "0.06em", textTransform: "uppercase" }}>
           Ligne de vie · {caseTitle ?? "Parcours de soin"}
         </span>
         <div style={{ display: "flex", gap: 4 }}>
           <button
             onClick={() => scroll("left")}
-            style={{ background: "none", border: "1px solid #E8ECF4", borderRadius: 8, padding: "3px 6px", cursor: "pointer", color: "#8A8A96", display: "flex" }}
+            style={{ background: "none", border: "1px solid #E8ECF4", borderRadius: 8, padding: "3px 6px", cursor: "pointer", color: "#6B7280", display: "flex" }}
           >
             <ChevronLeft size={13} />
           </button>
           <button
             onClick={() => scroll("right")}
-            style={{ background: "none", border: "1px solid #E8ECF4", borderRadius: 8, padding: "3px 6px", cursor: "pointer", color: "#8A8A96", display: "flex" }}
+            style={{ background: "none", border: "1px solid #E8ECF4", borderRadius: 8, padding: "3px 6px", cursor: "pointer", color: "#6B7280", display: "flex" }}
           >
             <ChevronRight size={13} />
           </button>
@@ -393,7 +393,7 @@ export function CareLifeline({ careCaseId, members, startDate, caseTitle }: Care
                 {/* Label */}
                 <div style={{
                   fontSize: 9,
-                  color: "#8A8A96",
+                  color: "#6B7280",
                   textAlign: "center",
                   maxWidth: 60,
                   lineHeight: 1.2,
@@ -422,7 +422,7 @@ export function CareLifeline({ careCaseId, members, startDate, caseTitle }: Care
         {[...new Map(events.filter(e => e.specialty).map(e => [e.specialty, e.color])).entries()].map(([spec, color]) => (
           <div key={spec} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
-            <span style={{ fontSize: 9, color: "#8A8A96" }}>{spec}</span>
+            <span style={{ fontSize: 9, color: "#6B7280" }}>{spec}</span>
           </div>
         ))}
       </div>

@@ -24,7 +24,7 @@ export function HAPNav() {
           <a href="/demo-hap" style={{
             padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none",
             background: isDemo ? "rgba(91,78,196,0.08)" : "transparent",
-            color: isDemo ? "#5B4EC4" : "#4A4A5A",
+            color: isDemo ? "#5B4EC4" : "#374151",
             transition: "all 0.15s ease",
           }}>
             La plateforme
@@ -32,7 +32,7 @@ export function HAPNav() {
           <a href="/demo-hap/pitch" style={{
             padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none",
             background: isPitch ? "rgba(91,78,196,0.08)" : "transparent",
-            color: isPitch ? "#5B4EC4" : "#4A4A5A",
+            color: isPitch ? "#5B4EC4" : "#374151",
             transition: "all 0.15s ease",
           }}>
             La vision

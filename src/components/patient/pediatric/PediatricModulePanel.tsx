@@ -122,7 +122,7 @@ export function PediatricModulePanel({ profileId }: Props) {
   });
 
   if (isLoading) {
-    return <div className="flex items-center gap-2 text-xs text-[#8A8A96] py-2"><Loader2 size={13} className="animate-spin" /> Chargement…</div>;
+    return <div className="flex items-center gap-2 text-xs text-[#6B7280] py-2"><Loader2 size={13} className="animate-spin" /> Chargement…</div>;
   }
 
   const activeModules  = modules.filter((m) => m.status === "ACTIVE");
@@ -140,12 +140,12 @@ export function PediatricModulePanel({ profileId }: Props) {
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               <p className="text-sm font-semibold text-[#1A1A2E] flex-1">{typeLabel}</p>
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${STATUS_BADGE[m.status]}`}>{m.status === "ACTIVE" ? "Actif" : m.status}</span>
-              <button onClick={() => setExpandedIds((s) => { const n = new Set(s); n.has(m.id) ? n.delete(m.id) : n.add(m.id); return n; })} className="text-[#8A8A96]">
+              <button onClick={() => setExpandedIds((s) => { const n = new Set(s); n.has(m.id) ? n.delete(m.id) : n.add(m.id); return n; })} className="text-[#6B7280]">
                 {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             </div>
 
-            <p className="text-[10px] text-[#8A8A96]">
+            <p className="text-[10px] text-[#6B7280]">
               Activé par {m.activatedBy.firstName} {m.activatedBy.lastName} · {new Date(m.activatedAt).toLocaleDateString("fr-FR")}
               {m.activationReason && ` · ${m.activationReason}`}
             </p>
@@ -153,14 +153,14 @@ export function PediatricModulePanel({ profileId }: Props) {
             {expanded && (
               <div className="space-y-2 pt-1 border-t border-[rgba(26,26,46,0.04)]">
                 {/* Membres */}
-                <p className="text-[10px] font-medium text-[#4A4A5A]">Membres ({m.members.length})</p>
+                <p className="text-[10px] font-medium text-[#374151]">Membres ({m.members.length})</p>
                 {m.members.map((mem) => (
                   <div key={mem.id} className="flex items-center gap-2 text-xs">
                     <div className="w-6 h-6 rounded-full bg-[#5B4EC4]/10 flex items-center justify-center text-[9px] font-bold text-[#5B4EC4]">
                       {mem.provider.firstName[0]}{mem.provider.lastName[0]}
                     </div>
                     <span className="text-[#1A1A2E]">{mem.provider.firstName} {mem.provider.lastName}</span>
-                    <span className="text-[#8A8A96]">· {mem.role}</span>
+                    <span className="text-[#6B7280]">· {mem.role}</span>
                   </div>
                 ))}
 
@@ -187,7 +187,7 @@ export function PediatricModulePanel({ profileId }: Props) {
                       >
                         Ajouter
                       </button>
-                      <button onClick={() => setInviteModuleId(null)} className="text-xs text-[#8A8A96] px-3">
+                      <button onClick={() => setInviteModuleId(null)} className="text-xs text-[#6B7280] px-3">
                         Annuler
                       </button>
                     </div>
@@ -202,7 +202,7 @@ export function PediatricModulePanel({ profileId }: Props) {
                     </button>
                     <button
                       onClick={() => deactivateMutation.mutate({ moduleId: m.id, status: "RESOLVED" })}
-                      className="flex items-center gap-1 text-xs text-[#8A8A96] hover:text-red-500 ml-auto"
+                      className="flex items-center gap-1 text-xs text-[#6B7280] hover:text-red-500 ml-auto"
                     >
                       <PowerOff size={11} /> Clôturer
                     </button>
@@ -216,7 +216,7 @@ export function PediatricModulePanel({ profileId }: Props) {
 
       {/* Modules fermés — résumé compact */}
       {closedModules.length > 0 && (
-        <div className="text-[10px] text-[#8A8A96]">
+        <div className="text-[10px] text-[#6B7280]">
           {closedModules.length} module{closedModules.length > 1 ? "s" : ""} clôturé{closedModules.length > 1 ? "s" : ""}
         </div>
       )}
@@ -248,7 +248,7 @@ export function PediatricModulePanel({ profileId }: Props) {
             >
               {activateMutation.isPending ? "Activation…" : "Activer"}
             </button>
-            <button onClick={() => setShowActivateForm(false)} className="text-xs text-[#8A8A96] px-4">
+            <button onClick={() => setShowActivateForm(false)} className="text-xs text-[#6B7280] px-4">
               Annuler
             </button>
           </div>

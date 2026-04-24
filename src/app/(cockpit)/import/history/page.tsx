@@ -89,7 +89,7 @@ export default function ImportHistoryPage() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <Link href="/import" className="text-sm text-[#8A8A96] hover:text-[#4A4A5A]">
+            <Link href="/import" className="text-sm text-[#6B7280] hover:text-[#374151]">
               ← Retour à l'import
             </Link>
             <h1 className="mt-3 text-[32px] font-semibold tracking-tight text-[#1A1A2E]">Mes imports</h1>
@@ -109,10 +109,10 @@ export default function ImportHistoryPage() {
         )}
 
         {isLoading ? (
-          <p className="text-sm text-[#8A8A96]">Chargement…</p>
+          <p className="text-sm text-[#6B7280]">Chargement…</p>
         ) : batches.length === 0 ? (
           <div className="rounded-[12px] border border-[rgba(26,26,46,0.06)] bg-white p-12 text-center">
-            <p className="text-[15px] text-[#4A4A5A]">Aucun import pour l'instant.</p>
+            <p className="text-[15px] text-[#374151]">Aucun import pour l'instant.</p>
             <Link href="/import" className="mt-4 inline-block text-sm text-[#5B4EC4] hover:underline">
               Importer votre première consultation →
             </Link>
@@ -146,12 +146,12 @@ function FocusedBatchCard({ batch, onRollback }: { batch: BatchDetail; onRollbac
       <div className="mb-4 flex items-center justify-between">
         <div>
           <StatusBadge status={batch.status} />
-          <p className="mt-2 text-xs text-[#8A8A96]">
+          <p className="mt-2 text-xs text-[#6B7280]">
             Lancé le {new Date(batch.createdAt).toLocaleString('fr-FR')}
           </p>
         </div>
         {isDone && (
-          <button onClick={onRollback} className="text-xs text-[#8A8A96] hover:text-red-600">
+          <button onClick={onRollback} className="text-xs text-[#6B7280] hover:text-red-600">
             Annuler cet import
           </button>
         )}
@@ -159,7 +159,7 @@ function FocusedBatchCard({ batch, onRollback }: { batch: BatchDetail; onRollbac
 
       {isActive && (
         <div className="mb-4">
-          <div className="mb-1.5 flex justify-between text-xs text-[#4A4A5A]">
+          <div className="mb-1.5 flex justify-between text-xs text-[#374151]">
             <span>{batch.successCount + batch.failureCount} / {batch.itemCount}</span>
             <span>{progress}%</span>
           </div>
@@ -173,10 +173,10 @@ function FocusedBatchCard({ batch, onRollback }: { batch: BatchDetail; onRollbac
         {[
           { label: 'Total', value: batch.itemCount, color: 'text-[#1A1A2E]' },
           { label: 'Importées', value: batch.successCount, color: 'text-[#2BA89C]' },
-          { label: 'Erreurs', value: batch.failureCount, color: batch.failureCount > 0 ? 'text-red-600' : 'text-[#8A8A96]' },
+          { label: 'Erreurs', value: batch.failureCount, color: batch.failureCount > 0 ? 'text-red-600' : 'text-[#6B7280]' },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded-[10px] bg-[#FAFAF8] p-4">
-            <p className="text-xs text-[#8A8A96]">{label}</p>
+            <p className="text-xs text-[#6B7280]">{label}</p>
             <p className={`mt-1 text-2xl font-semibold ${color}`} style={{ fontFamily: 'Inter, sans-serif' }}>{value}</p>
           </div>
         ))}
@@ -184,13 +184,13 @@ function FocusedBatchCard({ batch, onRollback }: { batch: BatchDetail; onRollbac
 
       {batch.importedItems?.length > 0 && (
         <div className="mt-6">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#8A8A96]">Consultations</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#6B7280]">Consultations</p>
           <div className="space-y-2">
             {batch.importedItems.map((item) => (
               <div key={item.id} className="flex items-center justify-between rounded-[8px] border border-[rgba(26,26,46,0.06)] bg-white px-4 py-3 text-sm">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-[#1A1A2E]">{item.inputPatientName}</p>
-                  <p className="text-xs text-[#8A8A96]">
+                  <p className="text-xs text-[#6B7280]">
                     {new Date(item.inputConsultationDate).toLocaleDateString('fr-FR')}
                     {item.errorMessage && ` · ${item.errorMessage}`}
                   </p>
@@ -227,24 +227,24 @@ function BatchRow({ batch, isFocused, onClick }: { batch: BatchSummary; isFocuse
           <p className="text-sm font-medium text-[#1A1A2E]">
             {batch.itemCount} consultation{batch.itemCount > 1 ? 's' : ''}
             {batch.successCount > 0 && batch.successCount < batch.itemCount && (
-              <span className="text-[#8A8A96]"> · {batch.successCount} importée{batch.successCount > 1 ? 's' : ''}</span>
+              <span className="text-[#6B7280]"> · {batch.successCount} importée{batch.successCount > 1 ? 's' : ''}</span>
             )}
           </p>
-          <p className="text-xs text-[#8A8A96]">{new Date(batch.createdAt).toLocaleString('fr-FR')}</p>
+          <p className="text-xs text-[#6B7280]">{new Date(batch.createdAt).toLocaleString('fr-FR')}</p>
         </div>
       </div>
-      <span className="text-xs text-[#8A8A96]">Détails →</span>
+      <span className="text-xs text-[#6B7280]">Détails →</span>
     </button>
   );
 }
 
 function StatusBadge({ status, compact = false }: { status: BatchStatus; compact?: boolean }) {
   const config: Record<BatchStatus, { label: string; bg: string; text: string }> = {
-    PENDING:     { label: 'En attente', bg: 'bg-[#F5F3EF]',        text: 'text-[#4A4A5A]' },
+    PENDING:     { label: 'En attente', bg: 'bg-[#F5F3EF]',        text: 'text-[#374151]' },
     PROCESSING:  { label: 'En cours',   bg: 'bg-[#5B4EC4]/10',     text: 'text-[#5B4EC4]' },
     COMPLETED:   { label: 'Terminé',    bg: 'bg-[#2BA89C]/10',     text: 'text-[#2BA89C]' },
     FAILED:      { label: 'Échec',      bg: 'bg-red-50',           text: 'text-red-700'   },
-    ROLLED_BACK: { label: 'Annulé',     bg: 'bg-[#F5F3EF]',        text: 'text-[#8A8A96]' },
+    ROLLED_BACK: { label: 'Annulé',     bg: 'bg-[#F5F3EF]',        text: 'text-[#6B7280]' },
   };
   const c = config[status];
   return (
@@ -256,11 +256,11 @@ function StatusBadge({ status, compact = false }: { status: BatchStatus; compact
 
 function ItemStatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; color: string }> = {
-    PENDING:           { label: '…', color: 'text-[#8A8A96]' },
+    PENDING:           { label: '…', color: 'text-[#6B7280]' },
     PROCESSING:        { label: '…', color: 'text-[#5B4EC4]' },
     SUCCEEDED:         { label: '✓', color: 'text-[#2BA89C]' },
     FAILED:            { label: '✗', color: 'text-red-600'   },
-    SKIPPED_DUPLICATE: { label: '=', color: 'text-[#8A8A96]' },
+    SKIPPED_DUPLICATE: { label: '=', color: 'text-[#6B7280]' },
   };
   const c = config[status] ?? config.PENDING;
   return <span className={`font-mono text-sm ${c.color}`}>{c.label}</span>;

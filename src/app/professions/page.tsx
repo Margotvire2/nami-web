@@ -94,13 +94,13 @@ export default function ProfessionsPage() {
             Nami s&apos;adapte à<br />
             <span className="nami-grad">votre profession.</span>
           </h1>
-          <p style={{ fontSize: "1.1rem", color: "#4A4A5A", lineHeight: 1.7, maxWidth: 520, margin: "0 auto 40px" }}>
+          <p style={{ fontSize: "1.1rem", color: "#374151", lineHeight: 1.7, maxWidth: 520, margin: "0 auto 40px" }}>
             Des parcours structurés, des fiches cliniques sourcées et un dossier de coordination
             partagé — pour chaque spécialité.
           </p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "#8A8A96", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>{PROFESSIONS.length} professions</span>
-            <span style={{ fontSize: 13, color: "#8A8A96", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>Accès gratuit</span>
+            <span style={{ fontSize: 13, color: "#6B7280", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>{PROFESSIONS.length} professions</span>
+            <span style={{ fontSize: 13, color: "#6B7280", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>Accès gratuit</span>
           </div>
         </div>
       </section>
@@ -129,7 +129,7 @@ export default function ProfessionsPage() {
                   <p className="prof-label" style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 5, transition: "color 0.2s" }}>
                     {p.label}
                   </p>
-                  <p style={{ fontSize: 12, color: "#8A8A96", lineHeight: 1.5 }}>{p.desc}</p>
+                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{p.desc}</p>
                 </div>
               </div>
             </Link>

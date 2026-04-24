@@ -62,10 +62,10 @@ export default async function BlogPage() {
             Connaissances, coordination,<br className="hidden md:block" /> pratique.
           </h1>
           <p className="text-lg leading-relaxed max-w-xl mx-auto mb-3"
-            style={{ color: "#4A4A5A" }}>
+            style={{ color: "#374151" }}>
             Articles de référence pour les professionnels de la coordination de soins.
           </p>
-          <p className="text-sm font-medium" style={{ color: "#8A8A96" }}>{total} articles publiés</p>
+          <p className="text-sm font-medium" style={{ color: "#6B7280" }}>{total} articles publiés</p>
         </div>
 
         <BlogBrowser initialArticles={articles} initialTotal={total} apiUrl={API_URL} pageSize={PAGE_SIZE} />

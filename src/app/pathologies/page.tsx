@@ -95,13 +95,13 @@ export default function PathologiesPage() {
             Nami s&apos;adapte à<br />
             <span className="nami-grad">votre spécialité.</span>
           </h1>
-          <p style={{ fontSize: "1.1rem", color: "#4A4A5A", lineHeight: 1.7, maxWidth: 520, margin: "0 auto 40px" }}>
+          <p style={{ fontSize: "1.1rem", color: "#374151", lineHeight: 1.7, maxWidth: 520, margin: "0 auto 40px" }}>
             Des fiches cliniques validées et des parcours structurés pour chaque pathologie chronique.
             Sources HAS, FFAB, ESPGHAN, SFP.
           </p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "#8A8A96", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>{PATHOLOGIES.length} fiches disponibles</span>
-            <span style={{ fontSize: 13, color: "#8A8A96", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>CIM-11 référencées</span>
+            <span style={{ fontSize: 13, color: "#6B7280", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>{PATHOLOGIES.length} fiches disponibles</span>
+            <span style={{ fontSize: 13, color: "#6B7280", padding: "6px 14px", borderRadius: 100, background: "#fff", border: "1px solid rgba(26,26,46,0.08)" }}>CIM-11 référencées</span>
           </div>
         </div>
       </section>
@@ -116,7 +116,7 @@ export default function PathologiesPage() {
             return (
               <div key={cat}>
                 <h2 className="text-xs font-bold uppercase tracking-widest mb-4"
-                  style={{ color: "#8A8A96", letterSpacing: "0.1em" }}>
+                  style={{ color: "#6B7280", letterSpacing: "0.1em" }}>
                   {meta.label}
                 </h2>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
@@ -135,12 +135,12 @@ export default function PathologiesPage() {
                             {p.shortTitle}
                           </h3>
                           <p className="text-xs leading-relaxed line-clamp-2"
-                            style={{ color: "#4A4A5A" }}>
+                            style={{ color: "#374151" }}>
                             {p.description}
                           </p>
                           {p.cim11 && (
                             <span className="inline-block mt-2 text-[10px] font-mono px-1.5 py-0.5 rounded"
-                              style={{ color: "#8A8A96", background: "#F5F3EF" }}>
+                              style={{ color: "#6B7280", background: "#F5F3EF" }}>
                               CIM-11 : {p.cim11}
                             </span>
                           )}
@@ -167,7 +167,7 @@ export default function PathologiesPage() {
             ].map((s) => (
               <div key={s.label} className="stat-card" style={{ background: "#fff", borderRadius: 18, padding: "32px 20px", border: "1px solid rgba(26,26,46,0.07)", boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
                 <div style={{ fontSize: "3rem", fontWeight: 800, letterSpacing: "-0.04em", color: s.color, lineHeight: 1, marginBottom: 12 }}>{s.value}</div>
-                <p style={{ fontSize: 12, color: "#8A8A96", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "pre-line", lineHeight: 1.5 }}>{s.label}</p>
+                <p style={{ fontSize: 12, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "pre-line", lineHeight: 1.5 }}>{s.label}</p>
               </div>
             ))}
           </div>

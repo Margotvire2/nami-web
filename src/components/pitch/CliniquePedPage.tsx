@@ -93,7 +93,7 @@ function HoverCard({ icon, iconBg, title, text }: { icon: string; iconBg: string
         {icon}
       </div>
       <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 8px" }}>{title}</h3>
-      <p style={{ fontSize: "0.875rem", color: "#4A4A5A", lineHeight: 1.65, margin: 0 }}>{text}</p>
+      <p style={{ fontSize: "0.875rem", color: "#374151", lineHeight: 1.65, margin: 0 }}>{text}</p>
     </div>
   );
 }
@@ -203,7 +203,7 @@ function HeroSection() {
             "Relier la ville à l'hôpital.",
             "Faire entrer le volume qui rend l'excellence accessible.",
           ].map((line, i) => (
-            <p key={i} style={{ fontSize: "clamp(0.95rem, 1.8vw, 1.1rem)", color: "#4A4A5A", lineHeight: 1.7, margin: "0 0 2px" }}>
+            <p key={i} style={{ fontSize: "clamp(0.95rem, 1.8vw, 1.1rem)", color: "#374151", lineHeight: 1.7, margin: "0 0 2px" }}>
               {line}
             </p>
           ))}
@@ -233,7 +233,7 @@ function HeroSection() {
         </a>
 
         {/* Legal */}
-        <p style={{ marginTop: 24, fontSize: "0.72rem", color: "#8A8A96", lineHeight: 1.5 }}>
+        <p style={{ marginTop: 24, fontSize: "0.72rem", color: "#6B7280", lineHeight: 1.5 }}>
           Plateforme de coordination des parcours · Art. L.1110-12 CSP · Données hébergées en Europe
         </p>
       </div>
@@ -268,7 +268,7 @@ function ApportSection() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>CE QUE NAMI APPORTE</Eyebrow>
           <SectionTitle>Une équipe transdisciplinaire. Un parcours sans rupture.</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 600 }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 600 }}>
             L'excellence clinique existe déjà. Nami la rend visible, partagée et continue — entre vos murs et au-delà.
           </p>
         </ScrollReveal>
@@ -300,7 +300,7 @@ function TabDossier() {
           <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>👶</div>
           <div>
             <div style={{ fontWeight: 700, color: "#1A1A2E", fontSize: "0.95rem" }}>Léa Bernard · 2 mois</div>
-            <div style={{ fontSize: "0.72rem", color: "#8A8A96" }}>Allergo-péd · Gastro-péd · Nutrition</div>
+            <div style={{ fontSize: "0.72rem", color: "#6B7280" }}>Allergo-péd · Gastro-péd · Nutrition</div>
           </div>
         </div>
         {/* Notes */}
@@ -308,20 +308,20 @@ function TabDossier() {
           <div key={i} style={{ borderLeft: `3px solid ${note.color}`, paddingLeft: 14, marginBottom: i < NOTES.length - 1 ? 14 : 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4, gap: 8 }}>
               <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#1A1A2E" }}>{note.author}</span>
-              <span style={{ fontSize: "0.72rem", color: "#8A8A96", flexShrink: 0 }}>{note.date}</span>
+              <span style={{ fontSize: "0.72rem", color: "#6B7280", flexShrink: 0 }}>{note.date}</span>
             </div>
-            <p style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>{note.body}</p>
+            <p style={{ fontSize: "0.82rem", color: "#374151", lineHeight: 1.6, margin: 0 }}>{note.body}</p>
           </div>
         ))}
         {/* AI summary */}
         <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "12px 16px", marginTop: 14 }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#5B4EC4", marginBottom: 6 }}>✨ Résumé</div>
-          <p style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontSize: "0.82rem", color: "#374151", lineHeight: 1.6, margin: 0 }}>
             APLV confirmée (prick+), éviction PLV en cours, bonne tolérance hydrolysat, croissance rassurante. Prochaine étape : IgE spécifiques + consultation de contrôle M3.
           </p>
         </div>
       </BrowserFrame>
-      <p style={{ marginTop: 20, fontSize: "0.88rem", color: "#4A4A5A", lineHeight: 1.7, maxWidth: 640 }}>
+      <p style={{ marginTop: 20, fontSize: "0.88rem", color: "#374151", lineHeight: 1.7, maxWidth: 640 }}>
         Chaque spécialiste ouvre le dossier et voit immédiatement ce que les autres ont fait. Le résumé se génère automatiquement — le soignant valide avant diffusion.
       </p>
     </div>
@@ -355,7 +355,7 @@ function TabCarnet() {
         <div className="carnet-phone" style={{ width: 220, flexShrink: 0 }}>
           <div style={{ background: "#1A1A2E", borderRadius: 28, padding: 8, boxShadow: "0 20px 60px rgba(26,26,46,0.20)" }}>
             <div style={{ background: "#FAFAF8", borderRadius: 22, overflow: "hidden", padding: "12px 14px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: "0.65rem", color: "#8A8A96" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: "0.65rem", color: "#6B7280" }}>
                 <span>9:41</span><span>nami</span>
               </div>
               <div style={{ textAlign: "center", fontSize: 40, marginBottom: 6 }}>🐣</div>
@@ -364,7 +364,7 @@ function TabCarnet() {
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 8, padding: "7px 10px", marginBottom: 6, border: "1px solid #F0EEF8" }}>
                   <span style={{ fontSize: 14 }}>{e.icon}</span>
                   <span style={{ fontSize: "0.72rem", color: "#1A1A2E", flex: 1 }}>{e.label}</span>
-                  <span style={{ fontSize: "0.65rem", color: "#8A8A96" }}>{e.time}</span>
+                  <span style={{ fontSize: "0.65rem", color: "#6B7280" }}>{e.time}</span>
                 </div>
               ))}
               <div style={{ background: "#EDE9FE", borderRadius: 8, padding: "8px 10px", marginBottom: 10 }}>
@@ -378,17 +378,17 @@ function TabCarnet() {
               </div>
             </div>
           </div>
-          <p style={{ textAlign: "center", fontSize: "0.72rem", color: "#8A8A96", marginTop: 10 }}>App parent · Saisie en 10 secondes</p>
+          <p style={{ textAlign: "center", fontSize: "0.72rem", color: "#6B7280", marginTop: 10 }}>App parent · Saisie en 10 secondes</p>
         </div>
         {/* Description */}
         <div>
           <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 14px" }}>Le carnet de santé, digital et partagé</h3>
-          <p style={{ fontSize: "0.88rem", color: "#4A4A5A", lineHeight: 1.7, marginBottom: 20 }}>
+          <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.7, marginBottom: 20 }}>
             Dès la naissance, l'enfant a son carnet de santé sur l'app Nami — relié aux soignants de l'Américain quand il est rattaché à un parcours de soins.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {FEATURES.map(([icon, text], i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.875rem", color: "#4A4A5A" }}>
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.875rem", color: "#374151" }}>
                 <span style={{ flexShrink: 0 }}>{icon}</span>
                 <span>{text}</span>
               </div>
@@ -420,22 +420,22 @@ function TabAdressage() {
         <div style={{ display: "flex", alignItems: "stretch", overflowX: "auto", paddingBottom: 8 }}>
           {FLOW.map((step, i) => {
             if (step === null) return (
-              <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 8px", color: "#8A8A96", fontSize: 18, flexShrink: 0 }}>→</div>
+              <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 8px", color: "#6B7280", fontSize: 18, flexShrink: 0 }}>→</div>
             );
             return (
               <div key={i} style={{ background: "#FAFAF8", border: "1px solid rgba(26,26,46,0.06)", borderRadius: 12, padding: "16px 14px", textAlign: "center", minWidth: 120, flexShrink: 0 }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>{step.icon}</div>
                 <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1A1A2E", marginBottom: 4 }}>{step.title}</div>
-                <div style={{ fontSize: "0.72rem", color: "#8A8A96", lineHeight: 1.4 }}>{step.sub}</div>
+                <div style={{ fontSize: "0.72rem", color: "#6B7280", lineHeight: 1.4 }}>{step.sub}</div>
               </div>
             );
           })}
         </div>
-        <p style={{ marginTop: 16, fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: "16px 0 0" }}>
+        <p style={{ marginTop: 16, fontSize: "0.82rem", color: "#374151", lineHeight: 1.6, margin: "16px 0 0" }}>
           Un médecin de ville adresse en 30 secondes. Il garde la visibilité sur son patient. Il reçoit le compte-rendu. Il adressera plus facilement la prochaine fois.
         </p>
       </BrowserFrame>
-      <p style={{ marginTop: 20, fontSize: "0.88rem", color: "#4A4A5A", lineHeight: 1.7, maxWidth: 640 }}>
+      <p style={{ marginTop: 20, fontSize: "0.88rem", color: "#374151", lineHeight: 1.7, maxWidth: 640 }}>
         Le réseau ne se décrète pas — il se construit quand les médecins de ville ont un canal simple pour adresser et un retour structuré. Nami crée ce canal.
       </p>
     </div>
@@ -463,13 +463,13 @@ function TabIA() {
         <div style={{ display: "flex", alignItems: "stretch", overflowX: "auto", paddingBottom: 8, marginBottom: 16 }}>
           {FLOW.map((step, i) => {
             if (step === null) return (
-              <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 8px", color: "#8A8A96", fontSize: 18, flexShrink: 0 }}>→</div>
+              <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 8px", color: "#6B7280", fontSize: 18, flexShrink: 0 }}>→</div>
             );
             return (
               <div key={i} style={{ background: "#FAFAF8", border: "1px solid rgba(26,26,46,0.06)", borderRadius: 12, padding: "16px 14px", textAlign: "center", minWidth: 120, flexShrink: 0 }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>{step.icon}</div>
                 <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1A1A2E", marginBottom: 4 }}>{step.title}</div>
-                <div style={{ fontSize: "0.72rem", color: "#8A8A96", lineHeight: 1.4 }}>{step.sub}</div>
+                <div style={{ fontSize: "0.72rem", color: "#6B7280", lineHeight: 1.4 }}>{step.sub}</div>
               </div>
             );
           })}
@@ -480,7 +480,7 @@ function TabIA() {
           </p>
         </div>
       </BrowserFrame>
-      <p style={{ marginTop: 20, fontSize: "0.88rem", color: "#4A4A5A", lineHeight: 1.7, maxWidth: 640 }}>
+      <p style={{ marginTop: 20, fontSize: "0.88rem", color: "#374151", lineHeight: 1.7, maxWidth: 640 }}>
         Plus de paperasse post-consultation. Plus d'ordonnances oubliées. Plus de lettres d'adressage à rédiger à la main. Le soignant parle, Nami structure — le soignant vérifie et valide.
       </p>
     </div>
@@ -516,7 +516,7 @@ function ProduitSection() {
                 borderRadius: 100,
                 border: activeTab === i ? "none" : "1px solid rgba(26,26,46,0.12)",
                 background: activeTab === i ? "#5B4EC4" : "#fff",
-                color: activeTab === i ? "#fff" : "#4A4A5A",
+                color: activeTab === i ? "#fff" : "#374151",
                 fontSize: "0.82rem",
                 fontWeight: 600,
                 cursor: "pointer",
@@ -556,7 +556,7 @@ function DiscoursSection() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>DISCOURS UNIFIÉ</Eyebrow>
           <SectionTitle>Toute l&apos;équipe tient le même discours</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 600 }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 600 }}>
             La mère sort de l&apos;hôpital. Elle doit savoir si c&apos;est bien d&apos;allaiter, combien de temps, comment. Chaque soignant doit dire la même chose — pas 5 versions contradictoires.
           </p>
         </ScrollReveal>
@@ -624,7 +624,7 @@ function ParcoursSection() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>PARCOURS & PROTOCOLES</Eyebrow>
           <SectionTitle>Chaque projet a son parcours. Chaque parcours a son cadre.</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 680 }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 680 }}>
             Chacun dans l&apos;équipe a des idées — de nouveaux protocoles, des parcours à structurer, des projets à lancer. Nami donne un cadre à chaque initiative : un parcours clair, des étapes définies, des rôles attribués, et une visibilité pour que tout le monde s&apos;y retrouve.
           </p>
         </ScrollReveal>
@@ -650,13 +650,13 @@ function StepFlow({ steps }: { steps: (FlowStep | null)[] }) {
     <div style={{ display: "flex", alignItems: "stretch", overflowX: "auto", paddingBottom: 4, gap: 0 }}>
       {steps.map((step, i) => {
         if (step === null) return (
-          <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#8A8A96", fontSize: 18, flexShrink: 0 }}>→</div>
+          <div key={i} style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#6B7280", fontSize: 18, flexShrink: 0 }}>→</div>
         );
         return (
           <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.07)", borderRadius: 12, padding: "16px 14px", textAlign: "center", minWidth: 130, flexShrink: 0 }}>
             <div style={{ fontSize: 28, marginBottom: 8 }}>{step.icon}</div>
             <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1A1A2E", marginBottom: 4 }}>{step.title}</div>
-            <div style={{ fontSize: "0.72rem", color: "#8A8A96", lineHeight: 1.4 }}>{step.sub}</div>
+            <div style={{ fontSize: "0.72rem", color: "#6B7280", lineHeight: 1.4 }}>{step.sub}</div>
           </div>
         );
       })}
@@ -681,7 +681,7 @@ function Section7a() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>EN CONSULTATION</Eyebrow>
           <SectionTitle>Vous parlez. Le reste est fait.</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 36, maxWidth: 580 }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.7, marginTop: 12, marginBottom: 36, maxWidth: 580 }}>
             Vous enregistrez votre consultation. À la fin, vos documents sont prêts — il ne reste qu&apos;à vérifier et valider.
           </p>
         </ScrollReveal>
@@ -737,7 +737,7 @@ function Section7b() {
               <div style={{ textAlign: "center", fontWeight: 700, fontSize: "0.9rem", color: "#1A1A2E", marginBottom: 14 }}>Léa · 2 mois</div>
               {MINI_CARDS.map((c, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 8, background: "#FAFAF8", border: "1px solid #F0EEF8", marginBottom: 6 }}>
-                  <span style={{ fontSize: "0.78rem", color: "#4A4A5A" }}>{c.icon} {c.label}</span>
+                  <span style={{ fontSize: "0.78rem", color: "#374151" }}>{c.icon} {c.label}</span>
                   <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#5B4EC4" }}>{c.value}</span>
                 </div>
               ))}
@@ -747,7 +747,7 @@ function Section7b() {
                 ))}
               </div>
             </div>
-            <p style={{ textAlign: "center", fontSize: "0.72rem", color: "#8A8A96", marginTop: 10 }}>App parent · Toutes tranches d&apos;âge</p>
+            <p style={{ textAlign: "center", fontSize: "0.72rem", color: "#6B7280", marginTop: 10 }}>App parent · Toutes tranches d&apos;âge</p>
           </div>
           {/* Features */}
           <div>
@@ -759,7 +759,7 @@ function Section7b() {
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "#1A1A2E", marginBottom: 2 }}>{f.title}</div>
-                      <div style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6 }}>{f.text}</div>
+                      <div style={{ fontSize: "0.82rem", color: "#374151", lineHeight: 1.6 }}>{f.text}</div>
                     </div>
                   </div>
                 </ScrollReveal>
@@ -823,7 +823,7 @@ function Section7c() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>ENTRE LES CONSULTATIONS</Eyebrow>
           <SectionTitle>Votre patient vous parle en continu</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 28, maxWidth: 580 }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.7, marginTop: 12, marginBottom: 28, maxWidth: 580 }}>
             L&apos;app s&apos;adapte au parcours : nourrisson, enfant, ado, adulte. Chaque pathologie active les saisies pertinentes.
           </p>
         </ScrollReveal>
@@ -832,7 +832,7 @@ function Section7c() {
         <div style={{ display: "flex", gap: 8, marginBottom: 36, flexWrap: "wrap" }}>
           {["Adultes & adolescents", "Nourrissons & enfants"].map((label, i) => (
             <button key={i} onClick={() => setActiveSubTab(i)}
-              style={{ padding: "8px 18px", borderRadius: 100, border: activeSubTab === i ? "none" : "1px solid rgba(26,26,46,0.12)", background: activeSubTab === i ? "#5B4EC4" : "#fff", color: activeSubTab === i ? "#fff" : "#4A4A5A", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit" }}
+              style={{ padding: "8px 18px", borderRadius: 100, border: activeSubTab === i ? "none" : "1px solid rgba(26,26,46,0.12)", background: activeSubTab === i ? "#5B4EC4" : "#fff", color: activeSubTab === i ? "#fff" : "#374151", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit" }}
             >
               {label}
             </button>
@@ -850,7 +850,7 @@ function Section7c() {
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
                     <div>
                       <span style={{ fontWeight: 600, fontSize: "0.84rem", color: "#1A1A2E" }}>{item.title}</span>
-                      <span style={{ fontSize: "0.82rem", color: "#4A4A5A" }}> — {item.text}</span>
+                      <span style={{ fontSize: "0.82rem", color: "#374151" }}> — {item.text}</span>
                     </div>
                   </div>
                 ))}
@@ -862,13 +862,13 @@ function Section7c() {
                 <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1A1A2E", marginBottom: 12 }}>Semaine de Thomas Dupont</div>
                 {COCKPIT_CARDS.map((c, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", borderRadius: 8, background: "#FAFAF8", border: "1px solid #F0EEF8", marginBottom: 6 }}>
-                    <span style={{ fontSize: "0.78rem", color: "#4A4A5A" }}>{c.icon} {c.label}</span>
+                    <span style={{ fontSize: "0.78rem", color: "#374151" }}>{c.icon} {c.label}</span>
                     <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#1A1A2E" }}>{c.value}</span>
                   </div>
                 ))}
                 <div style={{ marginTop: 12, background: "#EDE9FE", borderRadius: 10, padding: "10px 14px" }}>
                   <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#5B4EC4", marginBottom: 4 }}>Parcours pluridisciplinaires</div>
-                  <p style={{ fontSize: "0.78rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>Le psy voit les émotions. La diét voit les repas. Le médecin voit les bilans. L'APA voit l'activité. Chacun dans le même dossier — le patient ne fait plus le lien entre vous.</p>
+                  <p style={{ fontSize: "0.78rem", color: "#374151", lineHeight: 1.6, margin: 0 }}>Le psy voit les émotions. La diét voit les repas. Le médecin voit les bilans. L'APA voit l'activité. Chacun dans le même dossier — le patient ne fait plus le lien entre vous.</p>
                 </div>
               </div>
             </div>
@@ -880,14 +880,14 @@ function Section7c() {
           <div key="ped" className="s7c-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, animation: "fadeSubTab 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
             <div>
               <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1A1A2E", margin: "0 0 6px" }}>Ce que le parent fait</h3>
-              <p style={{ fontSize: "0.82rem", color: "#8A8A96", marginBottom: 16 }}>Il observe 24h/24 ce que vous ne pouvez pas observer en consultation.</p>
+              <p style={{ fontSize: "0.82rem", color: "#6B7280", marginBottom: 16 }}>Il observe 24h/24 ce que vous ne pouvez pas observer en consultation.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {PED_LEFT.map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: "#CCFBF1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
                     <div>
                       <span style={{ fontWeight: 600, fontSize: "0.84rem", color: "#1A1A2E" }}>{item.title}</span>
-                      <span style={{ fontSize: "0.82rem", color: "#4A4A5A" }}> — {item.text}</span>
+                      <span style={{ fontSize: "0.82rem", color: "#374151" }}> — {item.text}</span>
                     </div>
                   </div>
                 ))}
@@ -899,12 +899,12 @@ function Section7c() {
                 {PED_RIGHT.map((item, i) => (
                   <div key={i} style={{ background: "#fff", border: "1px solid rgba(26,26,46,0.07)", borderRadius: 12, padding: "14px 16px" }}>
                     <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#5B4EC4", marginBottom: 6 }}>{item.date}</div>
-                    <p style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>{item.text}</p>
+                    <p style={{ fontSize: "0.82rem", color: "#374151", lineHeight: 1.6, margin: 0 }}>{item.text}</p>
                   </div>
                 ))}
                 <div style={{ background: "#CCFBF1", borderRadius: 12, padding: "14px 16px" }}>
                   <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#2BA89C", marginBottom: 4 }}>Pour les parents</div>
-                  <p style={{ fontSize: "0.82rem", color: "#4A4A5A", lineHeight: 1.6, margin: 0 }}>Tracer rassure. Voir les tendances rassure. Savoir que vous voyez les données réduit les appels anxieux.</p>
+                  <p style={{ fontSize: "0.82rem", color: "#374151", lineHeight: 1.6, margin: 0 }}>Tracer rassure. Voir les tendances rassure. Savoir que vous voyez les données réduit les appels anxieux.</p>
                 </div>
               </div>
             </div>
@@ -930,7 +930,7 @@ function Section7d() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>DOCUMENTS & BILANS</Eyebrow>
           <SectionTitle>Zéro saisie manuelle</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 560 }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.7, marginTop: 12, marginBottom: 48, maxWidth: 560 }}>
             Les bilans sont extraits. Les ordonnances sont scannées. Tout arrive en attente de validation.
           </p>
         </ScrollReveal>
@@ -1030,7 +1030,7 @@ function Section7g() {
         <ScrollReveal variant="fade-up" duration={0.7}>
           <Eyebrow>CE QUE NAMI NE FAIT PAS</Eyebrow>
           <SectionTitle>Intentionnellement</SectionTitle>
-          <p style={{ fontSize: "1rem", color: "#4A4A5A", lineHeight: 1.8, marginTop: 20, maxWidth: 560, margin: "20px auto 0" }}>
+          <p style={{ fontSize: "1rem", color: "#374151", lineHeight: 1.8, marginTop: 20, maxWidth: 560, margin: "20px auto 0" }}>
             Nami ne pose pas de diagnostic, ne décide pas d&apos;un traitement, ne déclenche pas d&apos;alerte clinique. Tout ce qui est extrait arrive en statut &quot;à valider&quot;. Vous restez le seul décideur clinique.
           </p>
         </ScrollReveal>
@@ -1058,7 +1058,7 @@ function CTASection() {
             <h2 style={{ fontSize: "clamp(1.4rem, 3vw, 1.9rem)", fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.025em", margin: "0 0 16px", lineHeight: 1.2 }}>
               Voir Nami en action
             </h2>
-            <p style={{ fontSize: "0.95rem", color: "#4A4A5A", lineHeight: 1.7, marginBottom: 32 }}>
+            <p style={{ fontSize: "0.95rem", color: "#374151", lineHeight: 1.7, marginBottom: 32 }}>
               Nami est opérationnel. Je vous propose une démo de 30 minutes pour voir concrètement comment ça s&apos;intègre au projet de la clinique.
             </p>
             <a
@@ -1082,7 +1082,7 @@ function CTASection() {
             >
               Planifier une démo →
             </a>
-            <p style={{ marginTop: 20, fontSize: "0.75rem", color: "#8A8A96" }}>
+            <p style={{ marginTop: 20, fontSize: "0.75rem", color: "#6B7280" }}>
               Margot Vire · Diététicienne · Hôpital Américain de Paris
             </p>
           </div>
@@ -1110,7 +1110,7 @@ function FooterSection() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {DISCLAIMER_LINES.map((line, i) => (
-            <p key={i} style={{ fontSize: "0.72rem", color: "#8A8A96", margin: 0, lineHeight: 1.6 }}>{line}</p>
+            <p key={i} style={{ fontSize: "0.72rem", color: "#6B7280", margin: 0, lineHeight: 1.6 }}>{line}</p>
           ))}
         </div>
       </div>

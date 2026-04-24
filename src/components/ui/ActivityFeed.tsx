@@ -222,7 +222,7 @@ export function ActivityFeed() {
           </div>
           <button
             onClick={() => setOpen(false)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#8A8A96", display: "flex" }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6B7280", display: "flex" }}
           >
             <X size={16} />
           </button>
@@ -231,7 +231,7 @@ export function ActivityFeed() {
         {/* Feed */}
         <div style={{ flex: 1, overflowY: "auto" }}>
           {feed.length === 0 ? (
-            <div style={{ padding: "40px 20px", textAlign: "center", color: "#8A8A96" }}>
+            <div style={{ padding: "40px 20px", textAlign: "center", color: "#6B7280" }}>
               <div style={{ fontSize: 32, marginBottom: 8 }}>🌿</div>
               <p style={{ fontSize: 13 }}>Tout est à jour.</p>
               <p style={{ fontSize: 11, marginTop: 4, opacity: 0.7 }}>Aucune tâche en attente ni activité récente.</p>
@@ -241,7 +241,7 @@ export function ActivityFeed() {
               <div key={group} style={{ paddingBottom: 8 }}>
                 <div style={{
                   padding: "12px 20px 6px",
-                  fontSize: 10, fontWeight: 700, color: "#8A8A96",
+                  fontSize: 10, fontWeight: 700, color: "#6B7280",
                   letterSpacing: "0.08em", textTransform: "uppercase",
                 }}>
                   {GROUP_LABEL[group]}
@@ -277,11 +277,11 @@ export function ActivityFeed() {
                         <div style={{ fontSize: 12, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.3 }}>
                           {item.title}
                         </div>
-                        <div style={{ fontSize: 11, color: "#4A4A5A", marginTop: 2, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 11, color: "#374151", marginTop: 2, lineHeight: 1.4 }}>
                           {item.body}
                         </div>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
-                          <span style={{ fontSize: 10, color: "#8A8A96" }}>
+                          <span style={{ fontSize: 10, color: "#6B7280" }}>
                             {format(item.date, "d MMM · HH:mm", { locale: fr })}
                           </span>
                           {item.action && (
@@ -361,11 +361,11 @@ export function ActivityFeedBell({ className }: { className?: string }) {
         borderRadius: 10, padding: "7px 9px",
         cursor: "pointer", display: "flex", alignItems: "center",
         transition: "border-color 150ms, background 150ms",
-        color: "#4A4A5A",
+        color: "#374151",
       }}
       title="Activité (notifications)"
       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#5B4EC4"; (e.currentTarget as HTMLElement).style.color = "#5B4EC4" }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF4"; (e.currentTarget as HTMLElement).style.color = "#4A4A5A" }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF4"; (e.currentTarget as HTMLElement).style.color = "#374151" }}
     >
       <Bell size={15} />
       {urgentCount > 0 && (

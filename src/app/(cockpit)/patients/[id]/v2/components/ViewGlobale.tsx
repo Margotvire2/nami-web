@@ -691,7 +691,7 @@ function FlagsBanner({ alerts, screenings }: { alerts: PatientDashboard["alerts"
 
 const CONDITION_TYPE_STYLE: Record<string, { badge: string; label: string; borderLeft: string }> = {
   PRIMARY:     { badge: "bg-[#EDE9FC] text-[#5B4EC4] border-[#C4B5FD]",   label: "Principale",   borderLeft: "border-l-[#5B4EC4]" },
-  COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",    label: "Comorbidité",  borderLeft: "border-l-[#8A8A96]" },
+  COMORBIDITY: { badge: "bg-slate-100 text-slate-700 border-slate-200",    label: "Comorbidité",  borderLeft: "border-l-[#6B7280]" },
   SUSPECTED:   { badge: "bg-amber-50 text-amber-700 border-amber-200",     label: "Suspectée",    borderLeft: "border-l-[#E6993E]" },
   ALLERGY:     { badge: "bg-red-50 text-red-700 border-red-200",           label: "Allergie",     borderLeft: "border-l-[#D94F4F]" },
   BACKGROUND:  { badge: "bg-gray-50 text-gray-500 border-gray-200",        label: "Antécédent",   borderLeft: "border-l-gray-300" },

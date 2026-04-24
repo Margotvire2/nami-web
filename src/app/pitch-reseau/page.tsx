@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from "react";
 const V = {
   nami: "#5B4EC4", namiH: "#4c44b0", teal: "#2BA89C", tealL: "#45C4B8",
   cream: "#FAFAF8", creamAlt: "#F5F3EF", deep: "#1A1A2E", deepS: "#252540",
-  t1: "#1A1A2E", t2: "#4A4A5A", tm: "#8A8A96",
+  t1: "#1A1A2E", t2: "#374151", tm: "#6B7280",
   border: "rgba(26,26,46,0.06)",
 };
 const GRAD: React.CSSProperties = {

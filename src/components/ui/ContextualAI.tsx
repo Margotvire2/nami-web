@@ -118,13 +118,13 @@ export function ContextualAI({ query, children, enabled = true }: ContextualAIPr
           {/* Close */}
           <button
             onClick={() => setOpen(false)}
-            style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", cursor: "pointer", color: "#8A8A96", padding: 2 }}
+            style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", cursor: "pointer", color: "#6B7280", padding: 2 }}
           >
             <X size={11} />
           </button>
 
           {loading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#8A8A96", fontSize: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#6B7280", fontSize: 12 }}>
               <div style={{ width: 10, height: 10, border: "1.5px solid #5B4EC4", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 600ms linear infinite" }} />
               <style>{`@keyframes spin { to { transform:rotate(360deg) } }`}</style>
               Recherche documentaire…
@@ -149,17 +149,17 @@ export function ContextualAI({ query, children, enabled = true }: ContextualAIPr
                   }}>
                     {result.source}
                   </span>
-                  <span style={{ fontSize: 9, color: "#8A8A96" }}>{Math.round(result.score * 100)}%</span>
+                  <span style={{ fontSize: 9, color: "#6B7280" }}>{Math.round(result.score * 100)}%</span>
                 </div>
               </div>
-              <div style={{ marginTop: 6, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 9, color: "#4A4A5A" }}>
+              <div style={{ marginTop: 6, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 9, color: "#374151" }}>
                 Info documentaire — non clinique
               </div>
             </>
           )}
 
           {!loading && !result && (
-            <p style={{ fontSize: 12, color: "#8A8A96" }}>Aucun résultat pour cette requête.</p>
+            <p style={{ fontSize: 12, color: "#6B7280" }}>Aucun résultat pour cette requête.</p>
           )}
         </div>
       )}

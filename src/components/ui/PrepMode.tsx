@@ -28,7 +28,7 @@ function Delta({ label, value, unit, prev }: {
 }) {
   if (value === null) return null
   const diff = prev != null ? +(value - prev).toFixed(1) : null
-  const color = diff == null ? "#4A4A5A"
+  const color = diff == null ? "#374151"
     : diff > 0.5 ? "#D97706"
     : diff < -0.5 ? "#059669"
     : "#6366F1"
@@ -44,7 +44,7 @@ function Delta({ label, value, unit, prev }: {
       animation: "deltaIn 200ms ease both",
     }}>
       <style>{`@keyframes deltaIn { from { opacity:0; transform:translateX(-4px) } to { opacity:1; transform:translateX(0) } }`}</style>
-      <span style={{ fontSize: 12, color: "#4A4A5A" }}>{label}</span>
+      <span style={{ fontSize: 12, color: "#374151" }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>{value} {unit}</span>
         {arrow && diff !== null && (
@@ -223,7 +223,7 @@ export function PrepMode() {
             display: "flex", alignItems: "flex-start", justifyContent: "space-between",
           }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#8A8A96", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#6B7280", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
                 Préparation
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", margin: 0 }}>
@@ -238,7 +238,7 @@ export function PrepMode() {
             </div>
             <button
               onClick={() => setEvent(null)}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 6, color: "#8A8A96", display: "flex", borderRadius: 8 }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 6, color: "#6B7280", display: "flex", borderRadius: 8 }}
             >
               <X size={16} />
             </button>
@@ -258,7 +258,7 @@ export function PrepMode() {
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     marginBottom: 10,
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "#8A8A96", letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#6B7280", letterSpacing: "0.07em", textTransform: "uppercase" }}>
                       Résumé
                     </div>
                     {careCase?.clinicalSummary || aiNote ? (
@@ -292,7 +292,7 @@ export function PrepMode() {
                       {/* Activité récente condensée sous le résumé */}
                       {eventsSince.length > 0 && (
                         <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #E8ECF4" }}>
-                          <div style={{ fontSize: 10, fontWeight: 600, color: "#8A8A96", marginBottom: 6 }}>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: "#6B7280", marginBottom: 6 }}>
                             {lastConsultDate
                               ? `Depuis le ${format(lastConsultDate, "d MMM", { locale: fr })} (${daysSince}j)`
                               : "Récemment"}
@@ -301,8 +301,8 @@ export function PrepMode() {
                             {eventsSince.slice(0, 3).map((a) => (
                               <div key={a.id} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 11 }}>
                                 <span style={{ fontSize: 12, flexShrink: 0 }}>{activityIcon[a.activityType?.toUpperCase()] ?? "·"}</span>
-                                <span style={{ color: "#4A4A5A" }}>{a.title}</span>
-                                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 9, color: "#8A8A96" }}>
+                                <span style={{ color: "#374151" }}>{a.title}</span>
+                                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 9, color: "#6B7280" }}>
                                   {format(parseISO(a.occurredAt), "d MMM", { locale: fr })}
                                 </span>
                               </div>
@@ -322,7 +322,7 @@ export function PrepMode() {
                       } as React.CSSProperties}>
                         &ldquo;{aiNote.body}&rdquo;
                       </p>
-                      <div style={{ marginTop: 8, fontSize: 10, color: "#8A8A96" }}>
+                      <div style={{ marginTop: 8, fontSize: 10, color: "#6B7280" }}>
                         {aiNote.title ?? "Compte-rendu"} · {format(parseISO(aiNote.createdAt), "d MMM yyyy", { locale: fr })}
                         {aiNote.author && ` · ${aiNote.author.firstName} ${aiNote.author.lastName}`}
                       </div>
@@ -331,7 +331,7 @@ export function PrepMode() {
                     /* Pas de résumé ni de note IA → activité récente comme dernier recours */
                     <div>
                       {eventsSince.length === 0 ? (
-                        <p style={{ fontSize: 12, color: "#8A8A96", fontStyle: "italic" }}>Aucune activité enregistrée depuis le dernier RDV.</p>
+                        <p style={{ fontSize: 12, color: "#6B7280", fontStyle: "italic" }}>Aucune activité enregistrée depuis le dernier RDV.</p>
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {eventsSince.map((a) => (
@@ -342,17 +342,17 @@ export function PrepMode() {
                               <div>
                                 <span style={{ color: "#1A1A2E", fontWeight: 500 }}>{a.title}</span>
                                 {a.summary && (
-                                  <span style={{ color: "#8A8A96", marginLeft: 6 }}>— {a.summary.slice(0, 80)}{a.summary.length > 80 ? "…" : ""}</span>
+                                  <span style={{ color: "#6B7280", marginLeft: 6 }}>— {a.summary.slice(0, 80)}{a.summary.length > 80 ? "…" : ""}</span>
                                 )}
                               </div>
-                              <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 10, color: "#8A8A96" }}>
+                              <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 10, color: "#6B7280" }}>
                                 {format(parseISO(a.occurredAt), "d MMM", { locale: fr })}
                               </span>
                             </div>
                           ))}
                         </div>
                       )}
-                      <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF4", fontSize: 10, color: "#8A8A96" }}>
+                      <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF4", fontSize: 10, color: "#6B7280" }}>
                         {eventsSince.length} événement{eventsSince.length !== 1 ? "s" : ""} · {daysSince !== null ? `${daysSince} jours depuis votre dernière consultation` : "Nouveau dossier"}
                       </div>
                     </div>
@@ -368,7 +368,7 @@ export function PrepMode() {
                     borderRadius: 14, padding: "14px 16px",
                   }}>
                     <div style={{
-                      fontSize: 10, fontWeight: 700, color: "#8A8A96",
+                      fontSize: 10, fontWeight: 700, color: "#6B7280",
                       letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10,
                     }}>
                       CE QUI A BOUGÉ
@@ -389,14 +389,14 @@ export function PrepMode() {
                   borderRadius: 14, padding: "14px 16px",
                 }}>
                   <div style={{
-                    fontSize: 10, fontWeight: 700, color: "#8A8A96",
+                    fontSize: 10, fontWeight: 700, color: "#6B7280",
                     letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10,
                   }}>
                     POINTS À ABORDER
                   </div>
 
                   {caseTasks.length === 0 && !careCase?.nextStepSummary ? (
-                    <p style={{ fontSize: 12, color: "#8A8A96", fontStyle: "italic" }}>Aucune tâche en attente pour ce dossier.</p>
+                    <p style={{ fontSize: 12, color: "#6B7280", fontStyle: "italic" }}>Aucune tâche en attente pour ce dossier.</p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {careCase?.nextStepSummary && (
@@ -414,7 +414,7 @@ export function PrepMode() {
                     </div>
                   )}
 
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF4", fontSize: 10, color: "#8A8A96" }}>
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF4", fontSize: 10, color: "#6B7280" }}>
                     Suggestions — à valider par le soignant
                   </div>
                 </div>

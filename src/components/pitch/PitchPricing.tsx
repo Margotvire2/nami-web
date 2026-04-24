@@ -118,7 +118,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
             </h2>
           )}
           {variant === "vc" && (
-            <p style={{ fontSize: 16, color: "#4A4A5A", marginBottom: 52, maxWidth: 480, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 16, color: "#374151", marginBottom: 52, maxWidth: 480, lineHeight: 1.6 }}>
               Tout ce que Doctolib facture 149€/mois, Nami l&apos;offre.
             </p>
           )}
@@ -146,7 +146,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                 display: "flex",
                 flexDirection: "column",
               }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8A8A96", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#6B7280", marginBottom: 10 }}>
                   Doctolib
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
@@ -154,22 +154,22 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                     fontSize: "clamp(2rem, 5vw, 4rem)",
                     fontWeight: 800,
                     letterSpacing: "-0.04em",
-                    color: "#8A8A96",
+                    color: "#6B7280",
                     textDecoration: "line-through",
                     fontFamily: "var(--font-jakarta)",
                   }}>
                     149€
                   </span>
-                  <span style={{ fontSize: 13, color: "#8A8A96" }}>/mois</span>
+                  <span style={{ fontSize: 13, color: "#6B7280" }}>/mois</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {DOCTOLIB_FEATURES.map((f) => (
                     <div key={f} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 16, height: 16, borderRadius: "50%", background: f.startsWith("—") ? "transparent" : "rgba(26,26,46,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        {!f.startsWith("—") && <Check size={9} color="#8A8A96" />}
+                        {!f.startsWith("—") && <Check size={9} color="#6B7280" />}
                         {f.startsWith("—") && <span style={{ fontSize: 11, color: "#D1D5DB" }}>×</span>}
                       </div>
-                      <span style={{ fontSize: 13, color: f.startsWith("—") ? "#C4C4CC" : "#4A4A5A" }}>
+                      <span style={{ fontSize: 13, color: f.startsWith("—") ? "#C4C4CC" : "#374151" }}>
                         {f.startsWith("—") ? f.slice(2) : f}
                       </span>
                     </div>
@@ -179,7 +179,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
 
               {/* VS divider */}
               <div className="pricing-vs-divider" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px" }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#8A8A96", letterSpacing: "0.05em" }}>VS</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#6B7280", letterSpacing: "0.05em" }}>VS</span>
               </div>
 
               {/* Nami card */}
@@ -208,7 +208,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                   }}>
                     0€
                   </span>
-                  <span style={{ fontSize: 13, color: "#8A8A96" }}>/mois</span>
+                  <span style={{ fontSize: 13, color: "#6B7280" }}>/mois</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {NAMI_FREE_FEATURES.map((f) => (
@@ -236,7 +236,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
 
         {/* 5 Tiers */}
         <ScrollReveal variant="fade-up" delay={variant === "vc" ? 0.25 : 0.1} duration={0.7}>
-          <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8A8A96", marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6B7280", marginBottom: 20 }}>
             Les 5 tiers
           </div>
         </ScrollReveal>
@@ -275,7 +275,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                     {tier.badge}
                   </div>
                 )}
-                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: tier.highlight ? "#5B4EC4" : "#8A8A96", marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: tier.highlight ? "#5B4EC4" : "#6B7280", marginBottom: 8 }}>
                   {tier.name}
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 16 }}>
@@ -288,7 +288,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                   }}>
                     {tier.price}
                   </span>
-                  <span style={{ fontSize: 11, color: "#8A8A96" }}>{tier.period}</span>
+                  <span style={{ fontSize: 11, color: "#6B7280" }}>{tier.period}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {tier.features.map((f) => (
@@ -296,7 +296,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
                       <div style={{ width: 14, height: 14, borderRadius: "50%", background: tier.highlight ? "rgba(91,78,196,0.10)" : "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                         <Check size={8} color={tier.highlight ? "#5B4EC4" : "#059669"} />
                       </div>
-                      <span style={{ fontSize: 12, color: "#4A4A5A", lineHeight: 1.4 }}>{f}</span>
+                      <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.4 }}>{f}</span>
                     </div>
                   ))}
                 </div>
@@ -307,7 +307,7 @@ export function PitchPricing({ note, variant = "vc" }: Props) {
 
         {note && (
           <ScrollReveal variant="fade-up" delay={0.5} duration={0.6}>
-            <p style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#8A8A96", fontStyle: "italic" }}>
+            <p style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#6B7280", fontStyle: "italic" }}>
               {note}
             </p>
           </ScrollReveal>

@@ -14,7 +14,7 @@ const STATUS_CONFIG = {
   DONE:     { icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50",      label: "Administré" },
   DUE:      { icon: Clock,        color: "text-[#5B4EC4]",   bg: "bg-[#5B4EC4]/5",    label: "À documenter" },
   OVERDUE:  { icon: AlertTriangle,color: "text-amber-600",   bg: "bg-amber-50",        label: "Non documenté" },
-  DEFERRED: { icon: Clock,        color: "text-[#8A8A96]",   bg: "bg-[#FAFAF8]",      label: "Différé" },
+  DEFERRED: { icon: Clock,        color: "text-[#6B7280]",   bg: "bg-[#FAFAF8]",      label: "Différé" },
   REFUSED:  { icon: XCircle,      color: "text-red-400",     bg: "bg-red-50/60",      label: "Refusé" },
 };
 
@@ -66,7 +66,7 @@ function VacRow({ vac }: { vac: PediatricVaccination }) {
       <Icon size={14} className={cfg.color} />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-[#1A1A2E] truncate">{vac.vaccineName}</p>
-        <p className="text-[10px] text-[#8A8A96]">
+        <p className="text-[10px] text-[#6B7280]">
           {vac.administeredDate
             ? `Le ${format(new Date(vac.administeredDate), "d MMM yyyy", { locale: fr })}`
             : `Prévu ${format(new Date(vac.dueDate), "d MMM yyyy", { locale: fr })}`}

@@ -114,7 +114,7 @@ export default function AdminDonneesPage() {
             <div style={{ fontSize: 28, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.02em", lineHeight: 1 }}>
               <AnimatedCounter target={value} />
             </div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: "#8A8A96", marginTop: 4 }}>{label}</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: "#6B7280", marginTop: 4 }}>{label}</div>
           </div>
         ))}
       </div>
@@ -131,12 +131,12 @@ export default function AdminDonneesPage() {
               return (
                 <div key={key} className="admin-stagger" style={{ animationDelay: `${200 + i * 60}ms` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 12, color: "#4A4A5A", width: 180, flexShrink: 0 }}>{label}</span>
+                    <span style={{ fontSize: 12, color: "#374151", width: 180, flexShrink: 0 }}>{label}</span>
                     <AnimatedBar pct={pct} delay={i * 80} />
                     <span style={{ fontSize: 12, fontWeight: 600, color: "#1A1A2E", width: 36, textAlign: "right", flexShrink: 0 }}>
                       {pct}%
                     </span>
-                    <span style={{ fontSize: 11, color: "#8A8A96", width: 52, textAlign: "right", flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, color: "#6B7280", width: 52, textAlign: "right", flexShrink: 0 }}>
                       {count.toLocaleString("fr-FR")}
                     </span>
                   </div>
@@ -160,7 +160,7 @@ export default function AdminDonneesPage() {
               { label: "Questionnaires", value: "34" },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: "#8A8A96" }}>{label}</span>
+                <span style={{ fontSize: 12, color: "#6B7280" }}>{label}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1A2E" }}>{value}</span>
               </div>
             ))}
@@ -177,7 +177,7 @@ export default function AdminDonneesPage() {
               { label: "Source", value: "AMELI 2024" },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: "#8A8A96" }}>{label}</span>
+                <span style={{ fontSize: 12, color: "#6B7280" }}>{label}</span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E" }}>{value}</span>
               </div>
             ))}

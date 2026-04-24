@@ -30,15 +30,15 @@ export async function POST(req: NextRequest) {
           </div>
           <h2 style="font-size: 20px; color: #1A1A2E; margin: 0 0 20px;">Nouvelle demande de démo</h2>
           <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px; width: 140px;">Prénom / Nom</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px; font-weight: 600;">${firstName} ${lastName}</td></tr>
-            <tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px;">Email</td><td style="padding: 8px 0;"><a href="mailto:${email}" style="color: #5B4EC4;">${email}</a></td></tr>
-            ${phone ? `<tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px;">Téléphone</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${phone}</td></tr>` : ""}
-            <tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px;">Spécialité</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${specialty}</td></tr>
-            ${structure ? `<tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px;">Structure</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${structure}</td></tr>` : ""}
-            <tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px;">Volume patients</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px; font-weight: ${isHot ? "700" : "400"};">${patientVolume || "Non précisé"}</td></tr>
-            ${source ? `<tr><td style="padding: 8px 0; color: #8A8A96; font-size: 13px;">Source</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${source}</td></tr>` : ""}
+            <tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px; width: 140px;">Prénom / Nom</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px; font-weight: 600;">${firstName} ${lastName}</td></tr>
+            <tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px;">Email</td><td style="padding: 8px 0;"><a href="mailto:${email}" style="color: #5B4EC4;">${email}</a></td></tr>
+            ${phone ? `<tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px;">Téléphone</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${phone}</td></tr>` : ""}
+            <tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px;">Spécialité</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${specialty}</td></tr>
+            ${structure ? `<tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px;">Structure</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${structure}</td></tr>` : ""}
+            <tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px;">Volume patients</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px; font-weight: ${isHot ? "700" : "400"};">${patientVolume || "Non précisé"}</td></tr>
+            ${source ? `<tr><td style="padding: 8px 0; color: #6B7280; font-size: 13px;">Source</td><td style="padding: 8px 0; color: #1A1A2E; font-size: 14px;">${source}</td></tr>` : ""}
           </table>
-          ${message ? `<div style="margin-top: 16px; padding: 16px; background: #F5F3EF; border-radius: 8px;"><p style="font-size: 13px; color: #8A8A96; margin: 0 0 6px;">Message</p><p style="font-size: 14px; color: #1A1A2E; margin: 0; line-height: 1.6;">${message}</p></div>` : ""}
+          ${message ? `<div style="margin-top: 16px; padding: 16px; background: #F5F3EF; border-radius: 8px;"><p style="font-size: 13px; color: #6B7280; margin: 0 0 6px;">Message</p><p style="font-size: 14px; color: #1A1A2E; margin: 0; line-height: 1.6;">${message}</p></div>` : ""}
           <div style="margin-top: 24px;">
             <a href="mailto:${email}?subject=Votre demande de démo Nami" style="display: inline-block; background: #5B4EC4; color: #fff; font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 100px; text-decoration: none;">Répondre à ${firstName}</a>
           </div>
@@ -57,15 +57,15 @@ export async function POST(req: NextRequest) {
             <span style="font-size: 22px; font-weight: 800; color: #5B4EC4;">nami</span>
           </div>
           <h2 style="font-size: 20px; color: #1A1A2E; margin: 0 0 12px;">Bonjour ${firstName},</h2>
-          <p style="font-size: 15px; color: #4A4A5A; line-height: 1.7; margin: 0 0 16px;">
+          <p style="font-size: 15px; color: #374151; line-height: 1.7; margin: 0 0 16px;">
             Merci pour votre intérêt pour Nami. J'ai bien reçu votre demande et je vous recontacte personnellement dans les 24 heures pour organiser une démo adaptée à votre contexte.
           </p>
-          <p style="font-size: 15px; color: #4A4A5A; line-height: 1.7; margin: 0 0 24px;">
+          <p style="font-size: 15px; color: #374151; line-height: 1.7; margin: 0 0 24px;">
             En attendant, vous pouvez explorer les fiches pathologies et l'annuaire des soignants en accès libre sur namipourlavie.com.
           </p>
           <a href="https://namipourlavie.com/pathologies" style="display: inline-block; background: #5B4EC4; color: #fff; font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 100px; text-decoration: none; margin-bottom: 32px;">Explorer les pathologies</a>
           <div style="border-top: 1px solid rgba(26,26,46,0.08); padding-top: 20px;">
-            <p style="font-size: 13px; color: #8A8A96; margin: 0; line-height: 1.6;">
+            <p style="font-size: 13px; color: #6B7280; margin: 0; line-height: 1.6;">
               Margot Vire — Fondatrice de Nami<br />
               Diététicienne spécialisée TCA<br />
               <a href="mailto:margot@namipourlavie.com" style="color: #5B4EC4;">margot@namipourlavie.com</a>

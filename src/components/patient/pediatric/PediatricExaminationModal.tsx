@@ -60,14 +60,14 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-[#1A1A2E]">{exam.label}</h2>
-          <button onClick={onClose} className="text-[#8A8A96] hover:text-[#1A1A2E]">
+          <button onClick={onClose} className="text-[#6B7280] hover:text-[#1A1A2E]">
             <X size={16} />
           </button>
         </div>
 
         {/* Date de réalisation */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-[#4A4A5A]">Date de réalisation</label>
+          <label className="text-xs font-medium text-[#374151]">Date de réalisation</label>
           <input
             type="date"
             value={performedDate}
@@ -78,9 +78,9 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
 
         {/* Notes carnet (visibles parent) */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-[#4A4A5A]">
+          <label className="text-xs font-medium text-[#374151]">
             Notes carnet{" "}
-            <span className="text-[#8A8A96] font-normal">(visibles par les parents)</span>
+            <span className="text-[#6B7280] font-normal">(visibles par les parents)</span>
           </label>
           <textarea
             value={parentNotes}
@@ -93,9 +93,9 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
 
         {/* Notes cliniques (équipe uniquement) */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-[#4A4A5A]">
+          <label className="text-xs font-medium text-[#374151]">
             Notes cliniques{" "}
-            <span className="text-[#8A8A96] font-normal">(équipe soignante uniquement)</span>
+            <span className="text-[#6B7280] font-normal">(équipe soignante uniquement)</span>
           </label>
           <textarea
             value={clinicalNotes}
@@ -104,7 +104,7 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
             rows={3}
             className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4]"
           />
-          <p className="text-[10px] text-[#8A8A96]">Non transmises aux parents</p>
+          <p className="text-[10px] text-[#6B7280]">Non transmises aux parents</p>
         </div>
 
         {/* Bouton */}

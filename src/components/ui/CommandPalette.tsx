@@ -133,11 +133,11 @@ export function CommandPalette() {
   ]
 
   const NAV: PaletteItem[] = [
-    { id: "nav-today",    type: "nav", label: "Aujourd'hui",    icon: <Calendar size={13} style={{ color: "#8A8A96" }} />,    onSelect: () => go("/aujourd-hui") },
-    { id: "nav-patients", type: "nav", label: "Patients",       icon: <Stethoscope size={13} style={{ color: "#8A8A96" }} />, onSelect: () => go("/patients") },
-    { id: "nav-messages", type: "nav", label: "Messages",       icon: <MessageSquare size={13} style={{ color: "#8A8A96" }} />, onSelect: () => go("/messages") },
-    { id: "nav-tasks",    type: "nav", label: "Tâches",         icon: <CheckSquare size={13} style={{ color: "#8A8A96" }} />,   onSelect: () => go("/taches") },
-    { id: "nav-settings", type: "nav", label: "Réglages",       icon: <Settings size={13} style={{ color: "#8A8A96" }} />,     onSelect: () => go("/reglages") },
+    { id: "nav-today",    type: "nav", label: "Aujourd'hui",    icon: <Calendar size={13} style={{ color: "#6B7280" }} />,    onSelect: () => go("/aujourd-hui") },
+    { id: "nav-patients", type: "nav", label: "Patients",       icon: <Stethoscope size={13} style={{ color: "#6B7280" }} />, onSelect: () => go("/patients") },
+    { id: "nav-messages", type: "nav", label: "Messages",       icon: <MessageSquare size={13} style={{ color: "#6B7280" }} />, onSelect: () => go("/messages") },
+    { id: "nav-tasks",    type: "nav", label: "Tâches",         icon: <CheckSquare size={13} style={{ color: "#6B7280" }} />,   onSelect: () => go("/taches") },
+    { id: "nav-settings", type: "nav", label: "Réglages",       icon: <Settings size={13} style={{ color: "#6B7280" }} />,     onSelect: () => go("/reglages") },
   ]
 
   const actionItems = ACTIONS.filter((a) =>
@@ -227,11 +227,11 @@ export function CommandPalette() {
             }}
           />
           {query && (
-            <button onClick={() => setQuery("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", color: "#8A8A96" }}>
+            <button onClick={() => setQuery("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", color: "#6B7280" }}>
               <X size={14} />
             </button>
           )}
-          <kbd style={{ fontSize: 10, color: "#8A8A96", border: "1px solid #E8ECF4", borderRadius: 6, padding: "2px 6px", background: "#F8F9FA", fontFamily: "inherit" }}>
+          <kbd style={{ fontSize: 10, color: "#6B7280", border: "1px solid #E8ECF4", borderRadius: 6, padding: "2px 6px", background: "#F8F9FA", fontFamily: "inherit" }}>
             Esc
           </kbd>
         </div>
@@ -239,7 +239,7 @@ export function CommandPalette() {
         {/* Results */}
         <div style={{ overflowY: "auto", flex: 1 }}>
           {allItems.length === 0 ? (
-            <div style={{ padding: "32px 20px", textAlign: "center", color: "#8A8A96", fontSize: 13 }}>
+            <div style={{ padding: "32px 20px", textAlign: "center", color: "#6B7280", fontSize: 13 }}>
               Aucun résultat pour « {query} »
             </div>
           ) : (
@@ -250,7 +250,7 @@ export function CommandPalette() {
                   {section.title && (
                     <div style={{
                       padding: "10px 20px 4px",
-                      fontSize: 10, fontWeight: 700, color: "#8A8A96",
+                      fontSize: 10, fontWeight: 700, color: "#6B7280",
                       letterSpacing: "0.08em", textTransform: "uppercase",
                     }}>
                       {section.title}
@@ -282,7 +282,7 @@ export function CommandPalette() {
                             {item.label}
                           </span>
                           {item.sublabel && (
-                            <span style={{ display: "block", fontSize: 11, color: "#8A8A96", lineHeight: 1.3, marginTop: 1 }}>
+                            <span style={{ display: "block", fontSize: 11, color: "#6B7280", lineHeight: 1.3, marginTop: 1 }}>
                               {item.sublabel}
                             </span>
                           )}
@@ -306,7 +306,7 @@ export function CommandPalette() {
           display: "flex", alignItems: "center", gap: 16,
         }}>
           {[["↑↓", "naviguer"], ["↵", "sélectionner"], ["Esc", "fermer"]].map(([key, hint]) => (
-            <span key={key} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#8A8A96" }}>
+            <span key={key} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#6B7280" }}>
               <kbd style={{ background: "#F1F5F9", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 5px", fontFamily: "inherit", fontSize: 10 }}>
                 {key}
               </kbd>

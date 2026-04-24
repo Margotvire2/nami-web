@@ -96,7 +96,7 @@ export default function TrouverUnSoignantPage() {
               style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)", lineHeight: 1.08 }}>
               Trouvez le bon soignant,<br className="hidden md:block" /> au bon moment.
             </h1>
-            <p className="text-lg mb-8" style={{ color: "#4A4A5A" }}>
+            <p className="text-lg mb-8" style={{ color: "#374151" }}>
               60 000+ sources cliniques structurées. 131 parcours de soins.
             </p>
           </div>
@@ -105,7 +105,7 @@ export default function TrouverUnSoignantPage() {
           <div style={{ maxWidth: 640, margin: "0 auto" }}>
             <div className="flex gap-3 flex-wrap">
               <div className="relative flex-1" style={{ minWidth: 240 }}>
-                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "#8A8A96" }} />
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "#6B7280" }} />
                 <Input
                   placeholder="Nom, spécialité, ville…"
                   value={search}
@@ -118,7 +118,7 @@ export default function TrouverUnSoignantPage() {
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
                 className="h-12 px-5 rounded-full border-0 text-sm font-medium"
-                style={{ background: "#fff", boxShadow: "0 1px 3px rgba(26,26,46,0.08)", color: "#4A4A5A", minWidth: 200 }}
+                style={{ background: "#fff", boxShadow: "0 1px 3px rgba(26,26,46,0.08)", color: "#374151", minWidth: 200 }}
               >
                 {SPECIALTY_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -145,7 +145,7 @@ export default function TrouverUnSoignantPage() {
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <p className="text-sm font-medium mb-5 sm:col-span-2 lg:col-span-3" style={{ color: "#8A8A96" }}>
+            <p className="text-sm font-medium mb-5 sm:col-span-2 lg:col-span-3" style={{ color: "#6B7280" }}>
               {filtered.length} soignant{filtered.length !== 1 ? "s" : ""} disponible{filtered.length !== 1 ? "s" : ""}
             </p>
             {filtered.map((provider) => (

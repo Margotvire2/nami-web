@@ -17,8 +17,8 @@ export const N = {
 
   // Texte — 3 niveaux
   dark:      "#1A1A2E",
-  textMid:   "#4A4A5A",
-  textLight: "#8A8A96",
+  textMid:   "#374151",
+  textLight: "#6B7280",
 
   // Bordures — 2 niveaux
   border:    "rgba(26,26,46,0.06)",
@@ -52,18 +52,18 @@ export const N = {
   statusPending:   "#E6993E",
   statusConfirmed: "#5B4EC4",
   statusArrived:   "#2BA84A",
-  statusCompleted: "#8A8A96",
+  statusCompleted: "#6B7280",
   statusCancelled: "#D94F4F",
   statusNoShow:    "#C0792A",
   statusAbsence:   "#B4B2A9",
 
   // Statuts CIE (parcours) — couleurs cliniques, NE PAS MODIFIER
-  cieFuture:     { bg: "#F5F3EF", border: "rgba(26,26,46,0.06)", text: "#8A8A96" },
+  cieFuture:     { bg: "#F5F3EF", border: "rgba(26,26,46,0.06)", text: "#6B7280" },
   cieApproaching:{ bg: "rgba(91,78,196,0.08)", border: "rgba(91,78,196,0.2)", text: "#5B4EC4" },
   cieInWindow:   { bg: "rgba(43,168,74,0.06)", border: "rgba(43,168,74,0.2)", text: "#2BA84A" },
   cieOverdue:    { bg: "rgba(217,79,79,0.06)", border: "rgba(217,79,79,0.15)", text: "#D94F4F" },
   cieCompleted:  { bg: "rgba(43,168,156,0.08)", border: "rgba(43,168,156,0.2)", text: "#2BA89C" },
-  cieSkipped:    { bg: "#F5F3EF", border: "rgba(26,26,46,0.06)", text: "#8A8A96" },
+  cieSkipped:    { bg: "#F5F3EF", border: "rgba(26,26,46,0.06)", text: "#6B7280" },
 
   // Priorités adressage — NE PAS MODIFIER
   priorityRoutine:   { color: "#2BA84A", bg: "rgba(43,168,74,0.06)" },

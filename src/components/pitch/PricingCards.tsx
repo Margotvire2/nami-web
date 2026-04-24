@@ -89,14 +89,14 @@ export function PricingCards({ note }: { note?: string }) {
             )}
 
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: tier.highlight ? "#5B4EC4" : "#8A8A96", marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: tier.highlight ? "#5B4EC4" : "#6B7280", marginBottom: 8 }}>
                 {tier.name}
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
                 <span style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-0.04em", color: "#1A1A2E", lineHeight: 1, fontFamily: "var(--font-jakarta)" }}>
                   {tier.price}
                 </span>
-                <span style={{ fontSize: 13, color: "#8A8A96" }}>{tier.priceDetail}</span>
+                <span style={{ fontSize: 13, color: "#6B7280" }}>{tier.priceDetail}</span>
               </div>
             </div>
 
@@ -108,7 +108,7 @@ export function PricingCards({ note }: { note?: string }) {
                   <div style={{ width: 18, height: 18, borderRadius: "50%", background: tier.highlight ? "rgba(91,78,196,0.10)" : "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                     <Check size={10} color={tier.highlight ? "#5B4EC4" : "#059669"} />
                   </div>
-                  <span style={{ fontSize: 14, color: "#4A4A5A", lineHeight: 1.4 }}>{f}</span>
+                  <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.4 }}>{f}</span>
                 </li>
               ))}
             </ul>
@@ -136,7 +136,7 @@ export function PricingCards({ note }: { note?: string }) {
         ))}
       </div>
       {note && (
-        <p style={{ textAlign: "center", marginTop: 18, fontSize: 13, color: "#8A8A96" }}>
+        <p style={{ textAlign: "center", marginTop: 18, fontSize: 13, color: "#6B7280" }}>
           {note}
         </p>
       )}
