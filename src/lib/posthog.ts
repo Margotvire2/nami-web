@@ -5,7 +5,7 @@ export function initPostHog() {
   if (posthog.__loaded) return;
 
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  if (!key) return;
+  if (!key || !key.startsWith("phc_")) return;
 
   posthog.init(key, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
