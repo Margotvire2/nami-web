@@ -156,8 +156,8 @@ export default function PatientsPage() {
               />
             </div>
             <div className="flex items-center border rounded h-8 overflow-hidden">
-              <button onClick={() => setViewMode("table")} className={`px-2 h-full flex items-center transition-colors ${viewMode === "table" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}><LayoutList size={13} /></button>
-              <button onClick={() => setViewMode("cards")} className={`px-2 h-full flex items-center transition-colors ${viewMode === "cards" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid size={13} /></button>
+              <button onClick={() => setViewMode("table")} aria-label="Vue liste" className={`px-2 h-full flex items-center transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 ${viewMode === "table" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}><LayoutList size={13} /></button>
+              <button onClick={() => setViewMode("cards")} aria-label="Vue cartes" className={`px-2 h-full flex items-center transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 ${viewMode === "cards" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid size={13} /></button>
             </div>
             <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={exportCSV} disabled={filtered.length === 0} title={`Exporter ${filtered.length} dossier(s) en CSV`}>
               <Download size={12} /> Export CSV
@@ -204,7 +204,7 @@ export default function PatientsPage() {
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4]"
+              className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
             >
               <option value="">Risque</option>
               {([["CRITICAL", "Critique"], ["HIGH", "Élevé"], ["MEDIUM", "Modéré"], ["LOW", "Faible"], ["UNKNOWN", "Inconnu"]] as const).map(([r, label]) => (
@@ -215,7 +215,7 @@ export default function PatientsPage() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4]"
+                className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
               >
                 <option value="">Pathologie</option>
                 {types.map((t) => (
@@ -226,7 +226,7 @@ export default function PatientsPage() {
             <select
               value={activityFilter}
               onChange={(e) => setActivityFilter(e.target.value)}
-              className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4]"
+              className="text-xs border border-[#E8ECF4] rounded-lg px-2 py-1 bg-white text-[#64748B] h-7 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
             >
               <option value="">Activité</option>
               <option value="recent">Active &lt; 7j</option>

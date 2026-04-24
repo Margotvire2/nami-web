@@ -158,6 +158,7 @@ export function Sidebar() {
           onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = "rgba(91,78,196,0.05)"}
           onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = "transparent"}
           title="Réglages du profil"
+          aria-label="Réglages du profil"
         >
           <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)" }}>
             {user?.firstName?.[0]}{user?.lastName?.[0]}

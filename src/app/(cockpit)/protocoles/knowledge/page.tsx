@@ -443,7 +443,7 @@ function ClinicalQAPanel({ accessToken }: { accessToken: string }) {
                   onKeyDown={handleKeyDown}
                   placeholder="Posez une question clinique… (Entrée pour valider)"
                   rows={2}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] bg-white"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus:ring-1 focus:ring-[#5B4EC4] bg-white"
                 />
                 <button
                   onClick={handleSubmit}

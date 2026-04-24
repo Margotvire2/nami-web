@@ -281,7 +281,7 @@ function JoinModal({ org, onClose, onJoin }: { org: OrgCard; onClose: () => void
         </p>
 
         <textarea
-          className="w-full h-20 p-3 rounded-[10px] border border-[rgba(26,26,46,0.1)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] resize-none outline-none focus:border-[#5B4EC4] transition-colors"
+          className="w-full h-20 p-3 rounded-[10px] border border-[rgba(26,26,46,0.1)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] resize-none outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 transition-colors"
           placeholder="Message optionnel : votre spécialité, votre structure, votre motivation..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -528,7 +528,7 @@ export default function ReseauPage() {
                   placeholder="Rechercher un réseau..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 h-9 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] outline-none focus:border-[#5B4EC4] transition-colors"
+                  className="w-full pl-8 pr-3 h-9 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 transition-colors"
                 />
               </div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -597,16 +597,16 @@ export default function ReseauPage() {
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-[200px] max-w-[320px]">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.75} />
-                  <input type="text" placeholder="Rechercher un patient..." value={searchCoord} onChange={(e) => setSearchCoord(e.target.value)} className="w-full pl-8 pr-3 h-9 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] outline-none focus:border-[#5B4EC4] transition-colors" />
+                  <input type="text" placeholder="Rechercher un patient..." value={searchCoord} onChange={(e) => setSearchCoord(e.target.value)} className="w-full pl-8 pr-3 h-9 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 transition-colors" />
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Filter size={13} className="text-[#94A3B8]" strokeWidth={1.75} />
-                  <select value={filterTypeCoord} onChange={(e) => setFilterTypeCoord(e.target.value)} className="h-9 px-3 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] outline-none focus:border-[#5B4EC4] cursor-pointer">
+                  <select value={filterTypeCoord} onChange={(e) => setFilterTypeCoord(e.target.value)} className="h-9 px-3 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 cursor-pointer">
                     <option value="ALL">Tous les parcours</option>
                     {Object.entries(CASE_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
-                <select value={filterStatusCoord} onChange={(e) => setFilterStatusCoord(e.target.value)} className="h-9 px-3 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] outline-none focus:border-[#5B4EC4] cursor-pointer">
+                <select value={filterStatusCoord} onChange={(e) => setFilterStatusCoord(e.target.value)} className="h-9 px-3 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 cursor-pointer">
                   <option value="ALL">Tous les statuts</option>
                   <option value="ACTIVE">Actifs</option>
                   <option value="ON_HOLD">En pause</option>

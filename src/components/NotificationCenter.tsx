@@ -235,7 +235,8 @@ export function NotificationCenter() {
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="text-[#94A3B8] hover:text-[#5B4EC4] transition-colors"
+              className="text-[#94A3B8] hover:text-[#5B4EC4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40 rounded"
+              aria-label="Fermer les notifications"
             >
               <X size={14} strokeWidth={1.75} />
             </button>

@@ -151,7 +151,7 @@ export function ScheduleQuestionnaireModal({ careCaseId, patientFirstName, patie
             <ClipboardList size={18} className="text-[#5B4EC4]" />
             <h2 className="text-[15px] font-semibold text-[#0F172A]">Programmer un questionnaire</h2>
           </div>
-          <button onClick={onClose} className="text-[#94A3B8] hover:text-[#475569] transition-colors">
+          <button onClick={onClose} aria-label="Fermer" className="text-[#94A3B8] hover:text-[#475569] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40 rounded">
             <X size={18} />
           </button>
         </div>
@@ -214,7 +214,7 @@ export function ScheduleQuestionnaireModal({ careCaseId, patientFirstName, patie
               value={scheduledAt}
               min={minDatetime}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] text-[#0F172A] focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]"
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] text-[#0F172A] focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus:ring-1 focus:ring-[#5B4EC4]"
             />
           </div>
 
@@ -229,7 +229,7 @@ export function ScheduleQuestionnaireModal({ careCaseId, patientFirstName, patie
               placeholder={`Bonjour ${patientFirstName}, merci de remplir ce questionnaire avant notre prochain rendez-vous.`}
               maxLength={500}
               rows={3}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] text-[#0F172A] resize-none focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] placeholder:text-[#CBD5E1]"
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E8ECF4] text-[13px] text-[#0F172A] resize-none focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus:ring-1 focus:ring-[#5B4EC4] placeholder:text-[#CBD5E1]"
             />
             <p className="text-[11px] text-[#94A3B8] mt-1">{message.length}/500</p>
           </div>

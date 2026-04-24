@@ -136,7 +136,7 @@ function CreateApptModal({
                   value={patientSearch}
                   onChange={(e) => setPatientSearch(e.target.value)}
                   placeholder="Rechercher par nom, email…"
-                  className="w-full text-[12px] border border-[#E8ECF4] rounded-lg px-3 py-2 outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]/20"
+                  className="w-full text-sm border border-[#E8ECF4] rounded-lg px-3 py-2 outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
                 />
                 {patientResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E8ECF4] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
@@ -164,7 +164,7 @@ function CreateApptModal({
               <select
                 value={hour}
                 onChange={(e) => setHour(Number(e.target.value))}
-                className="w-full text-[12px] border border-[#E8ECF4] rounded-lg px-2 py-2 outline-none focus:border-[#5B4EC4]"
+                className="w-full text-sm border border-[#E8ECF4] rounded-lg px-2 py-2 outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
               >
                 {HOURS.slice(DAY_START, DAY_END + 1).map((h) => (
                   <option key={h} value={h}>{String(h).padStart(2, "0")}h</option>
@@ -176,7 +176,7 @@ function CreateApptModal({
               <select
                 value={minute}
                 onChange={(e) => setMinute(Number(e.target.value))}
-                className="w-full text-[12px] border border-[#E8ECF4] rounded-lg px-2 py-2 outline-none focus:border-[#5B4EC4]"
+                className="w-full text-sm border border-[#E8ECF4] rounded-lg px-2 py-2 outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
               >
                 {[0, 15, 30, 45].map((m) => (
                   <option key={m} value={m}>:{String(m).padStart(2, "0")}</option>
@@ -188,7 +188,7 @@ function CreateApptModal({
               <select
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full text-[12px] border border-[#E8ECF4] rounded-lg px-2 py-2 outline-none focus:border-[#5B4EC4]"
+                className="w-full text-sm border border-[#E8ECF4] rounded-lg px-2 py-2 outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
               >
                 {[15, 20, 30, 45, 60, 90].map((d) => (
                   <option key={d} value={d}>{d} min</option>
@@ -204,7 +204,7 @@ function CreateApptModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Motif de consultation…"
-              className="w-full text-[12px] border border-[#E8ECF4] rounded-lg px-3 py-2 outline-none focus:border-[#5B4EC4]"
+              className="w-full text-sm border border-[#E8ECF4] rounded-lg px-3 py-2 outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
             />
           </div>
         </div>

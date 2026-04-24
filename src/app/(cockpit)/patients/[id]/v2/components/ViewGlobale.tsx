@@ -772,7 +772,7 @@ function ConditionsCard({ careCaseId }: { careCaseId: string }) {
             placeholder="Rechercher (code ou libellé)…"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setSelected(null); }}
-            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] bg-white"
+            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus:ring-1 focus:ring-[#5B4EC4] bg-white"
             autoFocus
           />
           {search && !selected && filtered.length > 0 && (
@@ -1066,7 +1066,7 @@ function AddObservationModal({ careCaseId, indicators, onClose }: {
             <select
               value={metricKey}
               onChange={(e) => { setMetricKey(e.target.value); setValue(""); }}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4] bg-white"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus:ring-1 focus:ring-[#5B4EC4] bg-white"
             >
               {numericIndicators.map((i) => (
                 <option key={i.metricKey} value={i.metricKey}>{i.label}{i.unit ? ` (${i.unit})` : ""}</option>
@@ -1084,7 +1084,7 @@ function AddObservationModal({ careCaseId, indicators, onClose }: {
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
               placeholder={selectedInd?.value != null ? `Dernière : ${fv(selectedInd.value)}` : "Valeur numérique"}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus:ring-1 focus:ring-[#5B4EC4]"
               autoFocus
             />
           </div>

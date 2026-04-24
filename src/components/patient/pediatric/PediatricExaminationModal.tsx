@@ -72,7 +72,7 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
             type="date"
             value={performedDate}
             onChange={(e) => setPerformedDate(e.target.value)}
-            className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4]"
+            className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
           />
         </div>
 
@@ -87,7 +87,7 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
             onChange={(e) => setParentNotes(e.target.value)}
             placeholder="Ex : RAS, bon développement, prise de poids régulière…"
             rows={3}
-            className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4]"
+            className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
           />
         </div>
 
@@ -102,7 +102,7 @@ export function PediatricExaminationModal({ exam, profileId, onClose }: Props) {
             onChange={(e) => setClinicalNotes(e.target.value)}
             placeholder="Observations cliniques, points à suivre, hypothèses…"
             rows={3}
-            className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4]"
+            className="w-full text-sm border border-[rgba(26,26,46,0.1)] rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30"
           />
           <p className="text-[10px] text-[#6B7280]">Non transmises aux parents</p>
         </div>
