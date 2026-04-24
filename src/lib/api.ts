@@ -216,6 +216,18 @@ export const careCasesApi = {
       { method: "POST", body: JSON.stringify({}) },
       token
     ),
+
+  patchNode: (
+    token: string,
+    careCaseId: string,
+    nodeId: string,
+    data: { status?: string; realizedDate?: string | null; assignedProviderId?: string | null }
+  ) =>
+    request<{ id: string }>(
+      `/care-cases/${careCaseId}/pathway/nodes/${nodeId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
 };
 
 // ─── Pathway types ────────────────────────────────────────────────────────────
@@ -2470,6 +2482,8 @@ export function apiWithToken(token: string) {
       pathwayGraph: (id: string) => careCasesApi.pathwayGraph(token, id),
       pathwayTemplateSteps: (id: string) => careCasesApi.pathwayTemplateSteps(token, id),
       instantiatePathway: (id: string) => careCasesApi.instantiatePathway(token, id),
+      patchNode: (careCaseId: string, nodeId: string, data: { status?: string; realizedDate?: string | null; assignedProviderId?: string | null }) =>
+        careCasesApi.patchNode(token, careCaseId, nodeId, data),
     },
     team: { list: (id: string) => teamApi.list(token, id) },
     notes: {

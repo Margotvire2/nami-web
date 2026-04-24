@@ -332,7 +332,7 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
 
       {/* ─── Steps ─── */}
       {hasNodes ? (
-        <CIEStepsSection nodes={graphData!.nodes} />
+        <CIEStepsSection nodes={graphData!.nodes} careCaseId={careCaseId} />
       ) : (
         <TemplateStepsSection
           steps={templateData?.steps ?? []}
@@ -572,9 +572,22 @@ function PathwayHeader({
 
 // ─── CIE Nodes — groupés par phaseLabel ───────────────────────────────────────
 
-function NextStepHero({ node, onShowProtocol }: { node: PathwayNode; onShowProtocol?: () => void }) {
+function NextStepHero({
+  node,
+  protocolOpen,
+  onToggleProtocol,
+  onMarkDone,
+  markingDone,
+}: {
+  node: PathwayNode;
+  protocolOpen: boolean;
+  onToggleProtocol: () => void;
+  onMarkDone: () => void;
+  markingDone: boolean;
+}) {
   const isOverdue = node.status === "OVERDUE";
-  const hasProtocol = !!node.PathwayTemplateStep?.protocolContent;
+  const accentColor = isOverdue ? "#D94F4F" : "#5B4EC4";
+
   return (
     <div
       className="rounded-2xl p-5"
@@ -583,7 +596,7 @@ function NextStepHero({ node, onShowProtocol }: { node: PathwayNode; onShowProto
         background: isOverdue ? "rgba(217,79,79,0.02)" : "rgba(91,78,196,0.015)",
       }}
     >
-      <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: isOverdue ? "#D94F4F" : "#5B4EC4" }}>
+      <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: accentColor }}>
         {isOverdue ? "⚠ Étape en retard" : "Votre prochaine étape"}
       </p>
       <p className="text-[16px] font-bold text-[#1A1A2E] leading-snug">{node.actLabel}</p>
@@ -599,21 +612,22 @@ function NextStepHero({ node, onShowProtocol }: { node: PathwayNode; onShowProto
           <span className="text-[12px] font-semibold text-[#D94F4F]">· {node.daysOverdue}j de retard</span>
         )}
       </div>
-      <div className="flex gap-2 mt-4">
-        {hasProtocol && (
-          <button
-            onClick={onShowProtocol}
-            className="flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2 rounded-lg text-white transition-all"
-            style={{ background: isOverdue ? "#D94F4F" : "#5B4EC4", border: "none", cursor: "pointer" }}
-          >
-            <BookOpen size={13} />
-            Comment faire →
-          </button>
-        )}
+      <div className="flex gap-2 mt-4 flex-wrap">
         <button
-          className="text-[13px] px-4 py-2 rounded-lg"
-          style={{ border: "1px solid rgba(26,26,46,0.12)", background: "transparent", color: "#4A4A5A", cursor: "pointer" }}
+          onClick={onToggleProtocol}
+          className="flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2 rounded-lg text-white transition-all"
+          style={{ background: accentColor, border: "none", cursor: "pointer", opacity: protocolOpen ? 0.85 : 1 }}
         >
+          <BookOpen size={13} />
+          {protocolOpen ? "Fermer le protocole" : "Comment faire →"}
+        </button>
+        <button
+          onClick={onMarkDone}
+          disabled={markingDone}
+          className="flex items-center gap-1.5 text-[13px] font-medium px-4 py-2 rounded-lg transition-all disabled:opacity-50"
+          style={{ border: "1px solid rgba(26,26,46,0.12)", background: "transparent", color: "#4A4A5A", cursor: markingDone ? "not-allowed" : "pointer" }}
+        >
+          {markingDone ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} className="text-teal-500" />}
           Marquer comme fait
         </button>
       </div>
@@ -621,18 +635,31 @@ function NextStepHero({ node, onShowProtocol }: { node: PathwayNode; onShowProto
   );
 }
 
-function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
+function CIEStepsSection({ nodes, careCaseId }: { nodes: PathwayNode[]; careCaseId: string }) {
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [heroProtocolOpen, setHeroProtocolOpen] = useState(false);
 
-  // Find next actionable step (OVERDUE first, then IN_WINDOW)
   const nextStep =
     nodes.find(n => n.status === "OVERDUE") ??
     nodes.find(n => n.status === "IN_WINDOW") ??
     nodes.find(n => n.status === "APPROACHING") ??
     null;
 
-  const selectedNode = selectedNodeId ? nodes.find(n => n.id === selectedNodeId) ?? null : null;
-  const selectedProtocol = selectedNode?.PathwayTemplateStep?.protocolContent ?? null;
+  const markDone = useMutation({
+    mutationFn: (nodeId: string) =>
+      apiWithToken(accessToken!).careCases.patchNode(careCaseId, nodeId, {
+        status: "COMPLETED",
+        realizedDate: new Date().toISOString(),
+      }),
+    onSuccess: () => {
+      toast.success("Étape marquée comme réalisée");
+      setHeroProtocolOpen(false);
+      qc.invalidateQueries({ queryKey: ["pathway-graph", careCaseId] });
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour"),
+  });
 
   // Group by phaseLabel
   const phases: { label: string; nodes: PathwayNode[] }[] = [];
@@ -650,16 +677,33 @@ function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
       {nextStep && (
         <NextStepHero
           node={nextStep}
-          onShowProtocol={() => setSelectedNodeId(prev => prev === nextStep.id ? null : nextStep.id)}
+          protocolOpen={heroProtocolOpen}
+          onToggleProtocol={() => setHeroProtocolOpen(prev => !prev)}
+          onMarkDone={() => markDone.mutate(nextStep.id)}
+          markingDone={markDone.isPending}
         />
       )}
-      {selectedProtocol && selectedNode && (
-        <StepProtocolPanel
-          actLabel={selectedNode.actLabel}
-          clinicalActType={selectedNode.clinicalActType}
-          protocol={selectedProtocol}
-          onClose={() => setSelectedNodeId(null)}
-        />
+      {/* Panel protocole du hero — contenu ou placeholder */}
+      {heroProtocolOpen && nextStep && (
+        nextStep.PathwayTemplateStep?.protocolContent
+          ? (
+            <StepProtocolPanel
+              actLabel={nextStep.actLabel}
+              clinicalActType={nextStep.clinicalActType}
+              protocol={nextStep.PathwayTemplateStep.protocolContent}
+              onClose={() => setHeroProtocolOpen(false)}
+            />
+          ) : (
+            <div className="rounded-xl border border-[rgba(91,78,196,0.15)] bg-[rgba(91,78,196,0.02)] px-4 py-5 flex items-center gap-3">
+              <BookOpen size={16} className="text-[#5B4EC4] shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-[#1A1A2E]">Protocole en cours de génération</p>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Le protocole clinique pour cette étape sera disponible sous peu. Il est généré à partir des recommandations HAS/FFAB.
+                </p>
+              </div>
+            </div>
+          )
       )}
       <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 px-1">
         Toutes les étapes ({nodes.length})
@@ -674,6 +718,7 @@ function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
             defaultOpen={hasActive}
             selectedNodeId={selectedNodeId}
             onSelectNode={(id) => setSelectedNodeId(prev => prev === id ? null : id)}
+            careCaseId={careCaseId}
           />
         );
       })}
@@ -682,13 +727,14 @@ function CIEStepsSection({ nodes }: { nodes: PathwayNode[] }) {
 }
 
 function CIEPhaseGroup({
-  label, nodes, defaultOpen, selectedNodeId, onSelectNode,
+  label, nodes, defaultOpen, selectedNodeId, onSelectNode, careCaseId,
 }: {
   label: string;
   nodes: PathwayNode[];
   defaultOpen?: boolean;
   selectedNodeId: string | null;
   onSelectNode: (id: string) => void;
+  careCaseId: string;
 }) {
   const completed = nodes.filter(n => n.status === "COMPLETED").length;
   const overdue = nodes.filter(n => n.status === "OVERDUE").length;
@@ -731,6 +777,7 @@ function CIEPhaseGroup({
                 node={node}
                 isSelected={selectedNodeId === node.id}
                 onToggleProtocol={() => onSelectNode(node.id)}
+                careCaseId={careCaseId}
               />
             ))}
           </div>
@@ -741,15 +788,30 @@ function CIEPhaseGroup({
 }
 
 function CIENodeRow({
-  node, isSelected, onToggleProtocol,
+  node, isSelected, onToggleProtocol, careCaseId,
 }: {
   node: PathwayNode;
   isSelected: boolean;
   onToggleProtocol: () => void;
+  careCaseId: string;
 }) {
+  const { accessToken } = useAuthStore();
+  const qc = useQueryClient();
   const cfg = NODE_STATUS_CFG[node.status] ?? NODE_STATUS_CFG.FUTURE;
-  const hasProtocol = !!node.PathwayTemplateStep?.protocolContent;
   const protocol = node.PathwayTemplateStep?.protocolContent ?? null;
+
+  const markDone = useMutation({
+    mutationFn: () =>
+      apiWithToken(accessToken!).careCases.patchNode(careCaseId, node.id, {
+        status: "COMPLETED",
+        realizedDate: new Date().toISOString(),
+      }),
+    onSuccess: () => {
+      toast.success("Étape réalisée");
+      qc.invalidateQueries({ queryKey: ["pathway-graph", careCaseId] });
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour"),
+  });
 
   return (
     <div>
@@ -784,17 +846,24 @@ function CIENodeRow({
             {node.expectedDate && node.status !== "COMPLETED" && (
               <span className="text-[10px] text-neutral-400">Prévu {formatDate(node.expectedDate)}</span>
             )}
-            {hasProtocol && (
+            <button
+              onClick={onToggleProtocol}
+              className={cn(
+                "text-[9px] font-medium px-1.5 py-0.5 rounded border transition-colors",
+                isSelected
+                  ? "bg-[rgba(91,78,196,0.1)] border-[rgba(91,78,196,0.3)] text-[#5B4EC4]"
+                  : "bg-white border-neutral-200 text-neutral-400 hover:border-[rgba(91,78,196,0.3)] hover:text-[#5B4EC4]"
+              )}
+            >
+              {isSelected ? "✕ Fermer" : "Comment faire →"}
+            </button>
+            {node.status !== "COMPLETED" && node.status !== "SKIPPED" && (
               <button
-                onClick={onToggleProtocol}
-                className={cn(
-                  "text-[9px] font-medium px-1.5 py-0.5 rounded border transition-colors",
-                  isSelected
-                    ? "bg-[rgba(91,78,196,0.1)] border-[rgba(91,78,196,0.3)] text-[#5B4EC4]"
-                    : "bg-white border-neutral-200 text-neutral-400 hover:border-[rgba(91,78,196,0.3)] hover:text-[#5B4EC4]"
-                )}
+                onClick={() => markDone.mutate()}
+                disabled={markDone.isPending}
+                className="text-[9px] font-medium px-1.5 py-0.5 rounded border border-neutral-200 bg-white text-neutral-400 hover:border-teal-300 hover:text-teal-600 transition-colors disabled:opacity-50"
               >
-                {isSelected ? "✕ Fermer" : "Comment faire →"}
+                {markDone.isPending ? "…" : "✓ Fait"}
               </button>
             )}
           </div>
@@ -805,14 +874,28 @@ function CIENodeRow({
           )}
         </div>
       </div>
-      {isSelected && protocol && (
+      {isSelected && (
         <div className="mt-1.5">
-          <StepProtocolPanel
-            actLabel={node.actLabel}
-            clinicalActType={node.clinicalActType}
-            protocol={protocol}
-            onClose={onToggleProtocol}
-          />
+          {protocol
+            ? (
+              <StepProtocolPanel
+                actLabel={node.actLabel}
+                clinicalActType={node.clinicalActType}
+                protocol={protocol}
+                onClose={onToggleProtocol}
+              />
+            ) : (
+              <div className="rounded-lg border border-[rgba(91,78,196,0.15)] bg-[rgba(91,78,196,0.02)] px-3 py-3 flex items-center gap-2.5">
+                <BookOpen size={13} className="text-[#5B4EC4] shrink-0" />
+                <p className="text-xs text-neutral-500">
+                  Protocole en cours de génération — disponible sous peu.
+                </p>
+                <button onClick={onToggleProtocol} className="ml-auto shrink-0">
+                  <X size={11} className="text-neutral-400" />
+                </button>
+              </div>
+            )
+          }
         </div>
       )}
     </div>
