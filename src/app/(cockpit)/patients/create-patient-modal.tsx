@@ -91,7 +91,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
   // Step 1 — Patient info
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [sex, setSex] = useState<"M" | "F" | "OTHER" | "">("");
+  const [sex, setSex] = useState<"M" | "F" | "">("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -156,8 +156,17 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
         router.push("/upgrade?trigger=create_patient");
         return;
       }
+      const body = err?.response ?? err?.data ?? {};
+      if (body?.error === "PATIENT_ALREADY_EXISTS") {
+        toast.error("Ce patient existe déjà dans Nami. Vous pouvez accéder à son dossier depuis la liste patients.");
+        return;
+      }
+      if (body?.error === "AMBIGUOUS_MATCH") {
+        toast.error("Plusieurs patients correspondent à ces informations. Vérifiez la date de naissance ou contactez le support.");
+        return;
+      }
       const msg = err?.message?.includes("409")
-        ? "Un patient avec ce nom existe déjà"
+        ? "Un patient avec ces informations existe déjà"
         : "Erreur lors de la création";
       toast.error(msg);
     },
@@ -191,7 +200,13 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
     }
   }
 
-  const canStep1 = firstName.trim() && lastName.trim();
+  const hasContact = email.trim() || phone.trim();
+  const canStep1 =
+    firstName.trim().length >= 2 &&
+    lastName.trim().length >= 2 &&
+    sex !== "" &&
+    birthDate !== "" &&
+    hasContact;
   const canStep2 = true; // case type has default
 
   return (
@@ -278,9 +293,9 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
               </div>
             </div>
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground">Sexe</label>
+              <label className="text-[11px] font-medium text-muted-foreground">Sexe *</label>
               <div className="flex gap-2 mt-1.5">
-                {([["M", "Homme"], ["F", "Femme"], ["OTHER", "Autre"]] as const).map(([val, label]) => (
+                {([["M", "Homme"], ["F", "Femme"]] as const).map(([val, label]) => (
                   <button
                     key={val}
                     type="button"
@@ -299,7 +314,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
             </div>
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">
-                Email (pour l&apos;invitation)
+                Email ou téléphone *
               </label>
               <Input
                 type="email"
@@ -323,7 +338,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
               </div>
               <div>
                 <label className="text-[11px] font-medium text-muted-foreground">
-                  Date de naissance
+                  Date de naissance *
                 </label>
                 <Input
                   type="date"
