@@ -900,10 +900,10 @@ export const appointmentsApi = {
 export interface CreatePatientWithCaseInput {
   firstName: string;
   lastName: string;
-  sex?: "M" | "F" | "OTHER";
-  email?: string;
-  phone?: string;
-  birthDate?: string;
+  sex: "M" | "F";
+  email: string;
+  phone: string;
+  birthDate: string;
   caseType: "TCA" | "OBESITY" | "METABOLIC" | "MENTAL_HEALTH" | "PEDIATRIC" | "CHRONIC_PAIN" | "OTHER";
   caseTitle: string;
   mainConcern?: string;
@@ -915,7 +915,7 @@ export interface CreatePatientWithCaseInput {
 export interface CreatePatientWithCaseResult {
   patient: { id: string; firstName: string; lastName: string; email: string };
   careCase: { id: string; caseTitle: string; caseType: string };
-  invitation: { id: string; token: string; inviteUrl: string; expiresAt: string } | null;
+  invitation: { id: string; token: string; inviteUrl: string; expiresAt: string };
 }
 
 export const patientsApi = {

@@ -299,10 +299,14 @@ export default function OnboardingPage() {
     setCreatingPatient(true)
     setPatientError(null)
     try {
+      const slug = `${patientFirstName.trim().toLowerCase().replace(/[^a-z0-9]/g, "")}-${Date.now()}`;
       const result = await apiWithToken(accessToken).patients.createWithCase({
         firstName:   patientFirstName.trim(),
         lastName:    patientLastName.trim(),
-        birthDate:   patientBirthDate || undefined,
+        sex:         "F",
+        email:       `onboarding-${slug}@nami-placeholder.local`,
+        phone:       "0000000000",
+        birthDate:   patientBirthDate || "1990-01-01",
         caseType:    caseType as any,
         caseTitle:   `${patientFirstName.trim()} ${patientLastName.trim()} — ${CASE_TYPES.find((c) => c.id === caseType)?.label ?? caseType}`,
         mainConcern: CASE_TYPES.find((c) => c.id === caseType)?.label,

@@ -133,10 +133,10 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
       api.patients.createWithCase({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        sex: sex || undefined,
-        email: email.trim() || undefined,
-        phone: phone.trim() || undefined,
-        birthDate: birthDate || undefined,
+        sex: sex as "M" | "F",
+        email: email.trim(),
+        phone: phone.trim(),
+        birthDate,
         caseType,
         caseTitle: caseTitle.trim() || autoTitle(),
         mainConcern: mainConcern.trim() || undefined,
@@ -200,13 +200,13 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
     }
   }
 
-  const hasContact = email.trim() || phone.trim();
   const canStep1 =
     firstName.trim().length >= 2 &&
     lastName.trim().length >= 2 &&
     sex !== "" &&
     birthDate !== "" &&
-    hasContact;
+    email.trim().length > 0 &&
+    phone.trim().length > 0;
   const canStep2 = true; // case type has default
 
   return (
@@ -314,7 +314,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
             </div>
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">
-                Email ou téléphone *
+                Email *
               </label>
               <Input
                 type="email"
@@ -327,7 +327,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[11px] font-medium text-muted-foreground">
-                  Téléphone
+                  Téléphone *
                 </label>
                 <Input
                   value={phone}
