@@ -28,6 +28,7 @@ const CARE_TYPE_MAP: Record<string, CareTypeConfig> = {
   ADDICTION:     { label: "Addictologie",         color: "#DC2626", bg: "#FEE2E2" },
   NUTRITION:     { label: "Nutrition",            color: "#10B981", bg: "#D1FAE5" },
   OTHER:         { label: "Suivi",                color: "#6B7280", bg: "#F3F4F6" },
+  PATIENT:       { label: "Suivi",                color: "#6B7280", bg: "#F3F4F6" },
 };
 
 /** Retourne la config couleur+label pour un caseType.

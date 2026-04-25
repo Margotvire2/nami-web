@@ -11,7 +11,7 @@ import { NamiCard } from "@/components/ui/NamiCard";
 import { ShimmerCard } from "@/components/ui/shimmer";
 import { CompletenessPlant, computeCompleteness } from "@/components/ui/CompletenessPlant";
 import Link from "next/link";
-import { Search, ChevronRight, Users, Plus, Upload, LayoutGrid, LayoutList, TrendingUp, TrendingDown, Minus, Download, Clock } from "lucide-react";
+import { Search, ChevronRight, Users, Plus, Upload, LayoutGrid, LayoutList, TrendingUp, TrendingDown, Minus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ImportModal from "./import/import-modal";
@@ -109,30 +109,6 @@ export default function PatientsPage() {
     return Math.floor((now - new Date(c.lastActivityAt).getTime()) / 86400000) > 7;
   });
 
-  function exportCSV() {
-    const headers = ["Nom", "Prénom", "Date de naissance", "Pathologie", "Statut", "Indicateur", "Ouverture dossier", "Dernière activité", "Membres équipe"];
-    const RISK_FR: Record<string, string> = { CRITICAL: "Critique", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Inconnu" };
-    const STATUS_FR: Record<string, string> = { ACTIVE: "Actif", PAUSED: "En pause", CLOSED: "Fermé", ARCHIVED: "Archivé" };
-    const rows = filtered.map((c) => [
-      c.patient.lastName,
-      c.patient.firstName,
-      c.patient.birthDate ? new Date(c.patient.birthDate).toLocaleDateString("fr-FR") : "",
-      c.caseType,
-      STATUS_FR[c.status] ?? c.status,
-      RISK_FR[c.riskLevel] ?? c.riskLevel,
-      new Date(c.startDate).toLocaleDateString("fr-FR"),
-      c.lastActivityAt ? new Date(c.lastActivityAt).toLocaleDateString("fr-FR") : "",
-      String(c._count.members),
-    ]);
-    const csv = [headers, ...rows].map((row) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(";")).join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `patients-nami-${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -159,9 +135,6 @@ export default function PatientsPage() {
               <button onClick={() => setViewMode("table")} aria-label="Vue liste" className={`px-2 h-full flex items-center transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 ${viewMode === "table" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}><LayoutList size={13} /></button>
               <button onClick={() => setViewMode("cards")} aria-label="Vue cartes" className={`px-2 h-full flex items-center transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 ${viewMode === "cards" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid size={13} /></button>
             </div>
-            <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={exportCSV} disabled={filtered.length === 0} title={`Exporter ${filtered.length} dossier(s) en CSV`}>
-              <Download size={12} /> Export CSV
-            </Button>
             <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setImportOpen(true)}>
               <Upload size={12} /> Importer
             </Button>

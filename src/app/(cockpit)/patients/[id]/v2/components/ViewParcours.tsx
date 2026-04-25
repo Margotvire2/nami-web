@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { groupByFamily, getFamilyLabel, getPhaseLabel } from "@/lib/pathwayFamilyLabels";
+import { expandPathwayLabel } from "@/lib/pathway-acronyms";
 import { toast } from "sonner";
 import {
   Route, CheckCircle2, Circle, ChevronDown, ChevronUp,
@@ -313,7 +314,7 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
   }
 
   const pathway = graphData?.pathway ?? templateData?.pathway ?? null;
-  const pathwayName = pathway?.label ?? config?.pathway?.name ?? "Parcours de soins";
+  const pathwayName = expandPathwayLabel(pathway?.label ?? config?.pathway?.name ?? "Parcours de soins");
   const startedAt = config?.pathway?.startedAt ?? graphData?.pathwayStartedAt ?? null;
   const dayInPathway = config?.pathway?.dayInPathway ?? 0;
 
@@ -1180,7 +1181,7 @@ function EmptyState({ careCaseId }: { careCaseId: string }) {
           Aucun parcours de soins assigné
         </h3>
         <p className="text-sm text-neutral-500 max-w-sm mx-auto mb-6 leading-relaxed">
-          Sélectionnez un protocole HAS, FFAB ou Orphanet pour structurer les phases, les étapes et les délais du suivi.
+          Affecter votre patient à un protocole de soin ou un parcours de soin
         </p>
         <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
           {["Anorexie mentale", "Obésité complexe", "PCR Nutrition", "Épilepsie pédiatrique"].map((ex) => (

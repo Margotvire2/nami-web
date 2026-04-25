@@ -639,13 +639,14 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
           )}
           {step === 2 && (
             <Button
-              className="text-xs"
+              className="text-xs gap-1.5"
               onClick={() => {
                 onOpenChange(false);
                 reset();
+                if (result?.careCase?.id) router.push(`/patients/${result.careCase.id}`);
               }}
             >
-              Fermer
+              Voir le dossier →
             </Button>
           )}
         </DialogFooter>
