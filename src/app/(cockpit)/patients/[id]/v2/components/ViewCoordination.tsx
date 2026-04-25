@@ -397,7 +397,7 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
 }
 
 function EquipePanel({ careCaseId }: { careCaseId: string }) {
-  const [inviteOpen, setInviteOpen] = useState(false);
+  const router = useRouter();
   const { data: team, isLoading } = useQuery({
     queryKey: ["team", careCaseId],
     queryFn: async () => {
@@ -413,170 +413,35 @@ function EquipePanel({ careCaseId }: { careCaseId: string }) {
   };
 
   return (
-    <>
-      {inviteOpen && (
-        <InviteTeamModal careCaseId={careCaseId} onClose={() => setInviteOpen(false)} />
-      )}
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-gray-900">Équipe de soins</h4>
-          <button
-            onClick={() => setInviteOpen(true)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-[#5B4EC4] text-[#5B4EC4] hover:bg-[#F8F7FD]"
-          >
-            Inviter
-          </button>
-        </div>
-        {Array.isArray(members) && members.length > 0 ? (
-          <div className="space-y-2">
-            {members.map((m: any) => {
-              const person = m.person || m;
-              return (
-                <div key={m.id} className="flex items-center gap-3 py-2">
-                  <div className="w-9 h-9 rounded-full bg-[#EDE9FC] flex items-center justify-center text-sm font-semibold text-[#5B4EC4]">
-                    {(person.firstName?.[0] || "?").toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</p>
-                    <p className="text-xs text-gray-500">
-                      {m.roleInCase || m.specialty || ""}
-                      {m.lastContactAt ? ` · Dernier contact ${new Date(m.lastContactAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : ""}
-                    </p>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[m.role] || roleColors.MEMBER}`}>
-                    {m.role === "LEAD" ? "Responsable" : m.role || "Membre"}
-                  </span>
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-semibold text-gray-900">Équipe de soins</h4>
+        <button onClick={() => router.push("/equipe")} className="text-xs px-3 py-1.5 rounded-lg border border-[#5B4EC4] text-[#5B4EC4] hover:bg-[#F8F7FD]">Inviter</button>
+      </div>
+      {Array.isArray(members) && members.length > 0 ? (
+        <div className="space-y-2">
+          {members.map((m: any) => {
+            const person = m.person || m;
+            return (
+              <div key={m.id} className="flex items-center gap-3 py-2">
+                <div className="w-9 h-9 rounded-full bg-[#EDE9FC] flex items-center justify-center text-sm font-semibold text-[#5B4EC4]">
+                  {(person.firstName?.[0] || "?").toUpperCase()}
                 </div>
-              );
-            })}
-          </div>
-        ) : <p className="text-sm text-gray-400 italic">Aucun membre</p>}
-      </div>
-    </>
-  );
-}
-
-function InviteTeamModal({ careCaseId, onClose }: { careCaseId: string; onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const [method, setMethod] = useState<"email" | "lien">("email");
-  const [email, setEmail] = useState("");
-  const [generatedLink, setGeneratedLink] = useState("");
-  const [linkCopied, setLinkCopied] = useState(false);
-
-  const inviteMutation = useMutation({
-    mutationFn: (payload: { email?: string; careCaseId: string }) =>
-      api.post("/invitations", payload),
-    onSuccess: (result: any) => {
-      queryClient.invalidateQueries({ queryKey: ["team", careCaseId] });
-      if (method === "email") {
-        toast.success("Invitation envoyée !");
-        onClose();
-      } else {
-        const frontendUrl = typeof window !== "undefined" ? window.location.origin : "";
-        setGeneratedLink(result?.data?.inviteUrl ?? `${frontendUrl}/invite/${result?.data?.token}`);
-      }
-    },
-    onError: (err: any) => {
-      if (err?.status === 403) {
-        toast.error("Fonctionnalité réservée au tier Coordination");
-      } else {
-        toast.error("Erreur lors de l'envoi de l'invitation");
-      }
-    },
-  });
-
-  function handleSend() {
-    if (method === "email") {
-      if (!email.trim()) { toast.error("Saisissez un email"); return; }
-      inviteMutation.mutate({ email: email.trim(), careCaseId });
-    } else {
-      inviteMutation.mutate({ careCaseId });
-    }
-  }
-
-  function handleCopy() {
-    navigator.clipboard.writeText(generatedLink);
-    setLinkCopied(true);
-    toast.success("Lien copié !");
-    setTimeout(() => setLinkCopied(false), 2000);
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900">Inviter dans l&apos;équipe de soins</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</p>
+                  <p className="text-xs text-gray-500">
+                    {m.roleInCase || m.specialty || ""}
+                    {m.lastContactAt ? ` · Dernier contact ${new Date(m.lastContactAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : ""}
+                  </p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[m.role] || roleColors.MEMBER}`}>
+                  {m.role === "LEAD" ? "Responsable" : m.role || "Membre"}
+                </span>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Method toggle */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-5">
-          {(["email", "lien"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => { setMethod(m); setGeneratedLink(""); }}
-              className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-all ${method === m ? "bg-white shadow-sm text-gray-900" : "text-gray-500"}`}
-            >
-              {m === "email" ? "Par email" : "Par lien"}
-            </button>
-          ))}
-        </div>
-
-        {method === "email" && (
-          <div className="mb-5">
-            <label className="block text-[11px] font-medium text-gray-500 mb-1">Email du confrère</label>
-            <input
-              type="email"
-              placeholder="confrere@cabinet.fr"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5B4EC4] focus:ring-1 focus:ring-[#5B4EC4]"
-              autoFocus
-            />
-          </div>
-        )}
-
-        {method === "lien" && !generatedLink && (
-          <p className="text-xs text-gray-500 text-center py-4 mb-2">
-            Générez un lien unique, valable 7 jours.<br />
-            Le confrère peut s&apos;inscrire et rejoindre directement ce dossier.
-          </p>
-        )}
-
-        {generatedLink && (
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2.5 mb-4">
-            <p className="text-[11px] text-gray-500 flex-1 min-w-0 truncate font-mono">{generatedLink}</p>
-            <button
-              onClick={handleCopy}
-              className="text-xs px-2.5 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-100 shrink-0"
-            >
-              {linkCopied ? "Copié ✓" : "Copier"}
-            </button>
-          </div>
-        )}
-
-        {/* RGPD notice */}
-        <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-5">
-          <span className="shrink-0">⚠</span>
-          <span>Le nom du patient ne sera pas communiqué dans l&apos;invitation (RGPD santé)</span>
-        </div>
-
-        <div className="flex gap-2 justify-end">
-          <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
-            Annuler
-          </button>
-          {!generatedLink && (
-            <button
-              onClick={handleSend}
-              disabled={inviteMutation.isPending || (method === "email" && !email.trim())}
-              className="text-sm px-4 py-2 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] disabled:opacity-50 font-medium"
-            >
-              {inviteMutation.isPending ? "Envoi…" : method === "email" ? "Envoyer l'invitation" : "Générer le lien"}
-            </button>
-          )}
-        </div>
-      </div>
+      ) : <p className="text-sm text-gray-400 italic">Aucun membre</p>}
     </div>
   );
 }
