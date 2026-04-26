@@ -1,7 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(public status: number, message: string, public body?: unknown) {
     super(message);
   }
 }
@@ -67,7 +67,7 @@ async function request<T>(
   token?: string
 ): Promise<T> {
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers as Record<string, string>),
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -89,7 +89,7 @@ async function request<T>(
 
       if (!retryRes.ok) {
         const body = await retryRes.json().catch(() => ({}));
-        throw new ApiError(retryRes.status, body.error || `Erreur ${retryRes.status}`);
+        throw new ApiError(retryRes.status, body.error || `Erreur ${retryRes.status}`, body);
       }
       return retryRes.json();
     }
@@ -100,11 +100,15 @@ async function request<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.error || `Erreur ${res.status}`);
+    throw new ApiError(res.status, body.error || `Erreur ${res.status}`, body);
   }
 
   return res.json();
 }
+
+// Wrapper exporté — ConsultationContext + ViewDossier l'utilisent pour
+// bénéficier du refresh automatique sur 401 sans faire de fetch() direct.
+export const refreshAwareRequest = request;
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 

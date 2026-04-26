@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, CareCaseDetail } from "@/lib/api";
+import { api, CareCaseDetail, refreshAwareRequest } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
@@ -370,47 +370,18 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
   async function handleUpload(file: File, docType: string) {
     setUploading(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const form = new FormData();
       form.append("file", file);
       form.append("title", file.name);
       form.append("documentType", docType);
 
-      const doFetch = (token: string | null) =>
-        fetch(`${API_URL}/care-cases/${careCaseId}/documents/upload`, {
-          method: "POST",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: form,
-        });
+      const { accessToken } = useAuthStore.getState();
+      await refreshAwareRequest<{ id: string }>(
+        `/care-cases/${careCaseId}/documents/upload`,
+        { method: "POST", body: form },
+        accessToken ?? undefined
+      );
 
-      let { accessToken } = useAuthStore.getState();
-      let res = await doFetch(accessToken);
-
-      // Retry après refresh si token expiré
-      if (res.status === 401) {
-        const { refreshToken, logout, setAuth, user } = useAuthStore.getState();
-        if (refreshToken) {
-          const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refreshToken }),
-          });
-          if (refreshRes.ok) {
-            const data = await refreshRes.json();
-            setAuth(user!, data.accessToken, data.refreshToken);
-            accessToken = data.accessToken;
-            res = await doFetch(accessToken);
-          } else {
-            logout();
-            throw new Error("Session expirée, veuillez vous reconnecter");
-          }
-        }
-      }
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as Record<string, string>).error || `Erreur ${res.status}`);
-      }
       queryClient.invalidateQueries({ queryKey: ["documents", careCaseId] });
       toast.success("Document ajouté");
     } catch (err) {

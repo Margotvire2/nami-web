@@ -23,6 +23,7 @@ import {
   useMemo,
 } from "react";
 import { useAuthStore } from "@/lib/store";
+import { ApiError, refreshAwareRequest } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -136,8 +137,6 @@ function debounce<T extends unknown[]>(fn: (...args: T) => void, ms: number): (.
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
 const INITIAL_STATE: ConsultationState = {
   isActive: false,
   consultationId: null,
@@ -192,10 +191,11 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
     if (!saved?.consultationId) return;
 
     // Verify it's still IN_PROGRESS on server
-    fetch(`${API_URL}/care-cases/${saved.careCaseId}/consultations/active`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-      .then((r) => r.json())
+    refreshAwareRequest<{ consultation: { id: string; notes?: string } | null }>(
+      `/care-cases/${saved.careCaseId}/consultations/active`,
+      {},
+      accessToken
+    )
       .then(({ consultation }) => {
         if (consultation && consultation.id === saved.consultationId) {
           setState((s) => ({
@@ -224,16 +224,10 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
       if (!accessToken) return;
       setState((s) => ({ ...s, saveStatus: "saving" }));
       try {
-        await fetch(
-          `${API_URL}/care-cases/${careCaseId}/consultations/${consultationId}/notes`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ notes }),
-          }
+        await refreshAwareRequest(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/notes`,
+          { method: "PATCH", body: JSON.stringify({ notes }) },
+          accessToken
         );
         setState((s) => ({ ...s, saveStatus: "saved" }));
       } catch {
@@ -266,44 +260,42 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
   const startConsultation = useCallback(async (params: StartParams) => {
     if (!accessToken) return;
 
-    const res = await fetch(
-      `${API_URL}/care-cases/${params.careCaseId}/consultations/start`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+    let consultation: { id: string };
+    try {
+      consultation = await refreshAwareRequest<{ id: string }>(
+        `/care-cases/${params.careCaseId}/consultations/start`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            appointmentId: params.appointmentId,
+            appointmentTitle: params.appointmentTitle,
+          }),
         },
-        body: JSON.stringify({
-          appointmentId: params.appointmentId,
-          appointmentTitle: params.appointmentTitle,
-        }),
-      }
-    );
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 409 && err.existingConsultation) {
-        // Guard: ne jamais rouvrir une consultation d'un autre patient
-        if (err.existingConsultation.careCaseId !== params.careCaseId) {
-          throw new Error(err.error || "Erreur démarrage consultation");
+        accessToken
+      );
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        const body = err.body as { existingConsultation?: { id: string; careCaseId: string; patientName?: string }; error?: string };
+        if (body.existingConsultation) {
+          // Guard: ne jamais rouvrir une consultation d'un autre patient
+          if (body.existingConsultation.careCaseId !== params.careCaseId) {
+            throw new Error(body.error || "Erreur démarrage consultation");
+          }
+          // Même patient — rouvrir
+          setState((s) => ({
+            ...s,
+            isActive: true,
+            consultationId: body.existingConsultation!.id,
+            careCaseId: body.existingConsultation!.careCaseId,
+            patientName: body.existingConsultation!.patientName ?? params.patientName,
+            status: "in_progress",
+            isMinimized: false,
+          }));
+          return;
         }
-        // Même patient — rouvrir
-        setState((s) => ({
-          ...s,
-          isActive: true,
-          consultationId: err.existingConsultation.id,
-          careCaseId: err.existingConsultation.careCaseId,
-          patientName: err.existingConsultation.patientName,
-          status: "in_progress",
-          isMinimized: false,
-        }));
-        return;
       }
-      throw new Error(err.error || "Erreur démarrage consultation");
+      throw err;
     }
-
-    const consultation = await res.json();
 
     setState({
       ...INITIAL_STATE,
@@ -436,59 +428,43 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
     setState((s) => ({ ...s, status: "transcribing" }));
 
     try {
-      // Upload audio if captured
+      // Upload audio if captured — refreshAwareRequest gère le 401 → refresh auto
       if (audioBlobRef.current && audioBlobRef.current.size > 1000) {
         const formData = new FormData();
         formData.append("audio", audioBlobRef.current, "consultation.webm");
         formData.append("duration", String(state.recordingSeconds));
 
-        const audioRes = await fetch(
-          `${API_URL}/care-cases/${careCaseId}/consultations/${consultationId}/audio`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${accessToken}` },
-            body: formData,
-          }
-        );
-        if (!audioRes.ok) {
+        await refreshAwareRequest<{ ok: boolean }>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/audio`,
+          { method: "POST", body: formData },
+          accessToken
+        ).catch(() => {
           console.warn("[Consultation] Audio upload failed — continuing with notes only");
-        }
+        });
       }
 
       // Flush notes before completing
       if (notes.trim()) {
-        await fetch(
-          `${API_URL}/care-cases/${careCaseId}/consultations/${consultationId}/notes`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ notes }),
-          }
+        await refreshAwareRequest<{ ok: boolean }>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/notes`,
+          { method: "PATCH", body: JSON.stringify({ notes }) },
+          accessToken
         );
       }
 
       setState((s) => ({ ...s, status: "generating_summary" }));
 
-      const res = await fetch(
-        `${API_URL}/care-cases/${careCaseId}/consultations/${consultationId}/complete`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Erreur génération résumé");
-      }
-
-      const { consultation, note, hasPrescriptionDraft, transcriptDocId } = await res.json();
+      const { consultation, note, hasPrescriptionDraft, transcriptDocId } =
+        await refreshAwareRequest<{
+          consultation: { aiSummary: string };
+          note: { id: string };
+          hasPrescriptionDraft: boolean;
+          transcriptDocId: string | null;
+        }>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/complete`,
+          { method: "POST" },
+          accessToken
+        );
 
       clearSession();
       setState((s) => ({
