@@ -416,11 +416,21 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
     const { consultationId, careCaseId, notes } = state;
     if (!consultationId || !careCaseId || !accessToken) return;
 
-    // Stop recording if still going
+    // Stop recording if still going — wait for onstop to fire before reading audioBlobRef
     if (state.audioStatus === "recording" || state.audioStatus === "paused") {
-      stopRecording();
-      // Wait briefly for onstop to fire
-      await new Promise((r) => setTimeout(r, 300));
+      await new Promise<void>((resolve) => {
+        const mr = mediaRecorderRef.current;
+        if (!mr) { resolve(); return; }
+        mr.onstop = () => {
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          audioBlobRef.current = blob;
+          streamRef.current?.getTracks().forEach((t) => t.stop());
+          setState((s) => ({ ...s, audioStatus: "done", hasAudio: blob.size > 0 }));
+          resolve();
+        };
+        mr.stop();
+        stopTimer();
+      });
     }
 
     setState((s) => ({ ...s, status: "transcribing" }));
@@ -494,7 +504,7 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
       const message = err instanceof Error ? err.message : "Erreur inattendue";
       setState((s) => ({ ...s, status: "error", error: message }));
     }
-  }, [state, accessToken, stopRecording]);
+  }, [state, accessToken, stopTimer]);
 
   // ── cancelConsultation ────────────────────────────────────────────────────
 
