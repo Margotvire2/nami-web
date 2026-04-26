@@ -351,7 +351,12 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           )}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (
-            <ViewCoordination dashboard={dash} careCaseId={id} />
+            <ViewCoordination
+              dashboard={dash}
+              careCaseId={id}
+              patientFirstName={careCase.patient?.firstName ?? ""}
+              patientLastName={careCase.patient?.lastName ?? ""}
+            />
           )}
         </div>
       </div>

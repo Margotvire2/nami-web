@@ -6,15 +6,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
+import { InviteTeamModal } from "./InviteTeamModal";
 
 interface Props {
   dashboard: PatientDashboard;
   careCaseId: string;
+  patientFirstName: string;
+  patientLastName: string;
 }
 
 type SubTab = "messages" | "adressages" | "rcp" | "equipe";
 
-export function ViewCoordination({ dashboard, careCaseId }: Props) {
+export function ViewCoordination({ dashboard, careCaseId, patientFirstName, patientLastName }: Props) {
   const [subTab, setSubTab] = useState<SubTab>("messages");
   const { actions } = dashboard;
 
@@ -43,7 +46,7 @@ export function ViewCoordination({ dashboard, careCaseId }: Props) {
       {subTab === "messages" && <MessagesPanel careCaseId={careCaseId} />}
       {subTab === "adressages" && <AdressagesPanel dashboard={dashboard} careCaseId={careCaseId} />}
       {subTab === "rcp" && <RcpPanel careCaseId={careCaseId} />}
-      {subTab === "equipe" && <EquipePanel careCaseId={careCaseId} />}
+      {subTab === "equipe" && <EquipePanel careCaseId={careCaseId} patientFirstName={patientFirstName} patientLastName={patientLastName} />}
     </div>
   );
 }
@@ -396,8 +399,8 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
   );
 }
 
-function EquipePanel({ careCaseId }: { careCaseId: string }) {
-  const router = useRouter();
+function EquipePanel({ careCaseId, patientFirstName, patientLastName }: { careCaseId: string; patientFirstName: string; patientLastName: string }) {
+  const [showInvite, setShowInvite] = useState(false);
   const { data: team, isLoading } = useQuery({
     queryKey: ["team", careCaseId],
     queryFn: async () => {
@@ -413,36 +416,48 @@ function EquipePanel({ careCaseId }: { careCaseId: string }) {
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-semibold text-gray-900">Équipe de soins</h4>
-        <button onClick={() => router.push("/equipe")} className="text-xs px-3 py-1.5 rounded-lg border border-[#5B4EC4] text-[#5B4EC4] hover:bg-[#F8F7FD]">Inviter</button>
-      </div>
-      {Array.isArray(members) && members.length > 0 ? (
-        <div className="space-y-2">
-          {members.map((m: any) => {
-            const person = m.person || m;
-            return (
-              <div key={m.id} className="flex items-center gap-3 py-2">
-                <div className="w-9 h-9 rounded-full bg-[#EDE9FC] flex items-center justify-center text-sm font-semibold text-[#5B4EC4]">
-                  {(person.firstName?.[0] || "?").toUpperCase()}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</p>
-                  <p className="text-xs text-gray-500">
-                    {m.roleInCase || m.specialty || ""}
-                    {m.lastContactAt ? ` · Dernier contact ${new Date(m.lastContactAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : ""}
-                  </p>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[m.role] || roleColors.MEMBER}`}>
-                  {m.role === "LEAD" ? "Responsable" : m.role || "Membre"}
-                </span>
-              </div>
-            );
-          })}
+    <>
+      {showInvite && (
+        <InviteTeamModal
+          careCaseId={careCaseId}
+          patientFirstName={patientFirstName}
+          patientLastName={patientLastName}
+          onClose={() => setShowInvite(false)}
+        />
+      )}
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-gray-900">Équipe de soins</h4>
+          <button onClick={() => setShowInvite(true)} className="text-xs px-3 py-1.5 rounded-lg border border-[#5B4EC4] text-[#5B4EC4] hover:bg-[#F8F7FD]">
+            Inviter à l&apos;équipe
+          </button>
         </div>
-      ) : <p className="text-sm text-gray-400 italic">Aucun membre</p>}
-    </div>
+        {Array.isArray(members) && members.length > 0 ? (
+          <div className="space-y-2">
+            {members.map((m: any) => {
+              const person = m.person || m;
+              return (
+                <div key={m.id} className="flex items-center gap-3 py-2">
+                  <div className="w-9 h-9 rounded-full bg-[#EDE9FC] flex items-center justify-center text-sm font-semibold text-[#5B4EC4]">
+                    {(person.firstName?.[0] || "?").toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</p>
+                    <p className="text-xs text-gray-500">
+                      {m.roleInCase || m.specialty || ""}
+                      {m.lastContactAt ? ` · Dernier contact ${new Date(m.lastContactAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : ""}
+                    </p>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[m.role] || roleColors.MEMBER}`}>
+                    {m.role === "LEAD" ? "Responsable" : m.role || "Membre"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : <p className="text-sm text-gray-400 italic">Aucun membre</p>}
+      </div>
+    </>
   );
 }
 

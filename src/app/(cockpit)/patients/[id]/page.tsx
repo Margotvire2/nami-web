@@ -360,7 +360,12 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           {activeTab === "parcours" && <ViewParcours careCaseId={id} />}
           {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
           {activeTab === "coordination" && (
-            <ViewCoordination dashboard={dash} careCaseId={id} />
+            <ViewCoordination
+              dashboard={dash}
+              careCaseId={id}
+              patientFirstName={careCase.patient?.firstName ?? ""}
+              patientLastName={careCase.patient?.lastName ?? ""}
+            />
           )}
           {activeTab === "pediatrique" && careCase.caseType === "PEDIATRIC" && (
             <PediatricDossier careCaseId={id} />
