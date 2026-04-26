@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { getProviderTitle, formatProviderSpecialty } from "@/lib/provider-display";
 
 interface NamiProvider {
   personId: string;
@@ -12,6 +13,8 @@ interface NamiProvider {
   lastName: string;
   photoUrl: string | null;
   specialty: string | null;
+  specialtyView: string | null;
+  consultationCity: string | null;
   validated: boolean;
 }
 
@@ -56,6 +59,25 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
   const [role, setRole] = useState<RoleInCase>("MEMBER");
   const [patientConsent, setPatientConsent] = useState(false);
 
+  // Guard anti-doublon : désactive la sélection si statusV2 ACTIVE ou PENDING_PROVIDER_ACCEPT
+  const { data: teamAll } = useQuery({
+    queryKey: ["team-guard", careCaseId],
+    queryFn: async () => {
+      const res = await api.get<Array<{ personId: string; statusV2: string }>>(
+        `/care-cases/${careCaseId}/team?includeAllStatuses=true`
+      );
+      return res.data;
+    },
+  });
+
+  const blockedProviders: Record<string, "ACTIVE" | "PENDING_PROVIDER_ACCEPT"> =
+    (teamAll ?? []).reduce<Record<string, "ACTIVE" | "PENDING_PROVIDER_ACCEPT">>((acc, m) => {
+      if (m.statusV2 === "ACTIVE" || m.statusV2 === "PENDING_PROVIDER_ACCEPT") {
+        acc[m.personId] = m.statusV2 as "ACTIVE" | "PENDING_PROVIDER_ACCEPT";
+      }
+      return acc;
+    }, {});
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -92,7 +114,7 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
         patientNoticeAcknowledged: true,
       }),
     onSuccess: () => {
-      toast.success(`Invitation envoyée à Dr ${selected!.firstName} ${selected!.lastName}`);
+      toast.success(`Invitation envoyée à ${getProviderTitle(selected!.specialtyView)}${selected!.firstName} ${selected!.lastName}`);
       qc.invalidateQueries({ queryKey: ["team", careCaseId] });
       onClose();
     },
@@ -206,39 +228,52 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
 
             {results.length > 0 && (
               <div className="mt-3 space-y-1.5 max-h-60 overflow-y-auto">
-                {results.map((p) => (
-                  <button
-                    key={p.personId}
-                    onClick={() => selectProvider(p)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left hover:opacity-90"
-                    style={{ background: "#F5F3EF" }}
-                  >
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
-                      style={{ background: "#EDE9FC", color: "#5B4EC4" }}
+                {results.map((p) => {
+                  const blockStatus = blockedProviders[p.personId];
+                  return (
+                    <button
+                      key={p.personId}
+                      onClick={() => !blockStatus && selectProvider(p)}
+                      disabled={!!blockStatus}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ background: "#F5F3EF" }}
                     >
-                      {(p.firstName[0] ?? "?").toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>
-                        Dr {p.firstName} {p.lastName}
-                      </p>
-                      {p.specialty && (
-                        <p className="text-xs truncate" style={{ color: "#6B7280" }}>
-                          {p.specialty}
-                        </p>
-                      )}
-                    </div>
-                    {p.validated && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
-                        style={{ background: "#E6F7F6", color: "#2BA89C" }}
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                        style={{ background: "#EDE9FC", color: "#5B4EC4" }}
                       >
-                        ✓ Vérifié
-                      </span>
-                    )}
-                  </button>
-                ))}
+                        {(p.firstName[0] ?? "?").toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>
+                          {getProviderTitle(p.specialtyView)}{p.firstName} {p.lastName}
+                        </p>
+                        {(p.specialty || p.consultationCity) && (
+                          <p className="text-xs truncate" style={{ color: "#6B7280" }}>
+                            {formatProviderSpecialty(p.specialty)}
+                            {p.specialty && p.consultationCity ? " · " : ""}
+                            {p.consultationCity ?? ""}
+                          </p>
+                        )}
+                      </div>
+                      {blockStatus ? (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
+                          style={{ background: "#FEF3C7", color: "#92400E" }}
+                        >
+                          {blockStatus === "ACTIVE" ? "Déjà membre" : "Invitation en attente"}
+                        </span>
+                      ) : p.validated ? (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
+                          style={{ background: "#E6F7F6", color: "#2BA89C" }}
+                        >
+                          ✓ Vérifié
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -260,11 +295,11 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
               </div>
               <div>
                 <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>
-                  Dr {selected.firstName} {selected.lastName}
+                  {getProviderTitle(selected.specialtyView)}{selected.firstName} {selected.lastName}
                 </p>
                 {selected.specialty && (
                   <p className="text-xs" style={{ color: "#6B7280" }}>
-                    {selected.specialty}
+                    {formatProviderSpecialty(selected.specialty)}
                   </p>
                 )}
               </div>
@@ -362,7 +397,7 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
               <div className="flex justify-between text-sm">
                 <span style={{ color: "#6B7280" }}>Soignant invité</span>
                 <span className="font-medium" style={{ color: "#1A1A2E" }}>
-                  Dr {selected.firstName} {selected.lastName}
+                  {getProviderTitle(selected.specialtyView)}{selected.firstName} {selected.lastName}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -391,8 +426,8 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
                 <strong>
                   {patientFirstName} {patientLastName}
                 </strong>{" "}
-                est au courant et consent à ce que Dr{" "}
-                <strong>
+                est au courant et consent à ce que{" "}
+                {getProviderTitle(selected.specialtyView)}<strong>
                   {selected.firstName} {selected.lastName}
                 </strong>{" "}
                 rejoigne son équipe de soins
