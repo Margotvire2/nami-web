@@ -72,6 +72,20 @@ export const PROVIDER_SPECIALTY_LABELS: Record<string, string> = {
   obesite:                    "Spécialiste obésité",
   addictologie:               "Addictologue",
   pedopsychiatre:             "Pédopsychiatre",
+  // Valeurs enum specialtyView (SCREAMING_CASE → lowercase)
+  dietitian:                  "Diététicien·ne",
+  psychologist:               "Psychologue",
+  physician:                  "Médecin généraliste",
+  pediatrician:               "Pédiatre",
+  endocrinologist:            "Endocrinologue",
+  other:                      "",
+  // Variantes accentuées de preferredSpecialty (référentiels libres)
+  "diététique":               "Diététicien·ne",
+  "psychiatrie":              "Psychiatre",
+  "psychologie":              "Psychologue",
+  "pédiatrie":                "Pédiatre",
+  "endocrinologie":           "Endocrinologue",
+  "neurologie":               "Neurologue",
 };
 
 /**
@@ -92,4 +106,44 @@ export function formatProviderSpecialty(specialty: string | null | undefined): s
   return normalized
     .replace(/[_-]/g, " ")
     .replace(/^\w/, (c) => c.toUpperCase());
+}
+
+// ─── Format pour panneau adressages (BUG #054) ─────────────────────────────
+
+interface ReferralTarget {
+  toLabel: string | null;
+  toSpecialtyView: string | null;
+  toRawSpecialty: string | null;
+}
+
+/**
+ * Formate l'affichage d'un adressage pour le dashboard patient.
+ * - SENT vers soignant identifié : "Antoine Moreau — Psychologue"
+ * - DRAFT avec preferredSpecialty : "Diététicien·ne"
+ * - Cas limite (aucune data) : null
+ */
+export function formatReferralTarget(r: ReferralTarget): string | null {
+  // Cas 1 : soignant identifié avec spécialité
+  if (r.toLabel && r.toSpecialtyView) {
+    const spe = formatProviderSpecialty(r.toSpecialtyView);
+    return spe ? `${r.toLabel} — ${spe}` : r.toLabel;
+  }
+  // Cas 2 : soignant identifié sans spécialité connue
+  if (r.toLabel) {
+    return r.toLabel;
+  }
+  // Cas 3 : adressage DRAFT avec preferredSpecialty brut
+  if (r.toRawSpecialty) {
+    return formatProviderSpecialty(r.toRawSpecialty) || null;
+  }
+  return null;
+}
+
+if (require.main === module) {
+  const r1 = { toLabel: "Antoine Moreau", toSpecialtyView: "PSYCHOLOGIST", toRawSpecialty: null };
+  const r2 = { toLabel: null, toSpecialtyView: null, toRawSpecialty: "diététique" };
+  const r3 = { toLabel: null, toSpecialtyView: null, toRawSpecialty: null };
+  console.log("Cas 1:", formatReferralTarget(r1)); // "Antoine Moreau — Psychologue" (ou Title Case)
+  console.log("Cas 2:", formatReferralTarget(r2)); // "Diététicien·ne"
+  console.log("Cas 3:", formatReferralTarget(r3)); // null
 }
