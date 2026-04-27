@@ -7,7 +7,6 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { PatientDashboard, DashboardIndicator } from "@/hooks/usePatientDashboard";
-import { formatReferralTarget } from "@/lib/provider-display";
 import { CareCaseDetail, type TrajectoryMetric } from "@/lib/api";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
@@ -626,7 +625,7 @@ function ActionsPanel({ actions }: { actions: PatientDashboard["actions"] }) {
           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Adressages en cours</p>
           {pendingReferrals.map((r) => (
             <div key={r.id} className="flex justify-between py-1 text-xs">
-              <span className="text-gray-700">{formatReferralTarget(r) ?? "Adressage"}</span>
+              <span className="text-gray-700">{r.toSpecialty || "Spécialiste"}</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">{r.status}</span>
             </div>
           ))}

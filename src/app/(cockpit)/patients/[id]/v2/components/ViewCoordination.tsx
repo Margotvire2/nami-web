@@ -340,7 +340,7 @@ function AdressagesPanel({ dashboard, careCaseId }: { dashboard: PatientDashboar
             {referrals.map((r: any) => (
               <div key={r.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                 <div>
-                  <p className="text-sm text-gray-900">→ {r.toProvider ? `${r.toProvider.firstName} ${r.toProvider.lastName}` : (r.toSpecialty ?? "Spécialiste")}</p>
+                  <p className="text-sm text-gray-900">→ {r.toProvider?.firstName} {r.toProvider?.lastName || r.toSpecialty || "Spécialiste"}</p>
                   <p className="text-xs text-gray-400">{r.mode || "Consultation"} · {new Date(r.createdAt).toLocaleDateString("fr-FR")}</p>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[r.status] || "bg-gray-100 text-gray-500"}`}>{statusLabels[r.status] || r.status}</span>
