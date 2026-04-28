@@ -4,19 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 
 const SPECIALTIES = [
-  "Diététicien(ne)-Nutritionniste",
+  "Diététicien·ne-Nutritionniste",
   "Médecin généraliste",
   "Psychiatre",
   "Psychologue",
   "Endocrinologue",
   "Pédiatre",
-  "Infirmier(ère) coordinateur(trice)",
+  "Infirmier·ère coordinateur·trice",
   "Kinésithérapeute",
   "Orthophoniste",
   "Médecin spécialiste (autre)",
   "Paramédical (autre)",
-  "Coordinateur(trice) de réseau / CPTS",
-  "Directeur(trice) médical(e)",
+  "Coordinateur·trice de réseau / CPTS",
+  "Directeur·trice médical·e",
   "Cadre de santé",
   "Autre",
 ];

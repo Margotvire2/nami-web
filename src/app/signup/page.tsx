@@ -12,8 +12,8 @@ import Link from "next/link";
 import { track } from "@/lib/track";
 
 const SPECIALTIES = [
-  "Médecin généraliste", "Psychiatre", "Psychologue", "Diététicien(ne)",
-  "Infirmier(ère)", "Kinésithérapeute", "Endocrinologue", "Cardiologue", "Autre",
+  "Médecin généraliste", "Psychiatre", "Psychologue", "Diététicien·ne",
+  "Infirmier·ère", "Kinésithérapeute", "Endocrinologue", "Cardiologue", "Autre",
 ];
 
 const PROFESSION_TYPES: { value: string; label: string; emoji: string }[] = [

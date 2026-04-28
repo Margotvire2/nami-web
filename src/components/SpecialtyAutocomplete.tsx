@@ -22,12 +22,12 @@ const SPECIALTIES = [
   { value: "psychologue_enfant", label: "Psychologue enfant & adolescent", category: "Santé mentale" },
   { value: "psychotherapeute", label: "Psychothérapeute", category: "Santé mentale" },
   { value: "neuropsychologue", label: "Neuropsychologue", category: "Santé mentale" },
-  { value: "psychomotricien", label: "Psychomotricien(ne)", category: "Santé mentale" },
+  { value: "psychomotricien", label: "Psychomotricien·ne", category: "Santé mentale" },
   // Paramédicaux
-  { value: "dieteticien", label: "Diététicien(ne)", category: "Paramédicaux" },
-  { value: "dieteticien_sport", label: "Diététicien(ne) sportif", category: "Paramédicaux" },
-  { value: "infirmier", label: "Infirmier(ère)", category: "Paramédicaux" },
-  { value: "infirmier_psy", label: "Infirmier(ère) en psychiatrie", category: "Paramédicaux" },
+  { value: "dieteticien", label: "Diététicien·ne", category: "Paramédicaux" },
+  { value: "dieteticien_sport", label: "Diététicien·ne du sport", category: "Paramédicaux" },
+  { value: "infirmier", label: "Infirmier·ère", category: "Paramédicaux" },
+  { value: "infirmier_psy", label: "Infirmier·ère en psychiatrie", category: "Paramédicaux" },
   { value: "sage_femme", label: "Sage-femme", category: "Paramédicaux" },
   { value: "orthophoniste", label: "Orthophoniste", category: "Paramédicaux" },
   { value: "ergotherapeute", label: "Ergothérapeute", category: "Paramédicaux" },
@@ -36,9 +36,9 @@ const SPECIALTIES = [
   { value: "osteopathe", label: "Ostéopathe", category: "Rééducation" },
   { value: "podologue", label: "Podologue", category: "Rééducation" },
   // Autres
-  { value: "apa", label: "Enseignant APA", category: "Sport & bien-être" },
+  { value: "apa", label: "Enseignant·e APA", category: "Sport & bien-être" },
   { value: "coach_sante", label: "Coach santé", category: "Sport & bien-être" },
-  { value: "assistante_sociale", label: "Assistant(e) social(e)", category: "Social" },
+  { value: "assistante_sociale", label: "Assistant·e social·e", category: "Social" },
 ] as const
 
 // ─── Component ──────────────────────────────────────────────────────────────

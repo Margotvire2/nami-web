@@ -18,6 +18,13 @@ Disallow: /intelligence/
 Disallow: /reglages/
 Disallow: /protocoles/
 Disallow: /annuaire/
+Disallow: /reseau/
+Disallow: /alertes/
+Disallow: /dashboard/
+Disallow: /import/
+
+# Admin (jamais indexable)
+Disallow: /admin/
 
 # Pages non indexables (pitch VC, démos internes, design)
 Disallow: /pitch
@@ -31,7 +38,9 @@ Disallow: /design-system
 Disallow: /landing-page
 Disallow: /shared/
 
-# Flux d'authentification
+# Flux d'authentification (pas de valeur SEO)
+Disallow: /login
+Disallow: /signup
 Disallow: /invite/
 Disallow: /onboarding/
 Disallow: /validation-en-cours/

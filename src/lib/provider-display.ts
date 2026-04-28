@@ -76,6 +76,27 @@ export const PROVIDER_SPECIALTY_LABELS: Record<string, string> = {
   obesity:                    "Spécialiste obésité",
   pediatrics:                 "Pédiatre",
   general:                    "Médecin généraliste",
+  // Clés "discipline-style" (valeurs SpecialtyAutocomplete)
+  pediatrie:                  "Pédiatre",
+  psychiatrie:                "Psychiatre",
+  psychiatrie_enfant:         "Pédopsychiatre",
+  cardiologie:                "Cardiologue",
+  gynecologie:                "Gynécologue",
+  endocrinologie:             "Endocrinologue",
+  rhumatologie:               "Rhumatologue",
+  gastro:                     "Gastro-entérologue",
+  medecine_generale:          "Médecin généraliste",
+  medecine_interne:           "Médecin interniste",
+  kine:                       "Masseur-kinésithérapeute",
+  psychologie_clinique:       "Psychologue clinicien·ne",
+  psychologue_enfant:         "Psychologue enfant & adolescent",
+  psychotherapeute:           "Psychothérapeute",
+  neuropsychologue:           "Neuropsychologue",
+  dieteticien_sport:          "Diététicien·ne du sport",
+  infirmier_psy:              "Infirmier·ère en psychiatrie",
+  apa:                        "Enseignant·e APA",
+  coach_sante:                "Coach santé",
+  assistante_sociale:         "Assistant·e social·e",
 };
 
 /**

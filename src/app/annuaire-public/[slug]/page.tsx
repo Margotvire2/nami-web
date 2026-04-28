@@ -2,49 +2,32 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Phone, MapPin, CreditCard, Shield, Building2, Users } from "lucide-react"
+import { formatProviderSpecialty } from "@/lib/provider-display"
 
 export const revalidate = 86400 // 24h
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
-// Parse slug : "pediatre-paris" → { specialty: "Pédiatre", city: "PARIS" }
+// Slugs connus pour le parsing URL "pediatre-paris" → { specialty: "Pédiatre", city: "PARIS" }
+const KNOWN_SPECIALTY_SLUGS = [
+  "medecin-generaliste", "pediatre", "cardiologue", "psychiatre", "dieteticien",
+  "orthophoniste", "masseur-kinesitherapeute", "kinesitherapeute", "infirmier",
+  "ophtalmologiste", "gynecologiste", "gynecologue", "dermatologue",
+  "gastro-enterologue", "endocrinologue", "pneumologue", "radiologue",
+  "sage-femme", "psychologue", "neurologue", "rhumatologue", "orl",
+  "chirurgien-dentiste", "pharmacien",
+]
+
 function parseSlug(slug: string): { specialty: string; city: string | null; raw: string } {
   const decoded = decodeURIComponent(slug)
-  const SPECIALTIES_MAP: Record<string, string> = {
-    "medecin-generaliste": "Médecin généraliste",
-    "pediatre": "Pédiatre",
-    "cardiologue": "Cardiologue",
-    "psychiatre": "Psychiatre",
-    "dieteticien": "Diététicien",
-    "orthophoniste": "Orthophoniste",
-    "masseur-kinesitherapeute": "Masseur-kinésithérapeute",
-    "kinesitherapeute": "Masseur-kinésithérapeute",
-    "infirmier": "Infirmier",
-    "ophtalmologiste": "Ophtalmologiste",
-    "gynecologiste": "Gynécologue / Obstétricien",
-    "gynecologue": "Gynécologue / Obstétricien",
-    "dermatologue": "Dermatologue",
-    "gastro-enterologue": "Gastro-entérologue",
-    "endocrinologue": "Endocrinologue",
-    "pneumologue": "Pneumologue",
-    "radiologue": "Radiologue",
-    "sage-femme": "Sage-femme",
-    "psychologue": "Psychologue",
-    "neurologue": "Neurologue",
-    "rhumatologue": "Rhumatologue",
-    "orl": "ORL",
-    "chirurgien-dentiste": "Chirurgien-dentiste",
-    "pharmacien": "Pharmacien",
-  }
 
-  // Try specialty-city pattern
-  for (const [key, label] of Object.entries(SPECIALTIES_MAP)) {
+  for (const key of KNOWN_SPECIALTY_SLUGS) {
     if (decoded.startsWith(key + "-")) {
       const cityPart = decoded.slice(key.length + 1)
-      return { specialty: label, city: cityPart.toUpperCase().replace(/-/g, " "), raw: decoded }
+      return { specialty: formatProviderSpecialty(key), city: cityPart.toUpperCase().replace(/-/g, " "), raw: decoded }
     }
     if (decoded === key) {
-      return { specialty: label, city: null, raw: decoded }
+      return { specialty: formatProviderSpecialty(key), city: null, raw: decoded }
     }
   }
 

@@ -24,6 +24,7 @@ import {
 } from "react";
 import { useAuthStore } from "@/lib/store";
 import { ApiError, refreshAwareRequest } from "@/lib/api";
+import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -423,6 +424,33 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
         mr.stop();
         stopTimer();
       });
+    }
+
+    // BUG #060 — Micro fantôme : si l'enregistrement a été tenté mais le blob est trop
+    // petit (<10 KB), c'est un micro fantôme (device inexistant, Bluetooth déconnecté,
+    // virtual mic). On bloque net, on toaste, on remet la section recording à idle
+    // pour que le soignant puisse ré-enregistrer après avoir corrigé son micro.
+    if (state.recordingSeconds > 0) {
+      const blob = audioBlobRef.current;
+      if (!blob || blob.size < 10_000) {
+        console.warn("[CONSULTATION] Audio rejeté — taille suspecte", {
+          recordingSeconds: state.recordingSeconds,
+          blobSize: blob?.size ?? 0,
+          threshold: 10_000,
+        });
+        toast.error("Aucun son détecté", {
+          description: "Vérifiez votre micro dans les paramètres système, puis recommencez.",
+        });
+        audioBlobRef.current = null;
+        chunksRef.current = [];
+        setState((s) => ({
+          ...s,
+          audioStatus: "idle",
+          recordingSeconds: 0,
+          hasAudio: false,
+        }));
+        return;
+      }
     }
 
     setState((s) => ({ ...s, status: "transcribing" }));
