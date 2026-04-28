@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, MessageCircle, Loader2, Lock, UserPlus } from "lucide-react";
+import { formatProviderSpecialty } from "@/lib/provider-display";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -52,7 +53,7 @@ function MemberCard({ m }: { m: Member }) {
         )}
         <div className="flex-1 min-w-0">
           <div className="text-[13px] font-semibold text-[#1A1A2E]" style={{ fontFamily: "var(--font-jakarta)" }}>{m.firstName} {m.lastName}</div>
-          {m.providerProfile?.specialty && <div className="text-[11px] text-[#64748B] mt-0.5">{m.providerProfile.specialty}</div>}
+          {m.providerProfile?.specialty && <div className="text-[11px] text-[#64748B] mt-0.5">{formatProviderSpecialty(m.providerProfile.specialty)}</div>}
           <div className="text-[10px] text-[#94A3B8] mt-0.5 capitalize">{m.memberRole.toLowerCase()}</div>
         </div>
       </div>

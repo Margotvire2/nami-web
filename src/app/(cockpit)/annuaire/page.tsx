@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import Link from "next/link"
+import { formatProviderSpecialty } from "@/lib/provider-display"
 import {
   Search, Phone, MapPin, CreditCard, Building2, User,
   ChevronLeft, ChevronRight, Filter, X, UserPlus, Check, Loader2,
@@ -375,7 +376,7 @@ function DirectoryCard({ entry, onInvite }: { entry: DirectoryEntry; onInvite: (
         {/* Info */}
         <Link href={`/annuaire/${entry.id}`} className="flex-1 min-w-0 hover:underline underline-offset-2">
           <p className="text-sm font-medium truncate">{entry.name}</p>
-          <p className="text-[11px] text-muted-foreground">{entry.specialty}</p>
+          <p className="text-[11px] text-muted-foreground">{formatProviderSpecialty(entry.specialty)}</p>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
             {entry.city && (
               <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">

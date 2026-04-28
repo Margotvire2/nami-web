@@ -72,6 +72,10 @@ export const PROVIDER_SPECIALTY_LABELS: Record<string, string> = {
   obesite:                    "Spécialiste obésité",
   addictologie:               "Addictologue",
   pedopsychiatre:             "Pédopsychiatre",
+  // Alias anglais (valeurs possibles dans Organizations.specialty)
+  obesity:                    "Spécialiste obésité",
+  pediatrics:                 "Pédiatre",
+  general:                    "Médecin généraliste",
 };
 
 /**

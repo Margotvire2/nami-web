@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { networkApi, type NetworkPatient } from "@/lib/api";
+import { formatProviderSpecialty } from "@/lib/provider-display";
 import Link from "next/link";
 import {
   Users, CheckSquare, CalendarDays, Bell, Search, Filter,
@@ -69,13 +70,6 @@ const ORG_TYPE_ICONS: Record<string, string> = {
   PRIVATE_PRACTICE: "🩻",
 };
 
-const SPECIALTY_LABELS: Record<string, string> = {
-  tca: "TCA",
-  obesity: "Obésité",
-  nutrition: "Nutrition",
-  pediatrics: "Pédiatrie",
-  general: "Généraliste",
-};
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 
@@ -226,7 +220,7 @@ function CatalogCard({ org, onJoin }: { org: OrgCard; onJoin: (org: OrgCard) => 
             <OrgTypeBadge type={org.type} />
             {org.specialty && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#64748B] font-medium">
-                {SPECIALTY_LABELS[org.specialty] ?? org.specialty}
+                {formatProviderSpecialty(org.specialty)}
               </span>
             )}
           </div>
