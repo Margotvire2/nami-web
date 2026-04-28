@@ -9,7 +9,7 @@ export default function ConfidentialitePage() {
   return (
     <article className="prose prose-sm max-w-none">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Politique de confidentialité</h1>
-      <p className="text-sm text-gray-400 mb-8">Dernière mise à jour : 17 avril 2026</p>
+      <p className="text-sm text-gray-400 mb-8">Dernière mise à jour : 28 avril 2026</p>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">1. Responsable du traitement</h2>
@@ -98,16 +98,25 @@ export default function ConfidentialitePage() {
             </thead>
             <tbody>
               <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">Mistral AI (Voxtral)</td>
+                <td className="py-2 pr-4">Transcription audio des consultations</td>
+                <td className="py-2 pr-4">France (EU)</td>
+                <td className="py-2">
+                  <strong>Zero Data Retention activé</strong> — aucun audio ni transcription conservé au-delà du traitement.
+                  Hébergement France.
+                </td>
+              </tr>
+              <tr className="border-b border-gray-100">
                 <td className="py-2 pr-4 font-medium">Anthropic (Claude)</td>
                 <td className="py-2 pr-4">Synthèse clinique, extraction de bilans, structuration documentaire</td>
                 <td className="py-2 pr-4">États-Unis</td>
-                <td className="py-2">DPA signé, Clauses Contractuelles Types (SCCs)</td>
+                <td className="py-2">DPA signé, Clauses Contractuelles Types (CCT), non-réentraînement sur données API</td>
               </tr>
               <tr>
-                <td className="py-2 pr-4 font-medium">OpenAI (Whisper)</td>
-                <td className="py-2 pr-4">Transcription audio des consultations</td>
+                <td className="py-2 pr-4 font-medium">OpenAI</td>
+                <td className="py-2 pr-4">Recherche sémantique dans la base documentaire clinique (embeddings)</td>
                 <td className="py-2 pr-4">États-Unis</td>
-                <td className="py-2">DPA signé, Clauses Contractuelles Types (SCCs)</td>
+                <td className="py-2">DPA signé, CCT, données pseudonymisées avant envoi, SOC 2 Type II</td>
               </tr>
             </tbody>
           </table>
@@ -170,8 +179,93 @@ export default function ConfidentialitePage() {
         </p>
       </section>
 
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">8. Sous-traitants et hébergement des données</h2>
+        <p className="text-sm text-gray-600 leading-relaxed mb-4">
+          Nami fait appel à un nombre limité de sous-traitants techniques sélectionnés selon des critères stricts
+          de conformité RGPD et de sécurité. <strong>Aucune donnée de santé n&apos;est transférée hors de l&apos;Union
+          européenne sans garanties contractuelles.</strong>
+        </p>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Hébergement de la base de données</h3>
+        <p className="text-sm text-gray-600 leading-relaxed mb-4">
+          Les données patients (dossiers, observations, comptes-rendus, journal) sont hébergées sur{" "}
+          <strong>Supabase Pro</strong>, infrastructure PostgreSQL chiffrée au repos (AES-256) et en transit
+          (TLS 1.3), dans la région <strong>eu-west-3 (Paris, France)</strong>. Les sauvegardes sont chiffrées
+          et stockées dans la même zone géographique.
+        </p>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Transcription audio des consultations</h3>
+        <p className="text-sm text-gray-600 leading-relaxed mb-4">
+          Les enregistrements audio sont transcrits via <strong>Voxtral (Mistral AI)</strong>, hébergé en France.
+          Mistral AI a activé pour Nami l&apos;option <strong>Zero Data Retention (ZDR)</strong> : aucun audio
+          ni transcription n&apos;est conservé par Mistral au-delà du strict temps de traitement de la requête.
+          Aucune donnée audio patient ne quitte le territoire européen.
+        </p>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">Liste complète des sous-traitants</h3>
+        <div className="overflow-x-auto mb-4">
+          <table className="w-full text-sm text-gray-600 border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Sous-traitant</th>
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Localisation</th>
+                <th className="text-left py-2 pr-4 font-semibold text-gray-700">Donnée traitée</th>
+                <th className="text-left py-2 font-semibold text-gray-700">Conformité</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">Supabase</td>
+                <td className="py-2 pr-4">eu-west-3 (Paris, FR)</td>
+                <td className="py-2 pr-4">Données patient (base de données)</td>
+                <td className="py-2">RGPD, SOC 2, chiffrement AES-256</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">Mistral AI</td>
+                <td className="py-2 pr-4">France (EU)</td>
+                <td className="py-2 pr-4">Audio + transcriptions consultations</td>
+                <td className="py-2">RGPD, <strong>ZDR activé</strong> (zéro rétention)</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">Anthropic</td>
+                <td className="py-2 pr-4">États-Unis</td>
+                <td className="py-2 pr-4">Notes IA pseudonymisées</td>
+                <td className="py-2">CCT RGPD, SOC 2 Type II, non-réentraînement API</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">OpenAI</td>
+                <td className="py-2 pr-4">États-Unis</td>
+                <td className="py-2 pr-4">Recherche documentaire (embeddings pseudonymisés)</td>
+                <td className="py-2">CCT RGPD, SOC 2 Type II</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium">Railway</td>
+                <td className="py-2 pr-4">États-Unis</td>
+                <td className="py-2 pr-4">Hébergement applicatif (backend)</td>
+                <td className="py-2">CCT RGPD — migration vers hébergement HDS prévue 2026</td>
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 font-medium">Vercel</td>
+                <td className="py-2 pr-4">États-Unis</td>
+                <td className="py-2 pr-4">Frontend (interface web — pas de données de santé)</td>
+                <td className="py-2">CCT RGPD, SOC 2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-sm text-gray-500 leading-relaxed">
+          Les transferts vers les États-Unis sont encadrés par les clauses contractuelles types (CCT) de la
+          Commission européenne et limités aux données strictement nécessaires. Aucune donnée de santé n&apos;est
+          transférée en clair hors de l&apos;Union européenne. Nami s&apos;engage à notifier tout changement substantiel
+          de sous-traitant dans un délai de 30 jours et à migrer son hébergement applicatif vers une
+          infrastructure certifiée HDS au cours de l&apos;année 2026.
+        </p>
+      </section>
+
       <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">8. Cookies et traceurs</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">9. Cookies et traceurs</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
           Nami utilise des cookies techniques strictement nécessaires au fonctionnement du service (authentification, session).
           Aucun cookie publicitaire ou de tracking tiers n&apos;est déposé sans consentement explicite.
