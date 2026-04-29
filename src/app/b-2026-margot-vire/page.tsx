@@ -100,10 +100,11 @@ function BanqueHero() {
             margin: "0 0 40px",
           }}>
             600 CPTS françaises sans outil dédié. 269 structures sélectionnées par l&apos;ARS pour
-            le PCR Obésité Complexe lancé en mars 2026. Aucun acteur installé. Nami avance
-            avec <strong>8 réseaux cliniques déjà engagés</strong>, l&apos;accompagnement de Wilco,
-            Medicen et du Catalyseur Santé, et une fondatrice qui a vu le bug en consultation
-            avant de le coder.
+            le PCR Obésité Complexe lancé en mars 2026. Aucun acteur installé. Nami est{" "}
+            <strong>conçue par une soignante en exercice pour des soignants</strong>, déploie
+            ses <strong>premières démos terrain fin mai 2026</strong> (TCA Francilien et
+            Hôpital Américain de Paris), et est accompagnée par Wilco, Medicen et le Catalyseur
+            Santé.
           </p>
         </ScrollReveal>
 
@@ -272,7 +273,7 @@ function BanqueMarche() {
 }
 
 // =============================================================================
-// SECTION 4 — TRACTION QUALITATIVE
+// SECTION 4 — TRACTION HONNÊTE : démos confirmées + pipeline ciblé
 // =============================================================================
 function BanqueTraction() {
   return (
@@ -295,7 +296,7 @@ function BanqueTraction() {
             color: "#5B4EC4",
             marginBottom: 14,
           }}>
-            TRACTION
+            PREMIÈRES DÉMOS TERRAIN
           </div>
           <h2 style={{
             fontSize: "clamp(2rem, 5vw, 3.8rem)",
@@ -306,101 +307,136 @@ function BanqueTraction() {
             margin: "0 0 14px",
             fontFamily: "var(--font-jakarta)",
           }}>
-            8 réseaux engagés.<br />
+            Conçue par une soignante<br />
             <span style={{
               background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
-              0 € de marketing. 6 mois.
+              pour des soignants.
             </span>
           </h2>
           <p style={{
             fontSize: 16,
             color: "#374151",
             marginBottom: 56,
-            maxWidth: 720,
+            maxWidth: 760,
             lineHeight: 1.6,
           }}>
-            Le capital relationnel de la fondatrice — diététicienne en exercice à l&apos;Hôpital
-            Américain de Paris — donne un accès direct aux réseaux qui structurent les parcours
-            complexes en France. Ces 8 réseaux représentent l&apos;amorce du pipeline commercial.
+            Margot Vire conçoit Nami depuis ses propres consultations à l&apos;Hôpital Américain de
+            Paris. Le produit est en train de quitter la phase prototype pour entrer en
+            confrontation terrain : <strong>deux démos sont confirmées fin mai 2026</strong>{" "}
+            avec des partenaires institutionnels qui couvrent les deux versants du marché —
+            réseau de ville et hôpital.
           </p>
         </ScrollReveal>
 
         <ScrollReveal variant="fade-up" delay={0.15} duration={0.7}>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 20,
+            gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))",
+            gap: 24,
+            marginBottom: 56,
           }}>
-            <ReseauCard
-              nom="AHP Pédiatrie"
-              type="Hôpital privé"
-              detail="Pitch en cours — équipe d'ambulatoire pédiatrique, point d'entrée institutionnel."
+            <DemoCard
+              date="FIN MAI 2026"
+              cible="TCA Francilien"
+              type="Réseau régional · 200 praticiens"
+              detail="Démo confirmée auprès du réseau régional des troubles du comportement alimentaire d&apos;Île-de-France. Premier déploiement en conditions réelles auprès d&apos;une équipe de prise en charge pluridisciplinaire."
               accent="#5B4EC4"
             />
-            <ReseauCard
-              nom="TCA Francilien"
-              type="Réseau régional TCA"
-              detail="200 praticiens adhérents. Pitch prévu juin 2026 via la coordination du réseau."
-              accent="#2BA89C"
-            />
-            <ReseauCard
-              nom="FFAB"
-              type="Réseau national TCA"
-              detail="100 membres IDF accessibles. Intro Nathalie Godard (présidente)."
-              accent="#5B4EC4"
-            />
-            <ReseauCard
-              nom="CPTS Neuilly-sur-Seine"
-              type="Communauté territoriale"
-              detail="150 adhérents actifs. Approche prévue septembre 2026, premier pivot 92."
-              accent="#2BA89C"
-            />
-            <ReseauCard
-              nom="CSO Sud Paris-Brousse"
-              type="Centre Spécialisé Obésité"
-              detail="Post-pitch Pr Hanachi. Référence académique pour le PCR Obésité."
-              accent="#5B4EC4"
-            />
-            <ReseauCard
-              nom="CSO Centre/Est"
-              type="Centre Spécialisé Obésité"
-              detail="Approche Pr Oppert. Couvre le territoire Est francilien sur l'obésité complexe."
-              accent="#2BA89C"
-            />
-            <ReseauCard
-              nom="Réseau pédiatrie IDF"
-              type="Réseau pédiatrique"
-              detail="Bouche-à-oreille AHP. Extension naturelle du périmètre pédiatrique."
-              accent="#5B4EC4"
-            />
-            <ReseauCard
-              nom="+ 6 CPTS pilotes IDF"
-              type="Communautés territoriales"
-              detail="Levallois, Boulogne, Issy/Vanves, Suresnes, Paris 15/16/17. Effet domino."
+            <DemoCard
+              date="28 MAI 2026"
+              cible="Hôpital Américain de Paris"
+              type="Hôpital privé · pédiatrie ambulatoire"
+              detail="Démo confirmée — créer un réseau qui pousse les murs de l&apos;hôpital vers les soignants de ville. Validation de l&apos;articulation ville-hôpital sur des cas pédiatriques complexes."
               accent="#2BA89C"
             />
           </div>
         </ScrollReveal>
 
         <ScrollReveal variant="fade-up" delay={0.3} duration={0.7}>
-          <p style={{
-            marginTop: 56,
-            fontSize: 15,
-            color: "#374151",
-            maxWidth: 720,
-            lineHeight: 1.7,
-            fontStyle: "italic",
-            paddingLeft: 20,
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: 16,
+            padding: "32px 36px",
+            border: "1px solid rgba(26,26,46,0.08)",
             borderLeft: "3px solid #5B4EC4",
+            marginBottom: 40,
           }}>
-            Une startup sans capital relationnel met 18 mois à atteindre son premier client.
-            Nami a 8 réseaux engagés avant même la création de la SASU. C&apos;est une avance qu&apos;on
-            ne rattrape pas avec du marketing.
-          </p>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+              color: "#5B4EC4",
+              marginBottom: 10,
+            }}>
+              VALIDATION SCIENTIFIQUE EN COURS
+            </div>
+            <div style={{
+              fontSize: 18,
+              fontWeight: 700,
+              color: "#1A1A2E",
+              lineHeight: 1.3,
+              marginBottom: 12,
+            }}>
+              Discussions engagées pour structurer un cadre de recherche académique sur Nami.
+            </div>
+            <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>
+              Le déploiement terrain s&apos;accompagnera d&apos;une démarche de validation scientifique,
+              en discussion avec des partenaires académiques (Paris-Saclay, Laboratoire ARENES,
+              Direction de la stratégie AP-HP). Objectif : documenter l&apos;impact de Nami sur la
+              continuité informationnelle des parcours complexes.
+            </div>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={0.45} duration={0.7}>
+          <div style={{ paddingTop: 32, borderTop: "1px solid rgba(26,26,46,0.08)" }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+              color: "#6B7280",
+              marginBottom: 12,
+            }}>
+              PIPELINE COMMERCIAL CIBLÉ — 14 RÉSEAUX
+            </div>
+            <p style={{
+              fontSize: 15,
+              color: "#374151",
+              lineHeight: 1.65,
+              maxWidth: 760,
+              margin: "0 0 24px",
+            }}>
+              Au-delà des démos confirmées, le plan d&apos;acquisition cible 14 réseaux franciliens
+              à conquérir sur 24 mois : 1 772 praticiens adressables, 6 réseaux visés en S2 2026,
+              effet domino territorial sur 2027.
+            </p>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 12,
+            }}>
+              <PipelineTag label="AHP Pédiatrie" status="démo confirmée" highlighted />
+              <PipelineTag label="TCA Francilien" status="démo confirmée" highlighted />
+              <PipelineTag label="FFAB IDF" status="à approcher" />
+              <PipelineTag label="CPTS Neuilly" status="à approcher" />
+              <PipelineTag label="CPTS Levallois" status="à approcher" />
+              <PipelineTag label="CPTS Boulogne" status="à approcher" />
+              <PipelineTag label="CPTS Issy/Vanves" status="à approcher" />
+              <PipelineTag label="CPTS Suresnes" status="à approcher" />
+              <PipelineTag label="CPTS Paris 15" status="à approcher" />
+              <PipelineTag label="CPTS Paris 16" status="à approcher" />
+              <PipelineTag label="CPTS Paris 17" status="à approcher" />
+              <PipelineTag label="CSO Sud (Paris-Brousse)" status="à approcher" />
+              <PipelineTag label="CSO Nord (Bichat)" status="à approcher" />
+              <PipelineTag label="CSO Centre/Est" status="à approcher" />
+            </div>
+          </div>
         </ScrollReveal>
 
       </div>
@@ -503,15 +539,14 @@ function BanqueStrategie() {
             margin: "0 0 14px",
             fontFamily: "var(--font-jakarta)",
           }}>
-            Pendant que Doctolib gère<br />
-            les rendez-vous,{" "}
+            Le PCR finance la prestation.<br />
             <span style={{
               background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
-              Nami construit le couloir.
+              Nami absorbe le coût caché.
             </span>
           </h2>
           <p style={{
@@ -521,10 +556,11 @@ function BanqueStrategie() {
             maxWidth: 720,
             lineHeight: 1.6,
           }}>
-            Conquête réseau par réseau, pas client par client. Chaque réseau conquis est un
-            graphe clinique verrouillé : <strong>l&apos;effet de réseau crée le moat</strong>. Plus
-            les soignants utilisent Nami pour se coordonner entre eux, plus il devient coûteux
-            pour un nouvel entrant de les déloger.
+            Le Parcours Coordonné Renforcé Obésité Complexe finance la prestation de chaque
+            soignant, mais pas le temps d&apos;orchestration entre eux. C&apos;est précisément ce coût
+            caché qui empêche aujourd&apos;hui beaucoup d&apos;équipes de candidater à un parcours
+            coordonné. <strong>Nami rend ces forfaits réellement opérables au quotidien</strong> —
+            via une articulation ville-hôpital structurée, sans demander plus de temps médical.
           </p>
         </ScrollReveal>
 
@@ -975,10 +1011,10 @@ function BanqueEcosysteme() {
             borderRadius: 12,
             border: "1px solid rgba(91,78,196,0.10)",
           }}>
-            <ConformiteBadge label="Hébergement HDS" detail="Scalingo HDS France" />
-            <ConformiteBadge label="RGPD" detail="Conformité native" />
-            <ConformiteBadge label="Zero Data Retention" detail="Mistral AI · Voxtral" />
-            <ConformiteBadge label="Hors DM" detail="Règlement (UE) 2017/745" />
+            <ConformiteBadge label="Hébergement HDS" detail="Roadmap Q3 2026 · Scalingo HDS France" />
+            <ConformiteBadge label="Outils socles" detail="DMP · MSSanté · INS · Pro Santé Connect" />
+            <ConformiteBadge label="Zero Data Retention" detail="Mistral AI · Voxtral · hébergement EU" />
+            <ConformiteBadge label="Hors DM" detail="Règlement (UE) 2017/745 · Brouillons IA traçables" />
           </div>
         </ScrollReveal>
 
@@ -1060,8 +1096,8 @@ function BanqueFondatrice() {
             />
             <FondatriceBlock
               eyebrow="LE CAPITAL RELATIONNEL"
-              titre="8 réseaux cliniques actifs"
-              detail="FFAB, TCA Francilien, AHP, plusieurs CPTS et CSO. Connexions construites sur 5 ans d'exercice clinique et de recherche, pas sur du networking startup."
+              titre="Une praticienne dans l'écosystème"
+              detail="Membre active de plusieurs réseaux cliniques (FFAB, TCA Francilien, AHP), Margot conçoit Nami depuis l'intérieur du système — pas depuis l'extérieur. Connexions construites sur 5 ans d'exercice clinique et de recherche, pas sur du networking startup."
             />
           </div>
         </ScrollReveal>
@@ -1462,6 +1498,94 @@ function FinancementBlock({ titre, montant, detail, statut, couleur }: {
       </div>
       <div style={{ fontSize: 11, color: "#6B7280", fontStyle: "italic", paddingTop: 16, borderTop: "1px solid rgba(26,26,46,0.06)" }}>
         {statut}
+      </div>
+    </div>
+  )
+}
+
+function DemoCard({ date, cible, type, detail, accent }: {
+  date: string
+  cible: string
+  type: string
+  detail: string
+  accent: string
+}) {
+  return (
+    <div style={{
+      background: "#FFFFFF",
+      borderRadius: 16,
+      padding: 32,
+      border: "1px solid rgba(26,26,46,0.08)",
+      boxShadow: "0 8px 24px rgba(26,26,46,0.06)",
+      borderTop: `3px solid ${accent}`,
+      position: "relative",
+    }}>
+      <div style={{
+        position: "absolute",
+        top: 20,
+        right: 20,
+        padding: "4px 10px",
+        background: `${accent}20`,
+        color: accent,
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase" as const,
+        borderRadius: 100,
+      }}>
+        ✓ Confirmée
+      </div>
+      <div style={{
+        fontSize: 11,
+        fontWeight: 800,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase" as const,
+        color: accent,
+        marginBottom: 12,
+      }}>
+        {date}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: "#1A1A2E", lineHeight: 1.2, marginBottom: 6, letterSpacing: "-0.01em" }}>
+        {cible}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "#6B7280", marginBottom: 16 }}>
+        {type}
+      </div>
+      <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+        {detail}
+      </div>
+    </div>
+  )
+}
+
+function PipelineTag({ label, status, highlighted }: {
+  label: string
+  status: string
+  highlighted?: boolean
+}) {
+  return (
+    <div style={{
+      padding: "12px 16px",
+      background: highlighted ? "rgba(91,78,196,0.06)" : "#FFFFFF",
+      border: highlighted
+        ? "1px solid rgba(91,78,196,0.20)"
+        : "1px solid rgba(26,26,46,0.08)",
+      borderRadius: 10,
+    }}>
+      <div style={{
+        fontSize: 13,
+        fontWeight: 700,
+        color: highlighted ? "#5B4EC4" : "#1A1A2E",
+        marginBottom: 2,
+      }}>
+        {label}
+      </div>
+      <div style={{
+        fontSize: 11,
+        color: highlighted ? "#5B4EC4" : "#6B7280",
+        fontWeight: highlighted ? 600 : 400,
+      }}>
+        {status}
       </div>
     </div>
   )
