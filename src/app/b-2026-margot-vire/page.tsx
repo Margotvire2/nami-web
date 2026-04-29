@@ -101,7 +101,7 @@ function BanqueHero() {
           }}>
             600 CPTS françaises sans outil dédié. 269 structures sélectionnées par l&apos;ARS pour
             le PCR Obésité Complexe lancé en mars 2026. Aucun acteur installé. Nami est{" "}
-            <strong>conçue par une soignante en exercice pour des soignants</strong>, déploie
+            <strong>conçue par une soignante-chercheuse pour des soignants</strong>, déploie
             ses <strong>premières démos terrain fin mai 2026</strong> (TCA Francilien et
             Hôpital Américain de Paris), et est accompagnée par Wilco, Medicen et le Catalyseur
             Santé.
@@ -373,22 +373,50 @@ function BanqueTraction() {
               color: "#5B4EC4",
               marginBottom: 10,
             }}>
-              VALIDATION SCIENTIFIQUE EN COURS
+              ANCRAGE SCIENTIFIQUE
             </div>
             <div style={{
               fontSize: 18,
               fontWeight: 700,
               color: "#1A1A2E",
               lineHeight: 1.3,
-              marginBottom: 12,
+              marginBottom: 24,
             }}>
-              Discussions engagées pour structurer un cadre de recherche académique sur Nami.
+              Une démarche scientifique qui précède Nami,<br />
+              et qui se prolonge avec Nami.
             </div>
-            <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>
-              Le déploiement terrain s&apos;accompagnera d&apos;une démarche de validation scientifique,
-              en discussion avec des partenaires académiques (Paris-Saclay, Laboratoire ARENES,
-              Direction de la stratégie AP-HP). Objectif : documenter l&apos;impact de Nami sur la
-              continuité informationnelle des parcours complexes.
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 32,
+            }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#2BA89C", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>
+                  PROJET DE RECHERCHE — RÉALISÉ
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", marginBottom: 8, lineHeight: 1.4 }}>
+                  Impact de la télésurveillance<br />sur les parcours de soin
+                </div>
+                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                  Projet conduit dans le cadre du Master 2 santé publique (Paris-Saclay) en
+                  partenariat avec le <strong>Laboratoire ARENES</strong> (Sciences Po Rennes /
+                  CNRS) et la <strong>Direction de la stratégie de l&apos;AP-HP</strong>. Travail
+                  fondateur de la thèse produit Nami.
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#5B4EC4", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>
+                  THÈSE DOCTORALE — EN STRUCTURATION
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", marginBottom: 8, lineHeight: 1.4 }}>
+                  Impact d&apos;une coordination structurée<br />sur le suivi ville-hôpital
+                </div>
+                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                  Discussions engagées pour structurer un projet de thèse doctorale sur Nami
+                  avec une équipe académique : <strong>évaluer scientifiquement l&apos;impact d&apos;une
+                  coordination structurée sur le suivi ville-hôpital des parcours complexes</strong>.
+                </div>
+              </div>
             </div>
           </div>
         </ScrollReveal>
@@ -972,28 +1000,30 @@ function BanqueEcosysteme() {
                   Université Paris-Saclay
                 </div>
                 <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
-                  Recherche sur la télésurveillance et les parcours de soins chroniques —
-                  thèse produit Nami issue directement de ces travaux.
+                  Master 2 santé publique. Projet de recherche conduit en partenariat avec le
+                  Laboratoire ARENES (Sciences Po Rennes / CNRS) et la Direction de la
+                  stratégie de l&apos;AP-HP, sur l&apos;impact de la télésurveillance sur les parcours
+                  de soin chroniques.
                 </div>
               </div>
               <div>
                 <div style={{
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "#2BA89C",
+                  color: "#5B4EC4",
                   textTransform: "uppercase" as const,
                   letterSpacing: "0.06em",
                   marginBottom: 8,
                 }}>
-                  PUBLICATION À PARAÎTRE
+                  THÈSE DOCTORALE — EN DISCUSSION
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", marginBottom: 8, lineHeight: 1.4 }}>
-                  Co-écriture Laboratoire ARENES × AP-HP
+                  Cadre académique sur Nami
                 </div>
                 <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
-                  Projet de recherche cosigné avec le Laboratoire ARENES (Sciences Po Rennes /
-                  CNRS) et la Direction de la stratégie de l&apos;AP-HP. Rédaction en cours,
-                  publication visée 2026.
+                  Discussions engagées pour structurer une thèse doctorale dédiée à Nami :
+                  évaluer scientifiquement l&apos;impact d&apos;une coordination structurée sur le suivi
+                  ville-hôpital des parcours complexes.
                 </div>
               </div>
             </div>
