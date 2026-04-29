@@ -4,7 +4,7 @@ import { PitchPricing } from "@/components/pitch/PitchPricing"
 import { PitchFounder } from "@/components/pitch/PitchFounder"
 import { AmbientGlow } from "@/components/pitch/AmbientGlow"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
-import { AnimatedCounter } from "@/components/pitch/AnimatedCounter"
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
 
 export const metadata: Metadata = {
   title: "Nami — Présentation pour partenaire bancaire",
