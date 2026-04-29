@@ -34,6 +34,7 @@ export default function PitchBanquePage() {
       <BanqueStrategie />
       <BanqueProjections />
       <BanquePlanFinancement />
+      <BanqueEcosysteme />
       <BanqueFondatrice />
       <BanqueCloture />
     </div>
@@ -100,8 +101,8 @@ function BanqueHero() {
           }}>
             600 CPTS françaises sans outil dédié. 269 structures sélectionnées par l&apos;ARS pour
             le PCR Obésité Complexe lancé en mars 2026. Aucun acteur installé. Nami avance
-            avec <strong>8 réseaux cliniques déjà engagés</strong>, un modèle économique
-            rentable dès la première année, et une fondatrice qui a vu le bug en consultation
+            avec <strong>8 réseaux cliniques déjà engagés</strong>, l&apos;accompagnement de Wilco,
+            Medicen et du Catalyseur Santé, et une fondatrice qui a vu le bug en consultation
             avant de le coder.
           </p>
         </ScrollReveal>
@@ -795,7 +796,199 @@ function BanquePlanFinancement() {
 }
 
 // =============================================================================
-// SECTION 9 — FONDATRICE (sombre #1)
+// SECTION 9 — ÉCOSYSTÈME & SOUTIENS
+// =============================================================================
+function BanqueEcosysteme() {
+  return (
+    <section style={{
+      background: "#F5F3EF",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      padding: "80px clamp(24px, 5vw, 80px)",
+      position: "relative",
+    }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%" }}>
+
+        <ScrollReveal variant="fade-up" duration={0.7}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase" as const,
+            color: "#5B4EC4",
+            marginBottom: 14,
+          }}>
+            ÉCOSYSTÈME & SOUTIENS
+          </div>
+          <h2 style={{
+            fontSize: "clamp(2rem, 5vw, 3.8rem)",
+            fontWeight: 800,
+            letterSpacing: "-0.03em",
+            color: "#1A1A2E",
+            lineHeight: 1.1,
+            margin: "0 0 14px",
+            fontFamily: "var(--font-jakarta)",
+          }}>
+            Nami n&apos;avance pas seule.<br />
+            <span style={{
+              background: "linear-gradient(135deg, #5B4EC4 0%, #2BA89C 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              Le projet est déjà ancré.
+            </span>
+          </h2>
+          <p style={{
+            fontSize: 16,
+            color: "#374151",
+            marginBottom: 64,
+            maxWidth: 760,
+            lineHeight: 1.6,
+          }}>
+            Quatre acteurs majeurs de l&apos;écosystème innovation santé française accompagnent Nami
+            avant même la création de la SASU. Une recherche académique cosignée avec l&apos;AP-HP
+            documente le besoin et fonde la thèse produit.
+          </p>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={0.15} duration={0.7}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 24,
+            marginBottom: 56,
+          }}>
+            <SoutienCard
+              eyebrow="ACCÉLÉRATEUR"
+              nom="Wilco"
+              detail="Accompagnement actif : hébergement, ressources, recherche de subventions. Label."
+              accent="#5B4EC4"
+            />
+            <SoutienCard
+              eyebrow="LABEL"
+              nom="Medicen"
+              detail="Pôle de compétitivité santé Île-de-France. Labellisation du projet — référence sectorielle pour les dispositifs publics."
+              accent="#2BA89C"
+            />
+            <SoutienCard
+              eyebrow="INCUBATEUR SANTÉ"
+              nom="Le Catalyseur Santé"
+              detail="Hébergement et ressources opérationnelles. Ancrage dans l&apos;écosystème santé territorial des Hauts-de-Seine."
+              accent="#5B4EC4"
+            />
+            <SoutienCard
+              eyebrow="COLLECTIVITÉ"
+              nom="Ville de Suresnes"
+              detail="Soutien institutionnel et accès au tissu local de santé. Couplage opérationnel avec la CPTS Suresnes (pipeline réseau)."
+              accent="#2BA89C"
+            />
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={0.3} duration={0.7}>
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: 16,
+            padding: "36px 40px",
+            border: "1px solid rgba(26,26,46,0.08)",
+            boxShadow: "0 8px 24px rgba(26,26,46,0.06)",
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+              color: "#5B4EC4",
+              marginBottom: 12,
+            }}>
+              FONDATIONS ACADÉMIQUES
+            </div>
+            <h3 style={{
+              fontSize: "clamp(1.4rem, 2.8vw, 2rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "#1A1A2E",
+              lineHeight: 1.2,
+              margin: "0 0 20px",
+              fontFamily: "var(--font-jakarta)",
+            }}>
+              Une thèse produit fondée sur la recherche.
+            </h3>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 32,
+            }}>
+              <div>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#2BA89C",
+                  textTransform: "uppercase" as const,
+                  letterSpacing: "0.06em",
+                  marginBottom: 8,
+                }}>
+                  M2 SANTÉ PUBLIQUE — VALIDÉ
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", marginBottom: 8, lineHeight: 1.4 }}>
+                  Université Paris-Saclay
+                </div>
+                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                  Recherche sur la télésurveillance et les parcours de soins chroniques —
+                  thèse produit Nami issue directement de ces travaux.
+                </div>
+              </div>
+              <div>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#2BA89C",
+                  textTransform: "uppercase" as const,
+                  letterSpacing: "0.06em",
+                  marginBottom: 8,
+                }}>
+                  PUBLICATION À PARAÎTRE
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", marginBottom: 8, lineHeight: 1.4 }}>
+                  Co-écriture Laboratoire ARENES × AP-HP
+                </div>
+                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                  Projet de recherche cosigné avec le Laboratoire ARENES (Sciences Po Rennes /
+                  CNRS) et la Direction de la stratégie de l&apos;AP-HP. Rédaction en cours,
+                  publication visée 2026.
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal variant="fade-up" delay={0.45} duration={0.7}>
+          <div style={{
+            marginTop: 32,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 24,
+            padding: "20px 24px",
+            background: "rgba(91,78,196,0.03)",
+            borderRadius: 12,
+            border: "1px solid rgba(91,78,196,0.10)",
+          }}>
+            <ConformiteBadge label="Hébergement HDS" detail="Scalingo HDS France" />
+            <ConformiteBadge label="RGPD" detail="Conformité native" />
+            <ConformiteBadge label="Zero Data Retention" detail="Mistral AI · Voxtral" />
+            <ConformiteBadge label="Hors DM" detail="Règlement (UE) 2017/745" />
+          </div>
+        </ScrollReveal>
+
+      </div>
+    </section>
+  )
+}
+
+// =============================================================================
+// SECTION 10 — FONDATRICE (sombre #1)
 // =============================================================================
 function BanqueFondatrice() {
   return (
@@ -909,7 +1102,7 @@ function BanqueFondatrice() {
 }
 
 // =============================================================================
-// SECTION 10 — CLÔTURE (sombre #2)
+// SECTION 11 — CLÔTURE (sombre #2)
 // =============================================================================
 function BanqueCloture() {
   return (
@@ -1270,6 +1463,53 @@ function FinancementBlock({ titre, montant, detail, statut, couleur }: {
       <div style={{ fontSize: 11, color: "#6B7280", fontStyle: "italic", paddingTop: 16, borderTop: "1px solid rgba(26,26,46,0.06)" }}>
         {statut}
       </div>
+    </div>
+  )
+}
+
+function SoutienCard({ eyebrow, nom, detail, accent }: {
+  eyebrow: string
+  nom: string
+  detail: string
+  accent: string
+}) {
+  return (
+    <div style={{
+      background: "#FFFFFF",
+      borderRadius: 16,
+      padding: 32,
+      border: "1px solid rgba(26,26,46,0.08)",
+      boxShadow: "0 8px 24px rgba(26,26,46,0.06)",
+      borderTop: `3px solid ${accent}`,
+    }}>
+      <div style={{
+        fontSize: 11,
+        fontWeight: 700,
+        color: accent,
+        textTransform: "uppercase" as const,
+        letterSpacing: "0.08em",
+        marginBottom: 10,
+      }}>
+        {eyebrow}
+      </div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3, marginBottom: 14 }}>
+        {nom}
+      </div>
+      <div style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.65 }}>
+        {detail}
+      </div>
+    </div>
+  )
+}
+
+function ConformiteBadge({ label, detail }: {
+  label: string
+  detail: string
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{label}</div>
+      <div style={{ fontSize: 11, color: "#6B7280" }}>{detail}</div>
     </div>
   )
 }
