@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Nami · Une journée sur Nami · Démo",
   description:
     "Découvrez comment un médecin utilise Nami au quotidien : dashboard, enregistrement consultation, parcours de soins, coordination d'équipe, base documentaire.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 }
 
 export default function DemoPage() {
