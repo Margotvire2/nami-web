@@ -13,7 +13,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal"
 export const metadata: Metadata = {
   title: "Nami — Coordination des parcours complexes · Pour les soignants",
   description: "Nami est l'espace commun de votre équipe pluridisciplinaire. Dossier partagé, communication sécurisée, base de connaissances cliniques.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 }
 
 export default function DecouvrirPage() {

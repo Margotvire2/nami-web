@@ -13,7 +13,7 @@ import { PitchCTA } from "@/components/pitch/PitchCTA"
 export const metadata: Metadata = {
   title: "Nami — Pitch Investisseurs · Seed 2026",
   description: "Le système nerveux des parcours de soins complexes. Coordination pluridisciplinaire, base de connaissances propriétaire, modèle récurrent.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 }
 
 export default function PitchPage() {

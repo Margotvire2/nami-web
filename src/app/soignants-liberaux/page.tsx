@@ -15,7 +15,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal"
 export const metadata: Metadata = {
   title: "Nami — Pour les soignants libéraux",
   description: "Nami supprime la charge administrative autour de la consultation. Dictée → dossier structuré, adressage sécurisé, réseau de confiance. Conçu par une soignante.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 }
 
 export default function SoignantsLiberauxPage() {
