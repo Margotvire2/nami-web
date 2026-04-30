@@ -11,6 +11,7 @@ import { ViewGlobale } from "./components/ViewGlobale";
 import { ViewDossier } from "./components/ViewDossier";
 import { ViewCoordination } from "./components/ViewCoordination";
 import { ViewSuivi } from "./components/ViewSuivi";
+import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossier";
 import { ReferralModal } from "../referral-modal";
 import { QuickTaskModal } from "../QuickTaskModal";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 
-type Tab = "globale" | "suivi" | "dossier" | "coordination";
+type Tab = "globale" | "suivi" | "dossier" | "coordination" | "pediatrique";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "globale", label: "Vue globale" },
@@ -338,6 +339,18 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
             {tab.label}
           </button>
         ))}
+        {careCase.caseType === "PEDIATRIC" && (
+          <button
+            onClick={() => setActiveTab("pediatrique")}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-all -mb-px ${
+              activeTab === "pediatrique"
+                ? "border-[#5B4EC4] text-[#5B4EC4]"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Pédiatrie
+          </button>
+        )}
       </nav>
 
       {/* Tab content */}
@@ -357,6 +370,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
               patientFirstName={careCase.patient?.firstName ?? ""}
               patientLastName={careCase.patient?.lastName ?? ""}
             />
+          )}
+          {activeTab === "pediatrique" && careCase.caseType === "PEDIATRIC" && (
+            <PediatricDossier careCaseId={id} />
           )}
         </div>
       </div>
