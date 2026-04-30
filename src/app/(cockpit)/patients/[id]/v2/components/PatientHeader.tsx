@@ -9,7 +9,7 @@ import { PatientDashboard } from "@/hooks/usePatientDashboard";
 import { CareCaseDetail } from "@/lib/api";
 import { PATHOLOGIES } from "@/lib/data/pathologies";
 import { getClinicalProfile, getDeltaColorClass } from "@/lib/clinicalProfile";
-
+import { shortSex } from "@/lib/patient-utils";
 
 // CIM-11 code → pathology slug (code principal + aliases)
 const CIM_TO_SLUG: Record<string, string> = Object.fromEntries([
@@ -58,17 +58,13 @@ export function PatientHeader({
 
   const poids = indicators.find((i) => ["weight_kg", "poids"].includes(i.metricKey));
   const imc = indicators.find((i) => ["bmi", "imc"].includes(i.metricKey));
+  const taille = indicators.find((i) => ["height_cm", "taille"].includes(i.metricKey));
 
   const age = c.patient.birthDate
     ? Math.floor((Date.now() - new Date(c.patient.birthDate).getTime()) / (365.25 * 24 * 3600000))
     : null;
 
-  const sexLabel =
-    c.patient.sex === "F" || c.patient.sex === "FEMALE"
-      ? "F"
-      : c.patient.sex === "M" || c.patient.sex === "MALE"
-      ? "M"
-      : null;
+  const sexLabel = shortSex(c.patient.sex);
 
   const primaryCondition = conditions.find((cond) => cond.conditionType === "PRIMARY") ?? conditions[0];
 
@@ -89,6 +85,7 @@ export function PatientHeader({
             <div className="flex items-center gap-1.5 text-sm text-gray-500">
               {age && <span>{age} ans</span>}
               {sexLabel && <><span>·</span><span>{sexLabel}</span></>}
+              {taille?.value && <><span>·</span><span>{taille.value} cm</span></>}
               {poids?.value && (
                 <>
                   <span>·</span>

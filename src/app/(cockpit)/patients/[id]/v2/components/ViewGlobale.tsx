@@ -11,6 +11,7 @@ import { CareCaseDetail, type TrajectoryMetric } from "@/lib/api";
 import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
 import { GrowthCharts } from "@/components/patient/GrowthCharts";
+import { normalizeSex, labelSex } from "@/lib/patient-utils";
 
 interface Props {
   dashboard: PatientDashboard;
@@ -36,12 +37,8 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
     isInfant = patientAgeMonths <= 36; // ≤ 3 ans (PC disponible)
   }
 
-  const patientSex =
-    careCase?.patient?.sex?.toUpperCase() === "F" ||
-    careCase?.patient?.sex?.toUpperCase() === "FEMALE" ||
-    careCase?.patient?.sex?.toUpperCase() === "FEMME"
-      ? ("F" as const)
-      : ("M" as const);
+  // normalizeSex retourne null si non identifiable — GrowthCharts ne s'affiche pas si inconnu
+  const patientSex = normalizeSex(careCase?.patient?.sex);
 
   return (
     <div className="space-y-5">
@@ -56,7 +53,7 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="lg:col-span-3 space-y-5">
           <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} careCaseId={careCaseId} />
-          {isMinor && careCase && (
+          {isMinor && careCase && patientSex && (
             <GrowthCharts
               patientId={careCase.patient.id}
               careCaseId={careCaseId}
@@ -871,7 +868,7 @@ function PatientInfoCard({ careCase }: { careCase: CareCaseDetail }) {
         ? `${new Date(p.birthDate).toLocaleDateString("fr-FR")}${age ? ` (${age} ans)` : ""}`
         : null,
     },
-    { label: "Sexe", value: p.sex === "F" || p.sex === "FEMALE" ? "Féminin" : p.sex === "M" || p.sex === "MALE" ? "Masculin" : p.sex ?? null },
+    { label: "Sexe", value: labelSex(p.sex) },
     { label: "Téléphone", value: p.phone ?? null },
     { label: "Email", value: p.email ?? null },
     {

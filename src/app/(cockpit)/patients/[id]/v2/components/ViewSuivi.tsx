@@ -209,6 +209,7 @@ const ANTHROPOMETRY_KEYS = new Set([
 ]);
 
 const EXTRA_ANTHROPOMETRY_KEYS = new Set([
+  "height_cm",
   "waist_cm", "hip_cm", "neck_cm",
   "mid_arm_circumference", "calf_circumference", "arm_circumference",
 ]);
