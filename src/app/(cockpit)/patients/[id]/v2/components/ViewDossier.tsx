@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { ConsultationNoteDisplay } from "@/components/consultation-note";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, CareCaseDetail, refreshAwareRequest } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
@@ -187,7 +188,21 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
                   </div>
                 )}
                 {note.title && <h4 className="text-sm font-semibold text-gray-900 mb-2">{note.title}</h4>}
-                {(note.body || note.content) && <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{note.body || note.content}</div>}
+                {(note.body || note.content) && (
+                  <ConsultationNoteDisplay
+                    note={{
+                      id: note.id,
+                      content: note.body || note.content || "",
+                      type: note.noteType,
+                      isDraft: note.noteType === "AI_SUMMARY",
+                      canEdit: isAuthor || isAdmin,
+                      onUpdate: async (newContent: string) => {
+                        await api.patch(`/care-cases/${careCaseId}/notes/${note.id}`, { body: newContent });
+                        queryClient.invalidateQueries({ queryKey: ["notes", careCaseId] });
+                      },
+                    }}
+                  />
+                )}
                 {note.aiAnalysis && (
                   <div className="mt-4 rounded-lg bg-[#F8F7FD] border border-[#EDE9FC] p-3">
                     <p className="text-[10px] font-medium text-[#5B4EC4] uppercase tracking-wider mb-1.5 flex items-center gap-1">
