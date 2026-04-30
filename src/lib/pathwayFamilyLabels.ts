@@ -85,6 +85,11 @@ export const PHASE_LABELS: Record<string, string> = {
   PRESCRIPTION:           "Prescription",
   QUESTIONNAIRE:          "Questionnaire",
   SUIVI:                  "Suivi",
+  // PCR Obésité — Arrêté SFHS2604251A
+  EVAL_MULTIDIM:          "Évaluation multidimensionnelle",
+  SEQ1_INTENSIVE:         "Séquence 1 — Prise en charge initiale intensive",
+  SEQ2_SUIVI:             "Séquence 2 — Suivi renforcé",
+  TRANSVERSAL:            "Critères d'escalade",
 };
 
 /**

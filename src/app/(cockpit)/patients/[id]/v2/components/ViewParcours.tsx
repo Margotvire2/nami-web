@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { groupByFamily, getFamilyLabel, getPhaseLabel } from "@/lib/pathwayFamilyLabels";
+import { labelSpecialty, labelPhase } from "@/lib/pcr-labels";
 import { expandPathwayLabel } from "@/lib/pathway-acronyms";
 import { toast } from "sonner";
 import {
@@ -442,7 +443,7 @@ function AnticipateSection({ nodes }: { nodes: PathwayNode[] }) {
                 <p className="text-[13px] font-semibold text-neutral-800 leading-snug">{node.actLabel}</p>
                 <p className="text-[11px] text-amber-600 mt-0.5">{hint?.hint}</p>
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  {node.specialty && <span className="text-[10px] text-neutral-400">{node.specialty}</span>}
+                  {node.specialty && <span className="text-[10px] text-neutral-400">{labelSpecialty(node.specialty)}</span>}
                   {node.expectedDate && (
                     <span className="text-[10px] text-amber-500 font-medium">
                       · À faire avant le {new Date(node.expectedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
@@ -602,8 +603,8 @@ function NextStepHero({
       </p>
       <p className="text-[16px] font-bold text-[#1A1A2E] leading-snug">{node.actLabel}</p>
       <div className="flex items-center gap-3 mt-2 flex-wrap">
-        {node.specialty && <span className="text-[12px] text-[#374151]">{node.specialty}</span>}
-        {node.phaseLabel && <span className="text-[12px] text-[#6B7280]">· {node.phaseLabel}</span>}
+        {node.specialty && <span className="text-[12px] text-[#374151]">{labelSpecialty(node.specialty)}</span>}
+        {node.phaseLabel && <span className="text-[12px] text-[#6B7280]">· {labelPhase(node.phaseLabel)}</span>}
         {node.expectedDate && (
           <span className="text-[12px] text-[#6B7280]">
             · à faire avant le {new Date(node.expectedDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
@@ -772,15 +773,34 @@ function CIEPhaseGroup({
       {open && (
         <div className="px-3 pb-3 pt-0 border-t border-neutral-100">
           <div className="space-y-1.5 pt-2">
-            {nodes.map((node) => (
-              <CIENodeRow
-                key={node.id}
-                node={node}
-                isSelected={selectedNodeId === node.id}
-                onToggleProtocol={() => onSelectNode(node.id)}
-                careCaseId={careCaseId}
-              />
-            ))}
+            {groupRecurrences(
+              [...nodes].sort((a, b) => {
+                if (!a.expectedDate && !b.expectedDate) return 0;
+                if (!a.expectedDate) return 1;
+                if (!b.expectedDate) return -1;
+                return new Date(a.expectedDate).getTime() - new Date(b.expectedDate).getTime();
+              })
+            ).map((item) => {
+              if (item.type === "single") {
+                return (
+                  <CIENodeRow
+                    key={item.node.id}
+                    node={item.node}
+                    isSelected={selectedNodeId === item.node.id}
+                    onToggleProtocol={() => onSelectNode(item.node.id)}
+                    careCaseId={careCaseId}
+                  />
+                );
+              }
+              return (
+                <RecurrenceGroupCard
+                  key={item.groupKey}
+                  label={item.representativeLabel}
+                  occurrences={item.occurrences}
+                  stats={item.stats}
+                />
+              );
+            })}
           </div>
         </div>
       )}
@@ -836,7 +856,7 @@ function CIENodeRow({
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <ActBadge type={node.clinicalActType} />
             {node.specialty && (
-              <span className="text-[10px] text-neutral-400">{node.specialty}</span>
+              <span className="text-[10px] text-neutral-400">{labelSpecialty(node.specialty)}</span>
             )}
             {node.status === "OVERDUE" && node.daysOverdue !== null && (
               <span className="text-[10px] font-medium text-red-500">{node.daysOverdue}j de retard</span>
@@ -899,6 +919,150 @@ function CIENodeRow({
           }
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Recurrence grouping — Fix #1 ────────────────────────────────────────────
+
+type GroupedNode =
+  | { type: "single"; node: PathwayNode }
+  | {
+      type: "group";
+      groupKey: string;
+      representativeLabel: string;
+      occurrences: PathwayNode[];
+      stats: { total: number; completed: number; overdue: number; upcoming: number; inProgress: number };
+      earliestExpectedDate: Date | null;
+    };
+
+function groupRecurrences(nodes: PathwayNode[]): GroupedNode[] {
+  const groupMap = new Map<string, PathwayNode[]>();
+  for (const node of nodes) {
+    const key = `${node.actLabel}__${node.specialty}__${node.clinicalActType}`;
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key)!.push(node);
+  }
+
+  const result: GroupedNode[] = [];
+  for (const [key, occurrences] of groupMap) {
+    if (occurrences.length === 1) {
+      result.push({ type: "single", node: occurrences[0] });
+    } else {
+      const sorted = [...occurrences].sort((a, b) => {
+        const at = a.expectedDate ? new Date(a.expectedDate).getTime() : Infinity;
+        const bt = b.expectedDate ? new Date(b.expectedDate).getTime() : Infinity;
+        return at - bt;
+      });
+      result.push({
+        type: "group",
+        groupKey: key,
+        representativeLabel: occurrences[0].actLabel,
+        occurrences: sorted,
+        stats: {
+          total: occurrences.length,
+          completed: occurrences.filter(n => n.status === "COMPLETED").length,
+          overdue: occurrences.filter(n => n.status === "OVERDUE").length,
+          upcoming: occurrences.filter(n => n.status === "FUTURE" || n.status === "APPROACHING").length,
+          inProgress: occurrences.filter(n => n.status === "IN_WINDOW").length,
+        },
+        earliestExpectedDate: sorted[0]?.expectedDate ? new Date(sorted[0].expectedDate) : null,
+      });
+    }
+  }
+
+  return result.sort((a, b) => {
+    const ad = a.type === "single"
+      ? (a.node.expectedDate ? new Date(a.node.expectedDate).getTime() : Infinity)
+      : (a.earliestExpectedDate?.getTime() ?? Infinity);
+    const bd = b.type === "single"
+      ? (b.node.expectedDate ? new Date(b.node.expectedDate).getTime() : Infinity)
+      : (b.earliestExpectedDate?.getTime() ?? Infinity);
+    return ad - bd;
+  });
+}
+
+function RecurrenceGroupCard({
+  label,
+  occurrences,
+  stats,
+}: {
+  label: string;
+  occurrences: PathwayNode[];
+  stats: { total: number; completed: number; overdue: number; upcoming: number; inProgress: number };
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const globalStatus: PathwayNodeStatus =
+    stats.completed === stats.total ? "COMPLETED" :
+    stats.overdue > 0 ? "OVERDUE" :
+    stats.inProgress > 0 ? "IN_WINDOW" :
+    "FUTURE";
+
+  const cfg = NODE_STATUS_CFG[globalStatus];
+  const pct = Math.round((stats.completed / Math.max(stats.total, 1)) * 100);
+
+  return (
+    <div className={`rounded-lg border px-3 py-2.5 ${
+      globalStatus === "OVERDUE" ? "bg-red-50/50 border-red-100" :
+      globalStatus === "COMPLETED" ? "bg-teal-50/30 border-teal-100" :
+      globalStatus === "IN_WINDOW" ? "bg-blue-50/30 border-blue-100" :
+      "bg-neutral-50 border-neutral-100"
+    }`}>
+      <div className="flex items-start gap-2.5">
+        <div className="mt-0.5 shrink-0">{cfg.icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-medium text-neutral-700 leading-snug">{label}</p>
+            <span className={`shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls}`}>
+              {cfg.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="text-[10px] font-semibold text-neutral-600">{stats.completed}/{stats.total} séances</span>
+            {stats.overdue > 0 && <span className="text-[10px] font-medium text-red-500">{stats.overdue} en retard</span>}
+            {stats.upcoming > 0 && <span className="text-[10px] text-neutral-400">· {stats.upcoming} à venir</span>}
+            {stats.inProgress > 0 && <span className="text-[10px] text-blue-500">· {stats.inProgress} en cours</span>}
+          </div>
+          {/* Barre de progression */}
+          <div className="mt-2 h-1 bg-neutral-200 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${pct}%`, background: "linear-gradient(90deg, #5B4EC4, #2BA89C)" }}
+            />
+          </div>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="mt-1.5 text-[9px] font-medium text-neutral-400 hover:text-[#5B4EC4] transition-colors flex items-center gap-1"
+          >
+            {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            {expanded ? "Masquer" : `Voir le détail (${stats.total} séances)`}
+          </button>
+          {expanded && (
+            <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
+              {occurrences.map((occ, idx) => {
+                const ocfg = NODE_STATUS_CFG[occ.status] ?? NODE_STATUS_CFG.FUTURE;
+                return (
+                  <div key={occ.id} className="flex items-center gap-2 text-[10px]">
+                    <span className="shrink-0">{ocfg.icon}</span>
+                    <span className="text-neutral-500 shrink-0">Séance {idx + 1}/{stats.total}</span>
+                    <span className={`text-[9px] px-1 py-0.5 rounded border ${ocfg.cls}`}>{ocfg.label}</span>
+                    {occ.status === "COMPLETED" && occ.realizedDate && (
+                      <span className="text-teal-600">{formatDate(occ.realizedDate)}</span>
+                    )}
+                    {occ.status !== "COMPLETED" && occ.expectedDate && (
+                      <span className="text-neutral-400">Prévu {formatDate(occ.expectedDate)}</span>
+                    )}
+                    {occ.status === "OVERDUE" && occ.daysOverdue !== null && (
+                      <span className="text-red-500 font-medium">{occ.daysOverdue}j retard</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1012,7 +1176,7 @@ function TemplatePhaseGroup({ label, steps, defaultOpen = false }: { label: stri
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <ActBadge type={step.clinicalActType} />
                         {step.specialty && (
-                          <span className="text-[10px] text-neutral-400">{step.specialty}</span>
+                          <span className="text-[10px] text-neutral-400">{labelSpecialty(step.specialty)}</span>
                         )}
                         {step.expectedDayOffset > 0 && (
                           <span className="text-[10px] text-neutral-400">J+{step.expectedDayOffset}</span>
