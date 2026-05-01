@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeft, Clock, Users, AlertTriangle, Zap, CheckCircle2,
   MessageSquare, Sparkles, X, Plus, Activity, FileText, Lock, FileEdit, FileDown,
@@ -296,6 +297,7 @@ function OpinionForm({ rcpId, myOpinionGiven, onSubmitted }: { rcpId: string; my
 export default function RcpDetailPage({ params }: { params: Promise<{ id: string; rcpId: string }> }) {
   const { id: patientId, rcpId } = use(params);
   const { accessToken, user }    = useAuthStore();
+  const router                    = useRouter();
   const qc                        = useQueryClient();
   const [showClose, setShowClose] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
@@ -407,12 +409,12 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Link
-            href={`/patients/${patientId}/rcp`}
+          <button
+            onClick={() => router.back()}
             className="mt-1 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
           >
             <ChevronLeft className="w-5 h-5" />
-          </Link>
+          </button>
           <div>
             <h1 className="text-xl font-bold text-slate-900">{rcp.title}</h1>
             <div className="flex flex-wrap items-center gap-2 mt-1.5">

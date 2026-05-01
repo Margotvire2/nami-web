@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type RcpSummary, type CreateRcpInput, type CareCaseMember } from "@/lib/api";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, ChevronLeft, Clock, CheckCircle2, Users, MessageSquare, AlertTriangle, Zap, Calendar } from "lucide-react";
 import Link from "next/link";
 import { formatDate, formatShortDate } from "@/lib/date-utils";
@@ -325,9 +325,19 @@ export default function RcpListPage({ params }: { params: Promise<{ id: string }
   const { id: careCaseId } = use(params);
   const { accessToken } = useAuthStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const api = apiWithToken(accessToken!);
+
+  // ?create=1 depuis "Nouvelle RCP" sur la fiche patient → ouvrir le modal directement
+  // router.replace nettoie l'URL pour éviter de rouvrir le modal si on revient sur cette page
+  useEffect(() => {
+    if (searchParams.get("create") === "1") {
+      setShowCreate(true);
+      router.replace(`/patients/${careCaseId}/rcp`);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: rcps = [], isLoading } = useQuery({
     queryKey: ["rcps", careCaseId],
@@ -351,7 +361,7 @@ export default function RcpListPage({ params }: { params: Promise<{ id: string }
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/patients/${careCaseId}?tab=coordination`)}
             className="p-2 hover:bg-white rounded-lg text-gray-500 hover:text-gray-700 transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />

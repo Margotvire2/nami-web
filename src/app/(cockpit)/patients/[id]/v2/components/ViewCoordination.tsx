@@ -377,12 +377,16 @@ function RcpPanel({ careCaseId }: { careCaseId: string }) {
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold text-gray-900">Réunions de concertation</h4>
-        <button onClick={() => router.push(`/patients/${careCaseId}/rcp`)} className="text-xs px-3 py-1.5 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3]">Nouvelle RCP</button>
+        <button onClick={() => router.push(`/patients/${careCaseId}/rcp?create=1`)} className="text-xs px-3 py-1.5 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3DB3]">Nouvelle RCP</button>
       </div>
       {rcps && Array.isArray(rcps) && rcps.length > 0 ? (
         <div className="space-y-2">
           {rcps.map((rcp: any) => (
-            <div key={rcp.id} className="border border-gray-100 rounded-lg p-3 hover:shadow-sm transition-shadow cursor-pointer">
+            <div
+              key={rcp.id}
+              className="border border-gray-100 rounded-lg p-3 hover:shadow-sm transition-shadow cursor-pointer"
+              onClick={() => router.push(`/patients/${careCaseId}/rcp/${rcp.id}`)}
+            >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900">{rcp.title}</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[rcp.status] || ""}`}>{rcpStatusLabels[rcp.status] || rcp.status}</span>
