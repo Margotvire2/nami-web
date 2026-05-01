@@ -298,7 +298,7 @@ function ActionsPanel({ actions }: { actions: PatientDashboard["actions"] }) {
           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Adressages en cours</p>
           {pendingReferrals.map((r) => (
             <div key={r.id} className="flex items-center justify-between py-1 text-xs">
-              <span className="text-gray-700">{r.toLabel ?? "Spécialiste"}</span>
+              <span className="text-gray-700">{r.toLabel ?? r.toRawSpecialty ?? "Spécialiste"}</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">{r.status}</span>
             </div>
           ))}
