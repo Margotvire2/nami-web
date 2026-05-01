@@ -20,21 +20,6 @@ import { CreatePatientModal } from "./create-patient-modal";
 import type { ImportResult } from "./import/import.types";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
-const RISK_STYLE: Record<string, string> = {
-  CRITICAL: "text-severity-critical font-semibold",
-  HIGH: "text-severity-high font-semibold",
-  MEDIUM: "text-severity-warning",
-  LOW: "text-severity-success",
-  UNKNOWN: "text-muted-foreground",
-};
-
-const RISK_DOT: Record<string, string> = {
-  CRITICAL: "bg-severity-critical",
-  HIGH: "bg-severity-high",
-  MEDIUM: "bg-severity-warning",
-  LOW: "bg-severity-success",
-  UNKNOWN: "bg-muted-foreground/40",
-};
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Actif",
@@ -46,7 +31,12 @@ const STATUS_LABEL: Record<string, string> = {
 const TABS = [
   { key: "all",      label: "Tous",                 filter: (c: CareCase) => true },
   { key: "active",   label: "Actifs",                filter: (c: CareCase) => c.status === "ACTIVE" },
-  { key: "critical", label: "Prioritaires",           filter: (c: CareCase) => ["CRITICAL", "HIGH"].includes(c.riskLevel) && c.status === "ACTIVE" },
+  { key: "recent",   label: "Récents",                filter: (c: CareCase) => {
+    if (c.status !== "ACTIVE") return false;
+    if (!c.lastActivityAt) return false;
+    const ageDays = Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / 86400000);
+    return ageDays <= 7;
+  } },
   { key: "paused",   label: "En pause",              filter: (c: CareCase) => c.status === "PAUSED" },
   { key: "closed",   label: "Fermés",                filter: (c: CareCase) => c.status === "CLOSED" || c.status === "ARCHIVED" },
 ];
@@ -274,7 +264,6 @@ export default function PatientsPage() {
                 <th className="text-left px-6 py-2.5 text-xs font-medium text-muted-foreground">Patient</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Type de suivi</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Statut</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Risque</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Équipe</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Dernier événement</th>
                 <th className="px-4 py-2.5" />
@@ -332,14 +321,6 @@ function PatientRow({ careCase: c }: { careCase: CareCase }) {
       </td>
       <td className="px-4 py-3">
         <Link href={`/patients/${c.id}`}>
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${RISK_DOT[c.riskLevel]}`} />
-            <span className={`text-xs ${RISK_STYLE[c.riskLevel]}`}>{({ CRITICAL: "Critique", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Inconnu" })[c.riskLevel] ?? c.riskLevel}</span>
-          </div>
-        </Link>
-      </td>
-      <td className="px-4 py-3">
-        <Link href={`/patients/${c.id}`}>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Users size={11} />
             {c._count.members}
@@ -371,16 +352,6 @@ function daysAgo(dateStr: string) {
 
 // ─── Patient Card (vue grille) ────────────────────────────────────────────────
 
-const RISK_BADGE: Record<string, string> = {
-  CRITICAL: "bg-red-50 text-red-700 border-red-200",
-  HIGH:     "bg-orange-50 text-orange-700 border-orange-200",
-  MEDIUM:   "bg-yellow-50 text-yellow-700 border-yellow-200",
-  LOW:      "bg-green-50 text-green-700 border-green-200",
-  UNKNOWN:  "bg-muted text-muted-foreground border-border",
-};
-const RISK_LABEL: Record<string, string> = {
-  CRITICAL: "Critique", HIGH: "Élevé", MEDIUM: "Modéré", LOW: "Faible", UNKNOWN: "Inconnu",
-};
 const AVATAR_COLORS = [
   "bg-indigo-100 text-indigo-700", "bg-violet-100 text-violet-700",
   "bg-rose-100 text-rose-700",    "bg-teal-100 text-teal-700",
@@ -436,9 +407,6 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
               size={36}
               showTooltip={true}
             />
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${RISK_BADGE[c.riskLevel]}`}>
-              {RISK_LABEL[c.riskLevel]}
-            </span>
           </div>
         </div>
 

@@ -47,7 +47,6 @@ export function useTimeline(careCaseId: string, careCase: CareCaseDetail | null)
 
     const mapped = mapActivitiesToTimeline(rawData.data, careCaseId, {
       startDate: careCase.startDate,
-      riskLevel: careCase.riskLevel,
       careStage: careCase.careStage,
       nextStepSummary: careCase.nextStepSummary,
     });

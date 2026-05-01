@@ -131,7 +131,6 @@ export function mapActivitiesToTimeline(
   careCaseId: string,
   careCase: {
     startDate: string;
-    riskLevel: string;
     careStage?: string | null;
     nextStepSummary?: string | null;
   },
@@ -157,7 +156,7 @@ export function mapActivitiesToTimeline(
     currentPhase: careCase.careStage ?? undefined,
     lastImportantEvent: lastImportant,
     nextPlannedEvent: nextPlanned,
-    vigilanceLevel: riskToVigilance(careCase.riskLevel),
+    vigilanceLevel: "low",
     totalEvents: events.length,
   };
 
@@ -232,11 +231,6 @@ function deriveSeverity(actType: string, activity: Activity): TimelineSeverity {
   return "low";
 }
 
-function riskToVigilance(riskLevel: string): "low" | "medium" | "high" {
-  if (riskLevel === "CRITICAL" || riskLevel === "HIGH") return "high";
-  if (riskLevel === "MEDIUM") return "medium";
-  return "low";
-}
 
 function isToday(date: Date): boolean {
   const now = new Date();
