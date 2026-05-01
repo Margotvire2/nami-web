@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { getCareType, getCareTypeLabel } from "@/lib/caseType";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
@@ -59,7 +59,7 @@ export default function PatientsPage() {
     queryFn: () => api.careCases.list(),
   });
 
-  const allCases = cases ?? [];
+  const allCases = useMemo(() => cases ?? [], [cases]);
 
   const activeTab = TABS.find((t) => t.key === tab) ?? TABS[0];
 
