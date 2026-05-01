@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
 import { getMetricRange, getValueColor, getQuestionnaireScoring } from "@/lib/metricRanges"
-import { ALL_BIO_KEYS, KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog"
+import { MetricDef, KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
@@ -319,6 +319,9 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
         <BiaHistorySection sessions={biaSessions.sessions} metricKeys={biaSessions.metricKeys} />
       )}
 
+      {/* ── SECTION 2c — DXA ── */}
+      <DxaSection obs={obs} />
+
       {/* ── SECTION 3 — Suivi pondéral ── */}
       <div className="rounded-xl border bg-card p-5">
         <div className="flex items-center justify-between mb-3">
@@ -510,12 +513,21 @@ function BioSection({ obs, pathwayKey, sex, age }: { obs: Map<string, ObsRecord>
       ? ["hba1c_percent", "fasting_glycemia_mmol", "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol"]
       : []
 
-  // Collect ALL bio observations (from catalog, or known prefixes)
-  const BIO_PREFIXES = ["bio_", "bia_", "dxa_", "ecg_"]
+  // Strictement les examTypes sanguins/urine/selles
+  // ANTHROPOMETRY → Synthèse clinique (section 1)
+  // BIA           → BiaHistorySection (section 2b)
+  // DXA_*         → DxaSection (section 2c)
+  const BLOOD_EXAM_TYPES = new Set([
+    "BLOOD_HEMATOLOGY", "BLOOD_HEMOSTASIS", "BLOOD_BIOCHEMISTRY",
+    "BLOOD_HEPATIC", "BLOOD_LIPID", "BLOOD_IRON",
+    "BLOOD_VITAMINS", "BLOOD_ENDOCRINE", "BLOOD_IMMUNOLOGY",
+    "BLOOD_HEMOGLOBINOPATHY", "STOOL", "URINE",
+  ])
 
   const allBio: ObsRecord[] = []
   obs.forEach((o, key) => {
-    if (ALL_BIO_KEYS.has(key) || BIO_PREFIXES.some((p) => key.startsWith(p))) {
+    const def = KEY_TO_METRIC[key]
+    if (def && BLOOD_EXAM_TYPES.has(def.examType)) {
       allBio.push(o)
     }
   })
@@ -681,6 +693,100 @@ function BiaHistorySection({
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+// ─── DxaSection — Densitométrie osseuse + composition corporelle DXA ─────────
+
+const DXA_BONE_KEYS = [
+  "dxa_tscore_spine", "dxa_tscore_hip", "dxa_tscore_neck",
+  "dxa_zscore_spine", "dxa_zscore_hip",
+  "dxa_bmd_spine", "dxa_bmd_hip", "dxa_bmd_neck",
+] as const
+
+const DXA_BODY_KEYS = [
+  "dxa_total_fat_pct", "dxa_trunk_fat_pct",
+  "dxa_lean_mass", "dxa_vat_volume",
+] as const
+
+function DxaSection({ obs }: { obs: Map<string, ObsRecord> }) {
+  const dxaBone = DXA_BONE_KEYS.map((k) => ({ key: k, o: obs.get(k), def: KEY_TO_METRIC[k] })).filter((x) => x.o !== undefined)
+  const dxaBody = DXA_BODY_KEYS.map((k) => ({ key: k, o: obs.get(k), def: KEY_TO_METRIC[k] })).filter((x) => x.o !== undefined)
+
+  if (dxaBone.length === 0 && dxaBody.length === 0) return null
+
+  const allObs = [...dxaBone, ...dxaBody].map((x) => x.o!)
+  const latestDate = allObs.reduce((max, o) => o.effectiveAt > max ? o.effectiveAt : max, "")
+
+  return (
+    <div className="rounded-xl border bg-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">🦴 Examen DXA</h3>
+        <span className="text-[10px] text-muted-foreground">
+          {latestDate ? format(parseISO(latestDate), "d MMMM yyyy", { locale: fr }) : ""}
+          {" · "}{allObs.length} valeurs
+        </span>
+      </div>
+
+      {dxaBone.length > 0 && (
+        <div className="mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">
+            🦴 Densitométrie osseuse
+          </p>
+          <div className="grid md:grid-cols-2 gap-x-6 gap-y-1">
+            {dxaBone.map(({ key, o, def }) => def && o && (
+              <DxaMetricRow key={key} obs={o} def={def} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {dxaBody.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">
+            Composition corporelle DXA
+          </p>
+          <div className="grid md:grid-cols-2 gap-x-6 gap-y-1">
+            {dxaBody.map(({ key, o, def }) => def && o && (
+              <DxaMetricRow key={key} obs={o} def={def} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DxaMetricRow({ obs, def }: { obs: ObsRecord; def: MetricDef }) {
+  const v = numVal(obs)
+
+  let badge: { label: string; cls: string } | null = null
+  if (def.key.startsWith("dxa_tscore")) {
+    if (v !== null) {
+      if (v < -2.5) badge = { label: "Ostéoporose", cls: "bg-red-50 text-red-700" }
+      else if (v < -1) badge = { label: "Ostéopénie", cls: "bg-amber-50 text-amber-700" }
+      else badge = { label: "Normal", cls: "bg-emerald-50 text-emerald-700" }
+    }
+  }
+
+  const dotCls = badge?.cls?.includes("red") ? "bg-red-500"
+    : badge?.cls?.includes("amber") ? "bg-amber-500"
+    : badge?.cls?.includes("emerald") ? "bg-emerald-500"
+    : "bg-gray-300"
+
+  return (
+    <div className="flex items-center gap-2 text-sm py-0.5">
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls}`} />
+      <span className="text-muted-foreground truncate flex-1">{def.label}</span>
+      <span className="font-semibold whitespace-nowrap">
+        {v ?? obs.value} {def.unit ?? obs.unit ?? ""}
+      </span>
+      {badge && (
+        <span className={`text-[9px] font-medium px-1 py-0.5 rounded whitespace-nowrap ${badge.cls}`}>
+          {badge.label}
+        </span>
+      )}
     </div>
   )
 }
