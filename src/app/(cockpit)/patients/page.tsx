@@ -73,10 +73,12 @@ export default function PatientsPage() {
         const daysAgo = c.lastActivityAt
           ? Math.floor((now - new Date(c.lastActivityAt).getTime()) / 86400000)
           : null;
-        if (activityFilter === "recent"  && (daysAgo === null || daysAgo > 7))   return false;
-        if (activityFilter === "medium"  && (daysAgo === null || daysAgo <= 7 || daysAgo > 30)) return false;
-        if (activityFilter === "stale"   && (daysAgo === null || daysAgo <= 30)) return false;
-        if (activityFilter === "never"   && daysAgo !== null)                    return false;
+        if (activityFilter === "recent"    && (daysAgo === null || daysAgo > 7))   return false;
+        if (activityFilter === "medium"    && (daysAgo === null || daysAgo <= 7 || daysAgo > 30)) return false;
+        if (activityFilter === "stale"     && (daysAgo === null || daysAgo <= 30)) return false;
+        if (activityFilter === "never"     && daysAgo !== null)                    return false;
+        // "inactive7" = sans activité depuis > 7j OU jamais actif (correspond au bandeau)
+        if (activityFilter === "inactive7" && daysAgo !== null && daysAgo <= 7)   return false;
       }
       if (!search) return true;
       const q = search.toLowerCase();
@@ -219,7 +221,7 @@ export default function PatientsPage() {
             )}
           </div>
           <button
-            onClick={() => { setTab("active"); setActivityFilter("stale"); }}
+            onClick={() => { setTab("active"); setActivityFilter("inactive7"); }}
             className="shrink-0 text-[11px] font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors"
           >
             Voir tous →
