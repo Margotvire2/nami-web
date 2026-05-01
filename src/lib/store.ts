@@ -16,10 +16,15 @@ interface AuthState {
 // Sync cookie for Next.js middleware (middleware can't read localStorage)
 function syncCookie(token: string | null) {
   if (typeof document === "undefined") return;
+  // Secure obligatoire en production (HTTPS only).
+  // En dev local (HTTP), Secure empêcherait le cookie d'être setté.
+  // Ne pas conditionner sur process.env.NODE_ENV : Next.js l'inline au build,
+  // et "production" est aussi le mode d'un build local lancé en HTTP.
+  const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
   if (token) {
-    document.cookie = `nami-access-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax; Secure`;
+    document.cookie = `nami-access-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
   } else {
-    document.cookie = "nami-access-token=; path=/; max-age=0";
+    document.cookie = `nami-access-token=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
   }
 }
 

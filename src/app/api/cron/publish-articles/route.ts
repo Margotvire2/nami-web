@@ -15,6 +15,13 @@ function sbHeaders() {
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization")
+  // Garde fail-closed : si CRON_SECRET n'est pas configuré côté serveur,
+  // on refuse TOUTES les requêtes plutôt que d'accepter "Bearer undefined".
+  // Erreur 503 explicite pour faciliter le diagnostic Vercel.
+  if (!process.env.CRON_SECRET) {
+    console.error("[cron/publish-articles] CRON_SECRET non configuré — toute exécution refusée")
+    return new Response("Server misconfigured: CRON_SECRET missing", { status: 503 })
+  }
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response("Unauthorized", { status: 401 })
   }
