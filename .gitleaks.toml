@@ -1,0 +1,47 @@
+title = "Nami — Secret Scanning Configuration"
+
+# Étend les règles par défaut de Gitleaks (règles officielles gitleaks/gitleaks)
+[extend]
+useDefault = true
+
+# ─── Allowlist globale ────────────────────────────────────────────────────────
+# Exclure les faux positifs connus : docs techniques, credentials de démonstration,
+# placeholders explicitement documentés.
+# NE PAS ajouter de chemins src/ ici — les secrets dans le code doivent être détectés.
+# Exception : fichiers purement structurels sans accès réseau (catalogues de constantes).
+
+[allowlist]
+description = "Faux positifs connus dans les repos Nami"
+
+paths = [
+  # Instructions Claude Code — contient des comptes démo documentés
+  "CLAUDE\\.md$",
+  # Documentation technique — peut mentionner des variables/tokens fictifs
+  '''docs/.*\.md$''',
+  '''docs/.*\.txt$''',
+  # Données de test locales (non déployées)
+  '''Test-data/.*''',
+  '''tmp/.*''',
+  # Rapports d'audit locaux
+  '''scripts/README\.md$''',
+  # Catalogue de métriques cliniques — identifiants snake_case confondus avec API keys
+  # (bia_z500_impedance, vitamin_b12_pg_ml, etc. — aucune valeur secrète dans ce fichier)
+  '''src/lib/metricCatalog\.ts$''',
+]
+
+regexes = [
+  # Credentials de démonstration explicitement documentés (non-prod)
+  "Demo2024!",
+  "Patient2024!",
+  # Variables placeholder dans la documentation (pas des vraies valeurs)
+  "DEMO_TOKEN",
+  "DEMO_ID",
+  "<project-ref>",
+  # Patterns de seed/démo (Prisma Cuid auto-générés dans les exemples)
+  "cmnyk[a-z0-9]{20}",
+  # Identifiants de métriques BIA (impédances bioélectriques — pas des tokens)
+  "bia_z\\d+_impedance",
+  # Identifiants de métriques biologiques avec unités dans le nom (pas des tokens)
+  "vitamin_b\\d+_pg_ml",
+  "proteinuria_mg_\\d+h",
+]
