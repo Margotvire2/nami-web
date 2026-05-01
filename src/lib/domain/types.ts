@@ -369,7 +369,7 @@ export interface AISummary {
   careTeamAssessment: string;
   keyFindings: string[];
   recommendations: string[];
-  riskAssessment: string;
+  clinicalContext: string;
   /** Nombre de gaps détectés à la génération */
   gapsDetected: number;
   generatedAt: string;

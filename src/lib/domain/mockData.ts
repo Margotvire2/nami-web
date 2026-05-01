@@ -233,7 +233,7 @@ const aiSummaries: Record<string, AISummary> = {
     careTeamAssessment: "Équipe incomplète : psychiatre manquant. Coordination fragilisée.",
     keyFindings: ["IMC 17.8 — seuil d'alerte dépassé", "Déni massif", "Famille injoignable", "Bilan bio urgent non réalisé"],
     recommendations: ["Bilan biologique complet en urgence", "Consultation endocrinologue sous 7 jours", "Entretien motivationnel structuré"],
-    riskAssessment: "Risque CRITIQUE. Restriction + hyperactivité + déni + absence soutien familial.",
+    clinicalContext: "Restriction alimentaire progressive. Hyperactivité non contrôlée. Déni actif. Soutien familial insuffisant.",
     gapsDetected: 3,
     generatedAt: "2025-04-04T16:00:00Z",
   },

@@ -1502,7 +1502,7 @@ export interface SummaryResult {
     careTeamAssessment?: string;
     keyFindings?: string[];
     recommendations?: string[];
-    riskAssessment?: string;
+    clinicalContext?: string;
     situationActuelle?: string;
     conformiteRecommandations?: string;
     prochainesEtapes?: string;

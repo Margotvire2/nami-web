@@ -291,7 +291,7 @@ export default function FeaturesPage() {
               features={["Conformité HAS calculée auto", "Complétude parcours en un coup d'œil", "148 règles cliniques actives", "Détection anomalies (12 règles CAD)", "Trajectoires OLS (z-score)", "425 pathologies CIM-11 documentées", "Crosslinks inter-parcours"]} />
             <GlowCard icon="🔍" title="Adressage & réseau" delay={0.18}
               desc="Trouvez, adressez, suivez."
-              features={["Matching pathologie × zone × dispo", "Lettre d'adressage générée par IA", "Workflow Draft → Completed", "Annuaire 397K soignants (FHIR ANS)", "Hub réseau (CPTS, MSP)", "Adressage vers soignants hors Nami"]} />
+              features={["Recherche par pathologie, zone et disponibilité", "Lettre d'adressage générée par IA", "Workflow Draft → Completed", "Annuaire 397K soignants (FHIR ANS)", "Hub réseau (CPTS, MSP)", "Adressage vers soignants hors Nami"]} />
             <GlowCard icon="🩺" title="Spécialités" delay={0.24}
               desc="Nutrition, pédiatrie, prescriptions, questionnaires."
               features={["Journal alimentaire photos + analyse IA", "Courbes pédiatriques OMS/Fenton", "Carnet de santé numérique + OCR", "Milestones ESPGHAN", "BDPM 15M+ médicaments", "EDE-Q, PHQ-9, GAD-7, SCOFF", "RCP virtuelle + export PDF"]} />
