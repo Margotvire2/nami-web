@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api, PatientCondition } from "@/lib/api";
 import { PatientDashboard } from "@/hooks/usePatientDashboard";
@@ -28,6 +28,7 @@ interface Props {
   onStartConsultation?: () => void;
   onAiSummarize: () => void;
   onQuestionnaire?: () => void;
+  onEdit?: () => void;
   aiStreaming: boolean;
 }
 
@@ -41,6 +42,7 @@ export function PatientHeader({
   onStartConsultation,
   onAiSummarize,
   onQuestionnaire,
+  onEdit,
   aiStreaming,
 }: Props) {
   const { indicators } = dashboard;
@@ -82,6 +84,15 @@ export function PatientHeader({
             <h1 className="text-base font-semibold text-gray-900 truncate">
               {c.patient.firstName} {c.patient.lastName}
             </h1>
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                title="Modifier les informations du patient"
+                className="text-gray-300 hover:text-[#5B4EC4] transition-colors shrink-0"
+              >
+                <Pencil size={13} />
+              </button>
+            )}
             <div className="flex items-center gap-1.5 text-sm text-gray-500">
               {age && <span>{age} ans</span>}
               {sexLabel && <><span>·</span><span>{sexLabel}</span></>}

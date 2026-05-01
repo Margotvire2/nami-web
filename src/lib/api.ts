@@ -2763,6 +2763,21 @@ export function apiWithToken(token: string) {
       sendMessage: (careCaseId: string, body: string) =>
         request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
     },
+    persons: {
+      patch: (id: string, data: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        phone?: string;
+        birthDate?: string;
+        sex?: "MALE" | "FEMALE" | "OTHER" | "UNKNOWN";
+      }) =>
+        request<{ id: string; firstName: string; lastName: string; email: string; phone: string | null; birthDate: string | null; sex: string | null }>(
+          `/persons/${id}`,
+          { method: "PATCH", body: JSON.stringify(data) },
+          token
+        ),
+    },
   };
 }
 

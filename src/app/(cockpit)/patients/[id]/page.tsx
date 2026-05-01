@@ -18,6 +18,7 @@ import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossie
 import { ReferralModal } from "./referral-modal";
 import { QuickTaskModal } from "./QuickTaskModal";
 import { ScheduleQuestionnaireModal } from "./ScheduleQuestionnaireModal";
+import { EditPatientModal } from "./EditPatientModal";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -191,6 +192,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [questionnaireModalOpen, setQuestionnaireModalOpen] = useState(false);
+  const [editPatientOpen, setEditPatientOpen] = useState(false);
   const [analysisNote, setAnalysisNote] = useState<{ noteId: string; careCaseId: string } | null>(null);
   const [aiStreaming, setAiStreaming] = useState(false);
 
@@ -301,6 +303,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           }
         }}
         onAiSummarize={handleAiSummarize}
+        onEdit={() => setEditPatientOpen(true)}
         aiStreaming={aiStreaming}
       />
 
@@ -394,6 +397,21 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           patientFirstName={careCase.patient.firstName}
           patientBirthDate={careCase.patient.birthDate ?? null}
           onClose={() => setQuestionnaireModalOpen(false)}
+        />
+      )}
+      {editPatientOpen && (
+        <EditPatientModal
+          careCaseId={id}
+          personId={careCase.patient.id}
+          initialData={{
+            firstName: careCase.patient.firstName,
+            lastName: careCase.patient.lastName,
+            email: careCase.patient.email,
+            phone: careCase.patient.phone,
+            birthDate: careCase.patient.birthDate,
+            sex: careCase.patient.sex,
+          }}
+          onClose={() => setEditPatientOpen(false)}
         />
       )}
     </div>
