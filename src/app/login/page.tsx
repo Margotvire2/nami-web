@@ -163,13 +163,22 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label
-                    htmlFor="password"
-                    className="text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: "#374151" }}
-                  >
-                    Mot de passe
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="password"
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: "#374151" }}
+                    >
+                      Mot de passe
+                    </Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs hover:underline underline-offset-2"
+                      style={{ color: "#5B4EC4" }}
+                    >
+                      Mot de passe oublié ?
+                    </Link>
+                  </div>
                   <Input
                     id="password"
                     type="password"
