@@ -26,6 +26,7 @@ const PUBLIC_PATHS = [
   "/demo-hap",
   "/demo-tca",
   "/pitch-reseau",
+  "/pitch-banque",
   "/gabrielle",
   "/protocole-recherche",
   "/api",
