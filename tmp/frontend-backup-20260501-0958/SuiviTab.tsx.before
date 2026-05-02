@@ -1,0 +1,686 @@
+"use client"
+
+import { useState, useMemo } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useAuthStore } from "@/lib/store"
+import { apiWithToken } from "@/lib/api"
+import { format, parseISO } from "date-fns"
+import { fr } from "date-fns/locale"
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceArea } from "recharts"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
+import { getMetricRange, getValueColor, getQuestionnaireScoring } from "@/lib/metricRanges"
+import { ALL_BIO_KEYS, KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog"
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog"
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+interface Props {
+  careCaseId: string
+  pathwayKey: string
+  personId?: string
+  patient: { firstName: string; lastName: string; birthDate: string | null; sex?: string }
+  height: number | null
+  napValue: number | null
+  napDescription: string | null
+}
+
+interface ObsRecord {
+  metricKey: string; label: string;
+  value: number | string | boolean | null;
+  valueNumeric?: number | null;
+  unit: string | null; effectiveAt: string; domain: string;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function numVal(o: ObsRecord | undefined): number | null {
+  if (!o) return null
+  if (o.valueNumeric != null) return o.valueNumeric
+  if (typeof o.value === "number") return o.value
+  if (typeof o.value === "string") { const n = parseFloat(o.value); return isNaN(n) ? null : n }
+  return null
+}
+
+function calcAge(birthDate: string | null): number | null {
+  if (!birthDate) return null
+  return Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 3600000))
+}
+
+function getBMILabel(bmi: number, pw: string): { label: string; color: string } {
+  if (pw.includes("anorex") || pw.includes("tca")) {
+    if (bmi < 13) return { label: "Dénutrition extrême", color: "red" }
+    if (bmi < 15) return { label: "Dénutrition sévère", color: "red" }
+    if (bmi < 16) return { label: "Dénutrition modérée", color: "orange" }
+    if (bmi < 17.5) return { label: "Maigreur", color: "orange" }
+    if (bmi < 18.5) return { label: "Insuffisance pondérale", color: "yellow" }
+    return { label: "Poids normal", color: "green" }
+  }
+  if (pw.includes("obes")) {
+    if (bmi >= 40) return { label: "Obésité morbide", color: "red" }
+    if (bmi >= 35) return { label: "Obésité sévère", color: "red" }
+    if (bmi >= 30) return { label: "Obésité modérée", color: "orange" }
+    if (bmi >= 25) return { label: "Surpoids", color: "yellow" }
+    return { label: "Poids normal", color: "green" }
+  }
+  if (bmi < 18.5) return { label: "Insuffisance pondérale", color: "orange" }
+  if (bmi < 25) return { label: "Poids normal", color: "green" }
+  if (bmi < 30) return { label: "Surpoids", color: "yellow" }
+  return { label: "Obésité", color: "red" }
+}
+
+const COLOR_MAP: Record<string, string> = {
+  red: "text-red-600 bg-red-50 border-red-200",
+  orange: "text-orange-600 bg-orange-50 border-orange-200",
+  yellow: "text-amber-600 bg-amber-50 border-amber-200",
+  green: "text-emerald-600 bg-emerald-50 border-emerald-200",
+  gray: "text-gray-500 bg-gray-50 border-gray-200",
+}
+
+const NAP_OPTIONS = [
+  { value: 1.2, label: "1.2 — Alité / immobilisé" },
+  { value: 1.3, label: "1.3 — Sédentaire strict" },
+  { value: 1.4, label: "1.4 — Sédentaire avec activité légère" },
+  { value: 1.5, label: "1.5 — Activité légère (1-2x/sem)" },
+  { value: 1.6, label: "1.6 — Activité modérée (3-4x/sem)" },
+  { value: 1.7, label: "1.7 — Actif (5+/sem)" },
+  { value: 1.8, label: "1.8 — Très actif (sport quotidien)" },
+]
+
+const QUESTIONNAIRE_CONFIG: Record<string, string[]> = {
+  "tca.anorexia": ["edeq_global", "eat26_score", "phq9_score", "gad7_score"],
+  "tca.bulimia":  ["edeq_global", "eat26_score", "phq9_score", "gad7_score"],
+  "tca":          ["edeq_global", "eat26_score", "phq9_score", "gad7_score"],
+  "obesity":      ["phq9_score"],
+  default:        ["phq9_score"],
+}
+
+const QUESTIONNAIRE_LABELS: Record<string, { name: string; maxScore: number; code: string; isFloat?: boolean }> = {
+  edeq_global:  { name: "EDE-Q", maxScore: 6,  code: "edeq", isFloat: true },
+  phq9_score:   { name: "PHQ-9", maxScore: 27, code: "phq9" },
+  gad7_score:   { name: "GAD-7", maxScore: 21, code: "gad7" },
+  eat26_score:  { name: "EAT-26", maxScore: 78, code: "eat26" },
+}
+
+const EDEQ_SUBSCALES: { key: string; label: string }[] = [
+  { key: "edeq_restraint",      label: "Restriction" },
+  { key: "edeq_eating_concern", label: "Préocc. alimentaire" },
+  { key: "edeq_shape_concern",  label: "Préocc. corporelle" },
+  { key: "edeq_weight_concern", label: "Préocc. pondérale" },
+]
+
+// ─── Component ──────────────────────────────────────────────────────────────
+
+export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, napValue, napDescription }: Props) {
+  const { accessToken } = useAuthStore()
+  const api = apiWithToken(accessToken!)
+  const qc = useQueryClient()
+  const [editDialog, setEditDialog] = useState(false)
+  const [weightDialog, setWeightDialog] = useState(false)
+  const [newWeight, setNewWeight] = useState("")
+  // Edit patient data form
+  const [editBirthDate, setEditBirthDate] = useState(patient.birthDate ? patient.birthDate.split("T")[0] : "")
+  const [editSex, setEditSex] = useState(patient.sex ?? "FEMALE")
+  const [editHeight, setEditHeight] = useState(String(height ?? ""))
+  const [editNap, setEditNap] = useState(napValue ?? 1.4)
+  const [editNapDesc, setEditNapDesc] = useState(napDescription ?? "")
+  const [editWeight, setEditWeight] = useState("")
+
+  const age = calcAge(patient.birthDate)
+  const sex = (patient.sex ?? "FEMALE") as "MALE" | "FEMALE"
+
+  // Fetch latest observations
+  const { data: latestObs, isLoading } = useQuery({
+    queryKey: ["observations-latest", careCaseId],
+    queryFn: () => api.observations.latest(careCaseId),
+    enabled: !!accessToken,
+  })
+
+  // Fetch BIA sessions (N vs N-1 vs N-2)
+  const { data: biaSessions } = useQuery({
+    queryKey: ["bia-sessions", careCaseId],
+    queryFn: () => api.observations.sessions(careCaseId, "bia_", 5),
+    enabled: !!accessToken,
+  })
+
+  // Fetch trajectory for weight chart
+  const { data: trajectoryData } = useQuery({
+    queryKey: ["trajectory", careCaseId, ["weight_kg"], "1y"],
+    queryFn: () => api.trajectory.get(careCaseId, ["weight_kg", "heart_rate_bpm"], "1y"),
+    enabled: !!accessToken,
+  })
+
+  // Fetch metabolic needs from backend (Mifflin-St Jeor with fallbacks)
+  const { data: metabolicNeeds } = useQuery({
+    queryKey: ["metabolic-needs", careCaseId],
+    queryFn: () => api.metabolicNeeds.get(careCaseId),
+    enabled: !!accessToken,
+  })
+
+  // Mutations
+  const weightMutation = useMutation({
+    mutationFn: () => {
+      const val = parseFloat(newWeight.replace(",", "."))
+      if (isNaN(val)) throw new Error("Poids invalide")
+      return api.observations.create(careCaseId, [{ metricKey: "weight_kg", valueNumeric: val, effectiveAt: new Date().toISOString() }])
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["observations-latest"] })
+      qc.invalidateQueries({ queryKey: ["trajectory"] })
+      qc.invalidateQueries({ queryKey: ["metabolic-needs", careCaseId] })
+      setWeightDialog(false)
+      setNewWeight("")
+      toast.success("Pesée enregistrée")
+    },
+  })
+
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+
+      // 1. Update care case (height, NAP)
+      await api.careCases.update(careCaseId, {
+        height: editHeight ? parseFloat(editHeight) : undefined,
+        napValue: editNap,
+        napDescription: editNapDesc || undefined,
+      } as Record<string, unknown>)
+
+      // 2. Update person (birthDate, sex)
+      if (personId && (editBirthDate || editSex)) {
+        const personRes = await fetch(`${API}/persons/${personId}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...(editBirthDate ? { birthDate: editBirthDate + "T00:00:00.000Z" } : {}),
+            ...(editSex ? { sex: editSex } : {}),
+          }),
+        })
+        if (!personRes.ok) {
+          console.error("[SAVE] PATCH persons error:", personRes.status, await personRes.text())
+        }
+      }
+
+      // 3. Save weight if changed
+      const w = parseFloat(editWeight.replace(",", "."))
+      if (!isNaN(w) && w > 0) {
+        await api.observations.create(careCaseId, [{ metricKey: "weight_kg", valueNumeric: w, effectiveAt: new Date().toISOString() }])
+      }
+    },
+    onSuccess: () => {
+      // Invalidate all relevant queries to refresh data
+      qc.invalidateQueries({ queryKey: ["care-case"] })
+      qc.invalidateQueries({ queryKey: ["observations-latest"] })
+      qc.invalidateQueries({ queryKey: ["trajectory"] })
+      qc.invalidateQueries({ queryKey: ["care-cases"] })
+      qc.invalidateQueries({ queryKey: ["metabolic-needs", careCaseId] })
+      setEditDialog(false)
+      toast.success("Données mises à jour")
+    },
+  })
+
+  // Derive key values
+  const obs = useMemo(() => {
+    const map = new Map<string, ObsRecord>()
+    if (latestObs) {
+      // Handle both array and { latest: Record<key, obs[]> } formats
+      const raw = latestObs as unknown
+      const entries: ObsRecord[] = Array.isArray(raw)
+        ? raw
+        : typeof raw === "object" && raw !== null && "latest" in (raw as Record<string, unknown>)
+          ? Object.values((raw as { latest: Record<string, ObsRecord[]> }).latest).flat()
+          : []
+      for (const o of entries) {
+        if (o.metricKey && !map.has(o.metricKey)) map.set(o.metricKey, o)
+      }
+    }
+    return map
+  }, [latestObs])
+
+  const currentWeight = numVal(obs.get("weight_kg"))
+  const currentBMI = currentWeight && height ? currentWeight / ((height / 100) ** 2) : null
+  const currentFC = numVal(obs.get("heart_rate_bpm"))
+
+  // Weight chart data
+  const weightSeries = trajectoryData?.series?.find((s: { metricKey: string }) => s.metricKey === "weight_kg")
+  const weightChartData = weightSeries?.dataPoints?.map((p: { date: string; value: number }) => ({
+    date: format(parseISO(p.date), "d/MM"),
+    poids: p.value,
+  })) ?? []
+
+  // Target weight for anorexia
+  const isAnorexia = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
+  const isObesity = pathwayKey.includes("obes")
+  const targetBMI = isAnorexia ? (age && age < 18 ? 17.5 : 18.5) : null
+  const targetWeight = targetBMI && height ? Math.round(targetBMI * (height / 100) ** 2 * 10) / 10 : null
+  const firstWeight = weightSeries?.dataPoints?.[0]?.value ?? currentWeight
+  const progression = targetWeight && firstWeight && currentWeight
+    ? Math.min(100, Math.max(0, Math.round(((currentWeight - firstWeight) / (targetWeight - firstWeight)) * 100)))
+    : null
+
+  // Besoins métaboliques (depuis le backend — fallback NAP=1.7 inclus)
+  const tdee = metabolicNeeds?.det ?? null
+  const mb = metabolicNeeds?.mb ?? null
+
+  // BMI label
+  const bmiInfo = currentBMI ? getBMILabel(currentBMI, pathwayKey) : null
+
+  // Questionnaires
+  const qKeys = QUESTIONNAIRE_CONFIG[pathwayKey] ?? QUESTIONNAIRE_CONFIG[pathwayKey.split(".").slice(0, 2).join(".")] ?? QUESTIONNAIRE_CONFIG[pathwayKey.split(".")[0]] ?? QUESTIONNAIRE_CONFIG.default
+
+  if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-32" /><Skeleton className="h-40" /><Skeleton className="h-32" /></div>
+
+  return (
+    <div className="p-6 max-w-4xl space-y-5">
+      {/* ── SECTION 1 — Synthèse rapide ── */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">📊 Synthèse clinique</h3>
+          <Button size="sm" variant="outline" className="text-[10px] h-6 gap-1" onClick={() => setEditDialog(true)}><Pencil size={10} /> Modifier</Button>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-1.5 text-sm">
+            <p className="font-medium">
+              {patient.firstName} {patient.lastName}
+              <span className="text-muted-foreground font-normal"> · {age ? `${age} ans` : "Âge inconnu"} · {sex === "FEMALE" ? "F" : "M"} · {height ? `${height} cm` : "Taille ?"}</span>
+            </p>
+            {currentWeight && currentBMI && bmiInfo && (
+              <p>
+                Poids : <span className="font-semibold">{currentWeight} kg</span> · IMC : <span className="font-semibold">{currentBMI.toFixed(1)}</span>
+                <span className={`ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[bmiInfo.color]}`}>{bmiInfo.label}</span>
+              </p>
+            )}
+            <p className="text-muted-foreground text-xs flex items-center gap-1">
+              NAP : {napValue ?? "?"} — {napDescription ?? "Non renseigné"}
+              <button onClick={() => setEditDialog(true)} className="text-primary hover:underline ml-1"><Pencil size={10} /></button>
+            </p>
+            {mb && tdee && (
+              <p className="text-xs text-muted-foreground">
+                MB : <span className="font-medium text-foreground">{mb} kcal</span>
+                {" · "}DET : <span className="font-medium text-foreground">{tdee} kcal/jour</span>
+              </p>
+            )}
+            {!tdee && <p className="text-[10px] text-amber-600 flex items-center gap-1"><AlertTriangle size={10} /> Données insuffisantes pour calculer les besoins</p>}
+          </div>
+          {/* Delta */}
+          <DeltaCard obs={obs} pathwayKey={pathwayKey} sex={sex} age={age ?? 0} height={height ?? undefined} />
+        </div>
+      </div>
+
+      {/* ── SECTION 2 — Bilan biologique ── */}
+      <BioSection obs={obs} pathwayKey={pathwayKey} sex={sex} age={age} />
+
+      {/* ── SECTION 2b — Historique impédancemétrie (N vs N-1) ── */}
+      {biaSessions && biaSessions.sessions.length > 0 && (
+        <BiaHistorySection sessions={biaSessions.sessions} metricKeys={biaSessions.metricKeys} />
+      )}
+
+      {/* ── SECTION 3 — Suivi pondéral ── */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2"><Scale size={14} /> Suivi pondéral</h3>
+          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setWeightDialog(true)}>Saisir une pesée</Button>
+        </div>
+
+        {currentWeight && currentBMI && (
+          <div className="space-y-2 text-sm mb-3">
+            <p>Poids actuel : <span className="font-semibold">{currentWeight} kg</span> ({obs.get("weight_kg")?.effectiveAt ? format(parseISO(obs.get("weight_kg")!.effectiveAt), "d MMM", { locale: fr }) : ""})</p>
+            {bmiInfo && <p>IMC : <span className="font-semibold">{currentBMI.toFixed(1)}</span> <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${COLOR_MAP[bmiInfo.color]}`}>{bmiInfo.label}</span></p>}
+            {targetWeight && (
+              <>
+                <p className="text-xs text-muted-foreground">Objectif : IMC ≥ {targetBMI} → ~{targetWeight} kg</p>
+                {progression !== null && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${progression >= 80 ? "bg-emerald-500" : progression >= 40 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${progression}%` }} />
+                    </div>
+                    <span className="text-xs font-medium">{progression}%</span>
+                  </div>
+                )}
+              </>
+            )}
+            {currentFC && (
+              <p className="text-xs">FC repos : <span className="font-semibold">{currentFC} bpm</span>
+                {currentFC < 45 && <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-red-50 text-red-600 border-red-200">Bradycardie sévère</span>}
+                {currentFC >= 45 && currentFC < 55 && <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-orange-50 text-orange-600 border-orange-200">Limite basse</span>}
+                {currentFC >= 55 && currentFC < 100 && <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-600 border-emerald-200">Normal</span>}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Mini chart */}
+        {weightChartData.length >= 3 && (
+          <div className="h-[140px] mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={weightChartData}>
+                <XAxis dataKey="date" tick={{ fontSize: 9 }} />
+                <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 9 }} width={35} />
+                <Tooltip contentStyle={{ fontSize: 11 }} />
+                {targetWeight && <ReferenceArea y1={targetWeight} y2={targetWeight + 20} fill="#10B981" fillOpacity={0.08} />}
+                <Line type="monotone" dataKey="poids" stroke="#5B4EC4" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 4 — Questionnaires ── */}
+      <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">📋 Questionnaires</h3>
+        <div className="space-y-3">
+          {qKeys.map((key) => {
+            const o = obs.get(key)
+            const cfg = QUESTIONNAIRE_LABELS[key]
+            const val = numVal(o)
+            if (val == null || !cfg) return null
+            const scoring = getQuestionnaireScoring(cfg.code, val)
+            const displayVal = cfg.isFloat ? val.toFixed(1) : String(val)
+            const isEdeq = key === "edeq_global"
+            return (
+              <div key={key}>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="font-semibold w-16">{cfg.name}</span>
+                  <span className="font-bold">{displayVal}/{cfg.maxScore}</span>
+                  {scoring && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${scoring.colorClass}`}>{scoring.label}</span>}
+                  <span className="text-xs text-muted-foreground ml-auto">{o?.effectiveAt ? format(parseISO(o.effectiveAt), "d MMM yyyy", { locale: fr }) : ""}</span>
+                </div>
+                {/* EDE-Q : afficher les 4 sous-échelles si disponibles */}
+                {isEdeq && (
+                  <div className="mt-1.5 ml-4 grid grid-cols-2 gap-x-4 gap-y-1">
+                    {EDEQ_SUBSCALES.map(({ key: sk, label }) => {
+                      const sv = numVal(obs.get(sk))
+                      if (sv == null) return null
+                      const sScoring = getQuestionnaireScoring("edeq", sv)
+                      return (
+                        <div key={sk} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span className="truncate">{label}</span>
+                          <span className="font-semibold text-foreground">{sv.toFixed(1)}</span>
+                          {sScoring && sScoring.severity !== "none" && (
+                            <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${sScoring.colorClass}`}>{sScoring.label}</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          {qKeys.every((k) => numVal(obs.get(k)) == null) && (
+            <p className="text-xs text-muted-foreground">Aucun questionnaire complété.</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Dialogs ── */}
+      <Dialog open={weightDialog} onOpenChange={setWeightDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Saisir une pesée</DialogTitle></DialogHeader>
+          <Input type="number" step="0.1" placeholder="Poids en kg" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} autoFocus />
+          <Button onClick={() => weightMutation.mutate()} disabled={!newWeight || weightMutation.isPending}>
+            {weightMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialog} onOpenChange={setEditDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Données du patient</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Date de naissance</label>
+              <Input type="date" value={editBirthDate} onChange={(e) => setEditBirthDate(e.target.value)} className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Sexe</label>
+              <select className="w-full border rounded-md p-2 text-xs mt-1" value={editSex} onChange={(e) => setEditSex(e.target.value)}>
+                <option value="FEMALE">Féminin</option>
+                <option value="MALE">Masculin</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Taille (cm)</label>
+              <Input type="number" value={editHeight} onChange={(e) => setEditHeight(e.target.value)} placeholder="165" className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Poids actuel (kg)</label>
+              <Input type="number" step="0.1" value={editWeight} onChange={(e) => setEditWeight(e.target.value)} placeholder={currentWeight ? String(currentWeight) : "42.0"} className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">NAP — Niveau d&apos;activité physique</label>
+              <select className="w-full border rounded-md p-2 text-xs mt-1" value={editNap} onChange={(e) => setEditNap(parseFloat(e.target.value))}>
+                {NAP_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Description activité</label>
+              <Input value={editNapDesc} onChange={(e) => setEditNapDesc(e.target.value)} placeholder="Lycéenne, transports en commun..." className="h-8 text-xs mt-1" />
+            </div>
+          </div>
+          <Button onClick={() => editMutation.mutate()} disabled={editMutation.isPending} className="mt-2">
+            {editMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ─── Sub-components ─────────────────────────────────────────────────────────
+
+function DeltaCard({ obs, pathwayKey, sex, age, height }: {
+  obs: Map<string, ObsRecord>; pathwayKey: string; sex: string; age: number; height?: number
+}) {
+  const keys = ["weight_kg", "heart_rate_bpm", "potassium_mmol", "phosphore_mmol", "phq9_score", "eat26_score"]
+  const deltas = keys.map((k) => {
+    const o = obs.get(k)
+    const v = numVal(o)
+    if (v == null) return null
+    const range = getMetricRange(k, pathwayKey, { sex: sex as "MALE" | "FEMALE", age, height, currentWeight: v })
+    const color = getValueColor(v, range)
+    return { key: k, label: o!.label, value: v, unit: o!.unit, color }
+  }).filter(Boolean)
+
+  if (deltas.length === 0) return null
+
+  return (
+    <div className="space-y-1">
+      <p className="text-[10px] font-medium text-muted-foreground">DERNIÈRES VALEURS</p>
+      {deltas.map((d) => d && (
+        <div key={d.key} className="flex items-center gap-2 text-xs">
+          <span className={`w-2 h-2 rounded-full ${d.color === "green" ? "bg-emerald-500" : d.color === "orange" ? "bg-amber-500" : d.color === "red" ? "bg-red-500" : "bg-gray-300"}`} />
+          <span className="text-muted-foreground w-24 truncate">{d.label}</span>
+          <span className="font-semibold">{d.value} {d.unit ?? ""}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function BioSection({ obs, pathwayKey, sex, age }: { obs: Map<string, ObsRecord>; pathwayKey: string; sex: "MALE" | "FEMALE"; age: number | null }) {
+  // Priority keys per pathway (shown first)
+  const priorityKeys = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
+    ? ["potassium_mmol", "phosphorus_mmol", "albumin_g_l", "hemoglobin_g_dl", "calcium_mmol", "magnesium_mmol"]
+    : pathwayKey.includes("obes")
+      ? ["hba1c_percent", "fasting_glycemia_mmol", "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol"]
+      : []
+
+  // Collect ALL bio observations (from catalog, or known prefixes)
+  const BIO_PREFIXES = ["bio_", "bia_", "dxa_", "ecg_"]
+
+  const allBio: ObsRecord[] = []
+  obs.forEach((o, key) => {
+    if (ALL_BIO_KEYS.has(key) || BIO_PREFIXES.some((p) => key.startsWith(p))) {
+      allBio.push(o)
+    }
+  })
+
+  if (allBio.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">🧪 Dernier bilan biologique</h3>
+        <p className="text-xs text-muted-foreground">Aucun bilan biologique importé. Importez un PDF via l&apos;onglet Documents.</p>
+      </div>
+    )
+  }
+
+  // Sort: priority keys first, then alphabetical
+  const prioritySet = new Set(priorityKeys)
+  allBio.sort((a, b) => {
+    const aP = prioritySet.has(a.metricKey) ? 0 : 1
+    const bP = prioritySet.has(b.metricKey) ? 0 : 1
+    if (aP !== bP) return aP - bP
+    return (a.label ?? a.metricKey).localeCompare(b.label ?? b.metricKey)
+  })
+
+  const latestDate = allBio.reduce((max, v) => v.effectiveAt > max ? v.effectiveAt : max, "")
+
+  return (
+    <div className="rounded-xl border bg-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">🧪 Dernier bilan biologique</h3>
+        <span className="text-[10px] text-muted-foreground">
+          {latestDate ? format(parseISO(latestDate), "d MMMM yyyy", { locale: fr }) : ""}
+          {" · "}{allBio.length} valeurs
+        </span>
+      </div>
+      {/* Group by examType */}
+      {(() => {
+        const grouped = new Map<string, ObsRecord[]>()
+        for (const o of allBio) {
+          const def = KEY_TO_METRIC[o.metricKey]
+          const group = def?.examType ?? "OTHER"
+          if (!grouped.has(group)) grouped.set(group, [])
+          grouped.get(group)!.push(o)
+        }
+        return Array.from(grouped).map(([examType, items]) => {
+          const meta = EXAM_TYPE_LABELS[examType] ?? { label: "Autres", icon: "📋" }
+          return (
+            <div key={examType} className="mb-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">
+                {meta.icon} {meta.label}
+              </p>
+              <div className="grid md:grid-cols-2 gap-x-6 gap-y-1">
+                {items.map((o) => {
+                  const bv = numVal(o)
+                  if (bv == null) return null
+                  const def = KEY_TO_METRIC[o.metricKey]
+                  const interp = def
+                    ? interpretValue(bv, def, sex, age ?? undefined)
+                    : { color: "gray" as const, label: "—", rangeStr: "" }
+                  return (
+                    <div key={o.metricKey} className="flex items-center gap-2 text-sm py-0.5">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        interp.color === "green" ? "bg-emerald-500" :
+                        interp.color === "orange" ? "bg-amber-500" :
+                        interp.color === "red" ? "bg-red-500" : "bg-gray-300"
+                      }`} />
+                      <span className="text-muted-foreground truncate flex-1">{def?.label ?? o.label}</span>
+                      <span className="font-semibold whitespace-nowrap">{bv} {o.unit ?? def?.unit ?? ""}</span>
+                      {interp.rangeStr && (
+                        <span className="text-[9px] text-muted-foreground whitespace-nowrap">({interp.rangeStr})</span>
+                      )}
+                      {interp.color !== "gray" && (
+                        <span className={`text-[9px] font-medium px-1 py-0.5 rounded whitespace-nowrap ${
+                          interp.color === "green" ? "text-emerald-600 bg-emerald-50" :
+                          interp.color === "orange" ? "text-amber-600 bg-amber-50" :
+                          interp.color === "red" ? "text-red-600 bg-red-50" : ""
+                        }`}>
+                          {interp.label}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })
+      })()}
+    </div>
+  )
+}
+
+// ─── BiaHistorySection — Tableau N vs N-1 impédancemétrie ───────────────────
+
+const BIA_DISPLAY_ORDER = [
+  "weight_kg", "bmi",
+  "bia_fat_mass_kg", "bia_fat_mass_percent", "bia_fat_free_mass_kg",
+  "bia_skeletal_muscle_mass", "bia_appendicular_smm",
+  "bia_total_body_water", "bia_extracellular_water", "bia_intracellular_water", "bia_ecw_tbw_ratio",
+  "bia_phase_angle", "bia_impedance_ratio", "bia_ecm_bcm_ratio",
+  "bia_ffmi", "bia_fmi", "bia_asmi", "bia_smi",
+  "bia_basal_metabolic_rate",
+]
+
+function BiaHistorySection({
+  sessions,
+  metricKeys,
+}: {
+  sessions: Array<{ date: string; values: Record<string, number> }>;
+  metricKeys: Record<string, { label: string; unit: string | null }>;
+}) {
+  // Toutes les métriques présentes dans au moins une session
+  const allKeys = Array.from(
+    new Set([
+      ...BIA_DISPLAY_ORDER.filter((k) => sessions.some((s) => s.values[k] != null)),
+      ...Object.keys(metricKeys).filter((k) => !BIA_DISPLAY_ORDER.includes(k) && sessions.some((s) => s.values[k] != null)),
+    ])
+  )
+
+  const cols = sessions.slice(0, 3) // max 3 colonnes
+
+  return (
+    <div className="rounded-xl border bg-card p-5">
+      <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">⚖️ Impédancemétrie — évolution</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left font-medium text-muted-foreground pb-2 pr-4 w-40">Métrique</th>
+              {cols.map((s) => (
+                <th key={s.date} className="text-right font-medium text-muted-foreground pb-2 px-3 min-w-[80px]">
+                  {new Date(s.date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" })}
+                </th>
+              ))}
+              {cols.length >= 2 && <th className="text-right font-medium text-muted-foreground pb-2 pl-3 min-w-[56px]">Δ</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {allKeys.map((key) => {
+              const meta = metricKeys[key] ?? KEY_TO_METRIC[key] ?? { label: key, unit: null }
+              const vals = cols.map((s) => s.values[key] ?? null)
+              const latest = vals[0]
+              const prev = vals[1] ?? null
+              const delta = latest != null && prev != null ? Math.round((latest - prev) * 100) / 100 : null
+              const isGoodDown = ["bia_fat_mass_kg", "bia_fat_mass_percent", "bia_ecm_bcm_ratio", "bia_fmi"].includes(key)
+              const isGoodUp = ["bia_fat_free_mass_kg", "bia_skeletal_muscle_mass", "bia_phase_angle", "bia_ffmi", "bia_asmi", "bia_total_body_water"].includes(key)
+              const deltaColor = delta == null ? "" : delta === 0 ? "text-gray-400" : (delta < 0 && isGoodDown) || (delta > 0 && isGoodUp) ? "text-emerald-600" : (delta < 0 && isGoodUp) || (delta > 0 && isGoodDown) ? "text-red-500" : "text-gray-500"
+
+              return (
+                <tr key={key} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+                  <td className="py-1.5 pr-4 text-muted-foreground">{typeof meta.label === "string" ? meta.label : key}</td>
+                  {vals.map((v, i) => (
+                    <td key={i} className={`py-1.5 px-3 text-right tabular-nums ${i === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                      {v != null ? `${v}${meta.unit ? " " + meta.unit : ""}` : <span className="text-gray-300">—</span>}
+                    </td>
+                  ))}
+                  {cols.length >= 2 && (
+                    <td className={`py-1.5 pl-3 text-right tabular-nums font-medium ${deltaColor}`}>
+                      {delta != null ? `${delta > 0 ? "+" : ""}${delta}` : ""}
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}

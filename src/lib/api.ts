@@ -739,6 +739,27 @@ export interface ClinicalNote {
   author: { id: string; firstName: string; lastName: string };
 }
 
+export interface ConsultationSummary {
+  id: string;
+  careCaseId: string;
+  providerId: string;
+  appointmentId: string | null;
+  notes: string | null;
+  aiSummary: string | null;
+  aiSummaryStatus: "NONE" | "PENDING" | "DONE" | "ERROR";
+  status: "IN_PROGRESS" | "COMPLETED";
+  startedAt: string;
+  completedAt: string | null;
+  audioDurationSec: number | null;
+  generatedNote: { id: string } | null;
+}
+
+export interface ConsultationDetail extends ConsultationSummary {
+  transcript: string | null;
+  audioUrl: string | null;
+  generatedNote: { id: string; body: string; createdAt: string } | null;
+}
+
 export interface CreateNoteInput {
   noteType: string;
   title?: string;
@@ -2777,6 +2798,12 @@ export function apiWithToken(token: string) {
           { method: "PATCH", body: JSON.stringify(data) },
           token
         ),
+    },
+    consultations: {
+      listByCareCase: (careCaseId: string) =>
+        request<ConsultationSummary[]>(`/care-cases/${careCaseId}/consultations`, {}, token),
+      getOne: (careCaseId: string, consultationId: string) =>
+        request<ConsultationDetail>(`/care-cases/${careCaseId}/consultations/${consultationId}`, {}, token),
     },
   };
 }

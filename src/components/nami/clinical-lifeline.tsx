@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, Clock, AlertTriangle, Info, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -264,6 +265,14 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
                   </div>
                   {event.summary && <p className="text-[12px] text-[#94A3B8] mt-0.5 line-clamp-2" style={{ fontFamily: "var(--font-inter)" }}>{event.summary}</p>}
                   {event.actor && <p className="text-[11px] text-[#CBD5E1] mt-1" style={{ fontFamily: "var(--font-inter)" }}>{event.actor.name}{event.actor.role ? ` · ${event.actor.role}` : ""}</p>}
+                  {!!event.metadata?.consultationId && (
+                    <Link
+                      href={`/consultations/${String(event.metadata.consultationId)}?careCaseId=${event.careCaseId}`}
+                      className="inline-block mt-1.5 text-[11px] text-[#5B4EC4] hover:underline"
+                    >
+                      Voir la consultation →
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             );
@@ -288,6 +297,14 @@ export function ClinicalLifeline({ events, trajectory, summary, isLoading }: Cli
                     </div>
                   )}
                   <p className="text-[11px] text-[#CBD5E1] mt-1" style={{ fontFamily: "var(--font-inter)" }}>{dateFr(selectedEvent.occurredAt)}</p>
+                  {!!selectedEvent.metadata?.consultationId && (
+                    <Link
+                      href={`/consultations/${String(selectedEvent.metadata.consultationId)}?careCaseId=${selectedEvent.careCaseId}`}
+                      className="inline-block mt-2 text-[12px] text-[#5B4EC4] hover:underline font-medium"
+                    >
+                      Voir la consultation →
+                    </Link>
+                  )}
                 </div>
               </div>
               <button onClick={() => setSelectedId(null)} className="text-[#CBD5E1] hover:text-[#64748B] transition-colors shrink-0 mt-0.5">

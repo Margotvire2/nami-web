@@ -11,6 +11,7 @@ import { ViewGlobale } from "./components/ViewGlobale";
 import { ViewDossier } from "./components/ViewDossier";
 import { ViewCoordination } from "./components/ViewCoordination";
 import { ViewSuivi } from "./components/ViewSuivi";
+import { ConsultationsList } from "./components/ConsultationsList";
 import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossier";
 import { ReferralModal } from "../referral-modal";
 import { QuickTaskModal } from "../QuickTaskModal";
@@ -19,13 +20,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 
-type Tab = "globale" | "suivi" | "dossier" | "coordination" | "pediatrique";
+type Tab = "globale" | "suivi" | "dossier" | "coordination" | "consultations" | "pediatrique";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "globale", label: "Vue globale" },
   { key: "suivi", label: "Suivi" },
   { key: "dossier", label: "Dossier" },
   { key: "coordination", label: "Coordination" },
+  { key: "consultations", label: "Consultations" },
 ];
 
 // ─── NoteInline ───────────────────────────────────────────────────────────────
@@ -370,6 +372,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
               patientFirstName={careCase.patient?.firstName ?? ""}
               patientLastName={careCase.patient?.lastName ?? ""}
             />
+          )}
+          {activeTab === "consultations" && (
+            <ConsultationsList careCaseId={id} />
           )}
           {activeTab === "pediatrique" && careCase.caseType === "PEDIATRIC" && (
             <PediatricDossier careCaseId={id} />
