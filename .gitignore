@@ -32,3 +32,8 @@ next-env.d.ts
 .claude/
 tmp/
 **/*.before
+
+# Fichiers temporaires et backups
+tmp/
+**/*.before
+5
