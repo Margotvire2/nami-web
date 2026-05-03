@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken } from "@/lib/api";
-import { ViewConsultation } from "@/app/(cockpit)/patients/[id]/v2/components/ViewConsultation";
+import { ViewConsultation } from "@/app/(cockpit)/patients/[id]/ViewConsultation";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 
 export default function ConsultationPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,9 +28,9 @@ export default function ConsultationPage({ params }: { params: Promise<{ id: str
   const handleBack = () => {
     const fromPatientId = searchParams.get("from");
     if (fromPatientId) {
-      router.push(`/patients/${fromPatientId}/v2?tab=consultations`);
+      router.push(`/patients/${fromPatientId}?tab=consultations`);
     } else if (careCaseId) {
-      router.push(`/patients/${careCaseId}/v2?tab=consultations`);
+      router.push(`/patients/${careCaseId}?tab=consultations`);
     } else {
       router.back();
     }
