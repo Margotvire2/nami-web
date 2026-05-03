@@ -23,16 +23,29 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
   const accessToken = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
-  // Auth guard
+  // Attend la fin de la rehydratation Zustand (sinon SSR initial → !accessToken → router.replace('/login') tire à tort)
   useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+      return;
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHasHydrated(true));
+    return unsub;
+  }, []);
+
+  // Auth guard — gated sur hasHydrated
+  useEffect(() => {
+    if (!hasHydrated) return;
     if (!accessToken) router.replace("/login");
     else if (user?.roleType === "PATIENT") router.replace("/accueil");
     else if (user?.roleType === "SECRETARY") router.replace("/secretariat");
-  }, [accessToken, user, router]);
+  }, [hasHydrated, accessToken, user, router]);
 
   // Onboarding guard — providers only
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!accessToken || !user) return;
     if (user.roleType !== "PROVIDER") {
       setOnboardingChecked(true);
@@ -54,9 +67,9 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
         // Si erreur (profil inexistant, etc.), on laisse passer
         setOnboardingChecked(true);
       });
-  }, [accessToken, user, router]);
+  }, [hasHydrated, accessToken, user, router]);
 
-  if (!accessToken || !onboardingChecked) return null;
+  if (!hasHydrated || !accessToken || !onboardingChecked) return null;
 
   const emailUnverified = user?.roleType === "PROVIDER" && !user?.emailVerifiedAt;
   const MFA_TIERS = ["COORDINATION", "INTELLIGENCE", "RÉSEAU", "EXPERT"];
