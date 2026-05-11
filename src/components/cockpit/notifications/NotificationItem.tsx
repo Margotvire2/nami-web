@@ -3,6 +3,9 @@
  *
  * Variante visuelle par source (icône). Badge "Brouillon IA — à vérifier"
  * conditionnel si `isAiGenerated`. Vocabulaire MDR-safe.
+ *
+ * Pas d'indicateur visuel de priorité : éviter la confusion avec le pattern
+ * "non lu" (Gmail/Outlook). Le tri par priorité est fait côté backend.
  */
 
 import Link from "next/link";
@@ -31,26 +34,16 @@ const SOURCE_ICONS: Record<NotificationFeedSource, LucideIcon> = {
   alert: FileText,
 };
 
-const PRIORITY_DOT_COLOR: Record<NonNullable<NotificationFeedItem["priority"]>, string> = {
-  high: "#2BA89C",
-  medium: "#8A8A96",
-  low: "#8A8A96",
-};
-
 type Props = {
   item: NotificationFeedItem;
 };
 
 export function NotificationItem({ item }: Props) {
   const Icon = SOURCE_ICONS[item.source] ?? ActivityIcon;
-  const dotColor = item.priority ? PRIORITY_DOT_COLOR[item.priority] : null;
+  const isClickable = !!item.href && item.href !== "#";
 
-  return (
-    <Link
-      href={item.href}
-      className="block p-3 rounded-[10px] hover:bg-[rgba(91,78,196,0.04)] transition-colors relative"
-      style={{ transition: "background-color 0.2s cubic-bezier(0.16,1,0.3,1)" }}
-    >
+  const content = (
+    <>
       <div className="flex gap-3 items-start">
         <Icon className="w-4 h-4 text-[#5B4EC4] mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0 pr-6">
@@ -63,13 +56,6 @@ export function NotificationItem({ item }: Props) {
             </p>
           )}
         </div>
-        {dotColor && (
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-            style={{ backgroundColor: dotColor }}
-            aria-label={`Priorité ${item.priority}`}
-          />
-        )}
       </div>
 
       {item.isAiGenerated && (
@@ -82,6 +68,20 @@ export function NotificationItem({ item }: Props) {
           Brouillon IA
         </span>
       )}
+    </>
+  );
+
+  return isClickable ? (
+    <Link
+      href={item.href}
+      className="block p-3 rounded-[10px] hover:bg-[rgba(91,78,196,0.04)] transition-colors relative"
+      style={{ transition: "background-color 0.2s cubic-bezier(0.16,1,0.3,1)" }}
+    >
+      {content}
     </Link>
+  ) : (
+    <div className="block p-3 rounded-[10px] relative cursor-default">
+      {content}
+    </div>
   );
 }
