@@ -827,13 +827,12 @@ export default function AgendaPage() {
   const weekDays: Array<{ date: Date; dayIdx: number }> = []
   for (let i = 0; i < 7; i++) weekDays.push({ date: addDays(agenda.from, i), dayIdx: i })
 
-  const visibleDays = weekDays.filter((wd) => {
-    const jsDay = wd.date.getDay()
-    const hasSlots = agenda.slots.some((s) => s.weekday === jsDay)
-    const hasAppts = agenda.appointments.some((a) => isSameDay(parseISO(a.startAt), wd.date))
-    return hasSlots || hasAppts
-  })
-  const daysToShow = visibleDays.length > 0 ? visibleDays : weekDays.slice(0, 5)
+  // Vue semaine = 7 jours TOUJOURS visibles (Lun-Dim).
+  // Avant : on filtrait les jours sans slot ni RDV → la vue semaine n'affichait que 2 jours,
+  // cassant la promesse UX "je vois ma semaine". Le filtrage par slots a été retiré
+  // pour cohérence avec les standards calendrier (Google Cal, Apple Cal, Calendly).
+  // BUG 2 — fix Mai 2026.
+  const daysToShow = weekDays
 
   const hours: number[] = []
   for (let h = MIN_H; h <= MAX_H; h++) hours.push(h)
