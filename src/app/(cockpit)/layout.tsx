@@ -15,7 +15,6 @@ import { ConsultationProvider } from "@/contexts/ConsultationContext";
 import { ConsultationWidget } from "@/components/consultation/ConsultationWidget";
 import { CockpitHeaderProvider } from "@/contexts/CockpitHeaderContext"
 import { CommandPalette } from "@/components/ui/CommandPalette"
-import { ActivityFeed } from "@/components/ui/ActivityFeed"
 import { PrepMode } from "@/components/ui/PrepMode";
 
 export default function CockpitLayout({ children }: { children: React.ReactNode }) {
@@ -117,7 +116,6 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
           <RecordingWidget />
           <ConsultationWidget />
           <CommandPalette />
-          <ActivityFeed />
           <PrepMode />
         </CockpitHeaderProvider>
       </ConsultationProvider>

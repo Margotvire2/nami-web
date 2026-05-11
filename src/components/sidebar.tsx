@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { Settings } from "lucide-react";
-import { NotificationCenter } from "@/components/NotificationCenter";
+import { NotificationBell } from "@/components/cockpit/notifications/NotificationBell";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -70,7 +70,7 @@ export function Sidebar() {
           N
         </div>
         <span className="text-[15px] font-bold text-[#0F172A] tracking-tight flex-1" style={{ fontFamily: "var(--font-jakarta)" }}>Nami</span>
-        <NotificationCenter />
+        <NotificationBell />
       </div>
 
       {/* Navigation — 3 blocs */}
