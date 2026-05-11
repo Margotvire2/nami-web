@@ -1359,7 +1359,44 @@ export const notificationsApi = {
     const qs = params.size > 0 ? `?${params.toString()}` : "";
     return request<{ items: NotificationItem[]; total: number }>(`/notifications${qs}`, {}, token);
   },
+  feed: (token: string, params?: { limit?: number; section?: "todo" | "activity" | "all" }) => {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.section) qs.set("section", params.section);
+    const suffix = qs.size > 0 ? `?${qs.toString()}` : "";
+    return request<NotificationFeed>(`/notifications/feed${suffix}`, {}, token);
+  },
 };
+
+export type NotificationPriority = "high" | "medium" | "low" | null;
+
+export type NotificationFeedSource =
+  | "appointment_request"
+  | "referral"
+  | "task"
+  | "team_invitation"
+  | "coordination_anomaly"
+  | "activity"
+  | "pro_message"
+  | "alert";
+
+export interface NotificationFeedItem {
+  id: string;
+  source: NotificationFeedSource;
+  sourceId: string;
+  title: string;
+  subtitle?: string;
+  createdAt: string;
+  priority?: NotificationPriority;
+  href: string;
+  isAiGenerated?: boolean;
+}
+
+export interface NotificationFeed {
+  todo: NotificationFeedItem[];
+  activity: NotificationFeedItem[];
+  counts: { todo: number; activity: number };
+}
 
 // ─── Network Overview ────────────────────────────────────────────────────────
 
@@ -2546,6 +2583,10 @@ export function apiWithToken(token: string) {
       get: (careCaseId: string, messageId: string) => messagesApi.get(token, careCaseId, messageId),
       send: (careCaseId: string, body: string, parentId?: string) => messagesApi.send(token, careCaseId, body, parentId),
       markRead: (careCaseId: string, messageId: string) => messagesApi.markRead(token, careCaseId, messageId),
+    },
+    notifications: {
+      feed: (params?: { limit?: number; section?: "todo" | "activity" | "all" }) =>
+        notificationsApi.feed(token, params),
     },
     referrals: {
       outgoing: (params?: { status?: string; careCaseId?: string }) => referralsApi.outgoing(token, params),
