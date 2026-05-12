@@ -140,8 +140,22 @@ export default function QAClinique() {
                       {msg.sources.map((s, j) => {
                         const cat = slugToCategory(s.slug ?? "");
                         const meta = CATEGORY_META[cat];
+                        const catColor = meta?.color ?? "#6B7280";
+                        const catBg = meta?.bg ?? "rgba(138,138,150,0.10)";
                         return (
-                          <span key={j} style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: meta?.bg ?? "rgba(138,138,150,0.10)", color: meta?.color ?? "#6B7280", border: `1px solid ${meta?.color ?? "#6B7280"}22` }}>
+                          <span
+                            key={j}
+                            className="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+                            style={
+                              {
+                                "--cat-color": catColor,
+                                "--cat-bg": catBg,
+                                background: "var(--cat-bg)",
+                                color: "var(--cat-color)",
+                                borderColor: `${catColor}22`,
+                              } as React.CSSProperties
+                            }
+                          >
                             [{j + 1}] {s.title || s.slug}
                           </span>
                         );

@@ -326,18 +326,22 @@ export default function IntelligencePage() {
                     <button
                       key={src}
                       onClick={() => setActiveSource(isActive ? null : src)}
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        padding: "6px 12px",
-                        borderRadius: 8,
-                        border: "1px solid",
-                        cursor: "pointer",
-                        transition: "all 0.15s",
-                        borderColor: isActive ? meta?.color ?? "#5B4EC4" : "rgba(26,26,46,0.08)",
-                        color: isActive ? meta?.color ?? "#5B4EC4" : "#374151",
-                        background: isActive ? meta?.bg ?? "rgba(91,78,196,0.08)" : "#fff",
-                      }}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg border cursor-pointer transition-all"
+                      style={
+                        isActive
+                          ? ({
+                              "--cat-color": meta?.color ?? "#5B4EC4",
+                              "--cat-bg": meta?.bg ?? "rgba(91,78,196,0.08)",
+                              borderColor: "var(--cat-color)",
+                              color: "var(--cat-color)",
+                              background: "var(--cat-bg)",
+                            } as React.CSSProperties)
+                          : {
+                              borderColor: "rgba(26,26,46,0.08)",
+                              color: "#374151",
+                              background: "#fff",
+                            }
+                      }
                     >
                       {meta?.label ?? src} ({count})
                     </button>
@@ -417,23 +421,23 @@ export default function IntelligencePage() {
                   return (
                     <div
                       key={key}
-                      style={{
-                        padding: 16,
-                        borderRadius: 12,
-                        border: `1px solid ${meta.color}22`,
-                        background: meta.bg,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 4,
-                      }}
+                      className="p-4 rounded-xl border flex flex-col gap-1"
+                      style={
+                        {
+                          "--cat-color": meta.color,
+                          "--cat-bg": meta.bg,
+                          borderColor: `${meta.color}22`,
+                          background: "var(--cat-bg)",
+                        } as React.CSSProperties
+                      }
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, color: meta.color }}>
+                      <div className="flex items-center gap-1.5" style={{ color: "var(--cat-color)" }}>
                         <Icon size={14} />
-                        <span style={{ fontSize: 12, fontWeight: 700, color: meta.color }}>
+                        <span className="text-xs font-bold" style={{ color: "var(--cat-color)" }}>
                           {meta.label}
                         </span>
                       </div>
-                      <p style={{ fontSize: 10, color: meta.color, opacity: 0.7 }}>
+                      <p className="text-[10px] opacity-70" style={{ color: "var(--cat-color)" }}>
                         {meta.desc}
                       </p>
                     </div>
