@@ -179,7 +179,7 @@ export default function ResultCard({
               flexWrap: "wrap",
             }}
           >
-            <SourceBadgeRag kind={sourceMeta.kind} label={sourceMeta.label} />
+            <SourceBadgeRag source={result.source} />
             {sourceMeta.isAI && <DraftAIBadge />}
           </div>
           <h3
@@ -193,8 +193,24 @@ export default function ResultCard({
               letterSpacing: "-0.005em",
             }}
           >
-            {result.sectionTitle || result.slug}
+            {result.entryTitle ?? result.sectionTitle ?? result.slug}
           </h3>
+          {result.entryTitle &&
+            result.sectionTitle &&
+            result.entryTitle !== result.sectionTitle && (
+              <div
+                style={{
+                  fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                  fontWeight: 400,
+                  fontSize: 12,
+                  color: NAMI.textMuted,
+                  margin: "0 0 4px",
+                  letterSpacing: "0.005em",
+                }}
+              >
+                {result.sectionTitle}
+              </div>
+            )}
           <div
             style={{
               fontFamily: "Inter, system-ui, sans-serif",

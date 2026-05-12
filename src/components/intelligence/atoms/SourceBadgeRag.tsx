@@ -1,81 +1,65 @@
 "use client";
 
 /**
- * SourceBadgeRag — pill source (HAS / FFAB / Nami algo / Nami extrait).
- * Phase 3.B.3 — distinct de `src/components/SourceBadge.tsx` (sources humaines
- * orthogonales). Sémantique : catégorie RAG dérivée du slug.
+ * SourceBadgeRag — pill source SOLID (catégorique sacré).
+ *
+ * Phase 3.B.5 — Vague 2 — palette source-dédiée (HAS violet, FFAB teal,
+ * ANSM amber, DSM-5 gris, ESPGHAN violet variant, INCA coral, ORPHANET gris,
+ * FICHE anthracite, OTHER gris clair).
+ *
+ * SOLID intentionnellement : badge catégorique sacré, anti-pattern glass
+ * dans Liquid Glass × Nami v1.0.
+ *
+ * Source : `result.source` (payload semantic-search V2.1, backend FK entry).
+ * Si `source === null` → badge masqué (return null) — fallback gracieux sur
+ * les ~7% de chunks orphelins.
  */
 
-import { NAMI, type RagSourceKind } from "./_tokens";
+import type { SourceLabel } from "@/lib/api";
 
-const STYLES: Record<
-  RagSourceKind,
-  {
-    bg: string;
-    color: string;
-    uppercase: boolean;
-    italic: boolean;
-    border: string | "none";
-  }
-> = {
-  HAS: {
-    bg: NAMI.violetSoft,
-    color: NAMI.violet,
-    uppercase: true,
-    italic: false,
-    border: "none",
-  },
-  FFAB: {
-    bg: NAMI.tealSoft,
-    color: NAMI.tealText,
-    uppercase: true,
-    italic: false,
-    border: "none",
-  },
-  NAMI_ALGO: {
-    bg: NAMI.bgAlt,
-    color: NAMI.textMuted,
-    uppercase: false,
-    italic: true,
-    border: "0.5px solid rgba(91,78,196,0.12)",
-  },
-  NAMI_EXTRACT: {
-    bg: NAMI.bgAlt,
-    color: NAMI.textMuted,
-    uppercase: false,
-    italic: true,
-    border: "0.5px solid rgba(91,78,196,0.12)",
-  },
+const SOURCE_COLORS: Record<SourceLabel, { bg: string; text: string }> = {
+  HAS: { bg: "#5B4EC4", text: "#FFFFFF" },
+  FFAB: { bg: "#2BA89C", text: "#FFFFFF" },
+  ANSM: { bg: "#B07820", text: "#FFFFFF" },
+  "DSM-5": { bg: "#6B7280", text: "#FFFFFF" },
+  ESPGHAN: { bg: "#4c44b0", text: "#FFFFFF" },
+  INCA: { bg: "#E07B5C", text: "#FFFFFF" },
+  ORPHANET: { bg: "#6B7280", text: "#FFFFFF" },
+  FICHE: { bg: "#4A4A5A", text: "#FFFFFF" },
+  OTHER: { bg: "#8A8A96", text: "#FFFFFF" },
 };
 
 export default function SourceBadgeRag({
-  kind,
-  label,
+  source,
+  size = "sm",
 }: {
-  kind: RagSourceKind;
-  label: string;
+  source: SourceLabel | null;
+  size?: "sm" | "md";
 }) {
-  const s = STYLES[kind];
+  if (!source) return null;
+
+  const colors = SOURCE_COLORS[source];
+  const sizePadding = size === "sm" ? "3px 9px" : "4px 11px";
+  const sizeFont = size === "sm" ? 10 : 11;
+
   return (
     <span
+      aria-label={`Source : ${source}`}
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
         fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
-        fontWeight: 500,
-        fontSize: 11,
-        letterSpacing: s.uppercase ? "0.04em" : 0,
-        textTransform: s.uppercase ? "uppercase" : "none",
-        fontStyle: s.italic ? "italic" : "normal",
-        padding: "4px 10px",
-        borderRadius: 999,
-        background: s.bg,
-        color: s.color,
-        border: s.border === "none" ? undefined : s.border,
+        fontWeight: 600,
+        fontSize: sizeFont,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        padding: sizePadding,
+        borderRadius: 6,
+        background: colors.bg,
+        color: colors.text,
       }}
     >
-      {label}
+      {source}
     </span>
   );
 }

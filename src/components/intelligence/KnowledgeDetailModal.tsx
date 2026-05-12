@@ -17,7 +17,7 @@
  */
 
 import { Fragment } from "react";
-import { Copy } from "lucide-react";
+import { Copy, ExternalLink } from "lucide-react";
 import type { KnowledgeSearchResult } from "@/lib/api";
 import {
   Sheet,
@@ -103,7 +103,7 @@ export default function KnowledgeDetailModal({
                   flexWrap: "wrap",
                 }}
               >
-                <SourceBadgeRag kind={sourceMeta.kind} label={sourceMeta.label} />
+                <SourceBadgeRag source={result.source} />
                 {sourceMeta.isAI && <DraftAIBadge />}
               </div>
               <SheetTitle
@@ -117,7 +117,7 @@ export default function KnowledgeDetailModal({
                   letterSpacing: "-0.005em",
                 }}
               >
-                {result.sectionTitle || result.slug}
+                {result.entryTitle ?? result.sectionTitle ?? result.slug}
               </SheetTitle>
             </SheetHeader>
 
@@ -236,6 +236,68 @@ export default function KnowledgeDetailModal({
                 <Copy size={14} aria-hidden />
                 Copier la citation
               </button>
+              {result.sourceUrl ? (
+                <a
+                  href={result.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Ouvrir la source dans un nouvel onglet"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                    fontWeight: 500,
+                    fontSize: 13,
+                    padding: "8px 14px",
+                    borderRadius: 10,
+                    border: `0.5px solid ${NAMI.borderStrong}`,
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: NAMI.text,
+                    textDecoration: "none",
+                    letterSpacing: "-0.005em",
+                    transition: `all 200ms ${NAMI.ease}`,
+                  }}
+                >
+                  <ExternalLink size={14} aria-hidden />
+                  Ouvrir la source
+                  {result.format && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: NAMI.textFaint,
+                        marginLeft: 2,
+                      }}
+                    >
+                      ({result.format})
+                    </span>
+                  )}
+                </a>
+              ) : (
+                <span
+                  title="Lien source non disponible"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                    fontWeight: 500,
+                    fontSize: 13,
+                    padding: "8px 14px",
+                    borderRadius: 10,
+                    border: `0.5px solid ${NAMI.border}`,
+                    background: "#fff",
+                    color: NAMI.textFaint,
+                    opacity: 0.5,
+                    cursor: "not-allowed",
+                    letterSpacing: "-0.005em",
+                  }}
+                >
+                  <ExternalLink size={14} aria-hidden />
+                  Source non disponible
+                </span>
+              )}
             </SheetFooter>
           </div>
         )}

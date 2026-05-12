@@ -1,39 +1,60 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import SourceBadgeRag from "../SourceBadgeRag";
-import type { RagSourceKind } from "../_tokens";
+import type { SourceLabel } from "@/lib/api";
 
-describe("SourceBadgeRag", () => {
-  it("renders label for HAS kind (uppercase styling)", () => {
-    render(<SourceBadgeRag kind="HAS" label="HAS" />);
+describe("SourceBadgeRag (V2.1 — payload backend source)", () => {
+  it("renders label for HAS", () => {
+    render(<SourceBadgeRag source="HAS" />);
     expect(screen.getByText("HAS")).toBeInTheDocument();
   });
 
-  it("renders label for FFAB kind", () => {
-    render(<SourceBadgeRag kind="FFAB" label="FFAB" />);
+  it("renders label for FFAB", () => {
+    render(<SourceBadgeRag source="FFAB" />);
     expect(screen.getByText("FFAB")).toBeInTheDocument();
   });
 
-  it("renders italic label for NAMI_ALGO kind", () => {
-    render(<SourceBadgeRag kind="NAMI_ALGO" label="Nami algo" />);
-    const el = screen.getByText("Nami algo");
-    expect(el).toBeInTheDocument();
-    expect(el).toHaveStyle({ fontStyle: "italic" });
+  it("renders nothing when source is null", () => {
+    const { container } = render(<SourceBadgeRag source={null} />);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders italic label for NAMI_EXTRACT kind", () => {
-    render(<SourceBadgeRag kind="NAMI_EXTRACT" label="Nami extrait" />);
-    const el = screen.getByText("Nami extrait");
-    expect(el).toBeInTheDocument();
-    expect(el).toHaveStyle({ fontStyle: "italic" });
+  it("applies aria-label for accessibility", () => {
+    render(<SourceBadgeRag source="ANSM" />);
+    expect(screen.getByLabelText("Source : ANSM")).toBeInTheDocument();
   });
 
-  it.each<RagSourceKind>(["HAS", "FFAB", "NAMI_ALGO", "NAMI_EXTRACT"])(
-    "applies pill rounded shape (border-radius 999) for kind %s",
-    (kind) => {
-      render(<SourceBadgeRag kind={kind} label={`label-${kind}`} />);
-      const el = screen.getByText(`label-${kind}`);
-      expect(el).toHaveStyle({ borderRadius: "999px" });
-    },
-  );
+  it("renders white text on solid background (uppercase letters)", () => {
+    render(<SourceBadgeRag source="DSM-5" />);
+    const el = screen.getByText("DSM-5");
+    expect(el).toHaveStyle({ color: "#FFFFFF" });
+    expect(el).toHaveStyle({ textTransform: "uppercase" });
+  });
+
+  it.each<SourceLabel>([
+    "HAS",
+    "FFAB",
+    "ANSM",
+    "DSM-5",
+    "ESPGHAN",
+    "INCA",
+    "ORPHANET",
+    "FICHE",
+    "OTHER",
+  ])("renders all 9 source labels — %s", (source) => {
+    render(<SourceBadgeRag source={source} />);
+    expect(screen.getByText(source)).toBeInTheDocument();
+  });
+
+  it("supports size prop md", () => {
+    render(<SourceBadgeRag source="HAS" size="md" />);
+    const el = screen.getByText("HAS");
+    expect(el).toHaveStyle({ fontSize: "11px" });
+  });
+
+  it("default size is sm (10px font)", () => {
+    render(<SourceBadgeRag source="HAS" />);
+    const el = screen.getByText("HAS");
+    expect(el).toHaveStyle({ fontSize: "10px" });
+  });
 });

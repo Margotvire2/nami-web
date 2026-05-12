@@ -633,6 +633,19 @@ export interface SemanticSearchResult {
   score: number;
 }
 
+export type SourceLabel =
+  | "HAS"
+  | "FFAB"
+  | "ANSM"
+  | "DSM-5"
+  | "ESPGHAN"
+  | "INCA"
+  | "ORPHANET"
+  | "FICHE"
+  | "OTHER";
+
+export type SourceFormat = "PDF" | "PPT" | "HTML" | "DOC" | "XLS" | "OTHER";
+
 export interface KnowledgeSearchResult {
   id: string;
   slug: string;
@@ -640,6 +653,12 @@ export interface KnowledgeSearchResult {
   content: string;
   score: number;
   qualityScore: number;
+  // Champs V2.1 — payload enrichi via FK entry (tous nullables)
+  source: SourceLabel | null;
+  sourceUrl: string | null;
+  entryTitle: string | null;
+  pageNumber: number | null;
+  format: SourceFormat | null;
 }
 
 export interface KnowledgeEntryDetail {
