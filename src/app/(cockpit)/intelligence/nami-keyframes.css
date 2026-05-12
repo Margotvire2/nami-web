@@ -1,0 +1,56 @@
+/* Phase 3.B.3 — Animations CSS keyframes du module /intelligence.
+ *
+ * Référencées via inline styles dans :
+ *   - intelligence/ResultCard.tsx       → namiCardIn (stagger), namiRelGrow, namiBreathe
+ *   - intelligence/RagConsensusBlock.tsx → namiCardIn
+ *   - intelligence/atoms/RelevanceBar.tsx → namiRelGrow + namiBreathe (si featured)
+ *   - ui/sheet (base-ui Dialog) gère sa propre animation slide-in/out native.
+ *
+ * Durées et easings VERROUILLÉS par le brief Phase 3.B.3 (palette Nami stricte).
+ */
+
+@keyframes namiCardIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes namiRelGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(var(--rel, 1));
+  }
+}
+
+@keyframes namiBreathe {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes namiSheetIn {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes namiBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

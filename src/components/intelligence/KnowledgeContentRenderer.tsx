@@ -1,24 +1,24 @@
 "use client";
 
 /**
- * KnowledgeContentRenderer — rendu structuré du contenu d'une fiche RAG
- * dans le modal détail (`KnowledgeDetailModal`).
+ * KnowledgeContentRenderer — rendu structuré V4 (Phase 3.B.3).
  *
- * Phase 3.B.2 : la détection slide-deck (PowerPoint) est désormais basée
- * sur la présence de marqueurs `--- Slide N ---` dans le contenu (via
- * `hasSlideMarkers`) et NON plus sur le slug source. La détection précédente
- * `source === "FFAB"` était dead code (slugToCategory ne retourne jamais
- * "FFAB"). Le preprocess `cleanRagContent` est appliqué AVANT le parsing
- * markdown pour TOUS les types de source (strip puces PPT 9/x/■▪▫●◦,
- * rupture parenthèse).
+ * Préserve la logique Phase 3.B.2 INTACTE :
+ *   - cleanRagContent() en preprocess universel
+ *   - hasSlideMarkers() pour basculer sur SlideBlock visuel
+ *   - splitSlides() pour découper les slide-decks
  *
- * Prop `source` conservée dans la signature pour compatibilité appelant
- * (utilisée par d'autres futurs renderers spécifiques au type éventuels).
+ * Changement Phase 3.B.3 : visuel passé en palette Nami stricte (variables
+ * inline NAMI tokens), suppression des Tailwind purple/indigo génériques.
+ * SlideBlock formaté avec eyebrow violet uppercase + body lisible + dashed
+ * separator entre slides. Markdown headings/lists/tables ré-stylés Nami.
  *
- * Helpers `headingEmoji` et `renderInline` exclusifs à ce composant.
+ * Helpers `headingEmoji` et `renderInline` conservés.
  */
 
+import { Fragment, type ReactNode } from "react";
 import { cleanRagContent, hasSlideMarkers, splitSlides } from "@/lib/ragContentCleanup";
+import { NAMI } from "./atoms/_tokens";
 
 function headingEmoji(text: string): string {
   const t = text.toLowerCase();
@@ -27,13 +27,12 @@ function headingEmoji(text: string): string {
   if (t.includes("traitement") || t.includes("prise en charge") || t.includes("thérapeutique") || t.includes("prescription")) return "💊";
   if (t.includes("signe") || t.includes("symptôme") || t.includes("clinique") || t.includes("manifestation")) return "🩺";
   if (t.includes("examen") || t.includes("bilan") || t.includes("biologie") || t.includes("paraclinique")) return "🧪";
-  if (t.includes("compli") || t.includes("risque")) return "⚠️";
+  if (t.includes("compli")) return "⚠️";
   if (t.includes("épidémio") || t.includes("prévalence") || t.includes("incidence") || t.includes("fréquence")) return "📊";
   if (t.includes("étiologie") || t.includes("cause") || t.includes("physiopathologie") || t.includes("mécanisme")) return "🔬";
   if (t.includes("pronostic") || t.includes("évolution") || t.includes("guérison")) return "📈";
   if (t.includes("prévention") || t.includes("prophylaxie") || t.includes("vaccination")) return "🛡️";
-  if (t.includes("urgence") || t.includes("hospitalisation")) return "🚨";
-  if (t.includes("suivi") || t.includes("surveillance") || t.includes("monitoring")) return "📅";
+  if (t.includes("hospitalisation")) return "🚨";
   if (t.includes("source") || t.includes("référence") || t.includes("bibliographie")) return "📚";
   if (t.includes("nutrition") || t.includes("alimentaire") || t.includes("apport")) return "🥗";
   if (t.includes("médicament") || t.includes("pharmaco") || t.includes("posologie") || t.includes("dose")) return "💉";
@@ -42,38 +41,116 @@ function headingEmoji(text: string): string {
   return "";
 }
 
-function renderInline(text: string): React.ReactNode {
+function renderInline(text: string): ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/);
   return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**"))
-      return <strong key={i} className="font-semibold text-gray-800">{part.slice(2, -2)}</strong>;
-    if (part.startsWith("*") && part.endsWith("*"))
-      return <em key={i} className="italic text-gray-600">{part.slice(1, -1)}</em>;
-    if (part.startsWith("`") && part.endsWith("`"))
-      return <code key={i} className="font-mono text-[11px] bg-gray-100 text-gray-700 px-1 py-0.5 rounded">{part.slice(1, -1)}</code>;
-    return part;
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} style={{ fontWeight: 600, color: NAMI.text }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return (
+        <em key={i} style={{ fontStyle: "italic", color: NAMI.textMuted }}>
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code
+          key={i}
+          style={{
+            fontFamily: "Inter, monospace",
+            fontSize: 11,
+            background: NAMI.bgAlt,
+            color: NAMI.textMuted,
+            padding: "1px 5px",
+            borderRadius: 4,
+          }}
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
   });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function KnowledgeContentRenderer({ content, source: _source }: { content: string; source: string }) {
-  // Preprocess universel : strip puces PPT, normalise sauts de ligne, etc.
+export default function KnowledgeContentRenderer({
+  content,
+  source: _source,
+}: {
+  content: string;
+  source: string;
+}) {
   const cleaned = cleanRagContent(content);
 
-  // Slide-deck : détection basée sur les marqueurs "--- Slide N ---"
-  // dans le contenu (Phase 3.B.2 : remplace l'ancienne détection par slug
-  // qui était dead code).
+  // Slide-deck : détection par contenu (Phase 3.B.2 acquis)
   if (hasSlideMarkers(cleaned)) {
     const slides = splitSlides(cleaned);
     return (
-      <div className="space-y-3">
-        {slides.map((slide) => (
-          <div key={slide.slideNumber} className="rounded-xl bg-purple-50/60 border border-purple-100 p-4">
-            <p className="text-[11px] font-bold text-purple-600 uppercase tracking-wide mb-2">
-              📋 Slide {slide.slideNumber}{slide.title ? ` — ${slide.title}` : ""}
-            </p>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 14,
+          fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+        }}
+      >
+        {slides.map((slide, idx) => (
+          <div
+            key={slide.slideNumber}
+            style={{
+              paddingTop: idx === 0 ? 0 : 14,
+              borderTop: idx === 0 ? "none" : `0.5px dashed ${NAMI.borderStrong}`,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "Inter, system-ui, sans-serif",
+                fontWeight: 600,
+                fontSize: 10,
+                color: NAMI.violet,
+                letterSpacing: "0.10em",
+                textTransform: "uppercase",
+                marginBottom: 6,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              ▸ Slide {slide.slideNumber}
+            </div>
+            {slide.title && (
+              <h4
+                style={{
+                  fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                  fontWeight: 500,
+                  fontSize: 14,
+                  color: NAMI.text,
+                  margin: "0 0 8px",
+                  letterSpacing: "-0.005em",
+                }}
+              >
+                {slide.title}
+              </h4>
+            )}
             {slide.content && (
-              <div className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-line">{slide.content}</div>
+              <div
+                style={{
+                  fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                  fontWeight: 400,
+                  fontSize: 13,
+                  lineHeight: 1.65,
+                  color: NAMI.textMuted,
+                  whiteSpace: "pre-line",
+                  maxWidth: "60ch",
+                }}
+              >
+                {slide.content}
+              </div>
             )}
           </div>
         ))}
@@ -81,25 +158,49 @@ export default function KnowledgeContentRenderer({ content, source: _source }: {
     );
   }
 
-  // FICHE / HAS / ORPHANET / ALGORITHME : markdown structuré
+  // Markdown structuré (HAS / fiches / algos)
   const lines = cleaned.split("\n");
-  const elements: React.ReactNode[] = [];
+  const elements: ReactNode[] = [];
   const listBuffer: string[] = [];
   let key = 0;
 
   const flushList = () => {
     if (listBuffer.length === 0) return;
+    const items = listBuffer.slice();
+    listBuffer.length = 0;
     elements.push(
-      <ul key={key++} className="my-2 space-y-1 pl-0">
-        {listBuffer.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-[13px] text-gray-600 leading-relaxed">
-            <span className="mt-[6px] shrink-0 w-1.5 h-1.5 rounded-full bg-indigo-300" />
+      <ul key={key++} style={{ margin: "8px 0", padding: 0, listStyle: "none" }}>
+        {items.map((item, i) => (
+          <li
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+              fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+              fontWeight: 400,
+              fontSize: 13,
+              lineHeight: 1.65,
+              color: NAMI.textMuted,
+              padding: "2px 0",
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                marginTop: 7,
+                flexShrink: 0,
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: NAMI.violetSoft3,
+              }}
+            />
             <span>{renderInline(item)}</span>
           </li>
         ))}
-      </ul>
+      </ul>,
     );
-    listBuffer.length = 0;
   };
 
   for (const line of lines) {
@@ -108,66 +209,150 @@ export default function KnowledgeContentRenderer({ content, source: _source }: {
       const text = line.slice(2);
       const emoji = headingEmoji(text);
       elements.push(
-        <h1 key={key++} className="flex items-center gap-2 text-base font-bold mt-6 mb-3 first:mt-0 text-gray-900">
-          {emoji && <span className="text-lg">{emoji}</span>}
+        <h1
+          key={key++}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            fontSize: 16,
+            fontWeight: 600,
+            color: NAMI.text,
+            margin: "20px 0 10px",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {emoji && <span aria-hidden style={{ fontSize: 18 }}>{emoji}</span>}
           <span>{text}</span>
-        </h1>
+        </h1>,
       );
     } else if (line.startsWith("## ")) {
       flushList();
       const text = line.slice(3);
       const emoji = headingEmoji(text);
       elements.push(
-        <h2 key={key++} className="flex items-center gap-2 text-sm font-semibold mt-5 mb-2 text-gray-900 border-l-[3px] border-indigo-200 pl-3 py-0.5">
-          {emoji && <span>{emoji}</span>}
+        <h2
+          key={key++}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            fontSize: 14,
+            fontWeight: 600,
+            color: NAMI.text,
+            margin: "16px 0 6px",
+            paddingLeft: 10,
+            borderLeft: `3px solid ${NAMI.violetSoft3}`,
+            letterSpacing: "-0.005em",
+          }}
+        >
+          {emoji && <span aria-hidden>{emoji}</span>}
           <span>{text}</span>
-        </h2>
+        </h2>,
       );
     } else if (line.startsWith("### ")) {
       flushList();
       const text = line.slice(4);
       const emoji = headingEmoji(text);
       elements.push(
-        <h3 key={key++} className="flex items-center gap-1.5 text-[11px] font-bold mt-4 mb-1.5 text-indigo-500 uppercase tracking-wider">
-          {emoji && <span className="normal-case text-[13px]">{emoji}</span>}
+        <h3
+          key={key++}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "Inter, system-ui, sans-serif",
+            fontSize: 11,
+            fontWeight: 600,
+            color: NAMI.violet,
+            margin: "14px 0 4px",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          {emoji && <span aria-hidden style={{ textTransform: "none", fontSize: 13 }}>{emoji}</span>}
           <span>{text}</span>
-        </h3>
+        </h3>,
       );
     } else if (line.match(/^\|[-:\s|]+\|/)) {
       flushList();
       // séparateur tableau — ignoré
     } else if (line.startsWith("|")) {
       flushList();
-      const cells = line.split("|").filter(Boolean).map(c => c.trim());
+      const cells = line.split("|").filter(Boolean).map((c) => c.trim());
       elements.push(
-        <div key={key++} className="flex gap-3 text-[12px] py-1.5 border-b border-gray-50 last:border-0">
+        <div
+          key={key++}
+          style={{
+            display: "flex",
+            gap: 12,
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            fontSize: 12,
+            padding: "6px 0",
+            borderBottom: `0.5px solid ${NAMI.border}`,
+          }}
+        >
           {cells.map((c, j) => (
-            <span key={j} className={j === 0 ? "font-semibold text-gray-700 w-40 shrink-0" : "text-gray-600 flex-1"}>
+            <span
+              key={j}
+              style={
+                j === 0
+                  ? {
+                      fontWeight: 600,
+                      color: NAMI.text,
+                      width: 160,
+                      flexShrink: 0,
+                    }
+                  : { color: NAMI.textMuted, flex: 1 }
+              }
+            >
               {renderInline(c)}
             </span>
           ))}
-        </div>
+        </div>,
       );
     } else if (line.startsWith("- ") || line.startsWith("* ") || /^\d+\.\s/.test(line)) {
       const text = /^\d+\.\s/.test(line) ? line.replace(/^\d+\.\s/, "") : line.slice(2);
       listBuffer.push(text);
     } else if (line.trim() === "---") {
       flushList();
-      elements.push(<hr key={key++} className="border-gray-100 my-4" />);
+      elements.push(
+        <hr
+          key={key++}
+          style={{
+            border: "none",
+            borderTop: `0.5px solid ${NAMI.border}`,
+            margin: "14px 0",
+          }}
+        />,
+      );
     } else if (line.trim() === "") {
       flushList();
-      elements.push(<div key={key++} className="h-1.5" />);
+      elements.push(<div key={key++} style={{ height: 6 }} />);
     } else {
       flushList();
       elements.push(
-        <p key={key++} className="text-[13px] leading-relaxed text-gray-600">
+        <p
+          key={key++}
+          style={{
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            fontWeight: 400,
+            fontSize: 13,
+            lineHeight: 1.65,
+            color: NAMI.textMuted,
+            margin: "4px 0",
+            maxWidth: "60ch",
+          }}
+        >
           {renderInline(line)}
-        </p>
+        </p>,
       );
     }
   }
 
   flushList();
 
-  return <div className="space-y-0 px-1">{elements}</div>;
+  return <div style={{ padding: "0 2px" }}>{elements}</div>;
 }

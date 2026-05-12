@@ -1,96 +1,245 @@
 "use client";
 
 /**
- * KnowledgeDetailModal — modal détail d'un résultat RAG.
+ * KnowledgeDetailModal — sheet latérale (Niveau 3 V4) du détail RAG.
+ * Phase 3.B.3 — migration de l'overlay maison vers ui/sheet (base-ui Dialog).
  *
- * ⚠️ Structure conservée à l'identique : overlay maison `<div fixed inset-0>`
- * et non Sheet shadcn. Migration vers `ui/sheet` réservée Phase 3.B.3.
+ * Layout :
+ *   - Slide depuis la droite (animation native ui/sheet)
+ *   - Header : SourceBadgeRag + DraftAIBadge (si isAI) + titre H2
+ *   - Body : snippet tokenisé (ClinicalCriterion) + grille meta sur fond bgAlt
+ *           + content full via KnowledgeContentRenderer (markdown / SlideBlock)
+ *   - Footer : "Copier la citation" primary
+ *
+ * Champs absents du payload backend :
+ *   - sourceUrl → bouton "Ouvrir la source" non rendu (ticket dérivé D2)
+ *   - entryTitle → fallback sectionTitle
  */
 
-import { useEffect } from "react";
-import { FileText, X } from "lucide-react";
+import { Fragment } from "react";
+import { Copy } from "lucide-react";
 import type { KnowledgeSearchResult } from "@/lib/api";
-import { slugToCategory, CATEGORY_META, SOURCE_ICON } from "./_utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { NAMI, deriveRagSource } from "./atoms/_tokens";
+import { tokenizeSnippet } from "./atoms/_criteria";
+import { cleanRagContent } from "@/lib/ragContentCleanup";
+import SourceBadgeRag from "./atoms/SourceBadgeRag";
+import DraftAIBadge from "./atoms/DraftAIBadge";
 import KnowledgeContentRenderer from "./KnowledgeContentRenderer";
+
+function copyCitation(result: KnowledgeSearchResult, label: string): void {
+  const citation = `${label} · ${result.sectionTitle || result.slug}\n${result.slug}`;
+  if (typeof navigator !== "undefined" && navigator.clipboard) {
+    void navigator.clipboard.writeText(citation);
+  }
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <>
+      <span
+        style={{
+          color: NAMI.textFaint,
+          fontVariantNumeric: "tabular-nums",
+          letterSpacing: "0.02em",
+        }}
+      >
+        {label}
+      </span>
+      <span>{value}</span>
+    </>
+  );
+}
 
 export default function KnowledgeDetailModal({
   result,
   onClose,
 }: {
-  result: KnowledgeSearchResult;
+  result: KnowledgeSearchResult | null;
   onClose: () => void;
 }) {
-  const cat = slugToCategory(result.slug);
-  const meta = CATEGORY_META[cat];
-  const Icon = SOURCE_ICON[cat] ?? FileText;
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  const open = result !== null;
+  const sourceMeta = result ? deriveRagSource(result.slug) : null;
+  const snippetPreview = result ? cleanRagContent(result.content) : "";
+  const tokens = result ? tokenizeSnippet(snippetPreview.slice(0, 360)) : [];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
+    <Sheet
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
     >
-      <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+      <SheetContent
+        side="right"
+        className="!w-[480px] !max-w-[90vw] !sm:max-w-[480px] !bg-[#FAFAF8] !p-0 !border-l-[0.5px] !border-l-[rgba(26,26,46,0.06)]"
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 px-6 py-4 border-b shrink-0">
-          <div className="flex items-start gap-3 min-w-0">
-            <div
+        {result && sourceMeta && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            }}
+          >
+            <SheetHeader
               style={{
-                marginTop: 2, flexShrink: 0, padding: "6px",
-                borderRadius: 8, border: `1px solid ${meta?.color ?? "#6B7280"}22`,
-                background: meta?.bg ?? "rgba(138,138,150,0.10)",
-                color: meta?.color ?? "#6B7280",
+                padding: "28px 28px 14px",
+                gap: 10,
+                borderBottom: `0.5px solid ${NAMI.border}`,
               }}
             >
-              <Icon size={14} />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-gray-900 leading-snug">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <SourceBadgeRag kind={sourceMeta.kind} label={sourceMeta.label} />
+                {sourceMeta.isAI && <DraftAIBadge />}
+              </div>
+              <SheetTitle
+                style={{
+                  fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                  fontWeight: 500,
+                  fontSize: 17,
+                  lineHeight: 1.35,
+                  color: NAMI.text,
+                  margin: "4px 0 0",
+                  letterSpacing: "-0.005em",
+                }}
+              >
                 {result.sectionTitle || result.slug}
-              </h2>
-              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                <span
-                  style={{
-                    fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: meta?.color ?? "#6B7280",
-                    background: meta?.bg ?? "rgba(138,138,150,0.10)",
-                    padding: "2px 8px", borderRadius: 6,
-                  }}
-                >
-                  {meta?.label ?? cat}
-                </span>
-                <span className="text-[10px] text-gray-400 font-mono">{result.slug}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#5B4EC4" }}>
-                  {Math.round(result.score * 100)}% pertinence
-                </span>
-                <span className="text-[10px] text-gray-400">
-                  qualité {Math.round(result.qualityScore * 100)}%
-                </span>
+              </SheetTitle>
+            </SheetHeader>
+
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "16px 28px 12px",
+              }}
+            >
+              {/* Snippet tokenisé (aperçu) */}
+              <p
+                style={{
+                  fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                  fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: 1.75,
+                  color: NAMI.text,
+                  margin: "0 0 12px",
+                  maxWidth: "60ch",
+                }}
+              >
+                {tokens.map((tok, i) =>
+                  tok.type === "text" ? (
+                    <Fragment key={i}>{tok.value}</Fragment>
+                  ) : (
+                    <span
+                      key={i}
+                      style={{
+                        display: "inline",
+                        fontFamily: "Inter, system-ui, sans-serif",
+                        fontWeight: 500,
+                        fontSize: 13,
+                        color: NAMI.text,
+                        background: NAMI.violetSoft,
+                        padding: "2px 7px",
+                        borderRadius: 4,
+                        whiteSpace: "nowrap",
+                        fontVariantNumeric: "tabular-nums",
+                        letterSpacing: "-0.005em",
+                      }}
+                    >
+                      {tok.value}
+                    </span>
+                  ),
+                )}
+              </p>
+
+              {/* Grille meta */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gap: "8px 14px",
+                  margin: "12px 0",
+                  padding: "12px 14px",
+                  background: NAMI.bgAlt,
+                  borderRadius: 10,
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  fontWeight: 400,
+                  fontSize: 12,
+                  color: NAMI.textMuted,
+                }}
+              >
+                <MetaRow label="Source" value={sourceMeta.label} />
+                <MetaRow label="Document" value={result.slug} />
+                <MetaRow
+                  label="Pertinence"
+                  value={`${Math.round(result.score * 100)} / 100 · qualité ${Math.round(result.qualityScore * 100)} / 100`}
+                />
+              </div>
+
+              {/* Contenu complet via renderer */}
+              <div
+                style={{
+                  marginTop: 16,
+                  paddingTop: 14,
+                  borderTop: `0.5px solid ${NAMI.border}`,
+                }}
+              >
+                <KnowledgeContentRenderer
+                  content={result.content}
+                  source={sourceMeta.kind}
+                />
               </div>
             </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
-          >
-            <X size={15} />
-          </button>
-        </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          <KnowledgeContentRenderer content={result.content} source={cat} />
-        </div>
-      </div>
-    </div>
+            <SheetFooter
+              style={{
+                padding: "14px 28px 20px",
+                borderTop: `0.5px solid ${NAMI.border}`,
+                flexDirection: "row",
+                gap: 8,
+              }}
+            >
+              <button
+                onClick={() => copyCitation(result, sourceMeta.label)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+                  fontWeight: 500,
+                  fontSize: 13,
+                  padding: "8px 14px",
+                  borderRadius: 10,
+                  border: "none",
+                  cursor: "pointer",
+                  background: NAMI.violet,
+                  color: "#fff",
+                  boxShadow: "0 1px 3px rgba(91,78,196,0.25)",
+                  letterSpacing: "-0.005em",
+                  transition: `all 200ms ${NAMI.ease}`,
+                }}
+              >
+                <Copy size={14} aria-hidden />
+                Copier la citation
+              </button>
+            </SheetFooter>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }
