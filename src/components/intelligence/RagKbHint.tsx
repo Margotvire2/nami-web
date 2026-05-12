@@ -62,7 +62,7 @@ export default function RagKbHint({
       <Keyboard size={14} color={NAMI.violet} aria-hidden />
       <span>
         <Kbd>J</Kbd>
-        <Kbd>K</Kbd> naviguer · <Kbd>↵</Kbd> ouvrir · <Kbd>E</Kbd> étendre · <Kbd>⌘C</Kbd> citer
+        <Kbd>K</Kbd> naviguer · <Kbd>↵</Kbd> ouvrir · <Kbd>Esc</Kbd> fermer
       </span>
       <button
         onClick={onDismiss}

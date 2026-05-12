@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type KnowledgeSearchResult } from "@/lib/api";
 import { Search, FileText, FlaskConical, X, MessageSquare } from "lucide-react";
@@ -47,6 +47,37 @@ const MOCK_CONSENSUS: ConsensusItem[] = [
 
 const CONSENSUS_TRIGGER = "hospitalisation";
 
+// ── Filtre PNDS hors-scope TCA (Phase 3.B.4)
+// Stratégie C : slug blacklist ciblée appliquée UNIQUEMENT quand la query
+// contient des mots-clés TCA. Ne masque jamais sur d'autres contextes
+// (ex. une recherche "AMP" légitime continue de retourner les PNDS AMP).
+// Pas de seuil dur sur le score — on préserve les résultats à faible
+// pertinence qui peuvent rester utiles cliniquement.
+const PNDS_OUT_OF_SCOPE_TCA_PATTERNS: RegExp[] = [
+  /^pnds_amp/i,
+  /procreation/i,
+  /assistance.medicale.procreation/i,
+];
+
+const TCA_QUERY_KEYWORDS = [
+  "tca",
+  "anorexie",
+  "boulimie",
+  "hyperphagie",
+  "comportement alimentaire",
+  "restriction alimentaire",
+  "compulsion alimentaire",
+];
+
+function isTcaQuery(q: string): boolean {
+  const lower = q.toLowerCase();
+  return TCA_QUERY_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+function isHorsScopeTcaSlug(slug: string): boolean {
+  return PNDS_OUT_OF_SCOPE_TCA_PATTERNS.some((pat) => pat.test(slug));
+}
+
 export default function IntelligencePage() {
   const { accessToken } = useAuthStore();
   const [mode, setMode] = useState<"search" | "qa">("search");
@@ -83,11 +114,22 @@ export default function IntelligencePage() {
     if (e.key === "Enter") doSearch(query);
   };
 
-  const filteredResults = activeSource
-    ? results.filter((r) => slugToCategory(r.slug) === activeSource)
-    : results;
+  // Phase 3.B.4 — filtre PNDS hors-scope TCA appliqué AVANT le filtre source.
+  const pndsScopedResults = useMemo(
+    () =>
+      isTcaQuery(query)
+        ? results.filter((r) => !isHorsScopeTcaSlug(r.slug))
+        : results,
+    [results, query],
+  );
 
-  const sourceCounts = results.reduce<Record<string, number>>((acc, r) => {
+  const filteredResults = activeSource
+    ? pndsScopedResults.filter((r) => slugToCategory(r.slug) === activeSource)
+    : pndsScopedResults;
+
+  const pndsHiddenCount = results.length - pndsScopedResults.length;
+
+  const sourceCounts = pndsScopedResults.reduce<Record<string, number>>((acc, r) => {
     const cat = slugToCategory(r.slug);
     acc[cat] = (acc[cat] ?? 0) + 1;
     return acc;
@@ -328,6 +370,20 @@ export default function IntelligencePage() {
                     onSympathy={handleSympathy}
                   />
                 ))}
+                {pndsHiddenCount > 0 && (
+                  <p
+                    style={{
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      fontSize: 11,
+                      color: "#8A8A96",
+                      marginTop: 12,
+                      textAlign: "center",
+                    }}
+                  >
+                    {pndsHiddenCount} résultat{pndsHiddenCount > 1 ? "s" : ""}{" "}
+                    hors-scope TCA masqué{pndsHiddenCount > 1 ? "s" : ""}
+                  </p>
+                )}
               </div>
             )}
 
