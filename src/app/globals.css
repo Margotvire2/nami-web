@@ -129,6 +129,26 @@ html, body {
   --radius-2xl: 16px;
   --radius-3xl: 20px;
   --radius-4xl: 24px;
+
+  /* ── Liquid Glass × Nami — Variantes de profondeur ── */
+  --backdrop-blur-glass-soft: 20px;
+  --backdrop-blur-glass-medium: 28px;
+  --backdrop-blur-glass-strong: 44px;
+  --backdrop-blur-glass-backdrop: 6px;
+
+  --backdrop-saturate-glass-soft: 1.6;
+  --backdrop-saturate-glass-medium: 1.8;
+  --backdrop-saturate-glass-strong: 2;
+
+  /* ── Liquid Glass × Nami — Surfaces blanches translucides ── */
+  --color-glass-soft-bg: rgb(255 255 255 / 0.3);
+  --color-glass-medium-bg: rgb(255 255 255 / 0.45);
+  --color-glass-strong-bg: rgb(255 255 255 / 0.55);
+  --color-glass-backdrop-bg: rgb(26 26 46 / 0.2);
+
+  --color-glass-soft-border: rgb(255 255 255 / 0.4);
+  --color-glass-medium-border: rgb(255 255 255 / 0.5);
+  --color-glass-strong-border: rgb(255 255 255 / 0.6);
 }
 
 :root {
@@ -491,4 +511,49 @@ html, body {
     font-size: 12px;
     color: #94A3B8;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS × NAMI — Utilities composites
+   ═══════════════════════════════════════════════════════════════════════════
+   Règle d'or :
+     - Glass pour l'ambiance et la navigation (cards, sidebars, sheets)
+     - Solid obligatoire pour la donnée clinique (priorité, statut,
+       consentement, chiffres IMC/FC/glycémie)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@utility glass-soft {
+  background-color: var(--color-glass-soft-bg);
+  backdrop-filter: blur(var(--backdrop-blur-glass-soft)) saturate(var(--backdrop-saturate-glass-soft));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur-glass-soft)) saturate(var(--backdrop-saturate-glass-soft));
+  border: 1px solid var(--color-glass-soft-border);
+  box-shadow:
+    0 2px 12px rgb(26 26 46 / 0.04),
+    inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+@utility glass-medium {
+  background-color: var(--color-glass-medium-bg);
+  backdrop-filter: blur(var(--backdrop-blur-glass-medium)) saturate(var(--backdrop-saturate-glass-medium));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur-glass-medium)) saturate(var(--backdrop-saturate-glass-medium));
+  border: 1px solid var(--color-glass-medium-border);
+  box-shadow:
+    0 4px 24px rgb(26 26 46 / 0.06),
+    inset 0 1px 0 rgb(255 255 255 / 0.8);
+}
+
+@utility glass-strong {
+  background-color: var(--color-glass-strong-bg);
+  backdrop-filter: blur(var(--backdrop-blur-glass-strong)) saturate(var(--backdrop-saturate-glass-strong));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur-glass-strong)) saturate(var(--backdrop-saturate-glass-strong));
+  border: 1px solid var(--color-glass-strong-border);
+  box-shadow:
+    0 16px 48px rgb(26 26 46 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+@utility glass-backdrop {
+  background-color: var(--color-glass-backdrop-bg);
+  backdrop-filter: blur(var(--backdrop-blur-glass-backdrop));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur-glass-backdrop));
 }
