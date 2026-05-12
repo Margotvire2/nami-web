@@ -2,7 +2,7 @@
  * ConsentChip — SOLID (jamais glass).
  * Indicateur de consentement patient avec 3 états MDR :
  *   - ✓ Consentement (true)  → vert teal (sécurité)
- *   - ✗ Consentement manquant (false) → rouge (alerte action requise)
+ *   - ✗ Consentement manquant (false) → rouge (signal action requise)
  *   - À vérifier (null/undefined) → ambre neutre (signal "donnée à valider")
  *
  * Le data Referral actuel n'expose pas patientConsent en lecture ; ce composant
