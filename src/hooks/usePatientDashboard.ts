@@ -88,6 +88,6 @@ export function usePatientDashboard(careCaseId: string | undefined) {
     },
     enabled: !!careCaseId,
     staleTime: 30_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 }

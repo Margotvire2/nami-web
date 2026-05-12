@@ -248,14 +248,25 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   });
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+  // Partage la même queryKey ["care-case", id] que le parent : React Query
+  // dédoublonne automatiquement le fetch en vol et hit le cache si déjà chargé.
+  // L'ancien useEffect → api.get hors-cache générait un doublon réseau au mount.
+  // Note : `updatedAt` est renvoyé par le backend mais absent du type
+  // CareCaseDetail (lib/api.ts) — cast local pour éviter une modif hors scope.
+  type CareCaseWithMeta = CareCaseDetail & { updatedAt?: string | null };
+  const { data: careCase } = useQuery<CareCaseWithMeta>({
+    queryKey: ["care-case", careCaseId],
+    queryFn: () => api.get(`/care-cases/${careCaseId}`).then((r) => r.data as CareCaseWithMeta),
+    staleTime: 30_000,
+    enabled: !!careCaseId,
+  });
+
   useEffect(() => {
-    api.get(`/care-cases/${careCaseId}`).then((res) => {
-      if (res.data?.clinicalSummary) {
-        setSections(parseSummary(res.data.clinicalSummary));
-        setLastUpdated(res.data.updatedAt || null);
-      }
-    }).catch(() => {});
-  }, [careCaseId]);
+    if (careCase?.clinicalSummary) {
+      setSections(parseSummary(careCase.clinicalSummary));
+      setLastUpdated(careCase.updatedAt || null);
+    }
+  }, [careCase?.clinicalSummary, careCase?.updatedAt]);
 
   const generate = useCallback(async () => {
     const token = (() => {
@@ -284,17 +295,14 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
         const { status } = await statusRes.json() as { status: string };
         if (status === "completed") {
           setIsStreaming(false);
+          // L'invalidate ["care-case", id] refetch automatiquement le useQuery
+          // partagé ; le useEffect réactif re-set sections + lastUpdated avec
+          // la nouvelle data. Plus besoin de api.get redondant.
           qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
           qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
           qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
           qc.invalidateQueries({ queryKey: ["dashboard"] });
           toast.success("Synthèse clinique générée");
-          api.get(`/care-cases/${careCaseId}`).then((r) => {
-            if (r.data?.clinicalSummary) {
-              setSections(parseSummary(r.data.clinicalSummary));
-              setLastUpdated(new Date().toISOString());
-            }
-          }).catch(() => {});
         } else if (status === "failed") {
           setIsStreaming(false);
           toast.error("Erreur lors de la génération de la synthèse");
