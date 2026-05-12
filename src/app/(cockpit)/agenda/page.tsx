@@ -12,6 +12,8 @@ import { useAuthStore } from "@/lib/store"
 import { apiWithToken, type ConsultationLocation, type CareCase, type Appointment } from "@/lib/api"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
+import { useConsultation } from "@/contexts/ConsultationContext"
+import { toast } from "sonner"
 
 /* ═══════════════════════════════════════════
    NAMI DESIGN TOKENS
@@ -78,12 +80,13 @@ function FillBar({ ratio }: { ratio: number }) {
 /* ═══════════════════════════════════════════
    APPOINTMENT BLOCK — RICH
    ═══════════════════════════════════════════ */
-function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase, isNext }: {
+function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase, isNext, onStartConsultation }: {
   appt: AgendaAppointment; top: number; height: number;
   onClick: (a: AgendaAppointment) => void; width?: string; left?: string;
   getColor: (a: AgendaAppointment) => string;
   careCase?: CareCase | null;
   isNext?: boolean;
+  onStartConsultation: (careCaseId: string, patientName: string) => void;
 }) {
   const [hovered, setHovered] = useState(false)
   const bandColor = careCase ? getPathologyColor(careCase.caseType) : getColor(appt)
@@ -216,9 +219,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
           </button>
           <button
             onClick={() => {
-              if (appt.careCaseId) window.dispatchEvent(new CustomEvent("nami-start-consultation", {
-                detail: { careCaseId: appt.careCaseId, patientName: name }
-              }))
+              if (appt.careCaseId) onStartConsultation(appt.careCaseId, name)
             }}
             style={{ flex: 1, fontSize: 9, fontWeight: 700, padding: "4px 2px", borderRadius: 5,
               border: "none", background: "#1A1A2E", color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
@@ -235,13 +236,14 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
    DAY VIEW — Rich cards for today
    ═══════════════════════════════════════════ */
 function DayView({
-  appointments, careCases, getColor, onSelect, onCreateNow,
+  appointments, careCases, getColor, onSelect, onCreateNow, onStartConsultation,
 }: {
   appointments: AgendaAppointment[]
   careCases: CareCase[]
   getColor: (a: AgendaAppointment) => string
   onSelect: (a: AgendaAppointment) => void
   onCreateNow: () => void
+  onStartConsultation: (careCaseId: string, patientName: string) => void
 }) {
   const today = new Date()
   const todayAppts = appointments
@@ -349,9 +351,7 @@ function DayView({
                       )}
                       {(appt.status === "CONFIRMED" || appt.status === "PATIENT_ARRIVED") && appt.careCaseId && (
                         <button
-                          onClick={() => window.dispatchEvent(new CustomEvent("nami-start-consultation", {
-                            detail: { careCaseId: appt.careCaseId, patientName: name }
-                          }))}
+                          onClick={() => onStartConsultation(appt.careCaseId!, name)}
                           style={{ fontSize: 12, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: appt.status === "PATIENT_ARRIVED" ? "none" : `1px solid ${N.border}`, background: appt.status === "PATIENT_ARRIVED" ? "#2BA84A" : N.card, color: appt.status === "PATIENT_ARRIVED" ? "#fff" : N.text, cursor: "pointer", fontFamily: "inherit" }}
                         >
                           🎙 Démarrer
@@ -750,6 +750,7 @@ const actionBtn: React.CSSProperties = { flex: 1, padding: 10, borderRadius: 8, 
 export default function AgendaPage() {
   const agenda = useAgenda()
   const { careCases } = agenda
+  const { startConsultation } = useConsultation()
   const [view, setView] = useState<"semaine" | "jour">("semaine")
   const [selectedAppt, setSelectedAppt] = useState<AgendaAppointment | null>(null)
   const [createCtx, setCreateCtx] = useState<{
@@ -758,6 +759,14 @@ export default function AgendaPage() {
   const [dragAppt, setDragAppt] = useState<AgendaAppointment | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
+
+  async function handleStartConsultation(careCaseId: string, patientName: string) {
+    try {
+      await startConsultation({ careCaseId, patientName })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible de démarrer la consultation")
+    }
+  }
 
   // Open create modal from ?newAppt=true (e.g. from patient page "planifier")
   useEffect(() => {
@@ -916,6 +925,7 @@ export default function AgendaPage() {
             const now = new Date()
             setCreateCtx({ date: now, hour: now.getHours() + 1, minute: 0, location: agenda.locations[0] ?? null })
           }}
+          onStartConsultation={handleStartConsultation}
         />
       )}
 
@@ -998,7 +1008,7 @@ export default function AgendaPage() {
                     }
                   }
 
-                  return <ApptBlock key={appt.id} appt={appt} top={top} height={height} width={w} left={l} onClick={setSelectedAppt} getColor={agenda.getColor} careCase={appt.careCaseId ? (caseMap.get(appt.careCaseId) ?? null) : null} isNext={appt.id === nextApptId} />
+                  return <ApptBlock key={appt.id} appt={appt} top={top} height={height} width={w} left={l} onClick={setSelectedAppt} getColor={agenda.getColor} careCase={appt.careCaseId ? (caseMap.get(appt.careCaseId) ?? null) : null} isNext={appt.id === nextApptId} onStartConsultation={handleStartConsultation} />
                 })}
 
                 {/* Now line */}
