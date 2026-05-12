@@ -25,7 +25,7 @@
 
 import { Fragment, useState } from "react";
 import type { KnowledgeSearchResult } from "@/lib/api";
-import { cleanRagContent } from "@/lib/ragContentCleanup";
+import { cleanRagContent, hasSlideMarkers, splitSlides } from "@/lib/ragContentCleanup";
 import {
   NAMI,
   deriveRagSource,
@@ -41,7 +41,23 @@ import AmbientGlowFrame from "./atoms/AmbientGlowFrame";
 const PREVIEW_LIMIT = 280;
 
 function cleanForPreview(content: string): string {
-  return cleanRagContent(content)
+  // Si le content contient des marqueurs "--- Slide N ---" : extraire le
+  // premier slide non-vide pour le preview (sinon le snippet afficherait
+  // le marqueur brut). cleanRagContent ne strip pas ces marqueurs car ils
+  // sont utilisés par splitSlides() côté KnowledgeContentRenderer.
+  let source = content;
+  if (hasSlideMarkers(content)) {
+    const slides = splitSlides(content);
+    const firstWithBody = slides.find((s) => s.content.trim().length > 30);
+    const chosen = firstWithBody ?? slides[0];
+    if (chosen) {
+      source = chosen.title
+        ? `${chosen.title}\n${chosen.content}`
+        : chosen.content;
+    }
+  }
+
+  return cleanRagContent(source)
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\*([^*]+)\*/g, "$1")
