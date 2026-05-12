@@ -2,7 +2,7 @@
 
 /**
  * RagConsensusBlock — hero "Apparaît dans les sources" (Ligne 1 ambition V4).
- * Phase 3.B.3.
+ * Phase 3.B.3, enrichi V3.2b avec severity et value (backend D9).
  *
  * Agrégation entités chiffrées multi-sources avec mini-bargraph par item et
  * sympathie cross-card (hover → highlight toutes les pills `data-crit`).
@@ -10,10 +10,12 @@
  * Border violet→teal en mask trick + halo radial subtil (AmbientGlow inline).
  * Animation namiCardIn 520ms ease 40ms forwards.
  *
- * Items passés en props — agrégation backend = ticket dérivé D9. Pour
- * l'instant la page.tsx fournit MOCK_CONSENSUS hardcodé.
+ * V3.2b : la page mappe ConsensusBlock[] (wire response /intelligence/consensus)
+ * vers ConsensusItem[] en injectant severity + value. Le composant reste
+ * agnostique de la source des données.
  */
 
+import type { TokenSeverity } from "@/lib/api";
 import { NAMI } from "./atoms/_tokens";
 
 export interface ConsensusItem {
@@ -21,7 +23,16 @@ export interface ConsensusItem {
   label: string;
   sourceCount: number;
   maxSources: number;
+  /** V3.2b — severity backend (dot coloré devant le bargraph). */
+  severity?: TokenSeverity;
 }
+
+const SEVERITY_DOT: Record<TokenSeverity, string> = {
+  CRITICAL: "#DC2626",
+  WARNING: "#D97706",
+  NORMAL: "#059669",
+  UNKNOWN: "#6B7280",
+};
 
 function ConsensusItemRow({
   item,
@@ -80,6 +91,19 @@ function ConsensusItemRow({
           fontVariantNumeric: "tabular-nums",
         }}
       >
+        {item.severity && (
+          <span
+            aria-label={`Sévérité : ${item.severity}`}
+            title={item.severity}
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              background: SEVERITY_DOT[item.severity],
+              flexShrink: 0,
+            }}
+          />
+        )}
         <span style={{ display: "inline-flex", gap: 2 }}>
           {Array.from({ length: item.maxSources }).map((_, i) => (
             <span

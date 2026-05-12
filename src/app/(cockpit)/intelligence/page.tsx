@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type KnowledgeSearchResult } from "@/lib/api";
+import {
+  apiWithToken,
+  type KnowledgeSearchResult,
+  type ConsensusBlock,
+  type TokenKind,
+} from "@/lib/api";
+import { useRagConsensus } from "@/hooks/useRagConsensus";
 import { Search, FileText, FlaskConical, X, MessageSquare } from "lucide-react";
 import { ShimmerCard } from "@/components/ui/shimmer";
 import CockpitMeshBackground from "@/components/cockpit/CockpitMeshBackground";
@@ -34,19 +40,41 @@ const SUGGESTED_QUERIES = [
 ];
 
 /**
- * MOCK_CONSENSUS — agrégation hardcodée pour la query "critères
- * hospitalisation anorexie". Le ticket dérivé D9 prévoit un hook
- * `useRagConsensus(query)` qui produira ces items dynamiquement
- * depuis le backend (agrégation entités chiffrées multi-sources).
+ * Mapping TokenKind → label humain pour le bargraph consensus (V3.2b).
+ * Source de vérité unique côté front pour les 14 kinds extraits par le
+ * tokeniseur backend (D10).
  */
-const MOCK_CONSENSUS: ConsensusItem[] = [
-  { key: "imc", label: "IMC < 14 kg/m²", sourceCount: 3, maxSources: 4 },
-  { key: "fc", label: "FC < 40 /min", sourceCount: 3, maxSources: 4 },
-  { key: "k", label: "K+ < 3 mmol/L", sourceCount: 2, maxSources: 4 },
-  { key: "gly", label: "Glycémie < 0.6 g/L", sourceCount: 2, maxSources: 4 },
-];
+const KIND_LABELS: Record<TokenKind, string> = {
+  IMC: "IMC",
+  FC: "Fréquence cardiaque",
+  GLYCEMIE: "Glycémie",
+  KALIEMIE: "Kaliémie",
+  PHOSPHOREMIE: "Phosphorémie",
+  NATREMIE: "Natrémie",
+  CYTOLYSE: "Cytolyse",
+  LEUCOPENIE: "Leucocytes",
+  NEUTROPHILES: "Neutrophiles",
+  CLAIRANCE: "Clairance",
+  PERCENTILE: "Percentile",
+  PERTE_POIDS: "Perte de poids",
+  TA: "Tension art.",
+  TEMPERATURE: "Température",
+};
 
-const CONSENSUS_TRIGGER = "hospitalisation";
+function blockToConsensusItem(
+  block: ConsensusBlock,
+  maxSources: number,
+): ConsensusItem {
+  const uniqueSources = new Set(block.sources.map((s) => s.source)).size;
+  const label = `${KIND_LABELS[block.kind]} ${block.consensusValue} ${block.unit}`.trim();
+  return {
+    key: block.kind,
+    label,
+    sourceCount: uniqueSources,
+    maxSources,
+    severity: block.dominantSeverity,
+  };
+}
 
 // ── Filtre PNDS hors-scope TCA (Phase 3.B.4)
 // Stratégie C : slug blacklist ciblée appliquée UNIQUEMENT quand la query
@@ -176,10 +204,16 @@ export default function IntelligencePage() {
     resetFocus();
   }, [results, activeSource, resetFocus]);
 
+  // V3.2b — consensus dynamique via /intelligence/consensus
+  // (remplace l'ancien MOCK_CONSENSUS + trigger sur "hospitalisation")
+  const consensusQuery = useRagConsensus(query, {
+    enabled: searched && results.length > 0,
+    limit: 20,
+  });
+  const consensusBlocks = consensusQuery.data?.consensusBlocks ?? [];
+  const maxSourcesScanned = consensusQuery.data?.uniqueSources.length ?? 0;
   const showConsensus =
-    searched &&
-    results.length > 0 &&
-    query.toLowerCase().includes(CONSENSUS_TRIGGER);
+    searched && results.length > 0 && consensusBlocks.length > 0;
 
   return (
     <>
@@ -272,18 +306,36 @@ export default function IntelligencePage() {
               />
             )}
 
-            {/* ── Bloc consensus (Ligne 1 V4) ── */}
+            {/* ── Bloc consensus (V3.2b — backend /intelligence/consensus) ── */}
             {showConsensus && (
               <RagConsensusBlock
-                title="Seuils mentionnés pour l'hospitalisation en anorexie mentale adulte"
-                items={MOCK_CONSENSUS}
+                title={`Valeurs cliniques convergentes — ${consensusQuery.data?.uniqueSources.join(" · ") ?? ""}`}
+                items={consensusBlocks.map((b) =>
+                  blockToConsensusItem(b, Math.max(maxSourcesScanned, 2)),
+                )}
                 onSympathy={handleSympathy}
                 onClickCrit={(item) => {
-                  // TODO ticket D9 : sheet pré-filtrée sur ce critère
+                  // T12 — sheet pré-filtrée sur ce critère
                   void item;
                 }}
               />
             )}
+            {searched &&
+              results.length > 0 &&
+              consensusQuery.isLoading && (
+                <div className="text-xs text-[#6B7280] mb-4 mt-2">
+                  Recherche de valeurs convergentes…
+                </div>
+              )}
+            {searched &&
+              results.length > 0 &&
+              consensusQuery.data &&
+              consensusBlocks.length === 0 && (
+                <div className="text-xs text-[#6B7280] mb-4 mt-2">
+                  Aucune valeur clinique convergente entre sources pour cette
+                  requête.
+                </div>
+              )}
 
             {/* ── Suggestions ── */}
             {!searched && (

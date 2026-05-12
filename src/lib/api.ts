@@ -606,6 +606,13 @@ export const intelligenceApi = {
   knowledgeEntry: (token: string, id: string) =>
     request<KnowledgeEntryDetail>(`/intelligence/knowledge/${id}`, {}, token),
 
+  consensus: (token: string, q: string, limit = 20) =>
+    request<ConsensusResponse>(
+      `/intelligence/consensus?q=${encodeURIComponent(q)}&limit=${Math.min(limit, 30)}`,
+      {},
+      token,
+    ),
+
   evaluationStats: (token: string) =>
     request<{
       totalEvaluations: number;
@@ -631,6 +638,56 @@ export interface SemanticSearchResult {
   sectionTitle: string;
   content: string;
   score: number;
+}
+
+// ─── Consensus aggregator (V3.2 — backend SHA 5d2eafd8) ──────────────────────
+
+export type TokenKind =
+  | "IMC"
+  | "FC"
+  | "GLYCEMIE"
+  | "KALIEMIE"
+  | "PHOSPHOREMIE"
+  | "NATREMIE"
+  | "CYTOLYSE"
+  | "LEUCOPENIE"
+  | "NEUTROPHILES"
+  | "CLAIRANCE"
+  | "PERCENTILE"
+  | "PERTE_POIDS"
+  | "TA"
+  | "TEMPERATURE";
+
+export type TokenSeverity = "NORMAL" | "WARNING" | "CRITICAL" | "UNKNOWN";
+
+export interface ConsensusSource {
+  // ATTENTION : string libre côté backend (KnowledgeEntry.source brut),
+  // peut contenir des valeurs hors enum SourceLabel (cf. T7+T11).
+  source: string;
+  entryTitle: string;
+  value: number | string;
+  severity: TokenSeverity;
+  resultId: string;
+  snippet: string;
+}
+
+export interface ConsensusBlock {
+  kind: TokenKind;
+  consensusValue: number | string;
+  unit: string;
+  occurrences: number;
+  sources: ConsensusSource[];
+  severityDistribution: Record<TokenSeverity, number>;
+  dominantSeverity: TokenSeverity;
+}
+
+export interface ConsensusResponse {
+  query: string;
+  totalResults: number;
+  consensusBlocks: ConsensusBlock[];
+  uniqueSources: string[];
+  cached: boolean;
+  generatedAt: string;
 }
 
 export type SourceLabel =
@@ -2693,6 +2750,7 @@ export function apiWithToken(token: string) {
       knowledgeEntry: (id: string) => intelligenceApi.knowledgeEntry(token, id),
       knowledgeSearch: (q: string, opts?: { limit?: number; source?: string; category?: string }) =>
         intelligenceApi.knowledgeSearch(token, q, opts),
+      consensus: (q: string, limit?: number) => intelligenceApi.consensus(token, q, limit),
       evaluationStats: () => intelligenceApi.evaluationStats(token),
     },
     prescriptionDrafts: {
