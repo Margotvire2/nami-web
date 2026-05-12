@@ -140,11 +140,14 @@ export default function ResultCard({
           handleClick();
         }
       }}
+      className="glass-soft rounded-xl"
       style={{
         position: "relative",
-        background: "#fff",
-        border: `0.5px solid ${focused ? NAMI.violetSoft3 : NAMI.border}`,
-        borderRadius: 12,
+        // Border focus state — surcharge intentionnellement la border blanche
+        // de glass-soft pour exposer le ring violet en navigation clavier.
+        border: focused
+          ? `0.5px solid ${NAMI.violetSoft3}`
+          : "0.5px solid rgba(255,255,255,0.4)",
         padding: "18px 20px 16px",
         marginBottom: 12,
         cursor: "pointer",
@@ -153,7 +156,7 @@ export default function ResultCard({
         animation: `namiCardIn 460ms ${NAMI.ease} ${100 + index * 60}ms forwards`,
         boxShadow: focused
           ? `0 0 0 3px rgba(91,78,196,0.08)`
-          : "none",
+          : undefined,
         transition: `transform 200ms ${NAMI.ease}, box-shadow 200ms ${NAMI.ease}, border-color 200ms ${NAMI.ease}`,
       }}
     >

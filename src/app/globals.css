@@ -58,6 +58,21 @@ html, body {
 .nami-card-stagger > *:nth-child(6) { animation-delay: 300ms; }
 .nami-card-stagger > *:nth-child(n+7) { animation-delay: 360ms; }
 
+/* ── Mesh background float (Liquid Glass × Nami) ─────────────────────────────── */
+@keyframes nami-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(60px, 90px) scale(1.1); }
+  50%      { transform: translate(-40px, 50px) scale(0.95); }
+  75%      { transform: translate(50px, -30px) scale(1.05); }
+}
+.nami-mesh-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  animation: nami-float 25s ease-in-out infinite;
+  will-change: transform;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════

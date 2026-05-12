@@ -78,7 +78,7 @@ export default function KnowledgeDetailModal({
     >
       <SheetContent
         side="right"
-        className="!w-[480px] !max-w-[90vw] !sm:max-w-[480px] !bg-[#FAFAF8] !p-0 !border-l-[0.5px] !border-l-[rgba(26,26,46,0.06)]"
+        className="glass-strong !w-[480px] !max-w-[90vw] !sm:max-w-[480px] !p-0 !border-l-[0.5px] !border-l-white/60"
       >
         {result && sourceMeta && (
           <div

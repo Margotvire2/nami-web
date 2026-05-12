@@ -115,10 +115,11 @@ export default function RagConsensusBlock({
 
   return (
     <div
+      className="glass-soft rounded-2xl"
       style={{
-        background: "linear-gradient(135deg, #fff 0%, #FBFAF7 100%)",
-        border: `0.5px solid ${NAMI.border}`,
-        borderRadius: 14,
+        // Border violet→teal du gradient mask trick reste piloté via le
+        // ::before en sous-arbre (cf. plus bas). On laisse glass-soft border
+        // blanche en couche de base.
         padding: "18px 20px 16px",
         marginBottom: 18,
         position: "relative",

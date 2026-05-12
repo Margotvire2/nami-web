@@ -40,12 +40,11 @@ export default function RagKbHint({
 }) {
   return (
     <div
+      className="glass-strong rounded-xl"
       style={{
         position: "relative",
         margin: "16px 0 4px",
         padding: "10px 14px",
-        background: NAMI.bgAlt,
-        borderRadius: 10,
         fontFamily: "Inter, system-ui, sans-serif",
         fontWeight: 400,
         fontSize: 12,

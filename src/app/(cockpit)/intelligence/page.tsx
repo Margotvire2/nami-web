@@ -5,6 +5,7 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type KnowledgeSearchResult } from "@/lib/api";
 import { Search, FileText, FlaskConical, X, MessageSquare } from "lucide-react";
 import { ShimmerCard } from "@/components/ui/shimmer";
+import CockpitMeshBackground from "@/components/cockpit/CockpitMeshBackground";
 import QualityDashboard from "@/components/intelligence/QualityDashboard";
 import ResultCard from "@/components/intelligence/ResultCard";
 import KnowledgeDetailModal from "@/components/intelligence/KnowledgeDetailModal";
@@ -182,6 +183,7 @@ export default function IntelligencePage() {
 
   return (
     <>
+      <CockpitMeshBackground />
       <div ref={rootRef} className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* ── Header ── */}
         <div className="mb-6">
@@ -190,7 +192,7 @@ export default function IntelligencePage() {
               <FlaskConical size={18} className="text-[#5B4EC4]" />
               <h1 className="text-xl font-bold text-gray-900">Intelligence clinique</h1>
             </div>
-            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+            <div className="flex items-center gap-1 p-1 glass-medium rounded-xl">
               <button
                 onClick={() => setMode("search")}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
