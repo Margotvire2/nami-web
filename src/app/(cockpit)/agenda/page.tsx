@@ -756,7 +756,6 @@ export default function AgendaPage() {
   const [createCtx, setCreateCtx] = useState<{
     date: Date; hour: number; minute: number; location: ConsultationLocation | null
   } | null>(null)
-  const [dragAppt, setDragAppt] = useState<AgendaAppointment | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -789,21 +788,27 @@ export default function AgendaPage() {
 
   async function handleDrop(e: React.DragEvent, date: Date) {
     e.preventDefault()
-    if (!dragAppt) return
+    const apptId = e.dataTransfer.getData("text/plain")
+    if (!apptId) return
+    const appt = agenda.appointments.find((a) => a.id === apptId)
+    if (!appt) return
     const rect = e.currentTarget.getBoundingClientRect()
     const rawH = MIN_H + (e.clientY - rect.top) / HOUR_H
     const h = Math.floor(rawH)
     const m = Math.round((rawH - h) * 4) * 15
     const newStart = new Date(date)
     newStart.setHours(h, m, 0, 0)
-    const dur = getApptDuration(dragAppt)
+    const dur = getApptDuration(appt)
     const newEnd = new Date(newStart.getTime() + dur * 60000)
-    await agenda.patchAppointment({
-      id: dragAppt.id,
-      startAt: newStart.toISOString(),
-      endAt: newEnd.toISOString(),
-    })
-    setDragAppt(null)
+    try {
+      await agenda.patchAppointment({
+        id: appt.id,
+        startAt: newStart.toISOString(),
+        endAt: newEnd.toISOString(),
+      })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible de déplacer le rendez-vous")
+    }
   }
 
   const { accessToken } = useAuthStore()
