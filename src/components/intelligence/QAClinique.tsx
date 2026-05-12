@@ -73,7 +73,7 @@ export default function QAClinique() {
     "Critères diagnostiques DSM-5 de l'anorexie mentale",
     "Quelle est la prise en charge nutritionnelle en phase de renutrition ?",
     "Indications de l'hospitalisation en TCA",
-    "Seuils biologiques d'alerte en anorexie",
+    "Critères biologiques d'hospitalisation en anorexie",
   ];
 
   return (
