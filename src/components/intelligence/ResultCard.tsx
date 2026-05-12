@@ -1,19 +1,46 @@
 "use client";
 
 /**
- * ResultCard — carte de résultat du mode "Recherche documentaire" de la
- * page Intelligence clinique. Les helpers `cleanForPreview`, `highlightTerms`
- * et `ScoreDots` sont exclusifs à ce composant.
+ * ResultCard — carte de résultat refondue V4 (Phase 3.B.3).
+ *
+ * Grammaire V4 :
+ *   - Card border 0.5px, radius 12px, padding 18/20/16, animation namiCardIn
+ *     stagger (100 + index * 60 ms)
+ *   - SourceBadgeRag (mapping slug → HAS/FFAB/Nami algo/Nami extrait)
+ *   - DraftAIBadge "Brouillon IA — à vérifier" sur les sources IA (SEM/ALGO)
+ *   - RelevanceBar à droite, breathing=true si featured (rang 1)
+ *   - AmbientGlowFrame overlay si featured
+ *   - ClinicalCriterion inline (sympathie cross-card via data-crit + onSympathy)
+ *   - Focus indicator (ring violet) si focused via keyboard nav
+ *   - Snippet : preprocess universel (cleanRagContent + cleanForPreview) +
+ *     tokenisation regex critères chiffrés (IMC/FC/K+/glycémie/percentile)
+ *
+ * Adaptation par rapport à l'artifact V4 :
+ *   - Payload backend n'a pas snippetParts pré-tokenisé → on tokenise au render
+ *   - Pas de subExtracts dans le payload → RagExtras désactivé (ticket D-extras)
+ *   - Pas de sourceUrl dans le payload → lien externe non affiché (ticket D2)
+ *   - Truncate 280 chars + "Voir plus" : adaptation pragmatique car nos chunks
+ *     bruts (200-2200 chars) sont plus longs que les snippets de l'artifact
  */
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { KnowledgeSearchResult } from "@/lib/api";
-import { slugToCategory, CATEGORY_META } from "./_utils";
 import { cleanRagContent } from "@/lib/ragContentCleanup";
+import {
+  NAMI,
+  deriveRagSource,
+  relevanceVariant,
+} from "./atoms/_tokens";
+import { tokenizeSnippet } from "./atoms/_criteria";
+import SourceBadgeRag from "./atoms/SourceBadgeRag";
+import DraftAIBadge from "./atoms/DraftAIBadge";
+import ClinicalCriterion from "./atoms/ClinicalCriterion";
+import RelevanceBar from "./atoms/RelevanceBar";
+import AmbientGlowFrame from "./atoms/AmbientGlowFrame";
+
+const PREVIEW_LIMIT = 280;
 
 function cleanForPreview(content: string): string {
-  // Phase 3.B.2 : preprocess universel AVANT le strip markdown pour que
-  // les artefacts PPT (puces 9/x/■▪▫●◦) ne polluent pas le snippet 200 chars.
   return cleanRagContent(content)
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
@@ -29,128 +56,216 @@ function cleanForPreview(content: string): string {
     .trim();
 }
 
+/**
+ * Wrappe les termes de la query trouvés dans un texte avec <strong>.
+ * Renvoie un tableau de React nodes.
+ */
 function highlightTerms(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
-  const terms = query.trim().split(/\s+/).filter((t) => t.length > 2);
+  const terms = query
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t.length > 2);
   if (terms.length === 0) return text;
   const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
   const parts = text.split(pattern);
   return parts.map((part, i) =>
-    pattern.test(part) ? <strong key={i} style={{ fontWeight: 700, color: "#1A1A2E" }}>{part}</strong> : part
-  );
-}
-
-function ScoreDots({ score }: { score: number }) {
-  const filled = Math.round(score * 5);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-      {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width: 7, height: 7, borderRadius: "50%",
-            background: i < filled ? "#5B4EC4" : "rgba(91,78,196,0.15)",
-            flexShrink: 0,
-          }}
-        />
-      ))}
-      <span style={{ fontSize: 10, color: "#6B7280", marginLeft: 4, fontVariantNumeric: "tabular-nums" }}>
-        {Math.round(score * 100)}%
-      </span>
-    </div>
+    pattern.test(part) ? (
+      <strong key={i} style={{ fontWeight: 700, color: NAMI.text }}>
+        {part}
+      </strong>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    ),
   );
 }
 
 export default function ResultCard({
   result,
+  index = 0,
   query,
+  focused = false,
   onOpen,
+  onFocus,
+  onSympathy,
 }: {
   result: KnowledgeSearchResult;
+  index?: number;
   query: string;
+  focused?: boolean;
   onOpen: (r: KnowledgeSearchResult) => void;
+  onFocus?: () => void;
+  onSympathy?: (critKey: string, on: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const cat = slugToCategory(result.slug);
-  const meta = CATEGORY_META[cat];
+
+  const sourceMeta = deriveRagSource(result.slug);
+  const featured = index === 0;
 
   const clean = cleanForPreview(result.content);
-  const LIMIT = 200;
-  const preview = clean.slice(0, LIMIT);
-  const hasMore = clean.length > LIMIT;
+  const hasMore = clean.length > PREVIEW_LIMIT;
+  const displayText = expanded || !hasMore ? clean : clean.slice(0, PREVIEW_LIMIT);
+  const tokens = tokenizeSnippet(displayText);
+
+  const handleClick = () => {
+    onFocus?.();
+    onOpen(result);
+  };
 
   return (
     <div
+      tabIndex={0}
+      data-item={index}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       style={{
-        background: "#FFFFFF",
-        border: "1px solid rgba(26,26,46,0.06)",
-        borderLeft: `4px solid ${meta?.color ?? "rgba(26,26,46,0.12)"}`,
+        position: "relative",
+        background: "#fff",
+        border: `0.5px solid ${focused ? NAMI.violetSoft3 : NAMI.border}`,
         borderRadius: 12,
-        padding: "14px 16px",
+        padding: "18px 20px 16px",
+        marginBottom: 12,
         cursor: "pointer",
-        transition: "border-color 0.2s, box-shadow 0.2s",
+        opacity: 0,
+        transform: "translateY(8px)",
+        animation: `namiCardIn 460ms ${NAMI.ease} ${100 + index * 60}ms forwards`,
+        boxShadow: focused
+          ? `0 0 0 3px rgba(91,78,196,0.08)`
+          : "none",
+        transition: `transform 200ms ${NAMI.ease}, box-shadow 200ms ${NAMI.ease}, border-color 200ms ${NAMI.ease}`,
       }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(91,78,196,0.18)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(91,78,196,0.07)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(26,26,46,0.06)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-      }}
-      onClick={() => onOpen(result)}
     >
-      {/* Top row: badge + score */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <span
-          style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.05em",
-            textTransform: "uppercase",
-            color: meta?.color ?? "#6B7280",
-            background: meta?.bg ?? "rgba(138,138,150,0.10)",
-            padding: "2px 8px", borderRadius: 6,
-            flexShrink: 0,
-          }}
-        >
-          {meta?.label ?? cat}
-        </span>
-        <ScoreDots score={result.score} />
-        {result.qualityScore > 0 && result.qualityScore < 0.75 && (
-          <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: "rgba(230,153,62,0.08)", color: "#E6993E", border: "1px solid rgba(230,153,62,0.2)", flexShrink: 0 }}>
-            Qualité source limitée
-          </span>
-        )}
-        <span style={{ fontSize: 10, color: "#6B7280", marginLeft: "auto" }}>
-          {result.qualityScore > 0 ? `${Math.round(result.qualityScore * 100)}%` : ""}
-        </span>
+      {featured && <AmbientGlowFrame />}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 14,
+          marginBottom: 10,
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <SourceBadgeRag kind={sourceMeta.kind} label={sourceMeta.label} />
+            {sourceMeta.isAI && <DraftAIBadge />}
+          </div>
+          <h3
+            style={{
+              fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+              fontWeight: 500,
+              fontSize: 16,
+              lineHeight: 1.4,
+              color: NAMI.text,
+              margin: "8px 0 4px",
+              letterSpacing: "-0.005em",
+            }}
+          >
+            {result.sectionTitle || result.slug}
+          </h3>
+          <div
+            style={{
+              fontFamily: "Inter, system-ui, sans-serif",
+              fontWeight: 400,
+              fontSize: 12,
+              color: NAMI.textFaint,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontVariantNumeric: "tabular-nums",
+              letterSpacing: "0.01em",
+            }}
+          >
+            <span style={{ wordBreak: "break-all" }}>{result.slug}</span>
+            {result.qualityScore > 0 && result.qualityScore < 0.75 && (
+              <>
+                <span
+                  style={{
+                    width: 3,
+                    height: 3,
+                    borderRadius: "50%",
+                    background: NAMI.textFaint,
+                    opacity: 0.5,
+                  }}
+                />
+                <span style={{ color: "#D97706", fontWeight: 500 }}>
+                  Qualité source limitée
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          <RelevanceBar
+            value={result.score}
+            variant={relevanceVariant(sourceMeta.kind)}
+            breathing={featured}
+          />
+        </div>
       </div>
 
-      {/* Title */}
-      <h3 style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4, marginBottom: 3, fontFamily: "var(--font-jakarta)" }}>
-        {result.sectionTitle || result.slug}
-      </h3>
-
-      {/* Source slug */}
-      <p style={{ fontSize: 10, color: "#6B7280", marginBottom: 8, letterSpacing: "0.02em" }}>
-        {result.slug}
+      <p
+        style={{
+          fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+          fontWeight: 400,
+          fontSize: 14,
+          lineHeight: 1.7,
+          color: NAMI.text,
+          margin: "12px 0 4px",
+          maxWidth: "62ch",
+        }}
+      >
+        {tokens.map((tok, i) =>
+          tok.type === "text" ? (
+            <Fragment key={i}>{highlightTerms(tok.value, query)}</Fragment>
+          ) : (
+            <ClinicalCriterion
+              key={i}
+              critKey={tok.critKey}
+              onSympathy={onSympathy}
+            >
+              {tok.value}
+            </ClinicalCriterion>
+          ),
+        )}
+        {!expanded && hasMore && (
+          <span style={{ color: NAMI.textFaint }}>…</span>
+        )}
       </p>
 
-      {/* Content prose */}
-      <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.65 }}>
-        {expanded
-          ? highlightTerms(clean, query)
-          : <>{highlightTerms(preview, query)}{hasMore && <span style={{ color: "#6B7280" }}>…</span>}</>}
-      </p>
-
-      {/* Voir plus / Réduire */}
       {hasMore && (
         <button
-          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(!expanded);
+          }}
           style={{
-            fontSize: 11, color: "#5B4EC4", fontWeight: 600,
-            marginTop: 6, background: "none", border: "none",
-            cursor: "pointer", padding: 0, display: "block",
+            marginTop: 6,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            fontWeight: 500,
+            fontSize: 12,
+            color: NAMI.violet,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "4px 0",
+            transition: "color 150ms",
           }}
         >
           {expanded ? "Réduire" : "Voir plus"}
