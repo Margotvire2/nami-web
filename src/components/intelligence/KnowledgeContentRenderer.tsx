@@ -4,11 +4,21 @@
  * KnowledgeContentRenderer — rendu structuré du contenu d'une fiche RAG
  * dans le modal détail (`KnowledgeDetailModal`).
  *
- * ⚠️ La branche `source === "FFAB"` (ci-dessous) est confirmée dead code
- * (Phase 0). Elle est préservée INTACTE — fix réservé Phase 3.B.2.
+ * Phase 3.B.2 : la détection slide-deck (PowerPoint) est désormais basée
+ * sur la présence de marqueurs `--- Slide N ---` dans le contenu (via
+ * `hasSlideMarkers`) et NON plus sur le slug source. La détection précédente
+ * `source === "FFAB"` était dead code (slugToCategory ne retourne jamais
+ * "FFAB"). Le preprocess `cleanRagContent` est appliqué AVANT le parsing
+ * markdown pour TOUS les types de source (strip puces PPT 9/x/■▪▫●◦,
+ * rupture parenthèse).
+ *
+ * Prop `source` conservée dans la signature pour compatibilité appelant
+ * (utilisée par d'autres futurs renderers spécifiques au type éventuels).
  *
  * Helpers `headingEmoji` et `renderInline` exclusifs à ce composant.
  */
+
+import { cleanRagContent, hasSlideMarkers, splitSlides } from "@/lib/ragContentCleanup";
 
 function headingEmoji(text: string): string {
   const t = text.toLowerCase();
@@ -45,33 +55,34 @@ function renderInline(text: string): React.ReactNode {
   });
 }
 
-export default function KnowledgeContentRenderer({ content, source }: { content: string; source: string }) {
-  // FFAB : slides séparés par "--- Slide X ---"
-  if (source === "FFAB") {
-    const slides = content.split(/^--- Slide \d+ ---$/m).filter(Boolean);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function KnowledgeContentRenderer({ content, source: _source }: { content: string; source: string }) {
+  // Preprocess universel : strip puces PPT, normalise sauts de ligne, etc.
+  const cleaned = cleanRagContent(content);
+
+  // Slide-deck : détection basée sur les marqueurs "--- Slide N ---"
+  // dans le contenu (Phase 3.B.2 : remplace l'ancienne détection par slug
+  // qui était dead code).
+  if (hasSlideMarkers(cleaned)) {
+    const slides = splitSlides(cleaned);
     return (
       <div className="space-y-3">
-        {slides.map((slide, i) => {
-          const lines = slide.trim().split("\n").filter(Boolean);
-          const title = lines[0];
-          const body = lines.slice(1).join("\n");
-          return (
-            <div key={i} className="rounded-xl bg-purple-50/60 border border-purple-100 p-4">
-              <p className="text-[11px] font-bold text-purple-600 uppercase tracking-wide mb-2">
-                📋 Slide {i + 1}{title ? ` — ${title}` : ""}
-              </p>
-              {body && (
-                <div className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-line">{body}</div>
-              )}
-            </div>
-          );
-        })}
+        {slides.map((slide) => (
+          <div key={slide.slideNumber} className="rounded-xl bg-purple-50/60 border border-purple-100 p-4">
+            <p className="text-[11px] font-bold text-purple-600 uppercase tracking-wide mb-2">
+              📋 Slide {slide.slideNumber}{slide.title ? ` — ${slide.title}` : ""}
+            </p>
+            {slide.content && (
+              <div className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-line">{slide.content}</div>
+            )}
+          </div>
+        ))}
       </div>
     );
   }
 
   // FICHE / HAS / ORPHANET / ALGORITHME : markdown structuré
-  const lines = content.split("\n");
+  const lines = cleaned.split("\n");
   const elements: React.ReactNode[] = [];
   const listBuffer: string[] = [];
   let key = 0;

@@ -9,9 +9,12 @@
 import { useState } from "react";
 import type { KnowledgeSearchResult } from "@/lib/api";
 import { slugToCategory, CATEGORY_META } from "./_utils";
+import { cleanRagContent } from "@/lib/ragContentCleanup";
 
 function cleanForPreview(content: string): string {
-  return content
+  // Phase 3.B.2 : preprocess universel AVANT le strip markdown pour que
+  // les artefacts PPT (puces 9/x/■▪▫●◦) ne polluent pas le snippet 200 chars.
+  return cleanRagContent(content)
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\*([^*]+)\*/g, "$1")
