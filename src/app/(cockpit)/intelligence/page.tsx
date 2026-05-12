@@ -375,7 +375,7 @@ export default function IntelligencePage() {
                     style={{
                       fontFamily: "Inter, system-ui, sans-serif",
                       fontSize: 11,
-                      color: "#8A8A96",
+                      color: "#6B7280",
                       marginTop: 12,
                       textAlign: "center",
                     }}
@@ -448,7 +448,7 @@ export default function IntelligencePage() {
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 400,
                 fontSize: 11,
-                color: "#8A8A96",
+                color: "#6B7280",
                 padding: "22px 4px 8px",
                 letterSpacing: "0.01em",
                 marginTop: 24,

@@ -20,7 +20,7 @@ export const NAMI = {
   dark: "#1A1A2E",
   text: "#1A1A2E",
   textMuted: "#4A4A5A",
-  textFaint: "#8A8A96",
+  textFaint: "#6B7280",
   border: "rgba(26, 26, 46, 0.06)",
   borderStrong: "rgba(26, 26, 46, 0.12)",
   ease: "cubic-bezier(0.16, 1, 0.3, 1)",
