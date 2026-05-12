@@ -11,8 +11,11 @@
  * dans Liquid Glass × Nami v1.0.
  *
  * Source : `result.source` (payload semantic-search V2.1, backend FK entry).
- * Si `source === null` → badge masqué (return null) — fallback gracieux sur
- * les ~7% de chunks orphelins.
+ * - source === null → badge masqué (return null), pour les ~7% chunks orphelins
+ * - source ∈ SourceLabel → badge SOLID coloré
+ * - source ∉ SourceLabel (ex : "DU" venant de KnowledgeEntry.source brut) →
+ *   fallback gracieux sur OTHER (gris). Évite le crash React TypeError sur
+ *   les valeurs DB hors enum frontend.
  */
 
 import type { SourceLabel } from "@/lib/api";
@@ -33,18 +36,20 @@ export default function SourceBadgeRag({
   source,
   size = "sm",
 }: {
-  source: SourceLabel | null;
+  source: string | null;
   size?: "sm" | "md";
 }) {
   if (!source) return null;
 
-  const colors = SOURCE_COLORS[source];
+  const isKnown = (source as SourceLabel) in SOURCE_COLORS;
+  const displaySource: SourceLabel = isKnown ? (source as SourceLabel) : "OTHER";
+  const colors = SOURCE_COLORS[displaySource];
   const sizePadding = size === "sm" ? "3px 9px" : "4px 11px";
   const sizeFont = size === "sm" ? 10 : 11;
 
   return (
     <span
-      aria-label={`Source : ${source}`}
+      aria-label={`Source : ${displaySource}`}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -59,7 +64,7 @@ export default function SourceBadgeRag({
         color: colors.text,
       }}
     >
-      {source}
+      {displaySource}
     </span>
   );
 }

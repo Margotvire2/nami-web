@@ -57,4 +57,16 @@ describe("SourceBadgeRag (V2.1 — payload backend source)", () => {
     const el = screen.getByText("HAS");
     expect(el).toHaveStyle({ fontSize: "10px" });
   });
+
+  // HOTFIX P0 — sources hors enum backend (ex : 'DU' depuis KnowledgeEntry.source)
+  it("renders OTHER badge for unknown source values (e.g. 'DU')", () => {
+    render(<SourceBadgeRag source="DU" />);
+    expect(screen.getByText("OTHER")).toBeInTheDocument();
+    expect(screen.getByLabelText("Source : OTHER")).toBeInTheDocument();
+  });
+
+  it("renders nothing for empty string source (falsy guard)", () => {
+    const { container } = render(<SourceBadgeRag source="" />);
+    expect(container).toBeEmptyDOMElement();
+  });
 });
