@@ -68,11 +68,11 @@ export function groupTasksByPeriod(
   return groups;
 }
 
-/** Nom patient sous forme "Nom Prénom". */
+/** Nom patient sous forme "Prénom Nom" (cohérence MDR / accessibilité). */
 export function patientLabel(task: TaskWithContext): string {
   const p = task.careCase?.patient;
   if (!p) return "";
-  return `${p.lastName} ${p.firstName}`.trim();
+  return `${p.firstName} ${p.lastName}`.trim();
 }
 
 /** Date relative FR ("aujourd'hui", "demain", "il y a 3 jours", "12 nov."). */

@@ -48,8 +48,11 @@ export function TaskCancelModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-strong !p-0 !border-0 !bg-transparent !shadow-2xl max-w-md">
+    // B2 fix : disablePointerDismissal empêche la fermeture au click outside
+    // (le modal est imbriqué dans un Sheet parent → click outside fermait par erreur).
+    // L'utilisateur ferme via "Retour" ou "Confirmer l'annulation" (boutons explicites).
+    <Dialog open={open} onOpenChange={onOpenChange} disablePointerDismissal>
+      <DialogContent className="glass-strong !p-0 !border-0 !bg-transparent !shadow-2xl max-w-md z-[100]">
         <div className="rounded-2xl p-6">
           <DialogTitle className="text-lg font-bold text-[#1A1A2E]">
             Annuler cette tâche

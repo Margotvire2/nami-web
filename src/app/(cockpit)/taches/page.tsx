@@ -50,6 +50,7 @@ export default function TachesPage() {
     enabled: !!accessToken,
   });
 
+  // B3 fix : optimistic update — mutation backend ~5,5s en prod, UI réactive instantanément
   const updateMutation = useMutation({
     mutationFn: ({
       careCaseId,
@@ -73,7 +74,31 @@ export default function TachesPage() {
         // backend accepte ces champs ; on s'aligne sur la signature exposée.
         payload as never,
       ),
-    onSuccess: () => {
+    onMutate: async ({ taskId, payload }) => {
+      // Annule les refetches en cours pour éviter l'écrasement de notre update optimiste
+      await queryClient.cancelQueries({ queryKey: ["tasks-mine"] });
+      // Snapshot pour rollback en cas d'erreur
+      const previous = queryClient.getQueryData<TaskWithContext[]>([
+        "tasks-mine",
+      ]);
+      // Application optimiste : merge payload dans la task ciblée
+      queryClient.setQueryData<TaskWithContext[]>(
+        ["tasks-mine"],
+        (old) =>
+          old?.map((t) =>
+            t.id === taskId ? ({ ...t, ...payload } as TaskWithContext) : t,
+          ) ?? old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback en cas d'erreur backend
+      if (context?.previous) {
+        queryClient.setQueryData(["tasks-mine"], context.previous);
+      }
+    },
+    onSettled: () => {
+      // Resync avec la vérité backend dans tous les cas
       queryClient.invalidateQueries({ queryKey: ["tasks-mine"] });
       queryClient.invalidateQueries({ queryKey: ["task"] });
     },

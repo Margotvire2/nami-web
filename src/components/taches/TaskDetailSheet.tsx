@@ -19,7 +19,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, FileText, Pencil, Check, Calendar } from "lucide-react";
+import { FileText, Pencil, Check, Calendar } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -160,18 +160,10 @@ export function TaskDetailSheet({
             "flex flex-col h-full",
           )}
         >
-          {/* Header sticky */}
+          {/* Header sticky — X natif du Sheet shadcn assure la fermeture (B1 fix) */}
           <div className="px-6 py-5 flex items-center gap-3 border-b border-white/30 shrink-0">
             <PriorityPill priority={task.priority} />
             <StatusBadge status={task.status} />
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="ml-auto p-1.5 rounded-lg hover:bg-white/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
-              aria-label="Fermer"
-            >
-              <X className="size-5 text-[#4A4A5A]" />
-            </button>
           </div>
 
           {/* Body scrollable */}
@@ -422,36 +414,34 @@ export function TaskDetailSheet({
               </section>
             )}
 
-            {/* Audit */}
+            {/* Informations — Q1 fix : wording "Audit" → "Informations", fusion créée par/le */}
             <section>
-              <SectionLabel>Audit</SectionLabel>
-              <div className="glass-soft rounded-xl p-4 text-xs text-[#6B7280] grid grid-cols-2 gap-x-6 gap-y-2">
+              <SectionLabel>Informations</SectionLabel>
+              <div className="glass-soft rounded-xl p-4 text-xs text-[#6B7280] space-y-2">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wide text-[#8A8A96] font-semibold">
-                    Créée par
-                  </div>
-                  <div className="text-[#1A1A2E] mt-0.5">
+                  <span className="text-[10px] uppercase tracking-wide text-[#8A8A96] font-semibold">
+                    Créée par{" "}
+                  </span>
+                  <span className="text-[#1A1A2E]">
                     {task.createdBy.firstName} {task.createdBy.lastName}
-                  </div>
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wide text-[#8A8A96] font-semibold">
+                    {" "}le{" "}
+                  </span>
+                  <span className="text-[#1A1A2E] font-mono">
+                    {formatDate(task.createdAt)}
+                  </span>
                 </div>
                 {task.assignedTo && (
                   <div>
-                    <div className="text-[10px] uppercase tracking-wide text-[#8A8A96] font-semibold">
-                      Assignée à
-                    </div>
-                    <div className="text-[#1A1A2E] mt-0.5">
+                    <span className="text-[10px] uppercase tracking-wide text-[#8A8A96] font-semibold">
+                      Assignée à{" "}
+                    </span>
+                    <span className="text-[#1A1A2E]">
                       {task.assignedTo.firstName} {task.assignedTo.lastName}
-                    </div>
+                    </span>
                   </div>
                 )}
-                <div>
-                  <div className="text-[10px] uppercase tracking-wide text-[#8A8A96] font-semibold">
-                    Créée le
-                  </div>
-                  <div className="text-[#1A1A2E] mt-0.5 font-mono">
-                    {formatDate(task.createdAt)}
-                  </div>
-                </div>
               </div>
             </section>
           </div>
