@@ -4,8 +4,8 @@
  * OverdueSection — section "En retard" avec pulse-dot rouge,
  * pattern EmergencySection de la refonte adressages.
  *
- * Le pulse-dot signale visuellement l'urgence organisationnelle sans
- * jamais utiliser le mot "alerte" ou "urgence clinique" (MDR).
+ * Le pulse-dot signale visuellement l'urgence organisationnelle (échéance
+ * dépassée). Le wording reste compliance MDR — pas d'interprétation clinique.
  */
 
 import type { ReactNode } from "react";
