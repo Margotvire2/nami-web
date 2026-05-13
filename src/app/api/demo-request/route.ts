@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     // Email to Margot
     await resend.emails.send({
       from: "Nami <noreply@namipourlavie.com>",
-      to: "margot.vire.pro@gmail.com",
+      to: "margot@namipourlavie.com",
       subject: `${scoreLabel} — ${firstName} ${lastName} (${specialty})`,
       html: `
         <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #FAFAF8; border-radius: 12px;">
