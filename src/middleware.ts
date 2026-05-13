@@ -28,6 +28,7 @@ const PUBLIC_PATHS = [
   "/pitch-reseau",
   "/pitch-banque",
   "/gabrielle",
+  "/sante-des-femmes",
   "/protocole-recherche",
   "/api",
   "/sitemap.xml",
