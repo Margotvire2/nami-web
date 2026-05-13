@@ -842,8 +842,8 @@ export default function SanteDesFemmesPage() {
 
           <ScrollReveal variant="fade-up" delay={0.3} duration={0.6}>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-              <a
-                href="mailto:margot@namipourlavie.com"
+              <Link
+                href="/demander-une-demo"
                 style={{
                   padding: "14px 30px",
                   borderRadius: 100,
@@ -860,7 +860,7 @@ export default function SanteDesFemmesPage() {
                 }}
               >
                 Échanger avec Margot
-              </a>
+              </Link>
               <Link
                 href="/gabrielle"
                 style={{
