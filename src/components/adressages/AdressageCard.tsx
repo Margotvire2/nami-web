@@ -14,6 +14,7 @@ import { Calendar, ChevronRight } from "lucide-react";
 import { PriorityPill } from "./PriorityPill";
 import { StatusBadge } from "./StatusBadge";
 import { ConsentChip } from "./ConsentChip";
+import { AdressageStepper } from "./AdressageStepper";
 import {
   daysAgo,
   patientName,
@@ -97,6 +98,12 @@ export function AdressageCard({ referral, onClick, className }: AdressageCardPro
           />
         </div>
       </div>
+
+      {referral.status !== "DRAFT" && (
+        <div className="mt-3 pt-3 border-t border-black/5">
+          <AdressageStepper referral={referral} />
+        </div>
+      )}
     </button>
   );
 }
