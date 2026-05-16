@@ -40,9 +40,11 @@ function makeWrapper() {
       queries: { retry: false, gcTime: 0, staleTime: 0 },
     },
   });
-  return ({ children }: { children: ReactNode }) => (
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  Wrapper.displayName = "QueryWrapper";
+  return Wrapper;
 }
 
 describe("useRagConsensus", () => {
