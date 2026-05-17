@@ -268,7 +268,7 @@ export default function OnboardingPage() {
     await api2.onboarding.saveNetwork({
       spokenLanguages:   ["fr"],
       geographicZones:   [],
-      profileVisibility: "PUBLIC",
+      profileVisibility: "ALL",
       addressingScope:   "NATIONAL",
     }).catch(() => {})
 
