@@ -37,3 +37,4 @@ tmp/
 tmp/
 **/*.before
 5
+.stepper-legacy-reference.tsx

@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 /**
  * CockpitMeshBackground — mesh animé pour les pages cockpit avec Liquid Glass.
  * Phase 3.B.5 Vague 1.
@@ -10,9 +13,25 @@
  *
  * À monter UNE FOIS par page cockpit utilisant le DS Liquid Glass × Nami.
  * Sans le mesh, le verre est posé sur du blanc statique → effet plat.
+ *
+ * B6 fix : le mesh est rendu via createPortal directement sur document.body.
+ * Le `<main>` parent du layout cockpit applique `.nami-page-enter` qui utilise
+ * `transform: translateY(...)`, créant un containing block CSS qui transformait
+ * notre `position: fixed` en `absolute`-relatif au main. Conséquence : le mesh
+ * ne suivait pas le scroll de la page longue (coupé à mi-page). En sortant du
+ * containing block via Portal, `position: fixed` fonctionne nativement et le
+ * mesh couvre le viewport en permanence, indépendamment du scroll.
  */
 export default function CockpitMeshBackground() {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  const meshNode = (
     <div
       aria-hidden="true"
       style={{
@@ -69,4 +88,6 @@ export default function CockpitMeshBackground() {
       />
     </div>
   );
+
+  return createPortal(meshNode, document.body);
 }

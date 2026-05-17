@@ -238,11 +238,14 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
     [accessToken]
   );
 
-  // Memoize debounced save (recreated when deps change)
-  saveNotesRef.current = useMemo(
+  // Debounced save (recreated when doSaveNotes change)
+  const debouncedSave = useMemo(
     () => debounce(doSaveNotes, 3000),
     [doSaveNotes]
   );
+  useEffect(() => {
+    saveNotesRef.current = debouncedSave;
+  }, [debouncedSave]);
 
   // ── Timer helpers ─────────────────────────────────────────────────────────
 

@@ -39,9 +39,9 @@ interface Props {
 }
 
 export function AppointmentDrawer({ apt, onClose, onPatch, isPatching }: Props) {
-  if (!apt) return null
-
   const router = useRouter()
+
+  if (!apt) return null
 
   const age = apt.patient.birthDate
     ? differenceInYears(new Date(), parseISO(apt.patient.birthDate))
