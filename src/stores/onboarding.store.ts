@@ -139,11 +139,28 @@ export const useOnboardingStore = create<OnboardingStore>()(
     }),
     {
       name: "nami-onboarding",
+      version: 1,
       partialize: (state) => ({
         currentStep:    state.currentStep,
         data:           state.data,
         completedSteps: state.completedSteps,
       }),
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as { data?: Partial<OnboardingData>; [key: string]: unknown }
+        if (version < 1 && state && state.data) {
+          const VALID_VISIBILITY = ["", "ALL", "VERIFIED_ONLY", "PRIVATE"]
+          const VALID_SCOPE      = ["", "LOCAL", "REGIONAL", "NATIONAL"]
+          const currentVisibility = state.data.profileVisibility
+          const currentScope      = state.data.addressingScope
+          if (typeof currentVisibility === "string" && !VALID_VISIBILITY.includes(currentVisibility)) {
+            state.data = { ...state.data, profileVisibility: "" }
+          }
+          if (typeof currentScope === "string" && !VALID_SCOPE.includes(currentScope)) {
+            state.data = { ...state.data, addressingScope: "" }
+          }
+        }
+        return state
+      },
     }
   )
 )
