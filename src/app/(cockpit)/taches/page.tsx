@@ -1,213 +1,327 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { useAuthStore } from "@/lib/store"
-import { apiWithToken, type TaskWithContext } from "@/lib/api"
-import { format, parseISO, isPast } from "date-fns"
-import { fr } from "date-fns/locale"
-import Link from "next/link"
-import { toast } from "sonner"
+/**
+ * /taches — refonte Vague 2.1 (Liquid Glass × Nami v1.0).
+ *
+ * Pattern inspiré de la refonte /adressages PR #7. 4 sections temporelles
+ * (En retard pulse-dot · Aujourd'hui · À venir · Terminées collapsed),
+ * filtre simple `Toutes / Mes tâches / Mes équipes`, sheet de détail
+ * glass-strong avec édition inline.
+ *
+ * Création de tâche : INTERDITE depuis /taches (Q1). Le bouton renvoie vers
+ * /patients (création depuis la fiche patient, où le careCase context existe).
+ */
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "@/lib/store";
+import { apiWithToken, type TaskWithContext } from "@/lib/api";
+import { Plus } from "lucide-react";
+import CockpitMeshBackground from "@/components/cockpit/CockpitMeshBackground";
+import { TaskCard } from "@/components/taches/TaskCard";
+import { TaskDetailSheet } from "@/components/taches/TaskDetailSheet";
+import { TaskFilterBar } from "@/components/taches/TaskFilterBar";
+import { OverdueSection } from "@/components/taches/OverdueSection";
+import { TaskPeriodSection } from "@/components/taches/TaskPeriodSection";
 import {
-  CheckSquare, Clock, AlertTriangle, User,
-  Loader2,
-} from "lucide-react"
-import { TaskCheckbox } from "@/components/ui/TaskCheckbox"
-import { EmptyState } from "@/components/nami/EmptyState"
-import { NamiCard } from "@/components/ui/NamiCard"
-import { ShimmerCard } from "@/components/ui/shimmer"
-
-const N = {
-  primary: "#5B4EC4", primaryLight: "#EDE9FC", text: "#2D2B3D",
-  textSoft: "#8A879C", border: "#ECEAF5", bg: "#F6F5FB", card: "#FFF",
-  success: "#4E9A7C", successBg: "#EDF7F2",
-  danger: "#C4574E", dangerBg: "#FDF0EF",
-  warning: "#E6A23C", warningBg: "#FFF8EC",
-}
-
-const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING: { label: "À faire", color: N.warning, bg: N.warningBg },
-  IN_PROGRESS: { label: "En cours", color: N.primary, bg: N.primaryLight },
-  COMPLETED: { label: "Terminée", color: N.success, bg: N.successBg },
-  CANCELLED: { label: "Annulée", color: N.textSoft, bg: "#ECEAF5" },
-}
-
-const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
-  URGENT: { label: "Urgente", color: N.danger },
-  HIGH: { label: "Haute", color: N.danger },
-  MEDIUM: { label: "Moyenne", color: N.warning },
-  LOW: { label: "Basse", color: N.textSoft },
-}
-
-const FILTERS = [
-  { key: "", label: "Toutes" },
-  { key: "PENDING", label: "À faire" },
-  { key: "IN_PROGRESS", label: "En cours" },
-  { key: "COMPLETED", label: "Terminées" },
-]
+  applyOwnershipFilter,
+  buildCancelDescription,
+  groupTasksByPeriod,
+} from "@/components/taches/_utils";
+import {
+  PRIORITY_ORDER,
+  type TaskFilterValue,
+} from "@/components/taches/_constants";
 
 export default function TachesPage() {
-  const { accessToken } = useAuthStore()
-  const api = apiWithToken(accessToken!)
-  const qc = useQueryClient()
-  const [filter, setFilter] = useState("")
+  const { accessToken, user } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+  const queryClient = useQueryClient();
+  const myPersonId = user?.personId;
 
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ["tasks-mine", filter],
-    queryFn: () => api.tasksMine.list(filter || undefined),
-  })
+  const [filter, setFilter] = useState<TaskFilterValue>("mine");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<TaskWithContext | null>(null);
 
-  const patchMutation = useMutation({
-    mutationFn: ({ task, status }: { task: TaskWithContext; status: string }) =>
-      api.tasks.update(task.careCase.id, task.id, { status } as any),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["tasks-mine"] })
-      toast.success("Tâche mise à jour")
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey: ["tasks-mine"],
+    queryFn: () => api.tasksMine.list(),
+    enabled: !!accessToken,
+  });
+
+  // B3 fix : optimistic update — mutation backend ~5,5s en prod, UI réactive instantanément
+  const updateMutation = useMutation({
+    mutationFn: ({
+      careCaseId,
+      taskId,
+      payload,
+    }: {
+      careCaseId: string;
+      taskId: string;
+      payload: Partial<{
+        title: string;
+        description: string | null;
+        dueDate: string | null;
+        priority: string;
+        status: string;
+      }>;
+    }) =>
+      api.tasks.update(
+        careCaseId,
+        taskId,
+        // Le type Partial<Task> est plus restrictif côté api.ts mais le
+        // backend accepte ces champs ; on s'aligne sur la signature exposée.
+        payload as never,
+      ),
+    onMutate: async ({ taskId, payload }) => {
+      // Annule les refetches en cours pour éviter l'écrasement de notre update optimiste
+      await queryClient.cancelQueries({ queryKey: ["tasks-mine"] });
+      // Snapshot pour rollback en cas d'erreur
+      const previous = queryClient.getQueryData<TaskWithContext[]>([
+        "tasks-mine",
+      ]);
+      // Application optimiste : merge payload dans la task ciblée
+      queryClient.setQueryData<TaskWithContext[]>(
+        ["tasks-mine"],
+        (old) =>
+          old?.map((t) =>
+            t.id === taskId ? ({ ...t, ...payload } as TaskWithContext) : t,
+          ) ?? old,
+      );
+      return { previous };
     },
-    onError: () => toast.error("Erreur"),
-  })
+    onError: (_err, _vars, context) => {
+      // Rollback en cas d'erreur backend
+      if (context?.previous) {
+        queryClient.setQueryData(["tasks-mine"], context.previous);
+      }
+    },
+    onSettled: () => {
+      // Resync avec la vérité backend dans tous les cas
+      queryClient.invalidateQueries({ queryKey: ["tasks-mine"] });
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+    },
+  });
 
-  const pending = (tasks ?? []).filter(t => t.status === "PENDING" || t.status === "IN_PROGRESS")
-  const completed = (tasks ?? []).filter(t => t.status === "COMPLETED")
-  const shown = filter === "COMPLETED" ? completed : filter ? pending : [...pending, ...completed]
+  /* ── Pipeline filter / search / sort / group ─────────────────────────── */
+
+  const ownershipFiltered = useMemo(
+    () => applyOwnershipFilter(tasks, filter, myPersonId),
+    [tasks, filter, myPersonId],
+  );
+
+  const searched = useMemo(() => {
+    if (!search.trim()) return ownershipFiltered;
+    const q = search.trim().toLowerCase();
+    return ownershipFiltered.filter((t) => {
+      const haystack = [
+        t.title,
+        t.description,
+        t.careCase?.patient?.firstName,
+        t.careCase?.patient?.lastName,
+        t.careCase?.caseTitle,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [ownershipFiltered, search]);
+
+  const sorted = useMemo(() => {
+    return [...searched].sort((a, b) => {
+      const pa =
+        PRIORITY_ORDER[a.priority as keyof typeof PRIORITY_ORDER] ?? 99;
+      const pb =
+        PRIORITY_ORDER[b.priority as keyof typeof PRIORITY_ORDER] ?? 99;
+      if (pa !== pb) return pa - pb;
+      if (a.dueDate && b.dueDate)
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      if (a.dueDate) return -1;
+      if (b.dueDate) return 1;
+      return 0;
+    });
+  }, [searched]);
+
+  const groups = useMemo(() => groupTasksByPeriod(sorted), [sorted]);
+
+  /* ── Counts par filtre (pour le compteur des chips) ──────────────────── */
+
+  const counts = useMemo(() => {
+    return {
+      all: tasks.length,
+      mine: myPersonId
+        ? tasks.filter((t) => t.assignedTo?.id === myPersonId).length
+        : 0,
+      team: myPersonId
+        ? tasks.filter((t) => t.assignedTo?.id !== myPersonId).length
+        : tasks.length,
+    };
+  }, [tasks, myPersonId]);
+
+  /* ── Handlers ────────────────────────────────────────────────────────── */
+
+  const handleComplete = (task: TaskWithContext) =>
+    updateMutation.mutateAsync({
+      careCaseId: task.careCase.id,
+      taskId: task.id,
+      payload: { status: "COMPLETED" },
+    });
+
+  const handleCancel = async (
+    careCaseId: string,
+    taskId: string,
+    reason: string,
+  ) => {
+    const original = tasks.find((t) => t.id === taskId);
+    const newDescription = buildCancelDescription(
+      original?.description ?? null,
+      reason,
+    );
+    await updateMutation.mutateAsync({
+      careCaseId,
+      taskId,
+      payload: { status: "CANCELLED", description: newDescription },
+    });
+  };
+
+  const handleUpdate = async (
+    careCaseId: string,
+    taskId: string,
+    payload: Partial<{
+      title: string;
+      description: string | null;
+      dueDate: string | null;
+      priority: string;
+    }>,
+  ) => {
+    await updateMutation.mutateAsync({ careCaseId, taskId, payload });
+  };
+
+  /* ── Render ──────────────────────────────────────────────────────────── */
 
   return (
-    <div style={{ height: "100%", overflow: "auto", background: N.bg, fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif" }}>
-      <div style={{ maxWidth: 640, margin: "0 auto", padding: "28px 16px", paddingBottom: 80 }}>
+    <div className="relative min-h-screen">
+      <CockpitMeshBackground />
 
+      <main className="relative max-w-[1100px] mx-auto px-6 lg:px-9 py-7">
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <header className="mb-6 flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 600, color: N.text, display: "flex", alignItems: "center", gap: 8 }}>
-              <CheckSquare size={20} /> Mes tâches
+            <h1 className="text-3xl font-bold tracking-tight text-[#1A1A2E]">
+              Tâches
             </h1>
-            <p style={{ fontSize: 13, color: N.textSoft, marginTop: 2 }}>
-              {pending.length} en cours · {completed.length} terminées
+            <p className="text-sm text-[#4A4A5A] mt-1">
+              Vos actions à réaliser dans les parcours de coordination
             </p>
           </div>
-        </div>
+          {/* Q1 : pas de création depuis /taches, lien vers /patients */}
+          <Link
+            href="/patients"
+            className="glass-soft rounded-lg px-4 py-2 text-sm font-medium text-[#5B4EC4] hover:bg-white/60 transition inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
+          >
+            <Plus className="size-4" aria-hidden />
+            Nouvelle tâche (depuis un patient)
+          </Link>
+        </header>
 
-        {/* Filters */}
-        <div style={{ display: "flex", gap: 4, background: "#ECEAF5", borderRadius: 12, padding: 4, marginBottom: 20 }}>
-          {FILTERS.map(f => (
-            <button key={f.key} onClick={() => setFilter(f.key)}
-              style={{ flex: 1, padding: "8px 0", borderRadius: 10, border: "none", fontSize: 13,
-                fontWeight: filter === f.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit",
-                background: filter === f.key ? N.primary : "transparent",
-                color: filter === f.key ? "#fff" : N.textSoft }}>
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Loading */}
-        {isLoading && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[...Array(4)].map((_, i) => <ShimmerCard key={i} />)}
-          </div>
-        )}
-
-        {/* Empty */}
-        {!isLoading && shown.length === 0 && (
-          <EmptyState
-            icon={CheckSquare}
-            title="Aucune tâche en cours"
-            description="Vos tâches sur tous vos dossiers apparaîtront ici."
+        {/* Filtres */}
+        <div className="mb-6">
+          <TaskFilterBar
+            filter={filter}
+            onFilterChange={setFilter}
+            searchValue={search}
+            onSearchChange={setSearch}
+            counts={counts}
           />
+        </div>
+
+        {/* Sections */}
+        {!isLoading && (
+          <>
+            <OverdueSection count={groups.overdue.length}>
+              {groups.overdue.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={setSelected}
+                  onComplete={handleComplete}
+                />
+              ))}
+            </OverdueSection>
+
+            <TaskPeriodSection title="Aujourd'hui" count={groups.today.length}>
+              {groups.today.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={setSelected}
+                  onComplete={handleComplete}
+                />
+              ))}
+            </TaskPeriodSection>
+
+            <TaskPeriodSection
+              title="À venir"
+              count={groups.upcoming.length}
+            >
+              {groups.upcoming.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={setSelected}
+                  onComplete={handleComplete}
+                />
+              ))}
+            </TaskPeriodSection>
+
+            <TaskPeriodSection
+              title="Terminées"
+              count={groups.completed.length}
+              defaultCollapsed
+            >
+              {groups.completed.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={setSelected}
+                />
+              ))}
+            </TaskPeriodSection>
+
+            {sorted.length === 0 && (
+              <div className="glass-soft rounded-2xl p-12 text-center">
+                <p className="text-sm text-[#4A4A5A]">
+                  {search.trim()
+                    ? "Aucune tâche ne correspond à votre recherche."
+                    : "Aucune tâche à afficher."}
+                </p>
+                <p className="text-xs text-[#8A8A96] mt-1">
+                  Pour créer une nouvelle tâche, ouvrez la fiche d'un patient.
+                </p>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Tasks list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {shown.map(task => {
-            const st = STATUS_LABEL[task.status] ?? STATUS_LABEL.PENDING
-            const pr = PRIORITY_LABEL[task.priority] ?? PRIORITY_LABEL.MEDIUM
-            const isOverdue = task.dueDate && isPast(parseISO(task.dueDate)) && task.status !== "COMPLETED"
-            const isDone = task.status === "COMPLETED"
+        {/* Footer légal */}
+        <footer className="mt-10 glass-soft rounded-xl px-5 py-3 text-center text-[11px] text-[#1A1A2E]/50">
+          Outil de coordination · Non dispositif médical · Conforme RGPD
+        </footer>
+      </main>
 
-            return (
-              <NamiCard key={task.id} variant={isDone ? "flat" : "lift"} padding="none"
-                className="nami-stagger-item"
-                style={{ padding: "14px 16px", opacity: isDone ? 0.6 : 1, animationDelay: `${shown.indexOf(task) * 40}ms` }}
-              >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  {/* Check button */}
-                  <div style={{ marginTop: 1, flexShrink: 0 }}>
-                    <TaskCheckbox
-                      checked={isDone}
-                      onComplete={() => patchMutation.mutate({ task, status: "COMPLETED" })}
-                    />
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* Title */}
-                    <div style={{ fontSize: 14, fontWeight: 600, color: isDone ? N.textSoft : N.text, textDecoration: isDone ? "line-through" : "none" }}>
-                      {task.title}
-                    </div>
-
-                    {/* Patient + case */}
-                    <Link href={`/patients/${task.careCase.id}`} style={{ fontSize: 12, color: N.primary, textDecoration: "none", marginTop: 2, display: "inline-block" }}>
-                      {task.careCase.patient.firstName} {task.careCase.patient.lastName} — {task.careCase.caseTitle}
-                    </Link>
-
-                    {/* Meta row */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-                      {/* Status badge */}
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6, background: st.bg, color: st.color }}>
-                        {st.label}
-                      </span>
-
-                      {/* Priority */}
-                      <span style={{ fontSize: 10, fontWeight: 600, color: pr.color, display: "flex", alignItems: "center", gap: 2 }}>
-                        {task.priority === "URGENT" || task.priority === "HIGH" ? <AlertTriangle size={10} /> : null}
-                        {pr.label}
-                      </span>
-
-                      {/* Due date */}
-                      {task.dueDate && (
-                        <span style={{ fontSize: 10, color: isOverdue ? N.danger : N.textSoft, display: "flex", alignItems: "center", gap: 3 }}>
-                          <Clock size={10} />
-                          {format(parseISO(task.dueDate), "d MMM", { locale: fr })}
-                          {isOverdue && " — en retard"}
-                        </span>
-                      )}
-
-                      {/* Assigned to */}
-                      {task.assignedTo && (
-                        <span style={{ fontSize: 10, color: N.textSoft, display: "flex", alignItems: "center", gap: 3 }}>
-                          <User size={10} />
-                          {task.assignedTo.firstName} {task.assignedTo.lastName}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Description */}
-                    {task.description && (
-                      <p style={{ fontSize: 12, color: N.textSoft, marginTop: 6, lineHeight: 1.4 }}>{task.description}</p>
-                    )}
-                  </div>
-
-                  {/* Quick actions */}
-                  {!isDone && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      {task.status === "PENDING" && (
-                        <button onClick={() => patchMutation.mutate({ task, status: "IN_PROGRESS" })}
-                          style={{ ...smallBtn, background: N.primaryLight, color: N.primary }}>
-                          En cours
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </NamiCard>
-            )
-          })}
-        </div>
-      </div>
+      <TaskDetailSheet
+        task={selected}
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+        onUpdate={handleUpdate}
+        onComplete={async (t) => {
+          await handleComplete(t);
+          setSelected(null);
+        }}
+        onCancel={handleCancel}
+      />
     </div>
-  )
-}
-
-const smallBtn: React.CSSProperties = {
-  padding: "4px 10px", borderRadius: 6, border: "none", fontSize: 10,
-  fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+  );
 }
