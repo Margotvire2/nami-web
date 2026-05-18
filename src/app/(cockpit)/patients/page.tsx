@@ -7,7 +7,6 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, CareCase, type ObservationRecord } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NamiCard } from "@/components/ui/NamiCard";
 import { ShimmerCard } from "@/components/ui/shimmer";
 import { CompletenessPlant, computeCompleteness } from "@/components/ui/CompletenessPlant";
 import Link from "next/link";
@@ -389,7 +388,7 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
 
   return (
     <Link href={`/patients/${c.id}`}>
-      <NamiCard variant="depth" padding="none" className="p-4 cursor-pointer group">
+      <div className="glass-soft rounded-2xl p-4 cursor-pointer group">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -453,7 +452,7 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
             <span>{c.lastActivityAt ? daysAgo(c.lastActivityAt) : "jamais"}</span>
           </div>
         </div>
-      </NamiCard>
+      </div>
     </Link>
   );
 }

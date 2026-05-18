@@ -13,7 +13,6 @@ import {
   type DirectoryEntry,
 } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NamiCard } from "@/components/ui/NamiCard";
 import { ShimmerCard } from "@/components/ui/shimmer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

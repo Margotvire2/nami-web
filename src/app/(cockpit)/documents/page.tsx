@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NamiCard } from "@/components/ui/NamiCard";
 import { ShimmerCard } from "@/components/ui/shimmer";
 import { toast } from "sonner";
 import {
@@ -503,11 +502,9 @@ export default function DocumentsPage() {
                 DOC_TYPE_STYLE[doc.documentType] ?? DOC_TYPE_STYLE.OTHER;
 
               return (
-                <NamiCard
+                <div
                   key={doc.id}
-                  variant="lift"
-                  padding="none"
-                  className="p-4"
+                  className="glass-soft rounded-2xl p-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-9 h-9 rounded-lg bg-muted/30 flex items-center justify-center shrink-0 mt-0.5">
@@ -604,7 +601,7 @@ export default function DocumentsPage() {
                       </button>
                     </div>
                   </div>
-                </NamiCard>
+                </div>
               );
             })}
           </div>
