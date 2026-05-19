@@ -14,7 +14,7 @@ import { useState, useEffect, useMemo } from "react"
 // ── Types ───────────────────────────────────────────────────────────────────
 
 export type AppointmentStatus = "PENDING" | "CONFIRMED" | "PATIENT_ARRIVED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "ABSENCE"
-export type ViewMode = "day" | "location"
+export type GroupByMode = "day" | "location"
 
 export interface AgendaAppointment {
   id: string
@@ -66,14 +66,14 @@ export function useAgenda() {
   const qc = useQueryClient()
   const [weekOffset, setWeekOffset] = useState(0)
 
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+  const [groupByMode, setGroupByMode] = useState<GroupByMode>(() => {
     if (typeof window === "undefined") return "day"
-    return (localStorage.getItem("nami-agenda-view") as ViewMode) ?? "day"
+    return (localStorage.getItem("nami-agenda-view") as GroupByMode) ?? "day"
   })
 
   useEffect(() => {
-    localStorage.setItem("nami-agenda-view", viewMode)
-  }, [viewMode])
+    localStorage.setItem("nami-agenda-view", groupByMode)
+  }, [groupByMode])
 
   const baseDate = addWeeks(new Date(), weekOffset)
   const from = startOfWeek(baseDate, { weekStartsOn: 1 })
@@ -267,7 +267,7 @@ export function useAgenda() {
     goToday: () => setWeekOffset(0),
     from, to,
 
-    viewMode, setViewMode,
+    groupByMode, setGroupByMode,
 
     appointments: appointmentsQ.data ?? [],
     isLoading: appointmentsQ.isLoading,

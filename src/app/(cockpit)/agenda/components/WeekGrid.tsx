@@ -2,7 +2,7 @@
 
 import { addDays, format, isSameDay, differenceInMinutes, parseISO, startOfDay, getDay } from "date-fns"
 import { fr } from "date-fns/locale"
-import type { AgendaAppointment, ViewMode } from "../hooks/useAgenda"
+import type { AgendaAppointment, GroupByMode } from "../hooks/useAgenda"
 import type { AvailabilitySlotDTO, ConsultationLocation } from "@/lib/api"
 import { AppointmentBlock } from "./AppointmentBlock"
 import { cn } from "@/lib/utils"
@@ -20,11 +20,11 @@ interface Props {
   appointments: AgendaAppointment[]
   slots?: AvailabilitySlotDTO[]
   locations?: ConsultationLocation[]
-  viewMode: ViewMode
+  groupByMode: GroupByMode
   onSelect: (apt: AgendaAppointment) => void
 }
 
-export function WeekGrid({ from, appointments, slots = [], locations = [], viewMode, onSelect }: Props) {
+export function WeekGrid({ from, appointments, slots = [], locations = [], groupByMode, onSelect }: Props) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(from, i))
   const hours = Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i)
   const gridHeight = TOTAL_MINS * PX_PER_MIN
@@ -82,7 +82,7 @@ export function WeekGrid({ from, appointments, slots = [], locations = [], viewM
         const fillRate = totalSlotMins > 0 ? Math.min(1, totalApptMins / totalSlotMins) : 0
 
         // In location mode, split by location
-        if (viewMode === "location" && locations.length > 1) {
+        if (groupByMode === "location" && locations.length > 1) {
           return (
             <div key={day.toISOString()} className="flex-1 min-w-[120px] border-r last:border-r-0">
               <DayHeader day={day} isToday={isToday} count={activeApts.length} fillRate={fillRate} totalSlotMins={totalSlotMins} />
