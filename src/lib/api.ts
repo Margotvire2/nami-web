@@ -592,10 +592,13 @@ export const intelligenceApi = {
   knowledgeSearch: (
     token: string,
     q: string,
-    opts: { limit?: number } = {}
+    opts: { limit?: number; minQuality?: number } = {}
   ) => {
     const limit = Math.min(opts.limit ?? 10, 10);
     const params = new URLSearchParams({ q, limit: String(limit) });
+    if (opts.minQuality !== undefined) {
+      params.set("minQuality", String(opts.minQuality));
+    }
     return request<{ query: string; rerankProvider?: string; results: KnowledgeSearchResult[] }>(
       `/knowledge/semantic-search?${params.toString()}`,
       {},
@@ -716,6 +719,11 @@ export interface KnowledgeSearchResult {
   entryTitle: string | null;
   pageNumber: number | null;
   format: SourceFormat | null;
+  // Champs Action C — rendu spécialisé subkind=tableau_brut
+  subkind: string | null;
+  hasId: string | null;
+  pageStart: number | null;
+  pageEnd: number | null;
 }
 
 export interface KnowledgeEntryDetail {
@@ -2798,7 +2806,7 @@ export function apiWithToken(token: string) {
       publishSource: (id: string) => intelligenceApi.publishSource(token, id),
       semanticSearch: (q: string, limit?: number) => intelligenceApi.semanticSearch(token, q, limit),
       knowledgeEntry: (id: string) => intelligenceApi.knowledgeEntry(token, id),
-      knowledgeSearch: (q: string, opts?: { limit?: number; source?: string; category?: string }) =>
+      knowledgeSearch: (q: string, opts?: { limit?: number; minQuality?: number; source?: string; category?: string }) =>
         intelligenceApi.knowledgeSearch(token, q, opts),
       consensus: (q: string, limit?: number) => intelligenceApi.consensus(token, q, limit),
       evaluationStats: () => intelligenceApi.evaluationStats(token),

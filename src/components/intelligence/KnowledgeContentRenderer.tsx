@@ -79,14 +79,139 @@ function renderInline(text: string): ReactNode {
   });
 }
 
+/**
+ * Placeholder pour chunks issus d'un tableau extrait du PDF source.
+ * Le texte brut ne préserve pas la structure colonnes/lignes — au lieu d'essayer
+ * de reconstruire un <table> à partir d'une suite de cellules (lossy, trompeur,
+ * non conforme Doctrine MDR D.2), on affiche un cartouche neutre + lien vers
+ * le PDF officiel HAS où le tableau est lisible dans son format d'origine.
+ */
+function TableauBrutPlaceholder({
+  hasId,
+  pageStart,
+  pageEnd,
+  sourceUrl,
+}: {
+  hasId: string | null;
+  pageStart: number | null;
+  pageEnd: number | null;
+  sourceUrl: string | null;
+}) {
+  const pageLabel =
+    pageStart != null
+      ? pageEnd != null && pageEnd !== pageStart
+        ? `Pages ${pageStart}-${pageEnd}`
+        : `Page ${pageStart}`
+      : null;
+  const href = sourceUrl ?? (hasId ? `https://www.has-sante.fr/jcms/${hasId}` : null);
+  return (
+    <div
+      style={{
+        background: NAMI.violetSoft,
+        border: `0.5px solid ${NAMI.violetSoft2}`,
+        borderRadius: 12,
+        padding: 16,
+        fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontFamily: "Inter, system-ui, sans-serif",
+          fontWeight: 600,
+          fontSize: 10,
+          color: NAMI.violet,
+          letterSpacing: "0.10em",
+          textTransform: "uppercase",
+          marginBottom: 8,
+        }}
+      >
+        <span aria-hidden style={{ textTransform: "none", fontSize: 14 }}>📄</span>
+        <span>Tableau brut</span>
+        {pageLabel && (
+          <span
+            style={{
+              fontWeight: 400,
+              color: NAMI.textMuted,
+              letterSpacing: "0.02em",
+              textTransform: "none",
+            }}
+          >
+            · {pageLabel}
+          </span>
+        )}
+      </div>
+      <p
+        style={{
+          fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+          fontWeight: 400,
+          fontSize: 13,
+          lineHeight: 1.65,
+          color: NAMI.textMuted,
+          margin: "0 0 12px",
+          maxWidth: "60ch",
+        }}
+      >
+        Ce contenu provient d'un tableau du PDF source. Pour consulter le format
+        complet et l'ordre original des cellules, ouvrez le PDF officiel HAS.
+      </p>
+      {href && (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+            fontWeight: 500,
+            fontSize: 12,
+            color: NAMI.violet,
+            textDecoration: "underline",
+            textUnderlineOffset: 2,
+          }}
+        >
+          Ouvrir la source HAS →
+        </a>
+      )}
+    </div>
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function KnowledgeContentRenderer({
   content,
   source: _source,
+  subkind,
+  hasId,
+  pageStart,
+  pageEnd,
+  sourceUrl,
 }: {
   content: string;
   source: string;
+  subkind?: string | null;
+  hasId?: string | null;
+  pageStart?: number | null;
+  pageEnd?: number | null;
+  sourceUrl?: string | null;
 }) {
+  // Tableau brut : reconstruction <table> HTML interdite (Doctrine MDR D.2,
+  // texte brut lossy). Placeholder neutre + lien PDF HAS officiel.
+  if (subkind === "tableau_brut") {
+    return (
+      <TableauBrutPlaceholder
+        hasId={hasId ?? null}
+        pageStart={pageStart ?? null}
+        pageEnd={pageEnd ?? null}
+        sourceUrl={sourceUrl ?? null}
+      />
+    );
+  }
+
   const cleaned = cleanRagContent(content);
 
   // Slide-deck : détection par contenu (Phase 3.B.2 acquis)
