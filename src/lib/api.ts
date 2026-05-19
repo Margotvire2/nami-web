@@ -905,7 +905,21 @@ export interface Appointment {
   careCaseId: string | null;
   startAt: string;
   endAt: string;
-  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+  // F-AGENDA-STATUS-UNION-EXTEND : 12 valeurs alignées sur l'enum backend
+  // public.AppointmentStatus (cf. F3 G4 partie 1/2 PR #25 nami).
+  status:
+    | "PENDING"
+    | "CONFIRMED"
+    | "RESCHEDULED"
+    | "IN_PROGRESS"
+    | "PATIENT_ARRIVED"
+    | "COMPLETED"
+    | "CANCELLED" // legacy, conservé pour backward compat
+    | "CANCELLED_BY_PATIENT"
+    | "CANCELLED_BY_PROVIDER"
+    | "CANCELLED_BY_SECRETARY"
+    | "CANCELLED_BY_SYSTEM"
+    | "NO_SHOW";
   locationType: "IN_PERSON" | "VIDEO" | "PHONE";
   locationDetails: string | null;
   isFirstConsultation: boolean;
@@ -3121,7 +3135,21 @@ export interface SecretaryAppointment {
   id: string;
   startAt: string;
   endAt: string;
-  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "PATIENT_ARRIVED";
+  // F-AGENDA-STATUS-UNION-EXTEND : 12 valeurs alignées sur l'enum backend
+  // public.AppointmentStatus (cf. F3 G4 partie 1/2 PR #25 nami).
+  status:
+    | "PENDING"
+    | "CONFIRMED"
+    | "RESCHEDULED"
+    | "IN_PROGRESS"
+    | "PATIENT_ARRIVED"
+    | "COMPLETED"
+    | "CANCELLED" // legacy, conservé pour backward compat
+    | "CANCELLED_BY_PATIENT"
+    | "CANCELLED_BY_PROVIDER"
+    | "CANCELLED_BY_SECRETARY"
+    | "CANCELLED_BY_SYSTEM"
+    | "NO_SHOW";
   patient: { id: string; firstName: string; lastName: string; phone: string | null; birthDate: string | null } | null;
   consultationType: { name: string; durationMinutes: number; color: string | null } | null;
   notes: string | null;
