@@ -38,7 +38,7 @@ export default function TachesPage() {
   const { accessToken, user } = useAuthStore();
   const api = apiWithToken(accessToken!);
   const queryClient = useQueryClient();
-  const myPersonId = user?.personId;
+  const myPersonId = user?.id;
 
   const [filter, setFilter] = useState<TaskFilterValue>("mine");
   const [search, setSearch] = useState("");

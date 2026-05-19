@@ -43,7 +43,7 @@ export default function AdressageDetailPage() {
   const user = useAuthStore((s) => s.user);
   const isOwner = useMemo(() => {
     if (!data || !user) return false;
-    return data.sender?.id === user.personId;
+    return data.sender?.id === user.id;
   }, [data, user]);
   const isRecipient = !isOwner; // simplification V1, le backend tranche
 

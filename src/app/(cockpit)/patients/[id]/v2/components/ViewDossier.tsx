@@ -136,7 +136,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
           {filtered.map((note: any) => {
             const typeColor = noteTypeColors[note.noteType] || "border-l-gray-400";
             const authorName = note.author ? `${note.author.firstName || ""} ${note.author.lastName || ""}`.trim() : null;
-            const isAuthor = user?.personId === note.authorPersonId;
+            const isAuthor = user?.id === note.authorPersonId;
             const isAdmin = user?.roleType === "ADMIN";
             const canDelete = isAuthor || isAdmin;
             return (
