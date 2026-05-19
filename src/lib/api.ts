@@ -738,7 +738,6 @@ export interface KnowledgeEntryDetail {
 
 export interface User {
   id: string;
-  personId?: string;
   email: string;
   firstName: string;
   lastName: string;
