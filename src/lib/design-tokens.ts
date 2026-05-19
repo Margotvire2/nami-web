@@ -96,31 +96,45 @@ export const slStyle: React.CSSProperties = {
   marginBottom:  10,
 }
 
-// Helpers statuts RDV
+// Helpers statuts RDV — F-AGENDA-STATUS-UNION-EXTEND : 6 statuts F-G4 ajoutés
+// (RESCHEDULED, IN_PROGRESS, CANCELLED_BY_PATIENT/PROVIDER/SECRETARY/SYSTEM).
+// Tous les CANCELLED_BY_* utilisent N.statusCancelled (palette danger uniforme).
 export function getStatusColor(status: string): string {
   const map: Record<string, string> = {
-    PENDING:          N.statusPending,
-    CONFIRMED:        N.statusConfirmed,
-    ARRIVED:          N.statusArrived,
-    PATIENT_ARRIVED:  N.statusArrived,
-    COMPLETED:        N.statusCompleted,
-    CANCELLED:        N.statusCancelled,
-    NO_SHOW:          N.statusNoShow,
-    ABSENCE:          N.statusAbsence,
+    PENDING:                N.statusPending,
+    CONFIRMED:              N.statusConfirmed,
+    RESCHEDULED:            N.statusCompleted, // gris neutre — RDV déplacé, plus actif
+    IN_PROGRESS:            N.statusConfirmed, // vert actif — consultation en cours
+    ARRIVED:                N.statusArrived,
+    PATIENT_ARRIVED:        N.statusArrived,
+    COMPLETED:              N.statusCompleted,
+    CANCELLED:              N.statusCancelled,
+    CANCELLED_BY_PATIENT:   N.statusCancelled,
+    CANCELLED_BY_PROVIDER:  N.statusCancelled,
+    CANCELLED_BY_SECRETARY: N.statusCancelled,
+    CANCELLED_BY_SYSTEM:    N.statusCancelled,
+    NO_SHOW:                N.statusNoShow,
+    ABSENCE:                N.statusAbsence,
   }
   return map[status] ?? N.textLight
 }
 
 export function getStatusLabel(status: string): string {
   const map: Record<string, string> = {
-    PENDING:         "En attente",
-    CONFIRMED:       "Confirmé",
-    ARRIVED:         "Arrivé",
-    PATIENT_ARRIVED: "Arrivé",
-    COMPLETED:       "Terminé",
-    CANCELLED:       "Annulé",
-    NO_SHOW:         "Absent",
-    ABSENCE:         "Indisponible",
+    PENDING:                "En attente",
+    CONFIRMED:              "Confirmé",
+    RESCHEDULED:            "Reporté",
+    IN_PROGRESS:            "En cours",
+    ARRIVED:                "Arrivé",
+    PATIENT_ARRIVED:        "Arrivé",
+    COMPLETED:              "Terminé",
+    CANCELLED:              "Annulé",
+    CANCELLED_BY_PATIENT:   "Annulé (patient)",
+    CANCELLED_BY_PROVIDER:  "Annulé (soignant)",
+    CANCELLED_BY_SECRETARY: "Annulé (secrét.)",
+    CANCELLED_BY_SYSTEM:    "Annulé (système)",
+    NO_SHOW:                "Absent",
+    ABSENCE:                "Indisponible",
   }
   return map[status] ?? status
 }

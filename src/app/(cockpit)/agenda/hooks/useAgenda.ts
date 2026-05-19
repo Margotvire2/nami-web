@@ -13,7 +13,23 @@ import { useState, useEffect, useMemo } from "react"
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export type AppointmentStatus = "PENDING" | "CONFIRMED" | "PATIENT_ARRIVED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "ABSENCE"
+// F-AGENDA-STATUS-UNION-EXTEND : 12 valeurs backend + ABSENCE custom frontend.
+// ABSENCE n'existe pas côté backend — c'est une valeur synthétique utilisée par
+// l'UI agenda pour représenter les créneaux d'absence provider dans la grille.
+export type AppointmentStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "RESCHEDULED"
+  | "IN_PROGRESS"
+  | "PATIENT_ARRIVED"
+  | "COMPLETED"
+  | "CANCELLED" // legacy, conservé pour backward compat
+  | "CANCELLED_BY_PATIENT"
+  | "CANCELLED_BY_PROVIDER"
+  | "CANCELLED_BY_SECRETARY"
+  | "CANCELLED_BY_SYSTEM"
+  | "NO_SHOW"
+  | "ABSENCE" // custom frontend, pas dans l'enum backend
 export type GroupByMode = "day" | "location"
 
 export interface AgendaAppointment {
@@ -84,9 +100,6 @@ export function useAgenda() {
   // Filter out RESCHEDULED : le service AppointmentService.reschedule (PR #29 backend)
   // crée 2 records (ancien=RESCHEDULED + nouveau=PENDING avec rescheduledFromId).
   // Sans ce filter, le DnD agenda afficherait un ghost RDV (ancien fantôme + nouveau).
-  // TODO(F-AGENDA-STATUS-UNION-EXTEND P2): retirer le cast `as string` une fois
-  // l'union AppointmentStatus étendue aux 6 nouveaux statuts F-G4 (RESCHEDULED,
-  // IN_PROGRESS, CANCELLED_BY_PATIENT/PROVIDER/SECRETARY/SYSTEM).
   const appointmentsQ = useQuery<AgendaAppointment[]>({
     queryKey: ["agenda-appointments", user?.id, weekOffset],
     enabled: !!accessToken && !!user?.id,
@@ -96,7 +109,7 @@ export function useAgenda() {
         from: from.toISOString(),
         to: to.toISOString(),
       }) as Promise<AgendaAppointment[]>,
-    select: (data) => data.filter((a) => (a.status as string) !== "RESCHEDULED"),
+    select: (data) => data.filter((a) => a.status !== "RESCHEDULED"),
   })
 
   // ── Consultation types ────────────────────────────────────────

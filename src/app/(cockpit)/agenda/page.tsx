@@ -10,6 +10,7 @@ import { CreateAppointmentModal } from "./components/CreateAppointmentModal"
 import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken, type ConsultationLocation, type CareCase, type Appointment, type AppointmentCancelReason } from "@/lib/api"
+import { isCancelledLike } from "@/lib/appointment-status"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { useConsultation } from "@/contexts/ConsultationContext"
@@ -28,13 +29,19 @@ const N = {
 }
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  CONFIRMED:       { label: "Confirmé",       color: N.success,  bg: N.successBg,  icon: "✓" },
-  PENDING:         { label: "En attente",     color: N.warning,  bg: N.warningBg,  icon: "⏳" },
-  PATIENT_ARRIVED: { label: "Patient arrivé", color: "#2BA84A",  bg: "#EDF7F0",    icon: "🟢" },
-  CANCELLED:       { label: "Annulé",         color: N.danger,   bg: N.dangerBg,   icon: "✕" },
-  COMPLETED:       { label: "Terminé",        color: N.textSoft, bg: "#F2F2F4",    icon: "✓" },
-  NO_SHOW:         { label: "Absent",         color: "#C0792A",  bg: "#FFF4E8",    icon: "✕" },
-  ABSENCE:         { label: "Indisponible",   color: N.textSoft, bg: "#F2F2F4",    icon: "—" },
+  CONFIRMED:               { label: "Confirmé",          color: N.success,  bg: N.successBg,  icon: "✓" },
+  PENDING:                 { label: "En attente",        color: N.warning,  bg: N.warningBg,  icon: "⏳" },
+  RESCHEDULED:             { label: "Reporté",           color: N.textSoft, bg: "#F2F2F4",    icon: "↻" },
+  IN_PROGRESS:             { label: "En cours",          color: "#5B4EC4",  bg: "#EEEBF8",    icon: "▶" },
+  PATIENT_ARRIVED:         { label: "Patient arrivé",    color: "#2BA84A",  bg: "#EDF7F0",    icon: "🟢" },
+  CANCELLED:               { label: "Annulé",            color: N.danger,   bg: N.dangerBg,   icon: "✕" },
+  CANCELLED_BY_PATIENT:    { label: "Annulé (patient)",  color: N.danger,   bg: N.dangerBg,   icon: "✕" },
+  CANCELLED_BY_PROVIDER:   { label: "Annulé (soignant)", color: N.danger,   bg: N.dangerBg,   icon: "✕" },
+  CANCELLED_BY_SECRETARY:  { label: "Annulé (secrét.)",  color: N.danger,   bg: N.dangerBg,   icon: "✕" },
+  CANCELLED_BY_SYSTEM:     { label: "Annulé (système)",  color: N.danger,   bg: N.dangerBg,   icon: "✕" },
+  COMPLETED:               { label: "Terminé",           color: N.textSoft, bg: "#F2F2F4",    icon: "✓" },
+  NO_SHOW:                 { label: "Absent",            color: "#C0792A",  bg: "#FFF4E8",    icon: "✕" },
+  ABSENCE:                 { label: "Indisponible",      color: N.textSoft, bg: "#F2F2F4",    icon: "—" },
 }
 
 import { getCareTypeColor, getCareTypeLabel } from "@/lib/caseType"
@@ -91,7 +98,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
 }) {
   const [hovered, setHovered] = useState(false)
   const bandColor = careCase ? getPathologyColor(careCase.caseType) : getColor(appt)
-  const isCancelled = appt.status === "CANCELLED"
+  const isCancelled = isCancelledLike(appt.status)
   const isPending = appt.status === "PENDING"
   const isVideo = appt.locationType === "VIDEO" || appt.locationType === "PHONE"
   const name = `${appt.patient.firstName} ${appt.patient.lastName}`
@@ -298,7 +305,7 @@ function DayView({
           const bandColor = careCase ? getPathologyColor(careCase.caseType) : getColor(appt)
           const status = STATUS_CFG[appt.status] ?? { label: appt.status, color: N.textSoft, bg: N.bg, icon: "·" }
           const isNow = parseISO(appt.startAt).getTime() <= nowTs && parseISO(appt.endAt).getTime() > nowTs
-          const isDone = appt.status === "COMPLETED" || appt.status === "CANCELLED"
+          const isDone = appt.status === "COMPLETED" || isCancelledLike(appt.status)
           const isPending = appt.status === "PENDING"
           const initials = `${appt.patient.firstName[0] ?? ""}${appt.patient.lastName?.[0] ?? ""}`.toUpperCase()
 
@@ -307,7 +314,7 @@ function DayView({
               background: N.card, borderRadius: 14, overflow: "hidden",
               border: isNow ? `2px solid rgba(91,78,196,0.25)` : `1px solid ${N.border}`,
               boxShadow: isNow ? `0 0 0 4px rgba(91,78,196,0.06), 0 2px 8px rgba(0,0,0,0.04)` : "0 1px 4px rgba(0,0,0,0.04)",
-              opacity: appt.status === "CANCELLED" ? 0.45 : 1,
+              opacity: isCancelledLike(appt.status) ? 0.45 : 1,
               transition: "box-shadow 0.2s",
             }}>
               <div style={{ display: "flex" }}>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda } from "@/lib/api";
+import { isActiveStatus, isCancelledLike } from "@/lib/appointment-status";
 import { format, addDays, subDays, parseISO, isToday, set } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -29,12 +30,18 @@ const DAY_START = 7;   // 7h
 const DAY_END = 20;    // 20h
 
 const STATUS_CONFIG = {
-  PENDING:         { label: "En attente",    bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700"   },
-  CONFIRMED:       { label: "Confirmé",      bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
-  PATIENT_ARRIVED: { label: "Arrivé",        bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700"    },
-  COMPLETED:       { label: "Terminé",       bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
-  CANCELLED:       { label: "Annulé",        bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
-  NO_SHOW:         { label: "Non présenté",  bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  PENDING:                { label: "En attente",       bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700"   },
+  CONFIRMED:              { label: "Confirmé",         bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
+  RESCHEDULED:            { label: "Reporté",          bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
+  IN_PROGRESS:            { label: "En cours",         bg: "bg-violet-50",  border: "border-violet-200",  text: "text-violet-700"  },
+  PATIENT_ARRIVED:        { label: "Arrivé",           bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700"    },
+  COMPLETED:              { label: "Terminé",          bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
+  CANCELLED:              { label: "Annulé",           bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  CANCELLED_BY_PATIENT:   { label: "Annulé (patient)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  CANCELLED_BY_PROVIDER:  { label: "Annulé (soignant)",bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  CANCELLED_BY_SECRETARY: { label: "Annulé (secrét.)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  CANCELLED_BY_SYSTEM:    { label: "Annulé (système)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  NO_SHOW:                { label: "Non présenté",     bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
 } as const;
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -297,7 +304,7 @@ function ApptDetailModal({
           )}
         </div>
         <div className="flex gap-2 px-5 pb-4">
-          {appt.status !== "PATIENT_ARRIVED" && appt.status !== "CANCELLED" && appt.status !== "COMPLETED" && (
+          {isActiveStatus(appt.status) && appt.status !== "PATIENT_ARRIVED" && (
             <button
               onClick={() => arrivedMut.mutate()}
               disabled={arrivedMut.isPending}
@@ -307,7 +314,7 @@ function ApptDetailModal({
               Patient arrivé
             </button>
           )}
-          {appt.status !== "CANCELLED" && appt.status !== "COMPLETED" && (
+          {!isCancelledLike(appt.status) && appt.status !== "COMPLETED" && (
             <button
               onClick={() => cancelMut.mutate()}
               disabled={cancelMut.isPending}

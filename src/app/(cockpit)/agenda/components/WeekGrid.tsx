@@ -4,6 +4,7 @@ import { addDays, format, isSameDay, differenceInMinutes, parseISO, startOfDay, 
 import { fr } from "date-fns/locale"
 import type { AgendaAppointment, GroupByMode } from "../hooks/useAgenda"
 import type { AvailabilitySlotDTO, ConsultationLocation } from "@/lib/api"
+import { isCancelledLike } from "@/lib/appointment-status"
 import { AppointmentBlock } from "./AppointmentBlock"
 import { cn } from "@/lib/utils"
 
@@ -211,7 +212,7 @@ function renderBlock(
   const height = Math.max(20, durMins * PX_PER_MIN)
 
   const isPast = new Date(apt.endAt) < new Date()
-  const isCancelled = apt.status === "CANCELLED"
+  const isCancelled = isCancelledLike(apt.status)
 
   // Color from location if available, else fallback by locationType
   const loc = apt.location
