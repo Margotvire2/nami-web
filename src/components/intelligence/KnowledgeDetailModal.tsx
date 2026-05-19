@@ -201,6 +201,11 @@ export default function KnowledgeDetailModal({
                 <KnowledgeContentRenderer
                   content={result.content}
                   source={sourceMeta.kind}
+                  subkind={result.subkind}
+                  hasId={result.hasId}
+                  pageStart={result.pageStart}
+                  pageEnd={result.pageEnd}
+                  sourceUrl={result.sourceUrl}
                 />
               </div>
             </div>

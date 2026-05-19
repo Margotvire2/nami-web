@@ -118,6 +118,7 @@ export default function IntelligencePage() {
   const [activeSource, setActiveSource] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<KnowledgeSearchResult | null>(null);
   const [kbHintVisible, setKbHintVisible] = useState(true);
+  const [showAllQuality, setShowAllQuality] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const doSearch = async (q: string) => {
@@ -127,7 +128,10 @@ export default function IntelligencePage() {
     setSearchError(null);
     setActiveSource(null);
     try {
-      const data = await apiWithToken(accessToken!).intelligence.knowledgeSearch(q, { limit: 10 });
+      const data = await apiWithToken(accessToken!).intelligence.knowledgeSearch(q, {
+        limit: 10,
+        ...(showAllQuality && { minQuality: 0 }),
+      });
       setResults(data.results);
       setSearched(true);
     } catch (err: unknown) {
@@ -142,6 +146,15 @@ export default function IntelligencePage() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") doSearch(query);
   };
+
+  // Re-lance la recherche quand le toggle "Voir tous les résultats" bascule
+  // (changement de seuil minQuality côté backend).
+  useEffect(() => {
+    if (searched && query.trim()) {
+      doSearch(query);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllQuality]);
 
   // Phase 3.B.4 — filtre PNDS hors-scope TCA appliqué AVANT le filtre source.
   const pndsScopedResults = useMemo(
@@ -357,6 +370,30 @@ export default function IntelligencePage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* ── Toggle qualité : voir tous les résultats (minQuality=0) ── */}
+            {searched && (
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  type="checkbox"
+                  id="show-all-quality"
+                  checked={showAllQuality}
+                  onChange={(e) => setShowAllQuality(e.target.checked)}
+                  className="rounded border-gray-300 focus:ring-2 focus:ring-[#5B4EC4] cursor-pointer"
+                />
+                <label
+                  htmlFor="show-all-quality"
+                  className="text-sm text-gray-600 cursor-pointer select-none"
+                >
+                  Voir tous les résultats
+                </label>
+                {showAllQuality && (
+                  <span className="text-xs text-gray-400">
+                    (filtre qualité désactivé)
+                  </span>
+                )}
               </div>
             )}
 
