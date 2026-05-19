@@ -886,9 +886,9 @@ export default function ReglagesPage() {
                     <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>Téléchargez l&apos;ensemble de vos données personnelles et professionnelles au format JSON (RGPD Art. 20).</div>
                     <button
                       onClick={async () => {
-                        if (!user?.personId || !accessToken) return
+                        if (!user?.id || !accessToken) return
                         try {
-                          const res = await fetch(`${API_URL}/persons/${user.personId}/data-export`, {
+                          const res = await fetch(`${API_URL}/persons/${user.id}/data-export`, {
                             headers: { Authorization: `Bearer ${accessToken}` },
                           })
                           if (!res.ok) throw new Error("Erreur export")
