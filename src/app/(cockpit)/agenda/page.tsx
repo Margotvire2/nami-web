@@ -9,11 +9,12 @@ import { AgendaSetup } from "./components/AgendaSetup"
 import { CreateAppointmentModal } from "./components/CreateAppointmentModal"
 import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
-import { apiWithToken, type ConsultationLocation, type CareCase, type Appointment } from "@/lib/api"
+import { apiWithToken, type ConsultationLocation, type CareCase, type Appointment, type AppointmentCancelReason } from "@/lib/api"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { useConsultation } from "@/contexts/ConsultationContext"
 import { toast } from "sonner"
+import { CancelAppointmentModal } from "./components/CancelAppointmentModal"
 
 /* ═══════════════════════════════════════════
    NAMI DESIGN TOKENS
@@ -550,13 +551,21 @@ function DaySummaryBar({ appointments }: { appointments: AgendaAppointment[] }) 
 /* ═══════════════════════════════════════════
    DRAWER
    ═══════════════════════════════════════════ */
-function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
+function Drawer({ appt, onClose, onPatch, isPatching, onComplete, onCancel, onNoShow, isCompleting, isCancelling, isMarkingNoShow, getColor }: {
   appt: AgendaAppointment; onClose: () => void;
-  onPatch: (id: string, data: { status?: string }) => void; isPatching: boolean; getColor: (a: AgendaAppointment) => string
+  onPatch: (id: string, data: { status?: string }) => void; isPatching: boolean;
+  onComplete: (id: string) => Promise<unknown>;
+  onCancel: (data: { id: string; reason: AppointmentCancelReason; note?: string }) => Promise<unknown>;
+  onNoShow: (id: string) => Promise<unknown>;
+  isCompleting: boolean; isCancelling: boolean; isMarkingNoShow: boolean;
+  getColor: (a: AgendaAppointment) => string
 }) {
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const color = getColor(appt)
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  // No-show possible si CONFIRMED et la date du RDV est passée (le patient ne s'est pas présenté)
+  const canMarkNoShow = appt.status === "CONFIRMED" && new Date(appt.startAt) < new Date()
   const typeName = appt.consultationType?.name ?? "Consultation"
   const startDate = parseISO(appt.startAt)
   const endDate = parseISO(appt.endAt)
@@ -644,7 +653,7 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
 
         {/* Actions */}
         {appt.status !== "CANCELLED" && appt.status !== "COMPLETED" && (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {appt.status === "PENDING" && (
               <button onClick={() => onPatch(appt.id, { status: "CONFIRMED" })} disabled={isPatching}
                 style={{ ...actionBtn, background: N.success, opacity: isPatching ? 0.6 : 1 }}>
@@ -652,17 +661,34 @@ function Drawer({ appt, onClose, onPatch, isPatching, getColor }: {
               </button>
             )}
             {appt.status === "CONFIRMED" && (
-              <button onClick={() => onPatch(appt.id, { status: "COMPLETED" })} disabled={isPatching}
-                style={{ ...actionBtn, background: N.primary, opacity: isPatching ? 0.6 : 1 }}>
+              <button onClick={() => onComplete(appt.id)} disabled={isCompleting}
+                style={{ ...actionBtn, background: N.primary, opacity: isCompleting ? 0.6 : 1 }}>
                 Marquer terminé
               </button>
             )}
-            <button onClick={() => onPatch(appt.id, { status: "CANCELLED" })} disabled={isPatching}
-              style={{ ...actionBtn, background: N.dangerBg, color: N.danger }}>
+            {canMarkNoShow && (
+              <button onClick={() => onNoShow(appt.id)} disabled={isMarkingNoShow}
+                style={{ ...actionBtn, background: N.warningBg, color: N.warning, opacity: isMarkingNoShow ? 0.6 : 1 }}>
+                Marquer non-venu
+              </button>
+            )}
+            <button onClick={() => setCancelModalOpen(true)} disabled={isCancelling}
+              style={{ ...actionBtn, background: N.dangerBg, color: N.danger, opacity: isCancelling ? 0.6 : 1 }}>
               Annuler
             </button>
           </div>
         )}
+
+        <CancelAppointmentModal
+          open={cancelModalOpen}
+          onOpenChange={setCancelModalOpen}
+          onConfirm={async ({ reason, note }) => {
+            await onCancel({ id: appt.id, reason, note })
+            setCancelModalOpen(false)
+            onClose()
+          }}
+          isPending={isCancelling}
+        />
 
         {/* Fiche patient + Préparer */}
         {appt.careCaseId && (
@@ -801,10 +827,14 @@ export default function AgendaPage() {
     const dur = getApptDuration(appt)
     const newEnd = new Date(newStart.getTime() + dur * 60000)
     try {
-      await agenda.patchAppointment({
+      // F-G4-WIRING: drag-and-drop reschedule → route POST /:id/reschedule
+      // Le service crée un nouveau RDV avec rescheduledFromId et marque l'ancien RESCHEDULED.
+      // rescheduleSource="provider" car le DnD est déclenché depuis le cockpit soignant.
+      await agenda.rescheduleAppointment({
         id: appt.id,
-        startAt: newStart.toISOString(),
-        endAt: newEnd.toISOString(),
+        newStartAt: newStart.toISOString(),
+        newEndAt: newEnd.toISOString(),
+        rescheduleSource: "provider",
       })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Impossible de déplacer le rendez-vous")
@@ -1046,6 +1076,21 @@ export default function AgendaPage() {
               setSelectedAppt(updated)
             }}
             isPatching={agenda.isPatching}
+            onComplete={async (id) => {
+              await agenda.completeAppointment(id)
+              setSelectedAppt(null)
+            }}
+            onCancel={async ({ id, reason, note }) => {
+              await agenda.cancelAppointment({ id, reason, note })
+              setSelectedAppt(null)
+            }}
+            onNoShow={async (id) => {
+              await agenda.noShowAppointment(id)
+              setSelectedAppt(null)
+            }}
+            isCompleting={agenda.isCompleting}
+            isCancelling={agenda.isCancelling}
+            isMarkingNoShow={agenda.isMarkingNoShow}
             getColor={agenda.getColor}
           />
         </>

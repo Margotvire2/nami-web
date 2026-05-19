@@ -939,6 +939,19 @@ export interface AvailabilitySlotDTO {
   isActive: boolean;
 }
 
+// ─── Types F-G4 cycle de vie (mirror backend Prisma enum AppointmentCancelReason) ────
+export type AppointmentCancelReason =
+  | "PATIENT_UNAVAILABLE"
+  | "PATIENT_NO_LONGER_NEEDED"
+  | "PATIENT_FINANCIAL"
+  | "PROVIDER_UNAVAILABLE"
+  | "PROVIDER_EMERGENCY"
+  | "SECRETARY_CONFLICT"
+  | "SYSTEM_TEAM_CHANGE"
+  | "OTHER";
+
+export type RescheduleSource = "patient" | "provider" | "secretary";
+
 export const appointmentsApi = {
   list: (token: string, params?: { careCaseId?: string; status?: string; from?: string; to?: string; providerId?: string }) => {
     const qs = new URLSearchParams();
@@ -959,6 +972,26 @@ export const appointmentsApi = {
 
   patch: (token: string, id: string, data: { status?: string; notes?: string; startAt?: string; endAt?: string }) =>
     request<Appointment>(`/appointments/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+
+  // ─── Routes RESTful cycle de vie (F-G4-WIRING backend PR #29) ──────────────
+  cancel: (token: string, id: string, data: {
+    reason: AppointmentCancelReason; note?: string; onBehalfOfPersonId?: string;
+  }) => request<Appointment>(`/appointments/${id}/cancel`, {
+    method: "POST", body: JSON.stringify(data),
+  }, token),
+
+  reschedule: (token: string, id: string, data: {
+    newStartAt: string; newEndAt: string; rescheduleSource: RescheduleSource;
+    note?: string; onBehalfOfPersonId?: string;
+  }) => request<Appointment>(`/appointments/${id}/reschedule`, {
+    method: "POST", body: JSON.stringify(data),
+  }, token),
+
+  complete: (token: string, id: string) =>
+    request<Appointment>(`/appointments/${id}/complete`, { method: "POST", body: "{}" }, token),
+
+  noShow: (token: string, id: string) =>
+    request<Appointment>(`/appointments/${id}/no-show`, { method: "POST", body: "{}" }, token),
 
   consultationTypes: (token: string, providerId?: string) => {
     const qs = providerId ? `?providerId=${providerId}` : "";
@@ -2676,6 +2709,10 @@ export function apiWithToken(token: string) {
       list: (params?: { careCaseId?: string; status?: string; from?: string; to?: string; providerId?: string }) => appointmentsApi.list(token, params),
       create: (data: Parameters<typeof appointmentsApi.create>[1]) => appointmentsApi.create(token, data),
       patch: (id: string, data: Parameters<typeof appointmentsApi.patch>[2]) => appointmentsApi.patch(token, id, data),
+      cancel: (id: string, data: Parameters<typeof appointmentsApi.cancel>[2]) => appointmentsApi.cancel(token, id, data),
+      reschedule: (id: string, data: Parameters<typeof appointmentsApi.reschedule>[2]) => appointmentsApi.reschedule(token, id, data),
+      complete: (id: string) => appointmentsApi.complete(token, id),
+      noShow: (id: string) => appointmentsApi.noShow(token, id),
       consultationTypes: (providerId?: string) => appointmentsApi.consultationTypes(token, providerId),
       slots: (providerId?: string) => appointmentsApi.slots(token, providerId),
       createConsultationType: (data: Parameters<typeof appointmentsApi.createConsultationType>[1]) => appointmentsApi.createConsultationType(token, data),

@@ -6,6 +6,7 @@ import {
   appointmentsApi, locationsApi, absencesApi, careCasesApi,
   type ConsultationTypeDTO, type AvailabilitySlotDTO,
   type ConsultationLocation, type AgendaAbsence, type CareCase,
+  type AppointmentCancelReason, type RescheduleSource,
 } from "@/lib/api"
 import { useAuthStore } from "@/lib/store"
 import { useState, useEffect, useMemo } from "react"
@@ -80,6 +81,12 @@ export function useAgenda() {
   const providerProfileId = user?.providerProfile?.id
 
   // ── Appointments ──────────────────────────────────────────────
+  // Filter out RESCHEDULED : le service AppointmentService.reschedule (PR #29 backend)
+  // crée 2 records (ancien=RESCHEDULED + nouveau=PENDING avec rescheduledFromId).
+  // Sans ce filter, le DnD agenda afficherait un ghost RDV (ancien fantôme + nouveau).
+  // TODO(F-AGENDA-STATUS-UNION-EXTEND P2): retirer le cast `as string` une fois
+  // l'union AppointmentStatus étendue aux 6 nouveaux statuts F-G4 (RESCHEDULED,
+  // IN_PROGRESS, CANCELLED_BY_PATIENT/PROVIDER/SECRETARY/SYSTEM).
   const appointmentsQ = useQuery<AgendaAppointment[]>({
     queryKey: ["agenda-appointments", user?.id, weekOffset],
     enabled: !!accessToken && !!user?.id,
@@ -89,6 +96,7 @@ export function useAgenda() {
         from: from.toISOString(),
         to: to.toISOString(),
       }) as Promise<AgendaAppointment[]>,
+    select: (data) => data.filter((a) => (a.status as string) !== "RESCHEDULED"),
   })
 
   // ── Consultation types ────────────────────────────────────────
@@ -216,6 +224,32 @@ export function useAgenda() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["agenda-appointments"] }),
   })
 
+  // ── Cycle de vie (F-G4-WIRING) ────────────────────────────────
+  const cancelMutation = useMutation({
+    mutationFn: ({ id, reason, note, onBehalfOfPersonId }: {
+      id: string; reason: AppointmentCancelReason; note?: string; onBehalfOfPersonId?: string;
+    }) => appointmentsApi.cancel(accessToken!, id, { reason, note, onBehalfOfPersonId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agenda-appointments"] }),
+  })
+
+  const rescheduleMutation = useMutation({
+    mutationFn: ({ id, newStartAt, newEndAt, rescheduleSource, note, onBehalfOfPersonId }: {
+      id: string; newStartAt: string; newEndAt: string;
+      rescheduleSource: RescheduleSource; note?: string; onBehalfOfPersonId?: string;
+    }) => appointmentsApi.reschedule(accessToken!, id, { newStartAt, newEndAt, rescheduleSource, note, onBehalfOfPersonId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agenda-appointments"] }),
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: (id: string) => appointmentsApi.complete(accessToken!, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agenda-appointments"] }),
+  })
+
+  const noShowMutation = useMutation({
+    mutationFn: (id: string) => appointmentsApi.noShow(accessToken!, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agenda-appointments"] }),
+  })
+
   // ── Create absence ────────────────────────────────────────────
   const absenceMutation = useMutation({
     mutationFn: (body: { label: string; startDate: string; endDate: string }) =>
@@ -251,6 +285,14 @@ export function useAgenda() {
     isCreating: createMutation.isPending,
     patchAppointment: patchMutation.mutateAsync,
     isPatching: patchMutation.isPending,
+    cancelAppointment: cancelMutation.mutateAsync,
+    isCancelling: cancelMutation.isPending,
+    rescheduleAppointment: rescheduleMutation.mutateAsync,
+    isRescheduling: rescheduleMutation.isPending,
+    completeAppointment: completeMutation.mutateAsync,
+    isCompleting: completeMutation.isPending,
+    noShowAppointment: noShowMutation.mutateAsync,
+    isMarkingNoShow: noShowMutation.isPending,
     createAbsence: absenceMutation.mutateAsync,
     isCreatingAbsence: absenceMutation.isPending,
 
