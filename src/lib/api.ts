@@ -2655,6 +2655,40 @@ export interface PatientAppointment {
   provider: { person: { firstName: string; lastName: string } };
   consultationType: { name: string; durationMinutes: number } | null;
   location: { name: string; address: string | null; city: string | null; color: string | null } | null;
+  // F-G4 cycle de vie — champs renseignés par AppointmentService.cancel (backend PR #40)
+  cancelReason?: string | null;
+  cancelNote?: string | null;
+  cancelledByPersonId?: string | null;
+  cancelledAt?: string | null;
+}
+
+/**
+ * Profil consultable par le patient connecté : lui-même + ses délégations actives
+ * (parent → enfant mineur, tuteur → protégé, etc.). Renvoyé par
+ * GET /patient/switchable-profiles (backend Espace Patient PR #40).
+ */
+export interface SwitchableProfile {
+  personId: string;
+  firstName: string;
+  lastName: string;
+  birthDate: string | null;
+  isSelf: boolean;
+  delegationScopes: string[] | null; // null pour self
+}
+
+/**
+ * Body POST /patient/appointments/:id/cancel — 3 reasons PATIENT_* whitelistées
+ * côté backend (alignement F-CANCELLATION-REASON-PATIENT-EXTEND P2 en attente).
+ */
+export type PatientCancelReason =
+  | "PATIENT_UNAVAILABLE"
+  | "PATIENT_NO_LONGER_NEEDED"
+  | "PATIENT_FINANCIAL";
+
+export interface PatientCancelBody {
+  reason: PatientCancelReason;
+  cancelNote?: string;
+  onBehalfOf?: string;
 }
 
 export interface PatientDocument {
@@ -2952,8 +2986,27 @@ export function apiWithToken(token: string) {
       me: () => request<PatientMe>("/patient/me", {}, token),
       patchMe: (data: { phone?: string; birthDate?: string; sex?: string }) =>
         request<PatientMe["person"]>("/patient/me", { method: "PATCH", body: JSON.stringify(data) }, token),
-      appointments: (status?: "upcoming" | "past") =>
-        request<PatientAppointment[]>(`/patient/appointments${status ? `?status=${status}` : ""}`, {}, token),
+      switchableProfiles: () =>
+        request<SwitchableProfile[]>("/patient/switchable-profiles", {}, token),
+      appointments: {
+        list: (params?: { status?: "upcoming" | "past" | "all"; onBehalfOf?: string }) => {
+          const qs = new URLSearchParams();
+          if (params?.status && params.status !== "all") qs.set("status", params.status);
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientAppointment[]>(
+            `/patient/appointments${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+        cancel: (appointmentId: string, body: PatientCancelBody) =>
+          request<PatientAppointment>(
+            `/patient/appointments/${appointmentId}/cancel`,
+            { method: "POST", body: JSON.stringify(body) },
+            token,
+          ),
+      },
       documents: () => request<PatientDocument[]>("/patient/documents", {}, token),
       messages: (careCaseId: string) =>
         request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
