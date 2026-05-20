@@ -67,7 +67,7 @@ export default function AccueilPage() {
 
   const { data: upcomingAppts } = useQuery<PatientAppointment[]>({
     queryKey: ["patient-appointments-upcoming"],
-    queryFn: () => api.patient.appointments("upcoming"),
+    queryFn: () => api.patient.appointments.list({ status: "upcoming" }),
     enabled: !!accessToken,
   });
 
