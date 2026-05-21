@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
@@ -15,7 +16,16 @@ import { AppointmentCard } from "@/components/patient/AppointmentCard";
 export default function RendezVousPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentProfileId = searchParams.get("profile");
+  const setCurrentProfileId = (id: string | null) => {
+    const params = new URLSearchParams(searchParams);
+    if (id) params.set("profile", id);
+    else params.delete("profile");
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : window.location.pathname);
+  };
   const [cancelTarget, setCancelTarget] = useState<PatientAppointment | null>(null);
 
   // ── Profils consultables (self + délégations actives) ─────────────────────
