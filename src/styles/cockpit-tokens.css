@@ -78,6 +78,23 @@
   --cockpit-radius-lg: 16px;
   --cockpit-radius-xl: 20px;
   --cockpit-radius-pill: 100px;
+
+  /* ── Glass surfaces ───────────────────────────────────────────────────
+     3 rôles standardisés. JAMAIS hardcoder backdrop-filter ailleurs.
+     --cockpit-glass-overlay-* : modales bloquantes, dialogues, sheets.
+     --cockpit-glass-surface-* : sticky footer, panels flottants, palette.
+     --cockpit-glass-chrome-*  : header navigation, barres scroll-aware.
+     ─────────────────────────────────────────────────────────────────── */
+  --cockpit-glass-overlay-bg: rgba(26, 26, 46, 0.4);
+  --cockpit-glass-overlay-blur: blur(4px);
+
+  --cockpit-glass-surface-bg: rgba(250, 250, 248, 0.95);
+  --cockpit-glass-surface-blur: blur(12px);
+  --cockpit-glass-surface-border: rgba(26, 26, 46, 0.06);
+
+  --cockpit-glass-chrome-bg: rgba(250, 250, 248, 0.92);
+  --cockpit-glass-chrome-blur: blur(8px);
+  --cockpit-glass-chrome-border: rgba(26, 26, 46, 0.06);
 }
 
 /* ── Cockpit card utility ── */
@@ -123,4 +140,27 @@
   border-color: var(--cockpit-border-active);
   box-shadow: var(--cockpit-accent-glow);
   outline: none;
+}
+
+/* ── Glass utility classes ──────────────────────────────────────────────
+   Utiliser ces classes plutôt que d'écrire backdrop-filter inline.
+   ─────────────────────────────────────────────────────────────────── */
+.cockpit-glass-overlay {
+  background: var(--cockpit-glass-overlay-bg);
+  backdrop-filter: var(--cockpit-glass-overlay-blur);
+  -webkit-backdrop-filter: var(--cockpit-glass-overlay-blur);
+}
+
+.cockpit-glass-surface {
+  background: var(--cockpit-glass-surface-bg);
+  backdrop-filter: var(--cockpit-glass-surface-blur);
+  -webkit-backdrop-filter: var(--cockpit-glass-surface-blur);
+  border-top: 1px solid var(--cockpit-glass-surface-border);
+}
+
+.cockpit-glass-chrome {
+  background: var(--cockpit-glass-chrome-bg);
+  backdrop-filter: var(--cockpit-glass-chrome-blur);
+  -webkit-backdrop-filter: var(--cockpit-glass-chrome-blur);
+  border-bottom: 1px solid var(--cockpit-glass-chrome-border);
 }

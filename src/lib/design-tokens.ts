@@ -76,6 +76,22 @@ export const N = {
   catPcr:  "#2BA89C",
   catKe:   "#E6993E",
   catSem:  "#5B4EC4",
+
+  // ── Glass surfaces ────────────────────────────────────────────────────
+  // 3 rôles standardisés. JAMAIS hardcoder backdrop-filter/rgba ailleurs.
+  // glassOverlay : modales bloquantes, dialogues, sheets sur fond sombre.
+  // glassSurface : sticky footer, panels flottants, command palette results.
+  // glassChrome  : header navigation, barres scroll-aware.
+  glassOverlayBg:     "rgba(26,26,46,0.4)",
+  glassOverlayBlur:   "blur(4px)",
+
+  glassSurfaceBg:     "rgba(250,250,248,0.95)",
+  glassSurfaceBlur:   "blur(12px)",
+  glassSurfaceBorder: "rgba(26,26,46,0.06)",
+
+  glassChromeBg:      "rgba(250,250,248,0.92)", // aligne sur --cockpit-header-bg
+  glassChromeBlur:    "blur(8px)",
+  glassChromeBorder:  "rgba(26,26,46,0.06)",
 }
 
 // Card style réutilisable
