@@ -9,7 +9,7 @@ import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
 import { PrescriptionDraftEditor } from "@/components/PrescriptionDraftEditor";
-import { PatientJournalView } from "../../PatientJournalView";
+import { PatientJournalView } from "../PatientJournalView";
 
 interface Props {
   careCaseId: string;
