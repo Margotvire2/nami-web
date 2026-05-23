@@ -690,6 +690,58 @@ export default function ParametresAgenda() {
             </div>
           </div>
         )}
+
+        {/* STICKY FOOTER — CTA retour agenda (INIT-230-bis) */}
+        <div
+          style={{
+            position: "sticky",
+            bottom: 0,
+            background: "rgba(250, 250, 248, 0.95)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderTop: "1px solid rgba(26, 26, 46, 0.06)",
+            padding: "16px 24px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 32,
+            zIndex: 10,
+          }}
+        >
+          <Link
+            href="/agenda"
+            style={{
+              fontSize: 14,
+              color: "#4A4A5A",
+              textDecoration: "none",
+              fontFamily: "Plus Jakarta Sans, sans-serif",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            ← Retour
+          </Link>
+          <Link
+            href="/agenda"
+            style={{
+              background: NAMI.primary,
+              color: "#FFFFFF",
+              padding: "12px 24px",
+              borderRadius: 10,
+              fontSize: 14,
+              fontWeight: 600,
+              textDecoration: "none",
+              fontFamily: "Plus Jakarta Sans, sans-serif",
+              boxShadow: "0 4px 12px rgba(91, 78, 196, 0.25)",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#4c44b0")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = NAMI.primary)}
+          >
+            Voir mon agenda
+          </Link>
+        </div>
       </div>
     </div>
   );
