@@ -84,7 +84,7 @@ export function EditPatientModal({ careCaseId, personId, initialData, onClose }:
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center cockpit-glass-overlay"
       onClick={onClose}
     >
       <div

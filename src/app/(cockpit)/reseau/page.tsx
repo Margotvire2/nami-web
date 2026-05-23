@@ -255,7 +255,7 @@ function CatalogCard({ org, onJoin }: { org: OrgCard; onJoin: (org: OrgCard) => 
 function JoinModal({ org, onClose, onJoin }: { org: OrgCard; onClose: () => void; onJoin: (message?: string) => void }) {
   const [message, setMessage] = useState("");
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center cockpit-glass-overlay" onClick={onClose}>
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6"
         onClick={(e) => e.stopPropagation()}

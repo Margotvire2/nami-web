@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/store";
 import { CheckCircle2, XCircle, Mail, Clock, ShieldCheck, Users, AlertTriangle } from "lucide-react";
+import { N } from "@/lib/design-tokens";
 import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -82,8 +83,9 @@ function ConfirmModal({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(26,26,46,0.4)",
-        backdropFilter: "blur(4px)",
+        background: N.glassOverlayBg,
+        backdropFilter: N.glassOverlayBlur,
+        WebkitBackdropFilter: N.glassOverlayBlur,
         zIndex: 1000,
         display: "flex",
         alignItems: "center",

@@ -222,7 +222,7 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
 
       {/* Modale de confirmation de suppression */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setDeleteTarget(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center cockpit-glass-overlay" onClick={() => setDeleteTarget(null)}>
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-gray-900 mb-1">Supprimer la note</h3>
             <p className="text-sm text-gray-500 mb-4">
@@ -292,7 +292,7 @@ function TranscriptionModal({ doc, onClose }: { doc: any; onClose: () => void })
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 cockpit-glass-overlay flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between shrink-0">
@@ -698,7 +698,7 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
 
       {/* Modal validation bio */}
       {validationDocId && candidates.length > 0 && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 cockpit-glass-overlay flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-xl w-full max-h-[85vh] overflow-hidden shadow-xl">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
