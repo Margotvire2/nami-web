@@ -3095,6 +3095,30 @@ export function apiWithToken(token: string) {
           { method: "POST", body: JSON.stringify(data) },
           token,
         ),
+
+      // ─── D2.C — RGPD Art. 15/20 (export) + Art. 17 (suppression) ─────────
+
+      // GET /persons/:personId/data-export
+      // Retourne un gros JSON structuré (person + careCases + notes + obs + docs
+      // + activities + consents...). Auth : self ou ADMIN (403 sinon).
+      // Le payload n'est volontairement pas typé exhaustivement — il est sérialisé
+      // tel quel côté client pour le download blob.
+      dataExport: (personId: string) =>
+        request<Record<string, unknown>>(`/persons/${personId}/data-export`, {}, token),
+
+      // DELETE /persons/:personId/gdpr (Art. 17 — droit à l'oubli)
+      // Anonymise Person (email→anonymized-{id}, firstName→"Anonymisé", etc.),
+      // PatientProfile (NIR/mutuelle/emergency), supprime RefreshToken/Message/
+      // JournalEntry/ProMessage/PatientConsent. Retient ClinicalNote/AuditLog/
+      // CareCase/Observation/Document/Invoice.
+      // Codes : 200 OK, 403 (provider auto-anonymisation), 404, 409 (déjà anonymisé).
+      deleteGdpr: (personId: string) =>
+        request<{
+          message: string;
+          anonymizedAt: string;
+          retained: string[];
+          deleted: string[];
+        }>(`/persons/${personId}/gdpr`, { method: "DELETE" }, token),
     },
     consultations: {
       listByCareCase: (careCaseId: string) =>
