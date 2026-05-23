@@ -2684,6 +2684,29 @@ export interface SwitchableProfile {
   delegationScopes: string[] | null; // null pour self
 }
 
+// ─── Consentements F4 G5 (Foundation V1 G5, INIT-246) ──────────────────────
+
+/** Les 6 valeurs de l'enum backend ConsentType. */
+export type ConsentTypeName =
+  | "RGPD_PROCESSING"
+  | "CARE_COORDINATION"
+  | "DATA_SHARING"
+  | "NOTIFICATIONS"
+  | "MARKETING"
+  | "AI_PROCESSING";
+
+/**
+ * Matrice retournée par GET /persons/:personId/consents/matrix.
+ * Forme : { ConsentType: { scope|"__global__": bool } }
+ *
+ * Le backend initialise tous les types/scopes V1 à `false` puis superpose
+ * les events réels (dernier event par (type, scope) fait foi).
+ */
+export type ConsentMatrix = Record<ConsentTypeName, Record<string, boolean>>;
+
+/** Clé spéciale pour le scope NULL (consentement global / legacy). */
+export const GLOBAL_SCOPE_KEY = "__global__" as const;
+
 /**
  * Body POST /patient/appointments/:id/cancel — 3 reasons PATIENT_* whitelistées
  * côté backend (alignement F-CANCELLATION-REASON-PATIENT-EXTEND P2 en attente).
@@ -3034,6 +3057,43 @@ export function apiWithToken(token: string) {
           `/persons/${id}`,
           { method: "PATCH", body: JSON.stringify(data) },
           token
+        ),
+
+      // ─── Consentements F4 G5 (Foundation V1 G5, INIT-246) ────────────────
+      // GET /persons/:personId/consents/matrix → matrice granulaire
+      //   { ConsentType: { scope|"__global__": bool } }
+      consentsMatrix: (personId: string) =>
+        request<ConsentMatrix>(`/persons/${personId}/consents/matrix`, {}, token),
+
+      // POST /persons/:personId/consents → event immuable (grant ou refus).
+      // Le backend est event-sourced : POSTer granted:false revient à révoquer
+      // le scope (le dernier event fait foi). Pas besoin de DELETE pour
+      // l'usage matrice/toggle — DELETE reste utilisable mais nécessite
+      // consentId (non exposé par /matrix).
+      grantConsent: (
+        personId: string,
+        data: {
+          consentType: ConsentTypeName;
+          granted: boolean;
+          scope?: string | null;
+          scopeProviderPersonId?: string | null;
+          scopeCareCaseId?: string | null;
+          scopeDocumentType?: string | null;
+          source?: "WEB" | "MOBILE" | "PAPER" | "VERBAL";
+          notes?: string;
+        },
+      ) =>
+        request<{
+          id: string;
+          consentType: ConsentTypeName;
+          granted: boolean;
+          grantedAt: string;
+          scope: string | null;
+          delegationId: string | null;
+        }>(
+          `/persons/${personId}/consents`,
+          { method: "POST", body: JSON.stringify(data) },
+          token,
         ),
     },
     consultations: {
