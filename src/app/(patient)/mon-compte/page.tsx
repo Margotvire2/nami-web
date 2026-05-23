@@ -25,8 +25,14 @@ import {
   Users,
   ShieldCheck,
   ChevronDown,
+  Download,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DeleteAccountModal,
+  type ActiveCareCaseSummary,
+} from "@/components/patient/DeleteAccountModal";
 
 // ─── Tokens Tahoe × Nami ────────────────────────────────────────────────────
 const C = {
@@ -389,6 +395,53 @@ export default function MonComptePage() {
 
   // État local : quelles cards accordéon sont dépliées (par ConsentType)
   const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>({});
+
+  // ─── D2.C — Export Art. 15/20 + Suppression Art. 17 ──────────────────────
+
+  // Liste filtrée des parcours actifs pour le garde-fou doux (Art. 17).
+  // Récupère le firstName du lead provider via members[].provider (premier
+  // membre avec un provider attaché). me.careCases est déjà fetché (D2.A).
+  const activeCareCasesForGuard = useMemo<ActiveCareCaseSummary[]>(() => {
+    if (!me?.careCases) return [];
+    return me.careCases
+      .filter((c) => c.status === "ACTIVE")
+      .map((c) => {
+        const leadMember = c.members.find((m) => m.provider) ?? c.members[0];
+        return {
+          id: c.id,
+          caseTitle: c.caseTitle,
+          leadProviderFirstName: leadMember?.person?.firstName ?? null,
+        };
+      });
+  }, [me]);
+
+  // Modal de suppression
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  // Mutation export — déclenche download blob JSON côté client
+  const exportMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("User ID manquant");
+      return api.persons.dataExport(user.id);
+    },
+    onSuccess: (data) => {
+      try {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const dateStr = new Date().toISOString().split("T")[0];
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mes-donnees-nami-${dateStr}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Téléchargement de vos données démarré");
+      } catch {
+        toast.error("Erreur lors de la préparation du fichier");
+      }
+    },
+    onError: () => toast.error("Erreur lors de l'export de vos données"),
+  });
 
   if (isLoading) {
     return (
@@ -894,6 +947,94 @@ export default function MonComptePage() {
           </div>
         )}
       </Section>
+
+      {/* ─── Section 5 — Mes données (D2.C, RGPD Art. 15/20) ─────────────── */}
+      <Section title="Mes données" icon={Download}>
+        <p
+          style={{
+            fontSize: 14,
+            color: C.textSoft,
+            marginBottom: 12,
+            lineHeight: 1.5,
+          }}
+        >
+          Téléchargez l&apos;ensemble de vos données personnelles au format JSON.
+          Conforme au droit à la portabilité (RGPD Art. 15 et 20).
+        </p>
+        <button
+          type="button"
+          onClick={() => exportMutation.mutate()}
+          disabled={exportMutation.isPending}
+          style={{
+            padding: "9px 18px",
+            borderRadius: 10,
+            border: `1.5px solid ${C.primary}`,
+            background: C.primaryLight,
+            color: C.primary,
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: exportMutation.isPending ? "wait" : "pointer",
+            fontFamily: "inherit",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          {exportMutation.isPending ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Download size={14} strokeWidth={2} />
+          )}
+          Télécharger mes données
+        </button>
+      </Section>
+
+      {/* ─── Section 6 — Supprimer mon compte (D2.C, RGPD Art. 17) ──────── */}
+      <Section title="Supprimer mon compte" icon={Trash2}>
+        <p
+          style={{
+            fontSize: 14,
+            color: C.textSoft,
+            marginBottom: 12,
+            lineHeight: 1.5,
+          }}
+        >
+          La suppression de votre compte est <strong>définitive</strong>. Vos données
+          seront anonymisées conformément au RGPD (Art. 17 — droit à
+          l&apos;effacement). Cette action est irréversible.
+        </p>
+        <button
+          type="button"
+          onClick={() => setDeleteModalOpen(true)}
+          style={{
+            padding: "9px 18px",
+            borderRadius: 10,
+            border: "1.5px solid #DC2626",
+            background: "rgba(220,38,38,0.06)",
+            color: "#DC2626",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <Trash2 size={14} strokeWidth={2} />
+          Supprimer mon compte
+        </button>
+      </Section>
+
+      {/* Modal de suppression (Art. 17, ouvert depuis Section 6) */}
+      {user?.id && (
+        <DeleteAccountModal
+          open={deleteModalOpen}
+          onOpenChange={setDeleteModalOpen}
+          personId={user.id}
+          activeCareCases={activeCareCasesForGuard}
+        />
+      )}
 
       {/* ─── Déconnexion ─────────────────────────────────────────────────── */}
       <button

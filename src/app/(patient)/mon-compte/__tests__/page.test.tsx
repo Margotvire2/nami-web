@@ -11,6 +11,9 @@ const mockForgotPassword = vi.fn();
 const mockSwitchableProfiles = vi.fn();
 const mockConsentsMatrix = vi.fn();
 const mockGrantConsent = vi.fn();
+const mockDataExport = vi.fn();
+const mockDeleteGdpr = vi.fn();
+const mockLogout = vi.fn();
 
 vi.mock("@/lib/api", async () => {
   // On garde GLOBAL_SCOPE_KEY (utilisé par le code) — re-exporté tel quel.
@@ -24,6 +27,8 @@ vi.mock("@/lib/api", async () => {
         patch: mockPatchPerson,
         consentsMatrix: mockConsentsMatrix,
         grantConsent: mockGrantConsent,
+        dataExport: mockDataExport,
+        deleteGdpr: mockDeleteGdpr,
       },
     }),
     authApi: {
@@ -50,7 +55,7 @@ vi.mock("@/lib/store", () => ({
         email: "marie@example.com",
         roleType: "PATIENT",
       },
-      logout: vi.fn(),
+      logout: mockLogout,
     }),
 }));
 
@@ -100,6 +105,9 @@ beforeEach(() => {
   mockSwitchableProfiles.mockReset();
   mockConsentsMatrix.mockReset();
   mockGrantConsent.mockReset();
+  mockDataExport.mockReset();
+  mockDeleteGdpr.mockReset();
+  mockLogout.mockReset();
   mockSearchParamsString = "";
   mockPatientMe.mockResolvedValue(FAKE_ME);
   // Par défaut : self seul (Section 3 masquée, Section 4 = self)
@@ -448,5 +456,222 @@ describe("MonComptePage — Section 4 Mes consentements (D2.B)", () => {
     await waitFor(() => {
       expect(mockConsentsMatrix).toHaveBeenCalledWith("lea");
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// D2.C — Section 5 Mes données (export Art. 15/20)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("MonComptePage — Section 5 Mes données (D2.C)", () => {
+  beforeEach(() => {
+    // Stub createObjectURL / revokeObjectURL pour jsdom (non implémentés)
+    if (!URL.createObjectURL) {
+      URL.createObjectURL = vi.fn(() => "blob:fake");
+    } else {
+      vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fake");
+    }
+    if (!URL.revokeObjectURL) {
+      URL.revokeObjectURL = vi.fn();
+    } else {
+      vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+    }
+  });
+
+  it("12. clic 'Télécharger mes données' appelle persons.dataExport(user.id)", async () => {
+    mockDataExport.mockResolvedValueOnce({
+      person: { id: "u1", firstName: "Marie" },
+      careCases: [],
+    });
+
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mes données")).toBeInTheDocument();
+    });
+
+    const exportBtn = screen.getByRole("button", { name: /Télécharger mes données/i });
+    expect(exportBtn).toBeInTheDocument();
+
+    fireEvent.click(exportBtn);
+
+    await waitFor(() => {
+      expect(mockDataExport).toHaveBeenCalledTimes(1);
+    });
+    expect(mockDataExport).toHaveBeenCalledWith("u1");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// D2.C — Section 6 Supprimer mon compte (Art. 17) + modal
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("MonComptePage — Section 6 Supprimer mon compte (D2.C)", () => {
+  it("13. clic 'Supprimer mon compte' ouvre le DeleteAccountModal", async () => {
+    renderWithClient(<MonComptePage />);
+
+    // Attendre la résolution data via un texte unique (description Section 6),
+    // pour éviter la collision "Supprimer mon compte" (titre + bouton).
+    await waitFor(() => {
+      expect(
+        screen.getByText(/La suppression de votre compte est/i),
+      ).toBeInTheDocument();
+    });
+
+    // Le titre du modal n'est pas encore visible
+    expect(
+      screen.queryByText(/Cette action est définitive et irréversible/i),
+    ).not.toBeInTheDocument();
+
+    // Section 6 contient un bouton + le modal (fermé) — on cherche le bouton de
+    // la section (le seul qui n'est PAS dans un dialog)
+    const buttons = screen.getAllByRole("button", { name: /^Supprimer mon compte$/i });
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(buttons[0]);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Cette action est définitive et irréversible/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("14. garde-fou doux : affiche les parcours actifs si careCases ACTIVE non vide (étape 1)", async () => {
+    // FAKE_ME a 1 careCase ACTIVE "Suivi nutrition" → garde-fou doit s'afficher
+    renderWithClient(<MonComptePage />);
+
+    // Section title + bouton ont le même texte → on attend la résolution data via
+    // un texte unique (description Section 6), puis clique sur le bouton ciblé.
+    await waitFor(() => {
+      expect(
+        screen.getByText(/La suppression de votre compte est/i),
+      ).toBeInTheDocument();
+    });
+
+    const buttons = screen.getAllByRole("button", { name: /^Supprimer mon compte$/i });
+    fireEvent.click(buttons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Vous avez 1 parcours en cours/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Suivi nutrition/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Je comprends, continuer/i })).toBeInTheDocument();
+  });
+
+  it("15. SAUTE le garde-fou si aucun parcours actif (direct à étape SUPPRIMER)", async () => {
+    // Override : 0 careCases actifs
+    mockPatientMe.mockResolvedValueOnce({
+      ...FAKE_ME,
+      careCases: [],
+    });
+
+    renderWithClient(<MonComptePage />);
+
+    // Section title + bouton ont le même texte → on attend la résolution data via
+    // un texte unique (description Section 6), puis clique sur le bouton ciblé.
+    await waitFor(() => {
+      expect(
+        screen.getByText(/La suppression de votre compte est/i),
+      ).toBeInTheDocument();
+    });
+
+    const buttons = screen.getAllByRole("button", { name: /^Supprimer mon compte$/i });
+    fireEvent.click(buttons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Tapez/i)).toBeInTheDocument();
+    });
+
+    // Pas d'avertissement parcours
+    expect(screen.queryByText(/parcours en cours/i)).not.toBeInTheDocument();
+  });
+
+  it("16. bouton 'Supprimer définitivement' désactivé tant que input !== 'SUPPRIMER'", async () => {
+    mockPatientMe.mockResolvedValueOnce({ ...FAKE_ME, careCases: [] });
+
+    renderWithClient(<MonComptePage />);
+
+    // Section title + bouton ont le même texte → on attend la résolution data via
+    // un texte unique (description Section 6), puis clique sur le bouton ciblé.
+    await waitFor(() => {
+      expect(
+        screen.getByText(/La suppression de votre compte est/i),
+      ).toBeInTheDocument();
+    });
+
+    const buttons = screen.getAllByRole("button", { name: /^Supprimer mon compte$/i });
+    fireEvent.click(buttons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Tapez SUPPRIMER pour confirmer/i)).toBeInTheDocument();
+    });
+
+    const confirmBtn = screen.getByRole("button", { name: /Supprimer définitivement/i });
+    expect(confirmBtn).toBeDisabled();
+
+    // Saisie partielle
+    const input = screen.getByLabelText(/Tapez SUPPRIMER pour confirmer/i);
+    fireEvent.change(input, { target: { value: "SUPPRI" } });
+    expect(confirmBtn).toBeDisabled();
+
+    // Saisie incorrecte (minuscules)
+    fireEvent.change(input, { target: { value: "supprimer" } });
+    expect(confirmBtn).toBeDisabled();
+
+    // Saisie exacte (majuscules)
+    fireEvent.change(input, { target: { value: "SUPPRIMER" } });
+    expect(confirmBtn).not.toBeDisabled();
+  });
+
+  it("17. saisie SUPPRIMER + clic appelle deleteGdpr → logout", async () => {
+    mockPatientMe.mockResolvedValueOnce({ ...FAKE_ME, careCases: [] });
+    mockDeleteGdpr.mockResolvedValueOnce({
+      message: "Anonymisé",
+      anonymizedAt: "2026-05-23T17:00:00.000Z",
+      retained: [],
+      deleted: [],
+    });
+
+    // Stub window.location.href (assignation = navigation)
+    const originalLocation = window.location;
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: { ...originalLocation, href: "" },
+    });
+
+    renderWithClient(<MonComptePage />);
+
+    // Section title + bouton ont le même texte → on attend la résolution data via
+    // un texte unique (description Section 6), puis clique sur le bouton ciblé.
+    await waitFor(() => {
+      expect(
+        screen.getByText(/La suppression de votre compte est/i),
+      ).toBeInTheDocument();
+    });
+
+    const buttons = screen.getAllByRole("button", { name: /^Supprimer mon compte$/i });
+    fireEvent.click(buttons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Tapez SUPPRIMER pour confirmer/i)).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Tapez SUPPRIMER pour confirmer/i), {
+      target: { value: "SUPPRIMER" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Supprimer définitivement/i }));
+
+    await waitFor(() => {
+      expect(mockDeleteGdpr).toHaveBeenCalledWith("u1");
+    });
+
+    await waitFor(() => {
+      expect(mockLogout).toHaveBeenCalledTimes(1);
+    });
+
+    // Restore window.location
+    Object.defineProperty(window, "location", { writable: true, value: originalLocation });
   });
 });
