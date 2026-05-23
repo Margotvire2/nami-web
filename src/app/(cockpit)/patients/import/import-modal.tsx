@@ -262,7 +262,7 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
+      <div className="absolute inset-0 cockpit-glass-overlay" onClick={handleClose} />
 
       {/* Modal */}
       <div

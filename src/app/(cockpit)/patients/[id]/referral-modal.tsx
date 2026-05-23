@@ -187,7 +187,7 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
+      <div className="absolute inset-0 cockpit-glass-overlay" onClick={handleClose} />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl rounded-xl border bg-white shadow-2xl mx-4 max-h-[85vh] flex flex-col">

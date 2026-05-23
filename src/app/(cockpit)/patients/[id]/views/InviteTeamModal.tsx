@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { getProviderTitle, formatProviderSpecialty } from "@/lib/provider-display";
+import { N } from "@/lib/design-tokens";
 
 interface NamiProvider {
   personId: string;
@@ -143,7 +144,7 @@ export function InviteTeamModal({ careCaseId, patientFirstName, patientLastName,
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: "rgba(26,26,46,0.6)", backdropFilter: "blur(2px)" }}
+      style={{ background: N.glassOverlayBg, backdropFilter: N.glassOverlayBlur, WebkitBackdropFilter: N.glassOverlayBlur }}
       onClick={onClose}
     >
       <div
