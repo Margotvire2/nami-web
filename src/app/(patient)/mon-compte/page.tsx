@@ -1,12 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, authApi, type PatientMe } from "@/lib/api";
+import {
+  apiWithToken,
+  authApi,
+  GLOBAL_SCOPE_KEY,
+  type ConsentMatrix,
+  type ConsentTypeName,
+  type PatientMe,
+  type SwitchableProfile,
+} from "@/lib/api";
+import { computeAge } from "@/lib/age";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { User, Shield, Loader2, Check, Mail } from "lucide-react";
+import {
+  User,
+  Shield,
+  Loader2,
+  Check,
+  Mail,
+  Users,
+  ShieldCheck,
+  ChevronDown,
+} from "lucide-react";
 import { toast } from "sonner";
 
 // ─── Tokens Tahoe × Nami ────────────────────────────────────────────────────
@@ -118,6 +137,120 @@ function normalizeSexForBackend(raw: string): SexEnum | undefined {
   return undefined;
 }
 
+// ─── Constantes D2.B — labels FR + scopes V1 ────────────────────────────────
+
+// Catalog scopes V1 par ConsentType (miroir frontend de CONSENT_SCOPES_V1
+// backend F4 G5). Types absents = mono-axe (uniquement __global__).
+const CONSENT_SCOPES_V1: Record<ConsentTypeName, readonly string[]> = {
+  AI_PROCESSING: ["transcription_audio", "note_summarization", "bio_extraction"],
+  DATA_SHARING: ["care_team", "referral_partner", "family_pediatric_parent"],
+  NOTIFICATIONS: ["appointment_reminder", "message_alert"],
+  RGPD_PROCESSING: [],
+  CARE_COORDINATION: [],
+  MARKETING: [],
+};
+
+// Labels FR — vocabulaire MDR-safe (cf. CLAUDE.md). Aucun "surveillance",
+// "détection", "monitoring". "Notifications de messages" préféré à "Alertes
+// de messages" pour éviter toute ambiguïté DM.
+const CONSENT_TYPE_LABELS_FR: Record<ConsentTypeName, string> = {
+  AI_PROCESSING: "Traitement par intelligence artificielle",
+  DATA_SHARING: "Partage de données",
+  NOTIFICATIONS: "Notifications",
+  RGPD_PROCESSING: "Traitement des données personnelles",
+  CARE_COORDINATION: "Coordination des soins",
+  MARKETING: "Communications marketing",
+};
+
+const CONSENT_SCOPE_LABELS_FR: Record<string, string> = {
+  transcription_audio: "Transcription audio",
+  note_summarization: "Synthèse de notes",
+  bio_extraction: "Extraction d'informations biologiques",
+  care_team: "Équipe de soins",
+  referral_partner: "Partenaire d'adressage",
+  family_pediatric_parent: "Parent (suivi pédiatrique)",
+  appointment_reminder: "Rappels de rendez-vous",
+  message_alert: "Notifications de messages",
+  [GLOBAL_SCOPE_KEY]: "Consentement général (donné avant le détail)",
+};
+
+// Labels FR pour les delegationScopes affichés en Section 3
+const DELEGATION_SCOPE_LABELS_FR: Record<string, string> = {
+  BOOK_APPOINTMENTS: "Prendre des rendez-vous",
+  CANCEL_APPOINTMENTS: "Annuler des rendez-vous",
+  SEND_MESSAGES: "Envoyer des messages",
+  UPLOAD_DOCUMENTS: "Téléverser des documents",
+  COMPLETE_QUESTIONNAIRES: "Remplir des questionnaires",
+  MANAGE_CARE_TEAM: "Gérer l'équipe de soins",
+  MANAGE_CONSENTS: "Gérer les consentements",
+  VIEW_MEDICAL_HISTORY: "Voir l'historique de coordination",
+  VIEW_DOCUMENTS: "Voir les documents",
+  VIEW_APPOINTMENTS: "Voir les rendez-vous",
+};
+
+const ORDERED_TYPES: ConsentTypeName[] = [
+  "RGPD_PROCESSING",
+  "CARE_COORDINATION",
+  "DATA_SHARING",
+  "NOTIFICATIONS",
+  "AI_PROCESSING",
+  "MARKETING",
+];
+
+// ─── Toggle inline (a11y role="switch") ────────────────────────────────────
+
+function Toggle({
+  checked,
+  onChange,
+  disabled = false,
+  label,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      style={{
+        position: "relative",
+        width: 40,
+        height: 22,
+        borderRadius: 999,
+        border: "none",
+        background: checked ? C.primary : "#E5E7EB",
+        cursor: disabled ? "wait" : "pointer",
+        transition: "background 0.18s ease",
+        flexShrink: 0,
+        outline: "none",
+        padding: 0,
+        opacity: disabled ? 0.65 : 1,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 3,
+          left: checked ? 21 : 3,
+          width: 16,
+          height: 16,
+          borderRadius: "50%",
+          background: "#FFFFFF",
+          boxShadow: "0 1px 3px rgba(26,26,46,0.25)",
+          transition: "left 0.18s ease",
+        }}
+      />
+    </button>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Page
 // ═══════════════════════════════════════════════════════════════════════════
@@ -200,6 +333,62 @@ export default function MonComptePage() {
     },
     onError: () => toast.error("Erreur lors de l'envoi de l'email"),
   });
+
+  // ─── D2.B — Section 3 Profils + Section 4 Consentements ──────────────────
+
+  // Profils disponibles (self + délégations actives). Source unique pour
+  // Sections 3 et 4 (matrice ciblée).
+  const { data: profiles } = useQuery<SwitchableProfile[]>({
+    queryKey: ["patient-switchable-profiles"],
+    queryFn: () => api.patient.switchableProfiles(),
+    enabled: !!accessToken,
+  });
+
+  // Profil actif déduit de l'URL (?profile=X), pattern F6 hoisting.
+  // Self par défaut quand pas de paramètre.
+  const searchParams = useSearchParams();
+  const urlProfileId = searchParams.get("profile");
+  const selfProfile = profiles?.find((p) => p.isSelf) ?? null;
+  const targetProfileId = urlProfileId ?? selfProfile?.personId ?? user?.id ?? null;
+  const targetProfile =
+    profiles?.find((p) => p.personId === targetProfileId) ?? null;
+
+  // Détection MANAGE_CONSENTS proactif : si on consulte un enfant et que la
+  // délégation ne contient pas MANAGE_CONSENTS → on n'appelle PAS /matrix
+  // (qui renverrait 403). On affiche un message propre à la place.
+  const canManageConsents = useMemo(() => {
+    if (!targetProfile) return false;
+    if (targetProfile.isSelf) return true;
+    return targetProfile.delegationScopes?.includes("MANAGE_CONSENTS") ?? false;
+  }, [targetProfile]);
+
+  const { data: consentMatrix, error: matrixError } = useQuery<ConsentMatrix>({
+    queryKey: ["consents-matrix", targetProfileId],
+    queryFn: () => api.persons.consentsMatrix(targetProfileId!),
+    enabled: !!accessToken && !!targetProfileId && canManageConsents,
+    retry: false,
+  });
+
+  // Mutation toggle consent : POST avec granted=true/false (event-sourcing,
+  // dernier event fait foi — pas besoin de DELETE / consentId).
+  const toggleConsentMutation = useMutation({
+    mutationFn: (params: { consentType: ConsentTypeName; scope: string; granted: boolean }) => {
+      if (!targetProfileId) throw new Error("Profil cible manquant");
+      return api.persons.grantConsent(targetProfileId, {
+        consentType: params.consentType,
+        granted: params.granted,
+        scope: params.scope === GLOBAL_SCOPE_KEY ? null : params.scope,
+        source: "WEB",
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["consents-matrix", targetProfileId] });
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour du consentement"),
+  });
+
+  // État local : quelles cards accordéon sont dépliées (par ConsentType)
+  const [expandedTypes, setExpandedTypes] = useState<Record<string, boolean>>({});
 
   if (isLoading) {
     return (
@@ -456,6 +645,254 @@ export default function MonComptePage() {
           )}
           Réinitialiser mon mot de passe
         </button>
+      </Section>
+
+      {/* ─── Section 3 — Mes profils (D2.B, lecture seule) ──────────────── */}
+      {profiles && profiles.length > 1 && (
+        <Section title="Mes profils" icon={Users}>
+          <p
+            style={{
+              fontSize: 13,
+              color: C.textSoft,
+              marginBottom: 12,
+              lineHeight: 1.5,
+            }}
+          >
+            Vous pouvez consulter et agir au nom de ces personnes. Pour basculer
+            entre les profils, utilisez le sélecteur en haut de page.
+          </p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {[...profiles]
+              .sort((a, b) => (a.isSelf === b.isSelf ? 0 : a.isSelf ? -1 : 1))
+              .map((p) => (
+                <li
+                  key={p.personId}
+                  style={{
+                    padding: "10px 0",
+                    borderBottom: `1px solid ${C.border}`,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: C.text,
+                      }}
+                    >
+                      {p.firstName} {p.lastName}
+                    </span>
+                    {p.isSelf ? (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: C.primary,
+                          background: C.primaryLight,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.4px",
+                        }}
+                      >
+                        Vous
+                      </span>
+                    ) : (
+                      p.birthDate && (
+                        <span style={{ fontSize: 12, color: C.textSoft }}>
+                          {computeAge(p.birthDate)} ans
+                        </span>
+                      )
+                    )}
+                  </div>
+                  {!p.isSelf && p.delegationScopes && p.delegationScopes.length > 0 && (
+                    <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {p.delegationScopes.map((s) => (
+                        <span
+                          key={s}
+                          style={{
+                            fontSize: 11,
+                            color: C.textSoft,
+                            background: C.bg,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            border: `1px solid ${C.border}`,
+                          }}
+                        >
+                          {DELEGATION_SCOPE_LABELS_FR[s] ?? s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              ))}
+          </ul>
+        </Section>
+      )}
+
+      {/* ─── Section 4 — Mes consentements (D2.B, matrice F4 G5) ────────── */}
+      <Section title="Mes consentements" icon={ShieldCheck}>
+        {!canManageConsents && targetProfile && !targetProfile.isSelf ? (
+          <p
+            style={{
+              fontSize: 14,
+              color: C.textSoft,
+              lineHeight: 1.5,
+              padding: "8px 0",
+            }}
+            role="status"
+          >
+            Vous n&apos;avez pas les droits pour gérer les consentements de{" "}
+            <strong>{targetProfile.firstName}</strong>.
+          </p>
+        ) : matrixError ? (
+          <p
+            style={{
+              fontSize: 14,
+              color: C.textSoft,
+              lineHeight: 1.5,
+              padding: "8px 0",
+            }}
+            role="alert"
+          >
+            Impossible de charger vos consentements pour le moment.
+          </p>
+        ) : !consentMatrix ? (
+          <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 8 }}>
+            <Loader2 size={16} className="animate-spin" style={{ color: C.primary }} />
+            <span style={{ fontSize: 13, color: C.textSoft }}>Chargement…</span>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: C.textSoft,
+                marginBottom: 8,
+                lineHeight: 1.5,
+              }}
+            >
+              Vous pouvez activer ou désactiver chaque consentement à tout moment.
+              Les modifications sont enregistrées immédiatement.
+            </p>
+            {ORDERED_TYPES.map((type) => {
+              const v1Scopes = CONSENT_SCOPES_V1[type];
+              const isMonoAxis = v1Scopes.length === 0;
+              const typeMatrix = consentMatrix[type] ?? {};
+
+              // Liste des scopes à exposer selon la décision #4 :
+              //  - mono-axe : uniquement __global__ (le toggle = le type)
+              //  - multi-scopes : les scopes V1 + __global__ SI true (legacy)
+              const displayedScopes: string[] = isMonoAxis
+                ? [GLOBAL_SCOPE_KEY]
+                : [
+                    ...v1Scopes,
+                    ...(typeMatrix[GLOBAL_SCOPE_KEY] ? [GLOBAL_SCOPE_KEY] : []),
+                  ];
+
+              const activeCount = displayedScopes.filter((s) => typeMatrix[s]).length;
+              const totalCount = displayedScopes.length;
+              const expanded = expandedTypes[type] ?? false;
+
+              return (
+                <div
+                  key={type}
+                  style={{
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 12,
+                    background: C.bg,
+                    overflow: "hidden",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedTypes((prev) => ({ ...prev, [type]: !expanded }))
+                    }
+                    aria-expanded={expanded}
+                    aria-controls={`consent-section-${type}`}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "12px 14px",
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>
+                        {CONSENT_TYPE_LABELS_FR[type]}
+                      </span>
+                      <span style={{ fontSize: 12, color: C.textSoft }}>
+                        {activeCount}/{totalCount} actif{activeCount > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      size={18}
+                      color={C.textSoft}
+                      strokeWidth={1.8}
+                      style={{
+                        transition: "transform 0.2s ease",
+                        transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                      }}
+                    />
+                  </button>
+                  {expanded && (
+                    <div
+                      id={`consent-section-${type}`}
+                      style={{
+                        padding: "4px 14px 14px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 10,
+                        borderTop: `1px solid ${C.border}`,
+                        background: C.card,
+                      }}
+                    >
+                      {displayedScopes.map((scope) => {
+                        const checked = !!typeMatrix[scope];
+                        const label = CONSENT_SCOPE_LABELS_FR[scope] ?? scope;
+                        return (
+                          <div
+                            key={scope}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 12,
+                              paddingTop: 8,
+                            }}
+                          >
+                            <span style={{ fontSize: 13, color: C.text, flex: 1 }}>
+                              {label}
+                            </span>
+                            <Toggle
+                              checked={checked}
+                              onChange={(next) =>
+                                toggleConsentMutation.mutate({
+                                  consentType: type,
+                                  scope,
+                                  granted: next,
+                                })
+                              }
+                              disabled={toggleConsentMutation.isPending}
+                              label={`${CONSENT_TYPE_LABELS_FR[type]} — ${label}`}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Section>
 
       {/* ─── Déconnexion ─────────────────────────────────────────────────── */}

@@ -8,15 +8,35 @@ import MonComptePage from "../page";
 const mockPatchPerson = vi.fn();
 const mockPatientMe = vi.fn();
 const mockForgotPassword = vi.fn();
+const mockSwitchableProfiles = vi.fn();
+const mockConsentsMatrix = vi.fn();
+const mockGrantConsent = vi.fn();
 
-vi.mock("@/lib/api", () => ({
-  apiWithToken: () => ({
-    patient: { me: mockPatientMe },
-    persons: { patch: mockPatchPerson },
-  }),
-  authApi: {
-    forgotPassword: (email: string) => mockForgotPassword(email),
-  },
+vi.mock("@/lib/api", async () => {
+  // On garde GLOBAL_SCOPE_KEY (utilisé par le code) — re-exporté tel quel.
+  return {
+    apiWithToken: () => ({
+      patient: {
+        me: mockPatientMe,
+        switchableProfiles: mockSwitchableProfiles,
+      },
+      persons: {
+        patch: mockPatchPerson,
+        consentsMatrix: mockConsentsMatrix,
+        grantConsent: mockGrantConsent,
+      },
+    }),
+    authApi: {
+      forgotPassword: (email: string) => mockForgotPassword(email),
+    },
+    GLOBAL_SCOPE_KEY: "__global__",
+  };
+});
+
+// next/navigation : useSearchParams pour ?profile=X (pattern F6)
+let mockSearchParamsString = "";
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(mockSearchParamsString),
 }));
 
 vi.mock("@/lib/store", () => ({
@@ -77,8 +97,85 @@ beforeEach(() => {
   mockPatchPerson.mockReset();
   mockPatientMe.mockReset();
   mockForgotPassword.mockReset();
+  mockSwitchableProfiles.mockReset();
+  mockConsentsMatrix.mockReset();
+  mockGrantConsent.mockReset();
+  mockSearchParamsString = "";
   mockPatientMe.mockResolvedValue(FAKE_ME);
+  // Par défaut : self seul (Section 3 masquée, Section 4 = self)
+  mockSwitchableProfiles.mockResolvedValue([
+    {
+      personId: "u1",
+      firstName: "Marie",
+      lastName: "Dubois",
+      birthDate: null,
+      isSelf: true,
+      delegationScopes: null,
+    },
+  ]);
+  // Matrice par défaut : tout false (état initial backend)
+  mockConsentsMatrix.mockResolvedValue({
+    AI_PROCESSING: {
+      transcription_audio: false,
+      note_summarization: false,
+      bio_extraction: false,
+      __global__: false,
+    },
+    DATA_SHARING: {
+      care_team: false,
+      referral_partner: false,
+      family_pediatric_parent: false,
+      __global__: false,
+    },
+    NOTIFICATIONS: {
+      appointment_reminder: false,
+      message_alert: false,
+      __global__: false,
+    },
+    RGPD_PROCESSING: { __global__: false },
+    CARE_COORDINATION: { __global__: false },
+    MARKETING: { __global__: false },
+  });
 });
+
+// Profils étendus avec un enfant pour les tests Section 3/4 délégation
+const PROFILES_WITH_CHILD_MANAGE = [
+  {
+    personId: "u1",
+    firstName: "Marie",
+    lastName: "Dubois",
+    birthDate: null,
+    isSelf: true,
+    delegationScopes: null,
+  },
+  {
+    personId: "lea",
+    firstName: "Léa",
+    lastName: "Dubois",
+    birthDate: "2016-03-15T00:00:00.000Z",
+    isSelf: false,
+    delegationScopes: ["BOOK_APPOINTMENTS", "MANAGE_CONSENTS"],
+  },
+];
+
+const PROFILES_WITH_CHILD_NO_MANAGE = [
+  {
+    personId: "u1",
+    firstName: "Marie",
+    lastName: "Dubois",
+    birthDate: null,
+    isSelf: true,
+    delegationScopes: null,
+  },
+  {
+    personId: "ines",
+    firstName: "Inès",
+    lastName: "Dubois",
+    birthDate: "2009-06-20T00:00:00.000Z",
+    isSelf: false,
+    delegationScopes: ["BOOK_APPOINTMENTS"], // PAS de MANAGE_CONSENTS
+  },
+];
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Test 1 — Les 2 sections sont rendues (Infos + Sécurité)
@@ -213,5 +310,143 @@ describe("MonComptePage — Section Sécurité (Option A)", () => {
     expect(
       screen.getByText(/Vous recevrez un lien sécurisé par email pour définir un nouveau mot de passe/i),
     ).toBeInTheDocument();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// D2.B — Section 3 Mes profils (lecture seule)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("MonComptePage — Section 3 Mes profils (D2.B)", () => {
+  it("6. masquée si 1 seul profil disponible (pas de délégation)", async () => {
+    // mock par défaut = self seul → Section 3 ne doit pas apparaître
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mes informations")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Mes profils")).not.toBeInTheDocument();
+  });
+
+  it("7. affichée avec liste read-only des profils + scopes FR si délégation active", async () => {
+    mockSwitchableProfiles.mockResolvedValue(PROFILES_WITH_CHILD_MANAGE);
+
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mes profils")).toBeInTheDocument();
+    });
+
+    // Profil self affiché en premier avec badge "Vous"
+    expect(screen.getByText("Vous")).toBeInTheDocument();
+
+    // Profil enfant Léa avec scopes FR
+    expect(screen.getByText("Léa Dubois")).toBeInTheDocument();
+    expect(screen.getByText("Prendre des rendez-vous")).toBeInTheDocument();
+    expect(screen.getByText("Gérer les consentements")).toBeInTheDocument();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// D2.B — Section 4 Mes consentements (matrice F4 G5, accordéon)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("MonComptePage — Section 4 Mes consentements (D2.B)", () => {
+  it("8. accordéon : les 6 types ConsentType sont rendus avec labels FR + résumé X/N actifs", async () => {
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mes consentements")).toBeInTheDocument();
+    });
+
+    // Attendre la résolution de la matrix query
+    await waitFor(() => {
+      expect(screen.getByText("Traitement par intelligence artificielle")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Partage de données")).toBeInTheDocument();
+    expect(screen.getByText("Notifications")).toBeInTheDocument();
+    expect(screen.getByText("Traitement des données personnelles")).toBeInTheDocument();
+    expect(screen.getByText("Coordination des soins")).toBeInTheDocument();
+    expect(screen.getByText("Communications marketing")).toBeInTheDocument();
+  });
+
+  it("9. toggle d'un scope appelle persons.grantConsent avec scope correct + granted true", async () => {
+    mockGrantConsent.mockResolvedValueOnce({
+      id: "c-1",
+      consentType: "AI_PROCESSING",
+      granted: true,
+      grantedAt: "2026-05-23T00:00:00.000Z",
+      scope: "transcription_audio",
+      delegationId: null,
+    });
+
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Traitement par intelligence artificielle")).toBeInTheDocument();
+    });
+
+    // Déplier AI_PROCESSING
+    fireEvent.click(screen.getByText("Traitement par intelligence artificielle"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Transcription audio")).toBeInTheDocument();
+    });
+
+    // Toggle "Transcription audio" (role=switch, currently false → click → true)
+    const toggles = screen.getAllByRole("switch");
+    const transcriptionToggle = toggles.find((t) =>
+      t.getAttribute("aria-label")?.includes("Transcription audio"),
+    );
+    expect(transcriptionToggle).toBeDefined();
+    expect(transcriptionToggle).toHaveAttribute("aria-checked", "false");
+
+    fireEvent.click(transcriptionToggle!);
+
+    await waitFor(() => {
+      expect(mockGrantConsent).toHaveBeenCalledTimes(1);
+    });
+    const [calledPersonId, calledData] = mockGrantConsent.mock.calls[0];
+    expect(calledPersonId).toBe("u1"); // self
+    expect(calledData.consentType).toBe("AI_PROCESSING");
+    expect(calledData.scope).toBe("transcription_audio");
+    expect(calledData.granted).toBe(true);
+  });
+
+  it("10. affiche message 'pas les droits' si profil sélectionné sans MANAGE_CONSENTS", async () => {
+    mockSwitchableProfiles.mockResolvedValue(PROFILES_WITH_CHILD_NO_MANAGE);
+    mockSearchParamsString = "profile=ines"; // simule URL ?profile=ines
+
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mes consentements")).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Vous n'avez pas les droits pour gérer les consentements de/i),
+      ).toBeInTheDocument();
+    });
+
+    // Inès est mentionnée dans le message
+    const status = screen.getByRole("status");
+    expect(status.textContent).toContain("Inès");
+
+    // La matrix n'a PAS été appelée (proactif via delegationScopes)
+    expect(mockConsentsMatrix).not.toHaveBeenCalled();
+  });
+
+  it("11. matrice cible le profil enfant si ?profile=lea + MANAGE_CONSENTS présent", async () => {
+    mockSwitchableProfiles.mockResolvedValue(PROFILES_WITH_CHILD_MANAGE);
+    mockSearchParamsString = "profile=lea";
+
+    renderWithClient(<MonComptePage />);
+
+    await waitFor(() => {
+      expect(mockConsentsMatrix).toHaveBeenCalledWith("lea");
+    });
   });
 });
