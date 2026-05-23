@@ -156,6 +156,14 @@ export const authApi = {
 
   verifyEmail: (token: string) =>
     request<{ message: string }>(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+
+  // POST /auth/forgot-password — déclenche envoi email de réinitialisation.
+  // Réponse backend toujours neutre (anti-énumération) : { message: "Si un compte..." }
+  forgotPassword: (email: string) =>
+    request<{ message: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 };
 
 export const mfaApi = {
