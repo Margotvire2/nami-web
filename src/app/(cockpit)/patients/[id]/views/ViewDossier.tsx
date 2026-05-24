@@ -14,12 +14,14 @@ import { PatientJournalView } from "../PatientJournalView";
 interface Props {
   careCaseId: string;
   careCase?: CareCaseDetail;
+  pendingUploadType?: string | null;
+  onPendingUploadConsumed?: () => void;
 }
 
 type DossierTab = "notes" | "journal" | "timeline" | "documents" | "ordonnances";
 
-export function ViewDossier({ careCaseId, careCase }: Props) {
-  const [activeTab, setActiveTab] = useState<DossierTab>("notes");
+export function ViewDossier({ careCaseId, careCase, pendingUploadType, onPendingUploadConsumed }: Props) {
+  const [activeTab, setActiveTab] = useState<DossierTab>(pendingUploadType ? "documents" : "notes");
 
   return (
     <div>
@@ -47,7 +49,13 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
       {activeTab === "notes" && <NotesPanel careCaseId={careCaseId} />}
       {activeTab === "journal" && <PatientJournalView careCaseId={careCaseId} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
-      {activeTab === "documents" && <DocumentsPanel careCaseId={careCaseId} />}
+      {activeTab === "documents" && (
+        <DocumentsPanel
+          careCaseId={careCaseId}
+          pendingUploadType={pendingUploadType}
+          onPendingUploadConsumed={onPendingUploadConsumed}
+        />
+      )}
       {activeTab === "ordonnances" && <PrescriptionDraftEditor careCaseId={careCaseId} />}
     </div>
   );
@@ -267,15 +275,15 @@ function NotesPanel({ careCaseId }: { careCaseId: string }) {
 type DocFilter = "all" | "shared" | "mine" | "patient" | "transcriptions";
 
 const UPLOAD_TYPES = [
-  { label: "Bilan biologique", type: "BIOLOGICAL_REPORT" },
-  { label: "Impédancemétrie", type: "IMPEDANCE_REPORT" },
-  { label: "DXA / Densitométrie", type: "DXA_REPORT" },
-  { label: "ECG / EFR", type: "ECG_REPORT" },
-  { label: "Ordonnance", type: "PRESCRIPTION" },
-  { label: "Compte rendu", type: "CONSULTATION_REPORT" },
-  { label: "Imagerie", type: "IMAGING" },
-  { label: "Courrier", type: "LETTER" },
-  { label: "Autre", type: "OTHER" },
+  { label: "Bilan biologique", type: "BIOLOGICAL_REPORT", emoji: "🩸" },
+  { label: "Impédancemétrie", type: "IMPEDANCE_REPORT", emoji: "⚖️" },
+  { label: "DXA / Densitométrie", type: "DXA_REPORT", emoji: "🦴" },
+  { label: "ECG / EFR", type: "ECG_REPORT", emoji: "❤️" },
+  { label: "Ordonnance", type: "PRESCRIPTION", emoji: "💊" },
+  { label: "Compte rendu", type: "CONSULTATION_REPORT", emoji: "📄" },
+  { label: "Imagerie", type: "IMAGING", emoji: "🩻" },
+  { label: "Courrier", type: "LETTER", emoji: "✉️" },
+  { label: "Autre", type: "OTHER", emoji: "📎" },
 ];
 
 // ─── TranscriptionModal ───────────────────────────────────────────────────────
@@ -347,7 +355,11 @@ function TranscriptionModal({ doc, onClose }: { doc: any; onClose: () => void })
 
 // ─── DocumentsPanel ───────────────────────────────────────────────────────────
 
-function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
+function DocumentsPanel({ careCaseId, pendingUploadType, onPendingUploadConsumed }: {
+  careCaseId: string;
+  pendingUploadType?: string | null;
+  onPendingUploadConsumed?: () => void;
+}) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -365,6 +377,14 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showUploadMenu]);
+
+  // Consomme le type d'upload demandé depuis la Vue globale (front door "Ajouter des données").
+  useEffect(() => {
+    if (!pendingUploadType) return;
+    setUploadType(pendingUploadType);
+    fileInputRef.current?.click();
+    onPendingUploadConsumed?.();
+  }, [pendingUploadType, onPendingUploadConsumed]);
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ["documents", careCaseId],
@@ -588,20 +608,23 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
             {uploading ? "Upload…" : "+ Ajouter"}
           </button>
           {showUploadMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-1.5 z-50 min-w-[160px]">
-              {UPLOAD_TYPES.map((t) => (
-                <button
-                  key={t.type}
-                  onClick={() => {
-                    setUploadType(t.type);
-                    setShowUploadMenu(false);
-                    fileInputRef.current?.click();
-                  }}
-                  className="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
-                >
-                  {t.label}
-                </button>
-              ))}
+            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-2 z-50 w-[300px]">
+              <div className="grid grid-cols-3 gap-1.5">
+                {UPLOAD_TYPES.map((t) => (
+                  <button
+                    key={t.type}
+                    onClick={() => {
+                      setUploadType(t.type);
+                      setShowUploadMenu(false);
+                      fileInputRef.current?.click();
+                    }}
+                    className="flex flex-col items-center justify-center gap-1 py-3 px-1.5 rounded-lg border border-transparent hover:bg-gray-50 hover:border-gray-200 transition-colors text-gray-700"
+                  >
+                    <span className="text-2xl leading-none" aria-hidden="true">{t.emoji}</span>
+                    <span className="text-[10px] font-medium text-center leading-tight">{t.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

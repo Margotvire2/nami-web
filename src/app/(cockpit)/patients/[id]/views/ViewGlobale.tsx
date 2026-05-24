@@ -17,9 +17,10 @@ interface Props {
   dashboard: PatientDashboard;
   careCaseId: string;
   careCase?: CareCaseDetail;
+  onAddDocument?: (uploadType: string) => void;
 }
 
-export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
+export function ViewGlobale({ dashboard, careCaseId, careCase, onAddDocument }: Props) {
   const { indicators, questionnaires, actions, alerts, screenings } = dashboard;
   const profile: ClinicalProfile = getClinicalProfile(careCase);
 
@@ -52,7 +53,7 @@ export function ViewGlobale({ dashboard, careCaseId, careCase }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="lg:col-span-3 space-y-5">
-          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} careCaseId={careCaseId} />
+          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} careCaseId={careCaseId} onAddDocument={onAddDocument} />
           {isMinor && careCase && patientSex && (
             <GrowthCharts
               patientId={careCase.patient.id}
@@ -498,20 +499,49 @@ function DeltaTickerBanner({ indicators, questionnaires, profile }: {
 // INDICATEURS CLÉS
 // ══════════════════════════════════════════════════════
 
-function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId }: {
+const EMPTY_DOMAIN_LABELS = {
+  noData: "Aucune donnée",
+  addData: "Ajouter des données",
+} as const;
+
+function getUploadTypeForDomain(domain: string): string | null {
+  const d = domain
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  if (d.includes("bio")) return "BIOLOGICAL_REPORT";
+  if (d.includes("bia") || d.includes("impedanc") || d.includes("composition")) return "IMPEDANCE_REPORT";
+  if (d.includes("dxa") || d.includes("densit")) return "DXA_REPORT";
+  if (d.includes("ecg") || d.includes("efr") || d.includes("cardio") || d.includes("respi")) return "ECG_REPORT";
+  if (d.includes("imag")) return "IMAGING";
+  return null;
+}
+
+function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId, onAddDocument }: {
   indicators: DashboardIndicator[];
   questionnaires: PatientDashboard["questionnaires"];
   profile: ClinicalProfile;
   careCaseId: string;
+  onAddDocument?: (uploadType: string) => void;
 }) {
   const [addObsOpen, setAddObsOpen] = useState(false);
-  const withValues = indicators.filter((i) => i.value !== null || i.status === "CRITICAL" || i.status === "ALERT" || i.required);
+  const withValues = indicators.filter((i) => i.value !== null);
   const byDomain = new Map<string, DashboardIndicator[]>();
   for (const ind of withValues) {
     const group = byDomain.get(ind.domain) || [];
     group.push(ind);
     byDomain.set(ind.domain, group);
   }
+  // Conserver l'ordre d'apparition des domaines dans `indicators` (pas trié par sévérité).
+  const knownDomains: string[] = [];
+  const seen = new Set<string>();
+  for (const ind of indicators) {
+    if (!seen.has(ind.domain)) {
+      seen.add(ind.domain);
+      knownDomains.push(ind.domain);
+    }
+  }
+  const emptyDomains = knownDomains.filter((d) => !byDomain.has(d));
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -537,6 +567,26 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId }: 
             </div>
           </div>
         ))}
+        {emptyDomains.map((domain) => {
+          const uploadType = getUploadTypeForDomain(domain);
+          return (
+            <div key={domain} className="flex items-center justify-between py-1">
+              <p className="text-[11px] text-gray-500">
+                <span className="font-medium text-gray-400 uppercase tracking-wider">{domain}</span>
+                <span className="text-gray-400"> — {EMPTY_DOMAIN_LABELS.noData.toLowerCase()}</span>
+              </p>
+              {uploadType && onAddDocument && (
+                <button
+                  type="button"
+                  onClick={() => onAddDocument(uploadType)}
+                  className="text-[11px] font-medium text-gray-600 hover:text-gray-900 border border-gray-200 hover:border-gray-300 rounded-md px-2 py-1 transition-colors"
+                >
+                  {EMPTY_DOMAIN_LABELS.addData}
+                </button>
+              )}
+            </div>
+          );
+        })}
         {questionnaires.length > 0 && (
           <div>
             <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Questionnaires</p>
@@ -564,21 +614,14 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId }: 
 }
 
 function IndicatorTile({ ind, profile }: { ind: DashboardIndicator; profile: ClinicalProfile }) {
-  const c = {
-    OK: { bg: "bg-green-50/60", border: "border-green-100", text: "text-green-800", dot: "bg-green-400" },
-    ALERT: { bg: "bg-amber-50/60", border: "border-amber-100", text: "text-amber-800", dot: "bg-amber-400" },
-    CRITICAL: { bg: "bg-red-50/60", border: "border-red-100", text: "text-red-800", dot: "bg-red-400" },
-    MISSING: { bg: "bg-gray-50/60", border: "border-gray-100", text: "text-gray-400", dot: "bg-gray-300" },
-  }[ind.status];
-
   return (
-    <div className={`rounded-lg border ${c.border} ${c.bg} p-3 cursor-pointer hover:shadow-sm`}>
+    <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-3 cursor-pointer hover:shadow-sm">
       <div className="flex items-center justify-between mb-1">
         <span className="text-[11px] font-medium text-gray-500 truncate">{ind.label}</span>
-        <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+        <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
       </div>
       {ind.value !== null ? (
-        <span className={`text-xl font-semibold ${c.text}`}>{fv(ind.value)}<span className="text-[10px] text-gray-400 ml-0.5">{ind.unit}</span></span>
+        <span className="text-xl font-semibold text-gray-800">{fv(ind.value)}<span className="text-[10px] text-gray-400 ml-0.5">{ind.unit}</span></span>
       ) : (
         <span className="text-lg text-gray-200">—</span>
       )}
@@ -589,7 +632,7 @@ function IndicatorTile({ ind, profile }: { ind: DashboardIndicator; profile: Cli
       )}
       {ind.sparkline.length >= 3 && (
         <div className="mt-1 opacity-60 hover:opacity-100">
-          <MiniChart values={ind.sparkline} color={ind.status === "CRITICAL" ? "#ef4444" : ind.status === "ALERT" ? "#f59e0b" : "#22c55e"} />
+          <MiniChart values={ind.sparkline} color="#8A8A96" />
         </div>
       )}
     </div>
@@ -655,39 +698,12 @@ function ActionsPanel({ actions }: { actions: PatientDashboard["actions"] }) {
   );
 }
 
-function FlagsBanner({ alerts, screenings }: { alerts: PatientDashboard["alerts"]; screenings: PatientDashboard["screenings"] }) {
-  const [expanded, setExpanded] = useState(false);
-  const total = alerts.length + screenings.length;
-  if (total === 0) return null;
-  const critical = alerts.filter((a) => a.severity === "CRITICAL" || a.severity === "HIGH").length;
-
-  return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
-      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-100 text-xs">
-        <div className="flex items-center gap-2">
-          {critical > 0 && <span className="flex items-center gap-1 text-red-600 font-medium"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{critical} critique{critical > 1 ? "s" : ""}</span>}
-          {screenings.length > 0 && <span className="text-gray-500">{screenings.length} screening{screenings.length > 1 ? "s" : ""}</span>}
-        </div>
-        <Chevron open={expanded} />
-      </button>
-      {expanded && (
-        <div className="border-t border-gray-200 px-4 py-3 space-y-1 text-xs">
-          {alerts.map((a, i) => (
-            <div key={i} className="flex items-center gap-2 py-0.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${a.severity === "CRITICAL" ? "bg-red-500" : a.severity === "HIGH" ? "bg-red-400" : "bg-amber-400"}`} />
-              <span className={a.severity === "CRITICAL" || a.severity === "HIGH" ? "text-red-700" : "text-amber-700"}>{a.label}</span>
-            </div>
-          ))}
-          {screenings.map((s, i) => (
-            <div key={i} className="flex items-center justify-between py-0.5">
-              <span className="text-gray-600">{s.fromLabel} → {s.toLabel}</span>
-              {s.suggestedSpecialty && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EDE9FC] text-[#5B4EC4]">→ {s.suggestedSpecialty}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+function FlagsBanner(props: { alerts: PatientDashboard["alerts"]; screenings: PatientDashboard["screenings"] }) {
+  // Mise en sécurité MDR (UE 2017/745) : le rendu précédent (libellés "critique"/"screening",
+  // couleurs de sévérité) constitue un risque de requalification en dispositif médical.
+  // Composant neutralisé en attendant la remédiation de fond (ticket INIT-MDR via nami-juridique).
+  void props;
+  return null;
 }
 
 // ══════════════════════════════════════════════════════
