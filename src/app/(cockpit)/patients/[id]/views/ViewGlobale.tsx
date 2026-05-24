@@ -698,39 +698,12 @@ function ActionsPanel({ actions }: { actions: PatientDashboard["actions"] }) {
   );
 }
 
-function FlagsBanner({ alerts, screenings }: { alerts: PatientDashboard["alerts"]; screenings: PatientDashboard["screenings"] }) {
-  const [expanded, setExpanded] = useState(false);
-  const total = alerts.length + screenings.length;
-  if (total === 0) return null;
-  const critical = alerts.filter((a) => a.severity === "CRITICAL" || a.severity === "HIGH").length;
-
-  return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
-      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-100 text-xs">
-        <div className="flex items-center gap-2">
-          {critical > 0 && <span className="flex items-center gap-1 text-red-600 font-medium"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{critical} critique{critical > 1 ? "s" : ""}</span>}
-          {screenings.length > 0 && <span className="text-gray-500">{screenings.length} screening{screenings.length > 1 ? "s" : ""}</span>}
-        </div>
-        <Chevron open={expanded} />
-      </button>
-      {expanded && (
-        <div className="border-t border-gray-200 px-4 py-3 space-y-1 text-xs">
-          {alerts.map((a, i) => (
-            <div key={i} className="flex items-center gap-2 py-0.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${a.severity === "CRITICAL" ? "bg-red-500" : a.severity === "HIGH" ? "bg-red-400" : "bg-amber-400"}`} />
-              <span className={a.severity === "CRITICAL" || a.severity === "HIGH" ? "text-red-700" : "text-amber-700"}>{a.label}</span>
-            </div>
-          ))}
-          {screenings.map((s, i) => (
-            <div key={i} className="flex items-center justify-between py-0.5">
-              <span className="text-gray-600">{s.fromLabel} → {s.toLabel}</span>
-              {s.suggestedSpecialty && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EDE9FC] text-[#5B4EC4]">→ {s.suggestedSpecialty}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+function FlagsBanner(props: { alerts: PatientDashboard["alerts"]; screenings: PatientDashboard["screenings"] }) {
+  // Mise en sécurité MDR (UE 2017/745) : le rendu précédent (libellés "critique"/"screening",
+  // couleurs de sévérité) constitue un risque de requalification en dispositif médical.
+  // Composant neutralisé en attendant la remédiation de fond (ticket INIT-MDR via nami-juridique).
+  void props;
+  return null;
 }
 
 // ══════════════════════════════════════════════════════
