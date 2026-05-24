@@ -195,6 +195,12 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [questionnaireModalOpen, setQuestionnaireModalOpen] = useState(false);
   const [editPatientOpen, setEditPatientOpen] = useState(false);
+  const [pendingUploadType, setPendingUploadType] = useState<string | null>(null);
+
+  const handleAddDocument = useCallback((type: string) => {
+    setPendingUploadType(type);
+    setActiveTab("dossier");
+  }, []);
   const [analysisNote, setAnalysisNote] = useState<{ noteId: string; careCaseId: string } | null>(null);
   const [aiStreaming, setAiStreaming] = useState(false);
 
@@ -344,7 +350,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
           {activeTab === "globale" && (
-            <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} />
+            <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} onAddDocument={handleAddDocument} />
           )}
           {activeTab === "suivi" && (
             <SuiviTab
@@ -363,7 +369,14 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
             />
           )}
           {activeTab === "parcours" && <ViewParcours careCaseId={id} />}
-          {activeTab === "dossier" && <ViewDossier careCaseId={id} careCase={careCase} />}
+          {activeTab === "dossier" && (
+            <ViewDossier
+              careCaseId={id}
+              careCase={careCase}
+              pendingUploadType={pendingUploadType}
+              onPendingUploadConsumed={() => setPendingUploadType(null)}
+            />
+          )}
           {activeTab === "coordination" && (
             <ViewCoordination
               dashboard={dash}

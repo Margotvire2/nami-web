@@ -14,12 +14,14 @@ import { PatientJournalView } from "../PatientJournalView";
 interface Props {
   careCaseId: string;
   careCase?: CareCaseDetail;
+  pendingUploadType?: string | null;
+  onPendingUploadConsumed?: () => void;
 }
 
 type DossierTab = "notes" | "journal" | "timeline" | "documents" | "ordonnances";
 
-export function ViewDossier({ careCaseId, careCase }: Props) {
-  const [activeTab, setActiveTab] = useState<DossierTab>("notes");
+export function ViewDossier({ careCaseId, careCase, pendingUploadType, onPendingUploadConsumed }: Props) {
+  const [activeTab, setActiveTab] = useState<DossierTab>(pendingUploadType ? "documents" : "notes");
 
   return (
     <div>
@@ -47,7 +49,13 @@ export function ViewDossier({ careCaseId, careCase }: Props) {
       {activeTab === "notes" && <NotesPanel careCaseId={careCaseId} />}
       {activeTab === "journal" && <PatientJournalView careCaseId={careCaseId} />}
       {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
-      {activeTab === "documents" && <DocumentsPanel careCaseId={careCaseId} />}
+      {activeTab === "documents" && (
+        <DocumentsPanel
+          careCaseId={careCaseId}
+          pendingUploadType={pendingUploadType}
+          onPendingUploadConsumed={onPendingUploadConsumed}
+        />
+      )}
       {activeTab === "ordonnances" && <PrescriptionDraftEditor careCaseId={careCaseId} />}
     </div>
   );
@@ -347,7 +355,11 @@ function TranscriptionModal({ doc, onClose }: { doc: any; onClose: () => void })
 
 // ─── DocumentsPanel ───────────────────────────────────────────────────────────
 
-function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
+function DocumentsPanel({ careCaseId, pendingUploadType, onPendingUploadConsumed }: {
+  careCaseId: string;
+  pendingUploadType?: string | null;
+  onPendingUploadConsumed?: () => void;
+}) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -365,6 +377,14 @@ function DocumentsPanel({ careCaseId }: { careCaseId: string }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showUploadMenu]);
+
+  // Consomme le type d'upload demandé depuis la Vue globale (front door "Ajouter des données").
+  useEffect(() => {
+    if (!pendingUploadType) return;
+    setUploadType(pendingUploadType);
+    fileInputRef.current?.click();
+    onPendingUploadConsumed?.();
+  }, [pendingUploadType, onPendingUploadConsumed]);
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ["documents", careCaseId],
