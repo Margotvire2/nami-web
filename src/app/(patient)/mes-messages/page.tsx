@@ -14,6 +14,8 @@ const C = {
   card: "#FFFFFF", bg: "#FAFAF8",
 };
 
+const MAX_LENGTH = 2000;
+
 function Avatar({ name, size = 32 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   return (
@@ -33,7 +35,9 @@ export default function MessagesPage() {
   const api = apiWithToken(accessToken!);
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Récupérer le care case du patient
   const { data: me } = useQuery<PatientMe>({
@@ -63,19 +67,35 @@ export default function MessagesPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patient-messages", careCaseId] });
       setDraft("");
+      setError(null);
+      textareaRef.current?.focus();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'envoi du message";
+      setError(msg);
     },
   });
 
-  function handleSend() {
+  function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
     const text = draft.trim();
     if (!text || !careCaseId || sendMutation.isPending) return;
+    if (text.length > MAX_LENGTH) {
+      setError(`Message trop long (maximum ${MAX_LENGTH} caractères)`);
+      return;
+    }
     sendMutation.mutate(text);
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setDraft(e.target.value);
+    if (error) setError(null);
   }
 
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSubmit();
     }
   }
 
@@ -157,35 +177,80 @@ export default function MessagesPage() {
       {/* Input */}
       {careCaseId && (
         <div style={{ background: C.card, borderTop: `1px solid ${C.border}`, padding: "12px 16px", flexShrink: 0 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", maxWidth: 640, margin: "0 auto" }}>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Écrire un message à votre équipe…"
-              rows={1}
-              style={{
-                flex: 1, padding: "10px 14px", borderRadius: 12, border: `1.5px solid ${C.border}`,
-                fontSize: 14, fontFamily: "inherit", resize: "none", background: C.bg,
-                color: C.text, outline: "none", lineHeight: 1.5,
-              }}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!draft.trim() || sendMutation.isPending}
-              style={{
-                width: 42, height: 42, borderRadius: 12, border: "none",
-                background: draft.trim() ? C.primary : C.border,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: draft.trim() ? "pointer" : "not-allowed", flexShrink: 0,
-              }}
-            >
-              {sendMutation.isPending
-                ? <Loader2 size={16} color="#fff" className="animate-spin" />
-                : <Send size={16} color="#fff" strokeWidth={2} />
-              }
-            </button>
-          </div>
+          <form
+            onSubmit={handleSubmit}
+            aria-label="Envoyer un message à mon équipe soignante"
+            style={{ maxWidth: 640, margin: "0 auto" }}
+          >
+            {error && (
+              <div
+                role="alert"
+                aria-live="polite"
+                style={{
+                  marginBottom: 8,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  background: "rgba(220,38,38,0.06)",
+                  border: "1px solid rgba(220,38,38,0.2)",
+                  fontSize: 12,
+                  color: "#DC2626",
+                }}
+              >
+                {error}
+              </div>
+            )}
+            <label htmlFor="message-composer" className="sr-only">
+              Écrire un message à mon équipe soignante
+            </label>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <textarea
+                  id="message-composer"
+                  ref={textareaRef}
+                  value={draft}
+                  onChange={handleChange}
+                  onKeyDown={handleKey}
+                  placeholder="Écrire un message à votre équipe…"
+                  rows={1}
+                  aria-describedby="message-char-count"
+                  style={{
+                    padding: "10px 14px", borderRadius: 12, border: `1.5px solid ${C.border}`,
+                    fontSize: 14, fontFamily: "inherit", resize: "none", background: C.bg,
+                    color: C.text, outline: "none", lineHeight: 1.5,
+                  }}
+                />
+                <p
+                  id="message-char-count"
+                  style={{
+                    fontSize: 10,
+                    marginTop: 4,
+                    textAlign: "right",
+                    color: draft.length > MAX_LENGTH ? "#DC2626" : "#9CA3AF",
+                    fontWeight: draft.length > MAX_LENGTH ? 600 : 400,
+                  }}
+                >
+                  {draft.length} / {MAX_LENGTH}
+                </p>
+              </div>
+              <button
+                type="submit"
+                aria-label="Envoyer le message"
+                disabled={!draft.trim() || sendMutation.isPending || draft.length > MAX_LENGTH}
+                style={{
+                  width: 42, height: 42, borderRadius: 12, border: "none",
+                  background: draft.trim() && draft.length <= MAX_LENGTH ? C.primary : C.border,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: draft.trim() && draft.length <= MAX_LENGTH ? "pointer" : "not-allowed",
+                  flexShrink: 0,
+                }}
+              >
+                {sendMutation.isPending
+                  ? <Loader2 size={16} color="#fff" className="animate-spin" />
+                  : <Send size={16} color="#fff" strokeWidth={2} />
+                }
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
