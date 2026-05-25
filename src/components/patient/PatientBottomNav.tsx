@@ -19,13 +19,7 @@ import { PatientNavItem } from "./PatientNavItem";
 const PRIMARY = [
   { href: "/accueil", icon: Home, label: "Accueil", disabled: false },
   { href: "/rendez-vous", icon: Calendar, label: "RDV", disabled: false },
-  {
-    href: "/parcours",
-    icon: Route,
-    label: "Parcours",
-    disabled: true,
-    tooltip: "Bientôt disponible",
-  },
+  { href: "/parcours", icon: Route, label: "Parcours", disabled: false },
   { href: "/mes-messages", icon: MessageCircle, label: "Messages", disabled: false },
 ] as const;
 
@@ -36,7 +30,7 @@ const SECONDARY_IN_MORE_MENU = [
     label: "Trouver un soignant",
     disabled: true,
   },
-  { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: true },
+  { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
   { href: "/mon-compte", icon: UserIcon, label: "Mon compte", disabled: false },
 ] as const;
@@ -74,7 +68,7 @@ export function PatientBottomNav({ className = "" }: PatientBottomNavProps) {
             icon={item.icon}
             label={item.label}
             disabled={item.disabled}
-            tooltip={"tooltip" in item ? item.tooltip : undefined}
+            tooltip={undefined}
             variant="bottom"
           />
         ))}

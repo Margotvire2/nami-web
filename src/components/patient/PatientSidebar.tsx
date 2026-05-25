@@ -21,20 +21,8 @@ const NAV_ITEMS = [
     tooltip: "Bientôt disponible",
   },
   { href: "/rendez-vous", icon: Calendar, label: "Mes rendez-vous", disabled: false },
-  {
-    href: "/parcours",
-    icon: Route,
-    label: "Mon parcours",
-    disabled: true,
-    tooltip: "Bientôt disponible",
-  },
-  {
-    href: "/suivi",
-    icon: TrendingUp,
-    label: "Mon suivi",
-    disabled: true,
-    tooltip: "Bientôt disponible",
-  },
+  { href: "/parcours", icon: Route, label: "Mon parcours", disabled: false },
+  { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-messages", icon: MessageCircle, label: "Mes messages", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
 ] as const;
