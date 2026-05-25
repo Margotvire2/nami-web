@@ -2,19 +2,27 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type SwitchableProfile } from "@/lib/api";
+import { usePatientNotifications } from "@/hooks/usePatientNotifications";
 import { ProfileSwitcher } from "./ProfileSwitcher";
 import { PatientAvatarMenu } from "./PatientAvatarMenu";
+import { PatientNotificationsPanel } from "./PatientNotificationsPanel";
 
 export function PatientHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const accessToken = useAuthStore((s) => s.accessToken);
   const user = useAuthStore((s) => s.user);
+
+  const [notifsOpen, setNotifsOpen] = useState(false);
+  const { data: notifsData } = usePatientNotifications({ limit: 20 });
+  const unreadCount = notifsData?.unreadCount ?? 0;
+  const notifItems = notifsData?.items ?? [];
 
   const { data: profiles } = useQuery<SwitchableProfile[]>({
     queryKey: ["patient-switchable-profiles"],
@@ -78,16 +86,37 @@ export function PatientHeader() {
 
           {/* Zone 3 — Bell + ProfileSwitcher + Avatar */}
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
-            {/* TODO F-NOTIF-PATIENT-FEED-ENDPOINT P1
-                Placeholder Bell static — pas d'endpoint patient dédié (cf. Phase 0 F6) */}
-            <button
-              type="button"
-              aria-label="Notifications (bientôt disponible)"
-              disabled
-              className="p-2 rounded-full text-[#6B7280] hover:bg-[rgba(91,78,196,0.08)] hover:text-[#5B4EC4] transition-colors cursor-not-allowed opacity-60"
-            >
-              <Bell className="w-5 h-5" strokeWidth={1.8} />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                aria-label={
+                  unreadCount > 0
+                    ? `Notifications (${unreadCount} non lue${unreadCount > 1 ? "s" : ""})`
+                    : "Notifications"
+                }
+                aria-expanded={notifsOpen}
+                aria-haspopup="dialog"
+                onClick={() => setNotifsOpen((o) => !o)}
+                className="relative p-2 rounded-full text-[#6B7280] hover:bg-[rgba(91,78,196,0.08)] hover:text-[#5B4EC4] transition-colors"
+              >
+                <Bell className="w-5 h-5" strokeWidth={1.8} />
+                {unreadCount > 0 && (
+                  <span
+                    aria-live="polite"
+                    className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#DC2626] text-white text-[10px] font-bold flex items-center justify-center"
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+              {notifsOpen && (
+                <PatientNotificationsPanel
+                  items={notifItems}
+                  unreadCount={unreadCount}
+                  onClose={() => setNotifsOpen(false)}
+                />
+              )}
+            </div>
 
             {profiles && profiles.length > 1 && currentProfileId && (
               <div className="hidden md:block">
