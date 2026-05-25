@@ -33,6 +33,23 @@ export function PublicNavbar() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
+  // Échap pour fermer le drawer mobile (pas d'API call ici — pas besoin d'intercepter)
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
+
+  // CTAs contextuels selon le pathname (patient acquisition vs soignant/corporate).
+  // - /patient* est dormant jusqu'au merge de PR #56 (acceptable comportement, fallback safe).
+  // - /trouver-un-soignant existe déjà → active dès merge de cette PR.
+  const isPatientContext =
+    (pathname?.startsWith("/patient") ?? false) ||
+    (pathname?.startsWith("/trouver-un-soignant") ?? false);
+
   return (
     <>
       <style>{`
@@ -45,9 +62,43 @@ export function PublicNavbar() {
           .nav-burger        { display: none !important; }
           .nav-mobile-drawer { display: none !important; }
         }
+        /* A11y — focus visible ring (styles inline empêchent classes Tailwind directes,
+           on injecte donc le :focus-visible ici. Hex hardcodé car composant n'utilise
+           pas var(--nami-primary) ailleurs → fallback safe avant PR #40 mergée). */
+        .public-navbar a:focus-visible,
+        .public-navbar button:focus-visible {
+          outline: 2px solid #5B4EC4;
+          outline-offset: 2px;
+          border-radius: 4px;
+        }
+        /* Skip-to-content : visible only on focus (a11y standard) */
+        .public-navbar-skip {
+          position: absolute;
+          top: -100px;
+          left: 8px;
+          padding: 8px 16px;
+          background: #5B4EC4;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+          border-radius: 8px;
+          text-decoration: none;
+          z-index: 200;
+          transition: top 0.15s;
+        }
+        .public-navbar-skip:focus {
+          top: 8px;
+        }
       `}</style>
 
+      {/* Skip-to-content link — a11y (visible only on keyboard focus) */}
+      <a href="#main" className="public-navbar-skip">
+        Aller au contenu principal
+      </a>
+
       <nav
+        className="public-navbar"
+        aria-label="Navigation principale"
         style={{
           position: "sticky",
           top: 0,
@@ -75,6 +126,7 @@ export function PublicNavbar() {
               const active = pathname === href || (href !== "/" && pathname?.startsWith(href.split("#")[0]));
               return (
                 <Link key={label} href={href}
+                  aria-current={active ? "page" : undefined}
                   style={{
                     color: active ? "#5B4EC4" : "#6B7280",
                     fontSize: 14,
@@ -89,18 +141,35 @@ export function PublicNavbar() {
             })}
           </div>
 
-          {/* Desktop auth */}
+          {/* Desktop auth — CTAs contextuels patient vs soignant/corporate */}
           <div className="nav-desktop-auth" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/login"
-              style={{ color: "#374151", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 16px", borderRadius: 100, transition: "all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.color = "#5B4EC4"; e.currentTarget.style.background = "rgba(91,78,196,0.06)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#374151"; e.currentTarget.style.background = "transparent"; }}
-            >Connexion</Link>
-            <Link href="/demander-une-demo"
-              style={{ background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 20px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)", transition: "all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#4A3EA6"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(91,78,196,0.35)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "#5B4EC4"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(91,78,196,0.25)"; }}
-            >Demander une démo</Link>
+            {isPatientContext ? (
+              <>
+                <Link href="/login?role=patient"
+                  style={{ color: "#374151", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 16px", borderRadius: 100, transition: "all 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#5B4EC4"; e.currentTarget.style.background = "rgba(91,78,196,0.06)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "#374151"; e.currentTarget.style.background = "transparent"; }}
+                >Se connecter</Link>
+                <Link href="/trouver-un-soignant"
+                  style={{ background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 20px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)", transition: "all 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#4A3EA6"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(91,78,196,0.35)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#5B4EC4"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(91,78,196,0.25)"; }}
+                >Trouver un soignant</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login"
+                  style={{ color: "#374151", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 16px", borderRadius: 100, transition: "all 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#5B4EC4"; e.currentTarget.style.background = "rgba(91,78,196,0.06)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "#374151"; e.currentTarget.style.background = "transparent"; }}
+                >Connexion</Link>
+                <Link href="/demander-une-demo"
+                  style={{ background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 20px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)", transition: "all 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#4A3EA6"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(91,78,196,0.35)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#5B4EC4"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(91,78,196,0.25)"; }}
+                >Demander une démo</Link>
+              </>
+            )}
           </div>
 
           {/* Burger button — mobile only */}
@@ -108,6 +177,8 @@ export function PublicNavbar() {
             className="nav-burger"
             onClick={() => setMenuOpen(o => !o)}
             aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu-drawer"
             style={{
               display: "none", // overridden by CSS on mobile
               background: "none",
@@ -129,6 +200,11 @@ export function PublicNavbar() {
 
       {/* Mobile drawer */}
       <div
+        id="mobile-menu-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu mobile"
+        aria-hidden={!menuOpen}
         className="nav-mobile-drawer"
         style={{
           position: "fixed",
@@ -170,6 +246,7 @@ export function PublicNavbar() {
                 key={label}
                 href={href}
                 onClick={() => setMenuOpen(false)}
+                aria-current={active ? "page" : undefined}
                 style={{
                   display: "block",
                   padding: "14px 16px",
@@ -190,42 +267,86 @@ export function PublicNavbar() {
 
           <div style={{ height: 1, background: "rgba(26,26,46,0.07)", margin: "8px 0" }} />
 
-          <Link
-            href="/login"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              display: "block",
-              padding: "14px 16px",
-              borderRadius: 12,
-              fontSize: 16,
-              fontWeight: 500,
-              color: "#374151",
-              textDecoration: "none",
-              minHeight: 44,
-            }}
-          >
-            Connexion
-          </Link>
-          <Link
-            href="/demander-une-demo"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "14px 16px",
-              borderRadius: 12,
-              fontSize: 16,
-              fontWeight: 700,
-              color: "#fff",
-              background: "#5B4EC4",
-              textDecoration: "none",
-              boxShadow: "0 4px 16px rgba(91,78,196,0.30)",
-              minHeight: 44,
-            }}
-          >
-            Demander une démo →
-          </Link>
+          {/* CTAs mobile contextuels — miroir du desktop */}
+          {isPatientContext ? (
+            <>
+              <Link
+                href="/login?role=patient"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: "#374151",
+                  textDecoration: "none",
+                  minHeight: 44,
+                }}
+              >
+                Se connecter
+              </Link>
+              <Link
+                href="/trouver-un-soignant"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "#fff",
+                  background: "#5B4EC4",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 16px rgba(91,78,196,0.30)",
+                  minHeight: 44,
+                }}
+              >
+                Trouver un soignant →
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: "#374151",
+                  textDecoration: "none",
+                  minHeight: 44,
+                }}
+              >
+                Connexion
+              </Link>
+              <Link
+                href="/demander-une-demo"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "#fff",
+                  background: "#5B4EC4",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 16px rgba(91,78,196,0.30)",
+                  minHeight: 44,
+                }}
+              >
+                Demander une démo →
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </>
