@@ -8,19 +8,13 @@ import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Send, Loader2, MessageCircle } from "lucide-react";
 
-const C = {
-  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
-  text: "#1A1A2E", textSoft: "#6B7280", border: "rgba(26,26,46,0.08)",
-  card: "#FFFFFF", bg: "#FAFAF8",
-};
-
 function Avatar({ name, size = 32 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%", background: C.primaryLight,
+      width: size, height: size, borderRadius: "50%", background: "var(--nami-primary-light)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.36, fontWeight: 700, color: C.primary, flexShrink: 0,
+      fontSize: size * 0.36, fontWeight: 700, color: "var(--nami-primary)", flexShrink: 0,
     }}>
       {initials}
     </div>
@@ -83,12 +77,12 @@ export default function MessagesPage() {
   const teamNames = team.map((m) => `${m.person.firstName} ${m.person.lastName}`).join(", ");
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: C.bg }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--nami-bg)" }}>
       {/* Header */}
-      <div style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: "16px 24px", flexShrink: 0 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, color: C.text, letterSpacing: "-0.3px" }}>Messages</h1>
+      <div style={{ background: "var(--nami-card)", borderBottom: `1px solid var(--nami-border)`, padding: "16px 24px", flexShrink: 0 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--nami-dark)", letterSpacing: "-0.3px" }}>Messages</h1>
         {teamNames && (
-          <p style={{ fontSize: 12, color: C.textSoft, marginTop: 2 }}>
+          <p style={{ fontSize: 12, color: "var(--nami-text-muted)", marginTop: 2 }}>
             Conversation avec votre équipe soignante · {teamNames}
           </p>
         )}
@@ -106,18 +100,18 @@ export default function MessagesPage() {
       <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
         {isLoading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-            <Loader2 size={22} className="animate-spin" style={{ color: C.primary }} />
+            <Loader2 size={22} className="animate-spin" style={{ color: "var(--nami-primary)" }} />
           </div>
         ) : !careCaseId ? (
           <div style={{ textAlign: "center", padding: "48px 24px" }}>
             <MessageCircle size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
-            <p style={{ fontSize: 14, color: C.textSoft }}>Aucun suivi actif trouvé.</p>
+            <p style={{ fontSize: 14, color: "var(--nami-text-muted)" }}>Aucun suivi actif trouvé.</p>
           </div>
         ) : messages.length === 0 ? (
           <div style={{ textAlign: "center", padding: "48px 24px" }}>
             <MessageCircle size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
-            <p style={{ fontSize: 14, color: C.textSoft }}>Aucun message pour l&apos;instant.</p>
-            <p style={{ fontSize: 12, color: C.textSoft, opacity: 0.7, marginTop: 4 }}>
+            <p style={{ fontSize: 14, color: "var(--nami-text-muted)" }}>Aucun message pour l&apos;instant.</p>
+            <p style={{ fontSize: 12, color: "var(--nami-text-muted)", opacity: 0.7, marginTop: 4 }}>
               Vous pouvez écrire à votre équipe soignante ci-dessous.
             </p>
           </div>
@@ -130,20 +124,20 @@ export default function MessagesPage() {
                 {!isMe && <Avatar name={senderName} size={30} />}
                 <div style={{ maxWidth: "70%" }}>
                   {!isMe && (
-                    <div style={{ fontSize: 11, color: C.textSoft, marginBottom: 3, fontWeight: 500 }}>
+                    <div style={{ fontSize: 11, color: "var(--nami-text-muted)", marginBottom: 3, fontWeight: 500 }}>
                       {senderName}
                     </div>
                   )}
                   <div style={{
                     padding: "10px 14px", borderRadius: isMe ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                    background: isMe ? C.primary : C.card,
-                    border: isMe ? "none" : `1px solid ${C.border}`,
-                    color: isMe ? "#fff" : C.text,
+                    background: isMe ? "var(--nami-primary)" : "var(--nami-card)",
+                    border: isMe ? "none" : `1px solid var(--nami-border)`,
+                    color: isMe ? "#fff" : "var(--nami-dark)",
                     fontSize: 14, lineHeight: 1.5,
                   }}>
                     {msg.body}
                   </div>
-                  <div style={{ fontSize: 10, color: C.textSoft, marginTop: 4, textAlign: isMe ? "right" : "left" }}>
+                  <div style={{ fontSize: 10, color: "var(--nami-text-muted)", marginTop: 4, textAlign: isMe ? "right" : "left" }}>
                     {format(parseISO(msg.createdAt), "d MMM à HH:mm", { locale: fr })}
                   </div>
                 </div>
@@ -156,7 +150,7 @@ export default function MessagesPage() {
 
       {/* Input */}
       {careCaseId && (
-        <div style={{ background: C.card, borderTop: `1px solid ${C.border}`, padding: "12px 16px", flexShrink: 0 }}>
+        <div style={{ background: "var(--nami-card)", borderTop: `1px solid var(--nami-border)`, padding: "12px 16px", flexShrink: 0 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", maxWidth: 640, margin: "0 auto" }}>
             <textarea
               value={draft}
@@ -165,9 +159,9 @@ export default function MessagesPage() {
               placeholder="Écrire un message à votre équipe…"
               rows={1}
               style={{
-                flex: 1, padding: "10px 14px", borderRadius: 12, border: `1.5px solid ${C.border}`,
-                fontSize: 14, fontFamily: "inherit", resize: "none", background: C.bg,
-                color: C.text, outline: "none", lineHeight: 1.5,
+                flex: 1, padding: "10px 14px", borderRadius: 12, border: `1.5px solid var(--nami-border)`,
+                fontSize: 14, fontFamily: "inherit", resize: "none", background: "var(--nami-bg)",
+                color: "var(--nami-dark)", outline: "none", lineHeight: 1.5,
               }}
             />
             <button
@@ -175,7 +169,7 @@ export default function MessagesPage() {
               disabled={!draft.trim() || sendMutation.isPending}
               style={{
                 width: 42, height: 42, borderRadius: 12, border: "none",
-                background: draft.trim() ? C.primary : C.border,
+                background: draft.trim() ? "var(--nami-primary)" : "var(--nami-border)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: draft.trim() ? "pointer" : "not-allowed", flexShrink: 0,
               }}

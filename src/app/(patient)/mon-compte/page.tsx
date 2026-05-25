@@ -34,17 +34,6 @@ import {
   type ActiveCareCaseSummary,
 } from "@/components/patient/DeleteAccountModal";
 
-// ─── Tokens Tahoe × Nami ────────────────────────────────────────────────────
-const C = {
-  primary: "#5B4EC4",
-  primaryLight: "rgba(91,78,196,0.08)",
-  text: "#1A1A2E",
-  textSoft: "#6B7280",
-  border: "rgba(26,26,46,0.08)",
-  card: "#FFFFFF",
-  bg: "#FAFAF8",
-};
-
 // ─── Helpers UI ─────────────────────────────────────────────────────────────
 
 function Section({
@@ -59,9 +48,9 @@ function Section({
   return (
     <div
       style={{
-        background: C.card,
+        background: "var(--nami-card)",
         borderRadius: 16,
-        border: `1px solid ${C.border}`,
+        border: `1px solid var(--nami-border)`,
         overflow: "hidden",
         marginBottom: 16,
       }}
@@ -69,14 +58,14 @@ function Section({
       <div
         style={{
           padding: "14px 20px",
-          borderBottom: `1px solid ${C.border}`,
+          borderBottom: `1px solid var(--nami-border)`,
           display: "flex",
           alignItems: "center",
           gap: 8,
         }}
       >
-        <Icon size={16} strokeWidth={2} color={C.primary} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{title}</span>
+        <Icon size={16} strokeWidth={2} color={"var(--nami-primary)"} />
+        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--nami-dark)" }}>{title}</span>
       </div>
       <div style={{ padding: "16px 20px" }}>{children}</div>
     </div>
@@ -91,11 +80,11 @@ function Field({ label, value }: { label: string; value: string }) {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "8px 0",
-        borderBottom: `1px solid ${C.border}`,
+        borderBottom: `1px solid var(--nami-border)`,
       }}
     >
-      <span style={{ fontSize: 13, color: C.textSoft }}>{label}</span>
-      <span style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{value || "—"}</span>
+      <span style={{ fontSize: 13, color: "var(--nami-text-muted)" }}>{label}</span>
+      <span style={{ fontSize: 14, color: "var(--nami-dark)", fontWeight: 500 }}>{value || "—"}</span>
     </div>
   );
 }
@@ -103,18 +92,18 @@ function Field({ label, value }: { label: string; value: string }) {
 const inputSt: React.CSSProperties = {
   width: "100%",
   padding: "9px 12px",
-  border: `1.5px solid ${C.border}`,
+  border: `1.5px solid var(--nami-border)`,
   borderRadius: 10,
   fontSize: 14,
   fontFamily: "inherit",
-  color: C.text,
-  background: C.bg,
+  color: "var(--nami-dark)",
+  background: "var(--nami-bg)",
   outline: "none",
 };
 const labelSt: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
-  color: C.textSoft,
+  color: "var(--nami-text-muted)",
   textTransform: "uppercase",
   letterSpacing: "0.6px",
   display: "block",
@@ -230,7 +219,7 @@ function Toggle({
         height: 22,
         borderRadius: 999,
         border: "none",
-        background: checked ? C.primary : "#E5E7EB",
+        background: checked ? "var(--nami-primary)" : "#E5E7EB",
         cursor: disabled ? "wait" : "pointer",
         transition: "background 0.18s ease",
         flexShrink: 0,
@@ -453,7 +442,7 @@ export default function MonComptePage() {
           height: "60vh",
         }}
       >
-        <Loader2 size={24} className="animate-spin" style={{ color: C.primary }} />
+        <Loader2 size={24} className="animate-spin" style={{ color: "var(--nami-primary)" }} />
       </div>
     );
   }
@@ -464,7 +453,7 @@ export default function MonComptePage() {
         padding: "28px 24px 80px",
         maxWidth: 540,
         margin: "0 auto",
-        background: C.bg,
+        background: "var(--nami-bg)",
         minHeight: "100vh",
       }}
     >
@@ -475,23 +464,23 @@ export default function MonComptePage() {
             width: 60,
             height: 60,
             borderRadius: "50%",
-            background: C.primaryLight,
+            background: "var(--nami-primary-light)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 22, fontWeight: 700, color: C.primary }}>
+          <span style={{ fontSize: 22, fontWeight: 700, color: "var(--nami-primary)" }}>
             {user?.firstName?.[0]}
             {user?.lastName?.[0]}
           </span>
         </div>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--nami-dark)" }}>
             {user?.firstName} {user?.lastName}
           </div>
-          <div style={{ fontSize: 13, color: C.textSoft }}>{user?.email}</div>
+          <div style={{ fontSize: 13, color: "var(--nami-text-muted)" }}>{user?.email}</div>
         </div>
       </div>
 
@@ -518,9 +507,9 @@ export default function MonComptePage() {
                 marginTop: 14,
                 padding: "9px 18px",
                 borderRadius: 10,
-                border: `1.5px solid ${C.primary}`,
-                background: C.primaryLight,
-                color: C.primary,
+                border: `1.5px solid var(--nami-primary)`,
+                background: "var(--nami-primary-light)",
+                color: "var(--nami-primary)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -560,7 +549,7 @@ export default function MonComptePage() {
                 style={{
                   ...inputSt,
                   background: "#F5F3EF",
-                  color: C.textSoft,
+                  color: "var(--nami-text-muted)",
                   cursor: "not-allowed",
                 }}
                 type="email"
@@ -572,7 +561,7 @@ export default function MonComptePage() {
               <p
                 style={{
                   fontSize: 11,
-                  color: C.textSoft,
+                  color: "var(--nami-text-muted)",
                   marginTop: 4,
                   display: "flex",
                   alignItems: "center",
@@ -628,7 +617,7 @@ export default function MonComptePage() {
                   padding: "10px 0",
                   borderRadius: 10,
                   border: "none",
-                  background: C.primary,
+                  background: "var(--nami-primary)",
                   color: "#fff",
                   fontSize: 14,
                   fontWeight: 600,
@@ -652,9 +641,9 @@ export default function MonComptePage() {
                 style={{
                   padding: "10px 18px",
                   borderRadius: 10,
-                  border: `1.5px solid ${C.border}`,
-                  background: C.card,
-                  color: C.textSoft,
+                  border: `1.5px solid var(--nami-border)`,
+                  background: "var(--nami-card)",
+                  color: "var(--nami-text-muted)",
                   fontSize: 14,
                   fontWeight: 500,
                   cursor: "pointer",
@@ -670,7 +659,7 @@ export default function MonComptePage() {
 
       {/* ─── Section 2 — Sécurité (Option A : trigger forgot-password) ─── */}
       <Section title="Sécurité" icon={Shield}>
-        <div style={{ fontSize: 14, color: C.textSoft, marginBottom: 12, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, color: "var(--nami-text-muted)", marginBottom: 12, lineHeight: 1.5 }}>
           Vous recevrez un lien sécurisé par email pour définir un nouveau mot de passe.
         </div>
         <button
@@ -679,9 +668,9 @@ export default function MonComptePage() {
           style={{
             padding: "9px 18px",
             borderRadius: 10,
-            border: `1.5px solid ${C.primary}`,
-            background: C.primaryLight,
-            color: C.primary,
+            border: `1.5px solid var(--nami-primary)`,
+            background: "var(--nami-primary-light)",
+            color: "var(--nami-primary)",
             fontSize: 13,
             fontWeight: 600,
             cursor: resetPasswordMutation.isPending ? "wait" : "pointer",
@@ -706,7 +695,7 @@ export default function MonComptePage() {
           <p
             style={{
               fontSize: 13,
-              color: C.textSoft,
+              color: "var(--nami-text-muted)",
               marginBottom: 12,
               lineHeight: 1.5,
             }}
@@ -722,7 +711,7 @@ export default function MonComptePage() {
                   key={p.personId}
                   style={{
                     padding: "10px 0",
-                    borderBottom: `1px solid ${C.border}`,
+                    borderBottom: `1px solid var(--nami-border)`,
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
@@ -730,7 +719,7 @@ export default function MonComptePage() {
                       style={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: C.text,
+                        color: "var(--nami-dark)",
                       }}
                     >
                       {p.firstName} {p.lastName}
@@ -740,8 +729,8 @@ export default function MonComptePage() {
                         style={{
                           fontSize: 11,
                           fontWeight: 700,
-                          color: C.primary,
-                          background: C.primaryLight,
+                          color: "var(--nami-primary)",
+                          background: "var(--nami-primary-light)",
                           padding: "2px 8px",
                           borderRadius: 6,
                           textTransform: "uppercase",
@@ -752,7 +741,7 @@ export default function MonComptePage() {
                       </span>
                     ) : (
                       p.birthDate && (
-                        <span style={{ fontSize: 12, color: C.textSoft }}>
+                        <span style={{ fontSize: 12, color: "var(--nami-text-muted)" }}>
                           {computeAge(p.birthDate)} ans
                         </span>
                       )
@@ -765,11 +754,11 @@ export default function MonComptePage() {
                           key={s}
                           style={{
                             fontSize: 11,
-                            color: C.textSoft,
-                            background: C.bg,
+                            color: "var(--nami-text-muted)",
+                            background: "var(--nami-bg)",
                             padding: "3px 8px",
                             borderRadius: 6,
-                            border: `1px solid ${C.border}`,
+                            border: `1px solid var(--nami-border)`,
                           }}
                         >
                           {DELEGATION_SCOPE_LABELS_FR[s] ?? s}
@@ -789,7 +778,7 @@ export default function MonComptePage() {
           <p
             style={{
               fontSize: 14,
-              color: C.textSoft,
+              color: "var(--nami-text-muted)",
               lineHeight: 1.5,
               padding: "8px 0",
             }}
@@ -802,7 +791,7 @@ export default function MonComptePage() {
           <p
             style={{
               fontSize: 14,
-              color: C.textSoft,
+              color: "var(--nami-text-muted)",
               lineHeight: 1.5,
               padding: "8px 0",
             }}
@@ -812,15 +801,15 @@ export default function MonComptePage() {
           </p>
         ) : !consentMatrix ? (
           <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 8 }}>
-            <Loader2 size={16} className="animate-spin" style={{ color: C.primary }} />
-            <span style={{ fontSize: 13, color: C.textSoft }}>Chargement…</span>
+            <Loader2 size={16} className="animate-spin" style={{ color: "var(--nami-primary)" }} />
+            <span style={{ fontSize: 13, color: "var(--nami-text-muted)" }}>Chargement…</span>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p
               style={{
                 fontSize: 13,
-                color: C.textSoft,
+                color: "var(--nami-text-muted)",
                 marginBottom: 8,
                 lineHeight: 1.5,
               }}
@@ -851,9 +840,9 @@ export default function MonComptePage() {
                 <div
                   key={type}
                   style={{
-                    border: `1px solid ${C.border}`,
+                    border: `1px solid var(--nami-border)`,
                     borderRadius: 12,
-                    background: C.bg,
+                    background: "var(--nami-bg)",
                     overflow: "hidden",
                   }}
                 >
@@ -878,16 +867,16 @@ export default function MonComptePage() {
                     }}
                   >
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "var(--nami-dark)" }}>
                         {CONSENT_TYPE_LABELS_FR[type]}
                       </span>
-                      <span style={{ fontSize: 12, color: C.textSoft }}>
+                      <span style={{ fontSize: 12, color: "var(--nami-text-muted)" }}>
                         {activeCount}/{totalCount} actif{activeCount > 1 ? "s" : ""}
                       </span>
                     </div>
                     <ChevronDown
                       size={18}
-                      color={C.textSoft}
+                      color={"var(--nami-text-muted)"}
                       strokeWidth={1.8}
                       style={{
                         transition: "transform 0.2s ease",
@@ -903,8 +892,8 @@ export default function MonComptePage() {
                         display: "flex",
                         flexDirection: "column",
                         gap: 10,
-                        borderTop: `1px solid ${C.border}`,
-                        background: C.card,
+                        borderTop: `1px solid var(--nami-border)`,
+                        background: "var(--nami-card)",
                       }}
                     >
                       {displayedScopes.map((scope) => {
@@ -921,7 +910,7 @@ export default function MonComptePage() {
                               paddingTop: 8,
                             }}
                           >
-                            <span style={{ fontSize: 13, color: C.text, flex: 1 }}>
+                            <span style={{ fontSize: 13, color: "var(--nami-dark)", flex: 1 }}>
                               {label}
                             </span>
                             <Toggle
@@ -953,7 +942,7 @@ export default function MonComptePage() {
         <p
           style={{
             fontSize: 14,
-            color: C.textSoft,
+            color: "var(--nami-text-muted)",
             marginBottom: 12,
             lineHeight: 1.5,
           }}
@@ -968,9 +957,9 @@ export default function MonComptePage() {
           style={{
             padding: "9px 18px",
             borderRadius: 10,
-            border: `1.5px solid ${C.primary}`,
-            background: C.primaryLight,
-            color: C.primary,
+            border: `1.5px solid var(--nami-primary)`,
+            background: "var(--nami-primary-light)",
+            color: "var(--nami-primary)",
             fontSize: 13,
             fontWeight: 600,
             cursor: exportMutation.isPending ? "wait" : "pointer",
@@ -994,7 +983,7 @@ export default function MonComptePage() {
         <p
           style={{
             fontSize: 14,
-            color: C.textSoft,
+            color: "var(--nami-text-muted)",
             marginBottom: 12,
             lineHeight: 1.5,
           }}
@@ -1046,9 +1035,9 @@ export default function MonComptePage() {
           width: "100%",
           padding: "12px 0",
           borderRadius: 12,
-          border: `1.5px solid ${C.border}`,
-          background: C.card,
-          color: C.textSoft,
+          border: `1.5px solid var(--nami-border)`,
+          background: "var(--nami-card)",
+          color: "var(--nami-text-muted)",
           fontSize: 14,
           fontWeight: 500,
           cursor: "pointer",
