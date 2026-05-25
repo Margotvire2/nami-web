@@ -254,6 +254,13 @@ html, body {
   --nami-secondary: #2BA89C;
   --nami-dark: #1A1A2E;
   --nami-text-muted: #6B7280;
+
+  /* Follow-up audit 25/05 — composants patient cassés silencieusement.
+     - primary-hover : primary assombri ~10% (pattern Tailwind 700) — AppointmentCard hover
+     - teal : canonical Liquid Glass × Nami v1.0 (wireframes V5 Notion),
+              distinct de --nami-secondary (alias legacy #2BA89C) — gradient avatar + bouton */
+  --nami-primary-hover: #4A3FB5;
+  --nami-teal: #3DC5B7;
 }
 
 .dark {
