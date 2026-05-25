@@ -6,8 +6,9 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type PatientDocument } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { FileText, Download, Loader2 } from "lucide-react";
+import { FileText, Download, Loader2, Plus } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { PatientDocumentUploadModal } from "@/components/patient/PatientDocumentUploadModal";
 
 const C = {
   primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)",
@@ -39,6 +40,7 @@ export default function DocumentsPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const api = apiWithToken(accessToken!);
   const [filter, setFilter] = useState("Tous");
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery<PatientDocument[]>({
     queryKey: ["patient-documents"],
@@ -55,9 +57,26 @@ export default function DocumentsPage() {
 
   return (
     <div style={{ padding: "28px 24px 80px", maxWidth: 720, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, marginBottom: 20, letterSpacing: "-0.4px" }}>
-        Mes documents
-      </h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, letterSpacing: "-0.4px", margin: 0 }}>
+          Mes documents
+        </h1>
+        <button
+          type="button"
+          onClick={() => setUploadOpen(true)}
+          aria-label="Ajouter un document"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "8px 14px", borderRadius: 10, border: "none",
+            background: C.primary, color: "#fff",
+            fontSize: 13, fontWeight: 600, fontFamily: "inherit",
+            cursor: "pointer", boxShadow: "0 1px 3px rgba(91,78,196,0.25)",
+          }}
+        >
+          <Plus size={15} strokeWidth={2.2} aria-hidden="true" />
+          Ajouter
+        </button>
+      </div>
 
       {/* Filtres */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
@@ -127,6 +146,11 @@ export default function DocumentsPage() {
           })}
         </div>
       )}
+
+      <PatientDocumentUploadModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+      />
     </div>
   );
 }

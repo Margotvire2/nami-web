@@ -3039,6 +3039,27 @@ export function apiWithToken(token: string) {
           ),
       },
       documents: () => request<PatientDocument[]>("/patient/documents", {}, token),
+      // Upload patient — POST /patient/documents/upload (backend PR #62).
+      // Méthode séparée plutôt que `documents.upload` pour ne pas casser
+      // les call-sites existants `api.patient.documents()` (signature: fonction).
+      uploadDocument: (file: File, documentType: string, title: string) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("documentType", documentType);
+        formData.append("title", title);
+        // request<T>() détecte FormData (ligne 70) et omet le Content-Type
+        // pour laisser le browser ajouter le boundary multipart.
+        return request<{
+          id: string;
+          title: string;
+          fileUrl: string;
+          mimeType: string;
+          sizeBytes: number;
+          documentType: string;
+          createdAt: string;
+          careCaseId: string;
+        }>("/patient/documents/upload", { method: "POST", body: formData }, token);
+      },
       messages: (careCaseId: string) =>
         request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
       sendMessage: (careCaseId: string, body: string) =>
