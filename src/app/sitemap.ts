@@ -12,6 +12,7 @@ const LAST = {
   soignants:  "2026-04-21",
   professions:"2026-04-21",
   legal:      "2026-04-24",
+  patient:    "2026-05-26",
 }
 
 const PROFESSION_SLUGS = [
@@ -39,6 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Pages statiques ──────────────────────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE,                                    lastModified: LAST.home,        changeFrequency: "weekly",  priority: 1.0 },
+    { url: `${BASE}/patient`,                       lastModified: LAST.patient,     changeFrequency: "weekly",  priority: 0.9 },
     { url: `${BASE}/trouver-un-soignant`,           lastModified: LAST.annuaire,    changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE}/pathologies`,                   lastModified: LAST.pathologies, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/blog`,                          lastModified: LAST.blog,        changeFrequency: "daily",   priority: 0.85 },
