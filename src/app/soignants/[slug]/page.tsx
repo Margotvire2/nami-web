@@ -102,7 +102,7 @@ export default async function ProfilSoignantPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Navbar */}
-      <nav className="border-b bg-white">
+      <nav className="border-b bg-white" aria-label="Navigation principale">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Link href="/" className="text-lg font-bold text-[var(--color-primary,#4F46E5)]">
             nami
@@ -256,9 +256,16 @@ export default async function ProfilSoignantPage({
       </div>
 
       {/* Footer */}
-      <footer className="mt-12 border-t bg-white py-8 text-center text-xs text-gray-400">
+      <footer
+        role="contentinfo"
+        aria-label="Mentions légales Nami"
+        className="mt-12 border-t bg-white py-8 text-center text-xs text-gray-400"
+      >
         <p>Nami — Système nerveux du parcours de soins complexes</p>
         <p className="mt-1">Données RPPS vérifiées via l&apos;Annuaire Santé (ANS)</p>
+        <p className="mt-2 text-gray-500">
+          Outil de coordination · Nami n&apos;est pas un dispositif médical · Conforme RGPD
+        </p>
       </footer>
     </div>
   )
