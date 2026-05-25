@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   CalendarPlus, Clock, MapPin, Video, Phone,
   ChevronRight, ChevronLeft, X, Check, Loader2,
@@ -68,7 +68,9 @@ export default function BookingSection({
   providerSpecialties,
 }: BookingSectionProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { accessToken, user, setAuth } = useAuthStore()
+  const preselectedSlotIdRef = useRef<string | null>(null)
 
   const [slots, setSlots] = useState<PublicSlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(true)
@@ -107,6 +109,24 @@ export default function BookingSection({
     }
     load()
   }, [providerId])
+
+  // ─── Pre-select slot from ?slot=<id> URL param (deep link Doctolib-style) ──
+  // Re-uses selectSlot() once slots are loaded. Guard via ref to avoid
+  // re-triggering if user closes modal manually (the URL stays unchanged).
+
+  useEffect(() => {
+    if (slots.length === 0) return
+    const slotIdFromUrl = searchParams.get("slot")
+    if (!slotIdFromUrl) return
+    if (preselectedSlotIdRef.current === slotIdFromUrl) return
+    const match = slots.find((s) => s.id === slotIdFromUrl)
+    if (match) {
+      preselectedSlotIdRef.current = slotIdFromUrl
+      selectSlot(match)
+    }
+    // selectSlot is stable enough (defined in same component scope), no need to list as dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slots, searchParams])
 
   // ─── Slot selection ──────────────────────────────────────────────────────
 

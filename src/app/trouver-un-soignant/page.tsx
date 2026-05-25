@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { providerDirectoryApi, connectionRequestsApi, type PublicProvider } from "@/lib/api";
+import { ProviderSlotsInline } from "@/components/patient/ProviderSlotsInline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -244,6 +245,13 @@ function ProviderCard({
           <UserPlus size={12} /> Contacter
         </Button>
       </div>
+
+      <ProviderSlotsInline
+        providerId={provider.id}
+        providerFirstName={provider.person.firstName}
+        providerLastName={provider.person.lastName}
+        maxSlots={5}
+      />
     </div>
   );
 }
