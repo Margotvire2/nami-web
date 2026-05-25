@@ -60,6 +60,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // F-LOGIN-PATIENT-CONTEXT-CTA — adapter UI si arrivée via CTA "Espace patient"
+  // (PR #41 HomeNav → /login?role=patient). Display uniquement, pas de logique
+  // auth modifiée : le rôle reste inféré par le backend après login (universel).
+  const isPatientContext = searchParams.get("role") === "patient";
+
   // MFA step
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaPendingToken, setMfaPendingToken] = useState("");
@@ -133,7 +138,9 @@ export default function LoginPage() {
               Bon retour
             </h1>
             <p className="text-sm" style={{ color: "#6B7280" }}>
-              Connectez-vous à votre cockpit soignant
+              {isPatientContext
+                ? "Connectez-vous à votre espace patient"
+                : "Connectez-vous à votre cockpit soignant"}
             </p>
           </div>
 
@@ -204,11 +211,11 @@ export default function LoginPage() {
               <p className="text-center text-sm mt-8" style={{ color: "#6B7280" }}>
                 Pas encore de compte ?{" "}
                 <Link
-                  href="/signup"
+                  href={isPatientContext ? "/signup?role=patient" : "/signup"}
                   className="font-semibold hover:underline underline-offset-2"
                   style={{ color: "#5B4EC4" }}
                 >
-                  Créer un compte
+                  {isPatientContext ? "Créer un compte patient" : "Créer un compte"}
                 </Link>
               </p>
             </>
