@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -27,19 +27,22 @@ const PROFESSION_TYPES: { value: string; label: string; emoji: string }[] = [
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState({
+  // Init lazy : lit ?role=patient au mount (SSR-safe, pas de hydration mismatch).
+  // ?role=patient → PATIENT pré-sélectionné. Toute autre valeur → PROVIDER (default).
+  const [form, setForm] = useState(() => ({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
-    roleType: "PROVIDER" as "PROVIDER" | "PATIENT",
+    roleType: (searchParams.get("role") === "patient" ? "PATIENT" : "PROVIDER") as "PROVIDER" | "PATIENT",
     rppsNumber: "",
     specialties: [] as string[],
     professionType: "" as string,
-  });
+  }));
 
   function set(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
