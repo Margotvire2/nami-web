@@ -218,10 +218,10 @@ export default async function SoignantsPage() {
       </div>
 
       {/* Résultats */}
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <section className="mx-auto max-w-6xl px-4 py-8" aria-label="Liste des soignants vérifiés">
         {providers.length === 0 ? (
-          <div className="py-20 text-center">
-            <Shield className="mx-auto size-12 text-gray-300" />
+          <div className="py-20 text-center" role="status">
+            <Shield className="mx-auto size-12 text-gray-300" aria-hidden="true" />
             <h2 className="mt-4 text-lg font-semibold text-gray-700">
               Aucun soignant publié pour le moment
             </h2>
@@ -247,7 +247,20 @@ export default async function SoignantsPage() {
             </div>
           </>
         )}
-      </div>
+      </section>
+
+      {/* Footer compliance MDR (CLAUDE.md : obligatoire toutes pages publiques) */}
+      <footer
+        role="contentinfo"
+        aria-label="Mentions légales Nami"
+        className="mt-12 border-t bg-white py-8 text-center text-xs text-gray-400"
+      >
+        <p>Nami — Système nerveux du parcours de soins complexes</p>
+        <p className="mt-1">Données RPPS vérifiées via l&apos;Annuaire Santé (ANS)</p>
+        <p className="mt-2 text-gray-500">
+          Outil de coordination · Nami n&apos;est pas un dispositif médical · Conforme RGPD
+        </p>
+      </footer>
 
     </div>
   )
