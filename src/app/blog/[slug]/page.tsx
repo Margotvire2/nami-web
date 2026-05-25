@@ -43,7 +43,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const article = await getArticle(slug)
-  if (!article) return { title: "Article introuvable" }
+  // Canonical autoréférent même en cas d'article introuvable : évite que Google
+  // indexe ces URLs comme duplicate de la homepage via le metadataBase hérité.
+  if (!article) return {
+    title: "Article introuvable",
+    robots: { index: false, follow: false },
+    alternates: { canonical: `/blog/${slug}` },
+  }
 
   return {
     title: article.metaTitle ?? article.title,
