@@ -34,6 +34,16 @@ export function ProfileSwitcher({ profiles, currentPersonId, onSwitch }: Profile
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  // F-PATIENT-PROFILE-SWITCHER-AUDIT-POLISH — fermer au Échap (a11y clavier)
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open]);
+
   if (profiles.length <= 1) return null;
 
   const current = profiles.find((p) => p.personId === currentPersonId);
@@ -49,7 +59,8 @@ export function ProfileSwitcher({ profiles, currentPersonId, onSwitch }: Profile
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-haspopup="listbox"
-          className="flex items-center gap-3 w-full text-left"
+          aria-label={`Changer de profil — actuellement ${current.isSelf ? "vous-même" : current.firstName}`}
+          className="flex items-center gap-3 w-full text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40 focus-visible:ring-offset-1"
         >
           <Avatar firstName={current.firstName} lastName={current.lastName} />
           <div className="flex-1">
@@ -79,17 +90,20 @@ export function ProfileSwitcher({ profiles, currentPersonId, onSwitch }: Profile
             className="mt-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200"
           >
             {others.map((p) => (
-              <li key={p.personId}>
+              <li key={p.personId} role="option" aria-selected={false}>
                 <button
                   type="button"
                   onClick={() => {
                     onSwitch(p.personId);
                     setOpen(false);
                   }}
+                  aria-label={`Basculer vers ${p.isSelf ? "votre profil" : `le profil de ${p.firstName}`}`}
                   className="
                     flex items-center gap-3 w-full p-2 rounded-xl
                     hover:bg-white/40 transition-colors duration-200
                     text-left
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-[#5B4EC4]/40
                   "
                 >
                   <Avatar firstName={p.firstName} lastName={p.lastName} />
