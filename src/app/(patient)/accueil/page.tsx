@@ -5,9 +5,12 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type PatientAppointment, type PatientDocument } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar, FileText, Users, MessageCircle, Loader2 } from "lucide-react";
+import { Calendar, FileText, Users, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { RecentNotificationsCard } from "./RecentNotificationsCard";
+import { RecentMessagesCard } from "./RecentMessagesCard";
+import { QuickActionsCard } from "./QuickActionsCard";
 
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -92,7 +95,10 @@ export default function AccueilPage() {
   };
 
   return (
-    <div style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: "var(--nami-bg)", minHeight: "100vh" }}>
+    <main
+      aria-label="Tableau de bord de votre espace patient"
+      style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: "var(--nami-bg)", minHeight: "100vh" }}
+    >
       {/* Header */}
       <ScrollReveal variant="fade-up" delay={0} duration={0.6}>
         <div style={{ marginBottom: 32 }}>
@@ -179,22 +185,14 @@ export default function AccueilPage() {
         </ScrollReveal>
       )}
 
-      {/* Messages */}
+      {/* Notifications récentes */}
+      <ScrollReveal variant="fade-up" delay={0.20} duration={0.6}>
+        <RecentNotificationsCard />
+      </ScrollReveal>
+
+      {/* Messages récents (live data depuis premier care case) */}
       <ScrollReveal variant="fade-up" delay={0.24} duration={0.6}>
-        <div style={{ marginBottom: 20 }}>
-          <SectionTitle icon={MessageCircle} title="Messages" />
-          <Link href="/messages" style={{ textDecoration: "none" }}>
-            <Card style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--nami-primary-light)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <MessageCircle size={18} color={"var(--nami-primary)"} strokeWidth={2} />
-                </div>
-                <span style={{ fontSize: 14, color: "var(--nami-dark)" }}>Messagerie avec mon équipe</span>
-              </div>
-              <span style={{ fontSize: 18, color: "var(--nami-text-muted)" }}>›</span>
-            </Card>
-          </Link>
-        </div>
+        <RecentMessagesCard me={me} />
       </ScrollReveal>
 
       {/* Derniers documents */}
@@ -230,6 +228,11 @@ export default function AccueilPage() {
           </div>
         </ScrollReveal>
       )}
-    </div>
+
+      {/* Accès rapide — routes patient existantes (rendez-vous, mes-soignants, mes-documents, trouver-un-soignant) */}
+      <ScrollReveal variant="fade-up" delay={0.40} duration={0.6}>
+        <QuickActionsCard />
+      </ScrollReveal>
+    </main>
   );
 }
