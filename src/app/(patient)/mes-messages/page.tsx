@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type PatientMe, type PatientMessage } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Send, Loader2, MessageCircle } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
+import { ComposerEnhanced } from "./ComposerEnhanced";
 
 function Avatar({ name, size = 32 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -26,7 +27,6 @@ export default function MessagesPage() {
   const user = useAuthStore((s) => s.user);
   const api = apiWithToken(accessToken!);
   const qc = useQueryClient();
-  const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Récupérer le care case du patient
@@ -51,26 +51,18 @@ export default function MessagesPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  // Envoyer un message
+  // Envoyer un message — API REELLE PRÉSERVÉE INCHANGÉE
+  // ComposerEnhanced appelle handleSendBody(body) qui delegue à cette mutation
   const sendMutation = useMutation({
     mutationFn: (body: string) => api.patient.sendMessage(careCaseId!, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patient-messages", careCaseId] });
-      setDraft("");
     },
   });
 
-  function handleSend() {
-    const text = draft.trim();
-    if (!text || !careCaseId || sendMutation.isPending) return;
-    sendMutation.mutate(text);
-  }
-
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+  function handleSendBody(body: string) {
+    if (!careCaseId || sendMutation.isPending) return;
+    sendMutation.mutate(body);
   }
 
   const team = me?.careCases?.[0]?.members ?? [];
@@ -148,39 +140,14 @@ export default function MessagesPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
+      {/* Composer enhanced V2 — autogrow + char counter + attachments UI mock.
+          API reste celle de sendMutation existant (préservation totale). */}
       {careCaseId && (
-        <div style={{ background: "var(--nami-card)", borderTop: `1px solid var(--nami-border)`, padding: "12px 16px", flexShrink: 0 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", maxWidth: 640, margin: "0 auto" }}>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Écrire un message à votre équipe…"
-              rows={1}
-              style={{
-                flex: 1, padding: "10px 14px", borderRadius: 12, border: `1.5px solid var(--nami-border)`,
-                fontSize: 14, fontFamily: "inherit", resize: "none", background: "var(--nami-bg)",
-                color: "var(--nami-dark)", outline: "none", lineHeight: 1.5,
-              }}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!draft.trim() || sendMutation.isPending}
-              style={{
-                width: 42, height: 42, borderRadius: 12, border: "none",
-                background: draft.trim() ? "var(--nami-primary)" : "var(--nami-border)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: draft.trim() ? "pointer" : "not-allowed", flexShrink: 0,
-              }}
-            >
-              {sendMutation.isPending
-                ? <Loader2 size={16} color="#fff" className="animate-spin" />
-                : <Send size={16} color="#fff" strokeWidth={2} />
-              }
-            </button>
-          </div>
-        </div>
+        <ComposerEnhanced
+          disabled={!careCaseId}
+          isPending={sendMutation.isPending}
+          onSend={handleSendBody}
+        />
       )}
     </div>
   );
