@@ -66,6 +66,18 @@ export default function LoginPage() {
   const [totpCode, setTotpCode] = useState("");
   const totpInputRef = useRef<HTMLInputElement>(null);
 
+  // Adapte le copy si l'utilisateur arrive depuis un CTA patient (?role=patient).
+  // Symétrie avec /signup?role=patient (PR #42) + CTA HomeNav (CC #50 PR #80).
+  // Aucune incidence sur la logique auth/MFA/redirect (universelle).
+  const isPatientContext = searchParams.get("role") === "patient";
+  const heroTitle = "Bon retour";
+  const heroSubtitle = isPatientContext
+    ? "Retrouvez votre espace et vos soignant·es"
+    : "Connectez-vous à votre cockpit soignant";
+  const signupHintText = isPatientContext ? "Pas encore inscrit·e ?" : "Pas encore de compte ?";
+  const signupHref = isPatientContext ? "/signup?role=patient" : "/signup";
+  const signupHintCta = isPatientContext ? "Créer un espace patient" : "Créer un compte";
+
   useEffect(() => {
     if (searchParams.get("verified") === "true") {
       toast.success("Email vérifié. Vous pouvez maintenant vous connecter.");
@@ -130,10 +142,10 @@ export default function LoginPage() {
               className="text-2xl font-extrabold tracking-tight mb-1"
               style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}
             >
-              Bon retour
+              {heroTitle}
             </h1>
             <p className="text-sm" style={{ color: "#6B7280" }}>
-              Connectez-vous à votre cockpit soignant
+              {heroSubtitle}
             </p>
           </div>
 
@@ -202,13 +214,13 @@ export default function LoginPage() {
               </form>
 
               <p className="text-center text-sm mt-8" style={{ color: "#6B7280" }}>
-                Pas encore de compte ?{" "}
+                {signupHintText}{" "}
                 <Link
-                  href="/signup"
+                  href={signupHref}
                   className="font-semibold hover:underline underline-offset-2"
                   style={{ color: "#5B4EC4" }}
                 >
-                  Créer un compte
+                  {signupHintCta}
                 </Link>
               </p>
             </>
