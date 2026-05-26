@@ -35,6 +35,9 @@ export default function SignupPage() {
     lastName: "",
     email: "",
     password: "",
+    phone: "",
+    birthDate: "", // YYYY-MM-DD
+    sex: "" as "" | "M" | "F",
     roleType: "PROVIDER" as "PROVIDER" | "PATIENT",
     rppsNumber: "",
     specialties: [] as string[],
@@ -60,6 +63,21 @@ export default function SignupPage() {
       toast.error("Le mot de passe doit contenir au moins 8 caractères");
       return;
     }
+    if (form.roleType === "PATIENT") {
+      if (!form.birthDate) {
+        toast.error("Date de naissance requise");
+        return;
+      }
+      if (!form.sex) {
+        toast.error("Sexe requis");
+        return;
+      }
+      const bd = new Date(form.birthDate);
+      if (isNaN(bd.getTime()) || bd > new Date()) {
+        toast.error("Date de naissance invalide");
+        return;
+      }
+    }
     setLoading(true);
     try {
       const tokens = await authApi.signup({
@@ -68,6 +86,9 @@ export default function SignupPage() {
         firstName: form.firstName,
         lastName: form.lastName,
         roleType: form.roleType,
+        phone: form.phone || undefined,
+        birthDate: form.roleType === "PATIENT" ? form.birthDate : undefined,
+        sex: form.roleType === "PATIENT" ? (form.sex as "M" | "F") : undefined,
         rppsNumber: form.rppsNumber || undefined,
         specialties: form.specialties.length ? form.specialties : undefined,
         professionType: form.roleType === "PROVIDER" && form.professionType ? form.professionType : undefined,
@@ -176,6 +197,74 @@ export default function SignupPage() {
                 onChange={(e) => set("password", e.target.value)} placeholder="8 caractères minimum"
                 className="h-11 rounded-xl border-0 text-sm" style={{ background: "#F5F3EF" }} required />
             </div>
+
+            {/* Phone — visible tous rôles, optionnel */}
+            <div className="space-y-1.5">
+              <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>
+                Téléphone <span style={{ color: "#B0B0BA", fontWeight: 400 }}>(optionnel)</span>
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                autoComplete="tel"
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                placeholder="06 12 34 56 78"
+                className="h-11 rounded-xl border-0 text-sm"
+                style={{ background: "#F5F3EF" }}
+              />
+            </div>
+
+            {/* Patient-only fields */}
+            {form.roleType === "PATIENT" && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="birthDate" className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>
+                      Date de naissance
+                    </Label>
+                    <Input
+                      id="birthDate"
+                      type="date"
+                      value={form.birthDate}
+                      onChange={(e) => set("birthDate", e.target.value)}
+                      max={new Date().toISOString().split("T")[0]}
+                      className="h-11 rounded-xl border-0 text-sm"
+                      style={{ background: "#F5F3EF" }}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>
+                      Sexe
+                    </Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["F", "M"] as const).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, sex: s }))}
+                          className="spec-card rounded-xl h-11 px-3 border text-sm font-semibold transition-all"
+                          style={{
+                            borderColor: form.sex === s ? "#5B4EC4" : "rgba(26,26,46,0.1)",
+                            background: form.sex === s ? "rgba(91,78,196,0.05)" : "#fff",
+                            color: form.sex === s ? "#5B4EC4" : "#374151",
+                            boxShadow: form.sex === s ? "0 0 0 2px rgba(91,78,196,0.15)" : "none",
+                          }}
+                          aria-pressed={form.sex === s}
+                        >
+                          {s === "F" ? "Femme" : "Homme"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs" style={{ color: "#6B7280", lineHeight: 1.4 }}>
+                  Ces informations permettent à votre soignant·e de vous reconnaître si un dossier
+                  existe déjà à votre nom (RGPD Art. 5.1.c — minimisation).
+                </p>
+              </>
+            )}
 
             {/* Provider-only fields */}
             {form.roleType === "PROVIDER" && (
