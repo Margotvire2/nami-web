@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
@@ -63,6 +63,8 @@ export function DeleteAccountModal({
   // Étape 1 = garde-fou (si parcours actif), Étape 2 = re-saisie SUPPRIMER
   const [step, setStep] = useState<1 | 2>(hasActiveCases ? 1 : 2);
   const [phrase, setPhrase] = useState("");
+  // F-DELETE-ACCOUNT-MODAL-A11Y-POLISH — focus initial sur input (pas Annuler)
+  const phraseInputRef = useRef<HTMLInputElement>(null);
 
   // Reset à chaque ouverture (évite état persistant)
   useEffect(() => {
@@ -71,6 +73,15 @@ export function DeleteAccountModal({
       setPhrase("");
     }
   }, [open, hasActiveCases]);
+
+  // Focus l'input dès qu'on entre en étape 2 (a11y : utilisateur tape direct)
+  useEffect(() => {
+    if (open && step === 2) {
+      // requestAnimationFrame pour laisser Radix Dialog finir son mount
+      const id = requestAnimationFrame(() => phraseInputRef.current?.focus());
+      return () => cancelAnimationFrame(id);
+    }
+  }, [open, step]);
 
   const deleteMutation = useMutation({
     mutationFn: () => apiWithToken(accessToken!).persons.deleteGdpr(personId),
@@ -96,16 +107,25 @@ export function DeleteAccountModal({
   const isConfirmValid = phrase === REQUIRED_PHRASE;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        // F-DELETE-ACCOUNT-MODAL-A11Y-POLISH — empêcher fermeture accidentelle
+        // pendant une suppression en cours (Échap + click outside + close button).
+        // Base UI gère nativement role=dialog/aria-modal/focus trap/body scroll lock.
+        if (!nextOpen && deleteMutation.isPending) return;
+        onOpenChange(nextOpen);
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-[#DC2626]" strokeWidth={2} />
+            <ShieldAlert className="w-5 h-5 text-[#DC2626]" strokeWidth={2} aria-hidden="true" />
             <DialogTitle>Supprimer mon compte</DialogTitle>
           </div>
           <DialogDescription>
             Cette action est définitive et irréversible. Vos données seront anonymisées
-            conformément au RGPD (Art. 17 — droit à l&apos;effacement).
+            sous 30 jours, conformément au RGPD (Art. 17 — droit à l&apos;effacement).
           </DialogDescription>
         </DialogHeader>
 
@@ -168,6 +188,7 @@ export function DeleteAccountModal({
               <strong className="font-mono text-[#DC2626]">SUPPRIMER</strong> ci-dessous.
             </p>
             <input
+              ref={phraseInputRef}
               type="text"
               value={phrase}
               onChange={(e) => setPhrase(e.target.value)}
@@ -176,6 +197,7 @@ export function DeleteAccountModal({
               autoCapitalize="characters"
               spellCheck={false}
               aria-label="Tapez SUPPRIMER pour confirmer"
+              aria-required="true"
               className="w-full px-3 py-2 rounded-lg border-2 border-[rgba(26,26,46,0.12)] focus:border-[#DC2626] focus:outline-none text-sm font-mono"
               disabled={deleteMutation.isPending}
             />
@@ -193,12 +215,13 @@ export function DeleteAccountModal({
                 onClick={() => deleteMutation.mutate()}
                 disabled={!isConfirmValid || deleteMutation.isPending}
                 aria-disabled={!isConfirmValid || deleteMutation.isPending}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#DC2626] hover:bg-[#B91C1C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                aria-busy={deleteMutation.isPending}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#DC2626] hover:bg-[#B91C1C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DC2626]/50 focus-visible:ring-offset-2"
               >
                 {deleteMutation.isPending && (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 )}
-                Supprimer définitivement
+                {deleteMutation.isPending ? "Suppression…" : "Supprimer définitivement"}
               </button>
             </div>
           </div>
