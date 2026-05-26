@@ -8,6 +8,7 @@ import {
   Bell,
   ArrowRight,
   Sparkles,
+  UserCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 
@@ -59,6 +60,13 @@ const FEATURES: FeatureCard[] = [
     description:
       "Recevez les rappels avant vos rendez-vous et restez informé(e) des mises à jour.",
     href: "/notifications",
+  },
+  {
+    icon: UserCircle,
+    title: "Compléter mon profil",
+    description:
+      "Renseignez votre adresse, votre médecin traitant ou votre mutuelle pour faciliter vos prochains rendez-vous.",
+    href: "/mon-compte",
   },
 ];
 
