@@ -199,7 +199,7 @@ export default function HomePage() {
               </Link>
               <Link href="/login" className="btn-secondary"
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1.5px solid rgba(91,78,196,0.2)", color: "var(--nami-text-2)", fontSize: 15, fontWeight: 500, padding: "15px 30px", borderRadius: 100, textDecoration: "none", background: "transparent" }}
-              >Connexion soignant</Link>
+              >Se connecter</Link>
             </div>
           </div>
 
@@ -426,7 +426,7 @@ export default function HomePage() {
               </p>
             </div>
             {[
-              { title: "Produit", links: [{ l: "Fonctionnalités", h: "/fonctionnalites" }, { l: "Connexion", h: "/login" }, { l: "Demander une démo", h: "/demander-une-demo" }] },
+              { title: "Produit", links: [{ l: "Fonctionnalités", h: "/fonctionnalites" }, { l: "Se connecter", h: "/login" }, { l: "Demander une démo", h: "/demander-une-demo" }] },
               { title: "Ressources", links: [{ l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Spécialités", h: "/professions" }, { l: "Pathologies", h: "/pathologies" }, { l: "Blog", h: "/blog" }] },
               { title: "Légal", links: [{ l: "CGU", h: "/cgu" }, { l: "Confidentialité", h: "/confidentialite" }, { l: "Mentions légales", h: "/mentions-legales" }] },
             ].map(col => (

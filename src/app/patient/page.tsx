@@ -208,7 +208,7 @@ export default function LandingPatientPage() {
                 Trouver un soignant
               </Link>
               <Link
-                href="/signup?role=patient"
+                href="/signup?role=patient" aria-label="Créer un compte patient"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-colors hover:bg-[rgba(91,78,196,0.04)]"
                 style={{
                   border: "1.5px solid rgba(91,78,196,0.2)",
@@ -441,7 +441,7 @@ export default function LandingPatientPage() {
                 Trouver un soignant
               </Link>
               <Link
-                href="/signup?role=patient"
+                href="/signup?role=patient" aria-label="Créer un compte patient"
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-medium transition-colors hover:bg-white/5"
                 style={{
                   border: "1.5px solid rgba(238,236,234,0.2)",

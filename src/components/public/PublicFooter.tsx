@@ -7,7 +7,7 @@ const FOOTER_COLS = [
     title: "Produit",
     links: [
       { l: "Fonctionnalités", h: "/#features" },
-      { l: "Connexion", h: "/login" },
+      { l: "Se connecter", h: "/login" },
       { l: "Demander une démo", h: "/demander-une-demo" },
     ],
   },
