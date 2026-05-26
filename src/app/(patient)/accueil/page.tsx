@@ -9,12 +9,6 @@ import { Calendar, FileText, Users, MessageCircle, Loader2 } from "lucide-react"
 import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
-const C = {
-  primary: "#5B4EC4", primaryLight: "rgba(91,78,196,0.08)", primaryMid: "#2BA89C",
-  text: "#1A1A2E", textSoft: "#6B7280", border: "rgba(26,26,46,0.08)",
-  card: "#FFFFFF", bg: "#FAFAF8",
-};
-
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   const colors = ["#0F766E", "#0369A1", "#7C3AED", "#B45309", "#9D174D"];
@@ -32,7 +26,7 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ background: C.card, borderRadius: 20, border: `1px solid ${C.border}`, padding: "20px 24px", boxShadow: "0 1px 3px rgba(26,26,46,0.05)", transition: "box-shadow 0.2s ease, transform 0.2s ease", ...style }}>
+    <div style={{ background: "var(--nami-card)", borderRadius: 20, border: `1px solid var(--nami-border)`, padding: "20px 24px", boxShadow: "0 1px 3px rgba(26,26,46,0.05)", transition: "box-shadow 0.2s ease, transform 0.2s ease", ...style }}>
       {children}
     </div>
   );
@@ -41,8 +35,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 function SectionTitle({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-      <Icon size={16} strokeWidth={2} color={C.primary} />
-      <span style={{ fontSize: 13, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: "0.5px" }}>{title}</span>
+      <Icon size={16} strokeWidth={2} color={"var(--nami-primary)"} />
+      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--nami-dark)", textTransform: "uppercase", letterSpacing: "0.5px" }}>{title}</span>
     </div>
   );
 }
@@ -80,7 +74,7 @@ export default function AccueilPage() {
   if (meLoading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        <Loader2 size={24} className="animate-spin" style={{ color: C.primary }} />
+        <Loader2 size={24} className="animate-spin" style={{ color: "var(--nami-primary)" }} />
       </div>
     );
   }
@@ -98,14 +92,14 @@ export default function AccueilPage() {
   };
 
   return (
-    <div style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
+    <div style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: "var(--nami-bg)", minHeight: "100vh" }}>
       {/* Header */}
       <ScrollReveal variant="fade-up" delay={0} duration={0.6}>
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 30, fontWeight: 800, color: C.text, letterSpacing: "-0.04em", fontFamily: "var(--font-jakarta)" }}>
+          <h1 style={{ fontSize: 30, fontWeight: 800, color: "var(--nami-dark)", letterSpacing: "-0.04em", fontFamily: "var(--font-jakarta)" }}>
             Bonjour {user?.firstName} 💙
           </h1>
-          <p style={{ fontSize: 15, color: C.textSoft, marginTop: 6 }}>Votre parcours, au même endroit.</p>
+          <p style={{ fontSize: 15, color: "var(--nami-text-muted)", marginTop: 6 }}>Votre parcours, au même endroit.</p>
         </div>
       </ScrollReveal>
 
@@ -117,15 +111,15 @@ export default function AccueilPage() {
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--nami-dark)" }}>
                   {format(parseISO(nextAppt.startAt), "EEEE d MMMM 'à' HH:mm", { locale: fr })}
                 </div>
-                <div style={{ fontSize: 14, color: C.textSoft, marginTop: 4 }}>
+                <div style={{ fontSize: 14, color: "var(--nami-text-muted)", marginTop: 4 }}>
                   {nextAppt.provider.person.firstName} {nextAppt.provider.person.lastName}
                   {nextAppt.consultationType && ` · ${nextAppt.consultationType.name}`}
                 </div>
                 {nextAppt.location && (
-                  <div style={{ fontSize: 13, color: C.textSoft, marginTop: 2 }}>
+                  <div style={{ fontSize: 13, color: "var(--nami-text-muted)", marginTop: 2 }}>
                     📍 {nextAppt.location.name}{nextAppt.location.city ? `, ${nextAppt.location.city}` : ""}
                   </div>
                 )}
@@ -142,7 +136,7 @@ export default function AccueilPage() {
             </div>
             <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
               <Link href="/rendez-vous" style={{
-                padding: "9px 18px", borderRadius: 10, background: C.primary, color: "#fff",
+                padding: "9px 18px", borderRadius: 10, background: "var(--nami-primary)", color: "#fff",
                 fontSize: 13, fontWeight: 600, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)",
               }}>
                 Voir le détail
@@ -151,9 +145,9 @@ export default function AccueilPage() {
           </Card>
         ) : (
           <Card style={{ textAlign: "center", padding: "24px 20px" }}>
-            <Calendar size={28} color={C.textSoft} style={{ margin: "0 auto 8px" }} />
-            <p style={{ fontSize: 14, color: C.textSoft }}>Aucun rendez-vous à venir</p>
-            <p style={{ fontSize: 12, color: C.textSoft, opacity: 0.7, marginTop: 4 }}>
+            <Calendar size={28} color={"var(--nami-text-muted)"} style={{ margin: "0 auto 8px" }} />
+            <p style={{ fontSize: 14, color: "var(--nami-text-muted)" }}>Aucun rendez-vous à venir</p>
+            <p style={{ fontSize: 12, color: "var(--nami-text-muted)", opacity: 0.7, marginTop: 4 }}>
               Contactez votre soignant pour planifier un rendez-vous.
             </p>
           </Card>
@@ -172,9 +166,9 @@ export default function AccueilPage() {
                   <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 64 }}>
                     <Avatar name={`${m.person.firstName} ${m.person.lastName}`} size={44} />
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{m.person.firstName}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--nami-dark)" }}>{m.person.firstName}</div>
                       {m.provider?.specialties?.[0] && (
-                        <div style={{ fontSize: 10, color: C.textSoft }}>{m.provider.specialties[0]}</div>
+                        <div style={{ fontSize: 10, color: "var(--nami-text-muted)" }}>{m.provider.specialties[0]}</div>
                       )}
                     </div>
                   </div>
@@ -192,12 +186,12 @@ export default function AccueilPage() {
           <Link href="/messages" style={{ textDecoration: "none" }}>
             <Card style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <MessageCircle size={18} color={C.primary} strokeWidth={2} />
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--nami-primary-light)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <MessageCircle size={18} color={"var(--nami-primary)"} strokeWidth={2} />
                 </div>
-                <span style={{ fontSize: 14, color: C.text }}>Messagerie avec mon équipe</span>
+                <span style={{ fontSize: 14, color: "var(--nami-dark)" }}>Messagerie avec mon équipe</span>
               </div>
-              <span style={{ fontSize: 18, color: C.textSoft }}>›</span>
+              <span style={{ fontSize: 18, color: "var(--nami-text-muted)" }}>›</span>
             </Card>
           </Link>
         </div>
@@ -209,23 +203,23 @@ export default function AccueilPage() {
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <FileText size={16} strokeWidth={2} color={C.primary} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: "0.5px" }}>Derniers documents</span>
+                <FileText size={16} strokeWidth={2} color={"var(--nami-primary)"} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--nami-dark)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Derniers documents</span>
               </div>
-              <Link href="/documents" style={{ fontSize: 13, color: C.primary, textDecoration: "none", fontWeight: 500 }}>Tout voir →</Link>
+              <Link href="/documents" style={{ fontSize: 13, color: "var(--nami-primary)", textDecoration: "none", fontWeight: 500 }}>Tout voir →</Link>
             </div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               {recentDocs.map((doc, i) => {
-                const typeInfo = DOC_TYPE[doc.documentType] ?? { icon: "📄", color: C.textSoft };
+                const typeInfo = DOC_TYPE[doc.documentType] ?? { icon: "📄", color: "var(--nami-text-muted)" };
                 return (
                   <div key={doc.id} style={{
                     display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                    borderBottom: i < recentDocs.length - 1 ? `1px solid ${C.border}` : "none",
+                    borderBottom: i < recentDocs.length - 1 ? `1px solid var(--nami-border)` : "none",
                   }}>
                     <span style={{ fontSize: 20 }}>{typeInfo.icon}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</div>
-                      <div style={{ fontSize: 12, color: C.textSoft }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: "var(--nami-dark)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--nami-text-muted)" }}>
                         {format(parseISO(doc.createdAt), "d MMM yyyy", { locale: fr })} · {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}
                       </div>
                     </div>
