@@ -89,7 +89,15 @@ export function CancelAppointmentModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        // Intercepter fermeture pendant API call (Échap + click backdrop)
+        // pour éviter la fermeture pendant que la mutation est en vol.
+        if (!o && loading) return;
+        return o ? onOpenChange(true) : resetAndClose();
+      }}
+    >
       <DialogContent className="bg-[rgba(26,26,46,0.92)] backdrop-blur-xl border border-white/10 rounded-3xl p-8 max-w-md text-white">
         {step === 1 && (
           <>
@@ -112,6 +120,7 @@ export function CancelAppointmentModal({
                 <button
                   key={r.value}
                   type="button"
+                  disabled={loading}
                   onClick={() => {
                     setReason(r.value);
                     setStep(2);
@@ -121,6 +130,8 @@ export function CancelAppointmentModal({
                     bg-white/5 hover:bg-white/10
                     border border-white/10
                     transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--nami-primary,#5B4EC4)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1A1A2E]
                   "
                 >
                   <p className="font-semibold text-white">{r.label}</p>
@@ -182,6 +193,7 @@ export function CancelAppointmentModal({
                   flex-1 py-3 rounded-xl border border-white/20
                   text-white/80 hover:bg-white/5 transition-all
                   disabled:opacity-50 disabled:cursor-not-allowed
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--nami-primary,#5B4EC4)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1A1A2E]
                 "
               >
                 Retour
@@ -190,6 +202,7 @@ export function CancelAppointmentModal({
                 type="button"
                 onClick={handleConfirm}
                 disabled={loading}
+                aria-busy={loading}
                 className="
                   flex-1 py-3 rounded-xl
                   bg-gradient-to-r from-[var(--nami-primary)] to-[var(--nami-teal)]
@@ -198,9 +211,27 @@ export function CancelAppointmentModal({
                   hover:shadow-xl hover:shadow-[var(--nami-primary)]/40
                   disabled:opacity-50 disabled:cursor-not-allowed
                   transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--nami-primary,#5B4EC4)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1A1A2E]
+                  inline-flex items-center justify-center gap-2
                 "
               >
-                {loading ? "Annulation..." : "Confirmer l'annulation"}
+                {loading ? (
+                  <>
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
+                    </svg>
+                    Annulation…
+                  </>
+                ) : (
+                  "Confirmer l'annulation"
+                )}
               </button>
             </div>
           </>
