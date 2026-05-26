@@ -42,6 +42,7 @@ export function HomeNav() {
               { l: "Fonctionnalités", h: "#features" },
               { l: "Annuaire", h: "/trouver-un-soignant" },
               { l: "Blog", h: "/blog" },
+              { l: "Vous êtes soignant ?", h: "/soignants-liberaux" },
             ].map(({ l, h }) => (
               <Link key={l} href={h} className="nav-link"
                 style={{ color: "var(--nami-text-3)", fontSize: 14, fontWeight: 500, transition: "color 0.2s", textDecoration: "none" }}
@@ -78,7 +79,7 @@ export function HomeNav() {
         <div className="landing-nav-mobile" style={{ position: "fixed", inset: 0, zIndex: 99, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
           <div onClick={() => setMobileMenuOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(26,26,46,0.35)", backdropFilter: "blur(4px)" }} />
           <div style={{ position: "relative", background: "#FAFAF8", padding: "80px 24px 32px", display: "flex", flexDirection: "column", gap: 8 }}>
-            {[{ l: "Fonctionnalités", h: "#features" }, { l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Blog", h: "/blog" }].map(({ l, h }) => (
+            {[{ l: "Fonctionnalités", h: "#features" }, { l: "Annuaire", h: "/trouver-un-soignant" }, { l: "Blog", h: "/blog" }, { l: "Vous êtes soignant ?", h: "/soignants-liberaux" }].map(({ l, h }) => (
               <Link key={l} href={h} onClick={() => setMobileMenuOpen(false)}
                 style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text)", textDecoration: "none", minHeight: 44 }}
               >{l}</Link>
