@@ -12,12 +12,15 @@ Stack : Next.js App Router, TypeScript, Tailwind, Prisma, Supabase (eu-west-3), 
 3. Moteur de règles temps réel (exécuté sur chaque mise à jour du dossier — complétude, anomalies temporelles — chaque exécution loguée et auditable)
 4. Framework d'évaluation automatique (5 métriques : couverture sources, taux hallucination, complétude, actionnabilité, cohérence)
 
-## Pricing — 5 tiers
-- GRATUIT (0€) : Agenda, prise de RDV, référencement annuaire 582K, messagerie patients, messagerie soignants, téléexpertise, réseau
-- ESSENTIEL (19€/mois) : + Facturation non-médecin + Visio/téléconsultation (0% commission)
-- COORDINATION (79€/mois) : + Adressage structuré + App patient (IA photos repas, transmission docs) + Dashboard flux financiers KPIs soignant
-- INTELLIGENCE (149€/mois) : + Synthèses IA sourcées + Extraction bio auto + Base documentaire 22K + Moteur de complétude + App soignant mobile complète + Analytics financiers structures
-- RÉSEAU (499€/mois + 79€/utilisateur) : + Configuration parcours complexes sur mesure + Vue pilote avancement + Multi-équipes + Parcours HAS + Dashboard KPIs structures financières + Admin & accès
+## Pricing
+
+📍 **Source canonique** : voir [`PRICING.md`](./PRICING.md) à la racine du repo.
+
+Toute modification de tarif doit être faite dans `PRICING.md` UNIQUEMENT,
+puis répliquée sur les surfaces listées dans la procédure §5 de ce fichier.
+
+Résumé rapide (V1, 2026-05-26) : 5 tiers — GRATUIT 0 € / ESSENTIEL 19 € /
+COORDINATION 79 € / INTELLIGENCE 149 € / RÉSEAU 499 € + 79 €/utilisateur.
 
 ## 3 pathologies de démonstration
 - Gabrielle M., 16 ans — Anorexie mentale (psychiatre, diét, psy, MT, endocrino)
