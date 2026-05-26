@@ -11,14 +11,17 @@ import {
   MoreHorizontal,
   Search,
   TrendingUp,
+  Bell,
   FileText,
   User as UserIcon,
 } from "lucide-react";
 import { PatientNavItem } from "./PatientNavItem";
+import { usePatientNotifications } from "@/hooks/usePatientNotifications";
 
 const PRIMARY = [
   { href: "/accueil", icon: Home, label: "Accueil", disabled: false },
   { href: "/rendez-vous", icon: Calendar, label: "RDV", disabled: false },
+  { href: "/notifications", icon: Bell, label: "Notifs", disabled: false },
   {
     href: "/parcours",
     icon: Route,
@@ -50,6 +53,10 @@ export function PatientBottomNav({ className = "" }: PatientBottomNavProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
+  // Même query que PatientHeader/PatientSidebar → cache mutualisé.
+  const { data: notifications } = usePatientNotifications();
+  const unreadCount = notifications?.unreadCount ?? 0;
+
   useEffect(() => {
     if (!moreOpen) return;
     function handleClick(e: MouseEvent) {
@@ -75,6 +82,7 @@ export function PatientBottomNav({ className = "" }: PatientBottomNavProps) {
             label={item.label}
             disabled={item.disabled}
             tooltip={"tooltip" in item ? item.tooltip : undefined}
+            badge={item.href === "/notifications" ? unreadCount : undefined}
             variant="bottom"
           />
         ))}

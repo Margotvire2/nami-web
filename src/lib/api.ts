@@ -3076,6 +3076,14 @@ export function apiWithToken(token: string) {
             token,
           );
         },
+        // PATCH /patient/notifications/:id/read — marque une notif comme lue.
+        // Backend PR #61 nami : idempotent (200 si déjà lue), 403 si pas owner.
+        markRead: (notificationId: string) =>
+          request<{ success: true }>(
+            `/patient/notifications/${notificationId}/read`,
+            { method: "PATCH" },
+            token,
+          ),
       },
     },
     persons: {

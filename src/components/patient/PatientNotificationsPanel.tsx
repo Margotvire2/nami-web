@@ -13,6 +13,7 @@ import {
   MapPin,
 } from "lucide-react";
 import type { PatientNotification } from "@/lib/api";
+import { useMarkNotificationAsRead } from "@/hooks/usePatientNotifications";
 
 interface Props {
   items: PatientNotification[];
@@ -64,6 +65,7 @@ function formatRelative(iso: string): string {
 
 export function PatientNotificationsPanel({ items, unreadCount, onClose }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const markRead = useMarkNotificationAsRead();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -74,6 +76,15 @@ export function PatientNotificationsPanel({ items, unreadCount, onClose }: Props
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [onClose]);
+
+  function handleNotifClick(notif: PatientNotification) {
+    // Best-effort : on déclenche le mark-read mais on ne bloque pas la nav.
+    // Backend idempotent (200 si déjà lue) → safe d'appeler même sur lue.
+    if (!notif.readAt) {
+      markRead.mutate(notif.id);
+    }
+    onClose();
+  }
 
   return (
     <div
@@ -105,8 +116,13 @@ export function PatientNotificationsPanel({ items, unreadCount, onClose }: Props
               <li key={notif.id}>
                 <Link
                   href={getNotifLink(notif)}
-                  onClick={onClose}
-                  className={`flex items-start gap-3 px-4 py-3 hover:bg-[rgba(91,78,196,0.04)] transition-colors ${
+                  onClick={() => handleNotifClick(notif)}
+                  aria-label={
+                    isUnread
+                      ? `${notif.title} — non lue, marquer comme lue et ouvrir`
+                      : notif.title
+                  }
+                  className={`flex items-start gap-3 px-4 py-3 hover:bg-[rgba(91,78,196,0.04)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40 ${
                     isUnread ? "bg-[rgba(91,78,196,0.02)]" : ""
                   }`}
                 >
@@ -148,6 +164,18 @@ export function PatientNotificationsPanel({ items, unreadCount, onClose }: Props
           })}
         </ul>
       )}
+
+      {/* Footer link vers /notifications — toujours visible, même si la liste
+          est vide, pour que l'utilisateur sache où trouver l'historique. */}
+      <div className="border-t border-[#E5E7EB] px-4 py-3 sticky bottom-0 bg-white/95 backdrop-blur-md">
+        <Link
+          href="/notifications"
+          onClick={onClose}
+          className="block w-full text-center text-sm font-medium text-[#5B4EC4] hover:text-[#4A3FB0] rounded-lg py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
+        >
+          Voir toutes mes notifications
+        </Link>
+      </div>
     </div>
   );
 }

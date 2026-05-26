@@ -33,6 +33,12 @@ vi.mock("@/lib/api", () => ({
   apiWithToken: () => ({
     patient: {
       switchableProfiles: mockSwitchableProfiles,
+      notifications: {
+        // Mock graceful : retourne feed vide → unreadCount = 0 dans les
+        // composants sidebar / bottom-nav / header (post PR #43 + #61).
+        feed: vi.fn().mockResolvedValue({ items: [], unreadCount: 0 }),
+        markRead: vi.fn().mockResolvedValue({ success: true }),
+      },
     },
   }),
 }));
@@ -76,12 +82,13 @@ beforeEach(() => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("PatientSidebar", () => {
-  it("1. rend 7 entrées avec les bons libellés", () => {
-    render(<PatientSidebar />);
+  it("1. rend 8 entrées avec les bons libellés (Notifications inséré post-RDV)", () => {
+    renderWithClient(<PatientSidebar />);
 
     expect(screen.getByText("Accueil")).toBeInTheDocument();
     expect(screen.getByText("Trouver un soignant")).toBeInTheDocument();
     expect(screen.getByText("Mes rendez-vous")).toBeInTheDocument();
+    expect(screen.getByText("Notifications")).toBeInTheDocument();
     expect(screen.getByText("Mon parcours")).toBeInTheDocument();
     expect(screen.getByText("Mon suivi")).toBeInTheDocument();
     expect(screen.getByText("Mes messages")).toBeInTheDocument();
@@ -92,7 +99,7 @@ describe("PatientSidebar", () => {
   // Test 2 — Entries disabled (3) avec attribut title "Bientôt disponible"
   // ═════════════════════════════════════════════════════════════════════════
   it("2. les 3 entries disabled (Trouver soignant / Parcours / Suivi) sont non-cliquables + title 'Bientôt disponible'", () => {
-    render(<PatientSidebar />);
+    renderWithClient(<PatientSidebar />);
 
     const disabledLabels = ["Trouver un soignant", "Mon parcours", "Mon suivi"];
     for (const label of disabledLabels) {
@@ -103,8 +110,14 @@ describe("PatientSidebar", () => {
       expect(node?.tagName).toBe("DIV");
     }
 
-    // Les 4 entries actives sont en <a> Link
-    const activeLabels = ["Accueil", "Mes rendez-vous", "Mes messages", "Mes documents"];
+    // Les 5 entries actives sont en <a> Link (Notifications inclus)
+    const activeLabels = [
+      "Accueil",
+      "Mes rendez-vous",
+      "Notifications",
+      "Mes messages",
+      "Mes documents",
+    ];
     for (const label of activeLabels) {
       const node = screen.getByText(label).closest("a");
       expect(node).not.toBeNull();
@@ -129,9 +142,10 @@ describe("PatientHeader", () => {
     // Logo texte "Nami"
     expect(screen.getByText("Nami")).toBeInTheDocument();
 
-    // Bell placeholder (disabled, opacity-60)
+    // Bell fonctionnel (PR #43) : button cliquable avec aria-haspopup="dialog"
     const bellBtn = screen.getByRole("button", { name: /Notifications/i });
-    expect(bellBtn).toBeDisabled();
+    expect(bellBtn).not.toBeDisabled();
+    expect(bellBtn).toHaveAttribute("aria-haspopup", "dialog");
 
     // Avatar menu — initiales MD
     const avatarBtn = screen.getByRole("button", { name: /Menu utilisateur/i });
@@ -178,12 +192,13 @@ describe("PatientHeader", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("PatientBottomNav", () => {
-  it("5. rend 4 entrées primaires + bouton 'Plus' qui ouvre un drawer avec 4 items secondaires", () => {
-    render(<PatientBottomNav />);
+  it("5. rend 5 entrées primaires (Notifs inséré) + bouton 'Plus' qui ouvre un drawer avec 4 items secondaires", () => {
+    renderWithClient(<PatientBottomNav />);
 
-    // 4 entrées primaires : Accueil, RDV, Parcours (disabled), Messages
+    // 5 entrées primaires : Accueil, RDV, Notifs, Parcours (disabled), Messages
     expect(screen.getByText("Accueil")).toBeInTheDocument();
     expect(screen.getByText("RDV")).toBeInTheDocument();
+    expect(screen.getByText("Notifs")).toBeInTheDocument();
     expect(screen.getByText("Parcours")).toBeInTheDocument();
     expect(screen.getByText("Messages")).toBeInTheDocument();
 
