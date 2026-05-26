@@ -139,6 +139,8 @@ export const authApi = {
     lastName: string;
     roleType: "PATIENT" | "PROVIDER";
     phone?: string;
+    birthDate?: string;
+    sex?: "M" | "F";
     rppsNumber?: string;
     specialties?: string[];
     professionType?: string;
