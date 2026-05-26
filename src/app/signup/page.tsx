@@ -96,7 +96,7 @@ export default function SignupPage() {
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
       track.signup({ roleType: form.roleType });
-      router.push(user?.roleType === "PATIENT" ? "/accueil" : "/aujourd-hui");
+      router.push(user?.roleType === "PATIENT" ? "/bienvenue" : "/aujourd-hui");
     } catch (err: any) {
       toast.error(err.message ?? "Erreur lors de la création du compte");
     } finally {
