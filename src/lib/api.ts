@@ -1912,7 +1912,54 @@ export const providerDirectoryApi = {
     return request<PublicProvider[]>(`/providers/search${q ? `?${q}` : ""}`);
   },
   list: () => request<PublicProvider[]>("/providers"),
+
+  // Profil public détaillé d'un soignant — consommé par /trouver-un-soignant/[slug].
+  // Backend : GET /providers/public/:slug (src/routes/providers.ts).
+  getPublicBySlug: (slug: string) =>
+    request<PublicProviderDetail>(`/providers/public/${slug}`),
 };
+
+/**
+ * Shape de la réponse GET /providers/public/:slug.
+ * Aligné sur backend Margotvire2/Nami src/routes/providers.ts (route ajoutée
+ * par F-PROVIDERS-PUBLIC-PROFILE-SLUG-BACKEND).
+ */
+export interface PublicProviderDetail {
+  id: string;
+  personId: string;
+  slug: string;
+  firstName: string;
+  lastName: string;
+  photoUrl: string | null;
+  specialties: string[];
+  subSpecialties: string[];
+  publicSpecialties: string[];
+  publicBio: string | null;
+  qualificationLevel: string;
+  consultationCity: string | null;
+  consultationPostalCode: string | null;
+  consultationModes: string[];
+  teleconsultAvailable: boolean;
+  acceptsCMU: boolean;
+  acceptsALD: boolean;
+  acceptsTele: boolean;
+  acceptsNewPatients: boolean;
+  conventionSector: string | null;
+  languages: string[];
+  averageDelay: string | null;
+  structures: {
+    name: string;
+    type: string | null;
+    city: string | null;
+    addressLine1: string | null;
+    postalCode: string | null;
+  }[];
+  certifications: { name: string; organism: string | null; year: number | null }[];
+  badges: {
+    rppsVerified: boolean;
+    competenceVerified: boolean;
+  };
+}
 
 // ─── Annuaire Santé (Ameli + RPPS) ─────────────────────────────────────────
 
