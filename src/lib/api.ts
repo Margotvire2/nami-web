@@ -2869,10 +2869,16 @@ export interface PatientMessage {
   reads: Array<{ personId: string; readAt: string }>;
 }
 
-// Feed notifications patient — alimenté par GET /patient/notifications/feed
-// (PR #59 backend). Shape distinct du feed cockpit (cf. NotificationFeed).
+/**
+ * Notification persistée côté patient — shape Prisma Notification + deliveries.
+ * Backend : prisma/schema.prisma (model Notification) + getFeedForPatient().
+ * Vocabulaire MDR-safe : aucun champ d'alerte clinique. type = enum NotificationType
+ * (APPOINTMENT_REMINDER, NEW_MESSAGE, NEW_DOCUMENT, etc.) destiné à l'organisation
+ * du dossier.
+ */
 export interface PatientNotification {
   id: string;
+  recipientId: string;
   type: string;
   title: string;
   body: string | null;
@@ -2882,10 +2888,19 @@ export interface PatientNotification {
   careCaseId: string | null;
   createdAt: string;
   readAt: string | null;
-  deliveries: { channel: string; sentAt: string | null }[];
+  archivedAt: string | null;
+  deliveries: Array<{
+    id: string;
+    notificationId: string;
+    channel: string;
+    sentAt: string | null;
+    deliveredAt: string | null;
+    failedAt: string | null;
+    error: string | null;
+  }>;
 }
 
-export interface PatientNotificationsFeed {
+export interface PatientNotificationFeed {
   items: PatientNotification[];
   unreadCount: number;
 }
@@ -3200,26 +3215,21 @@ export function apiWithToken(token: string) {
         request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
       sendMessage: (careCaseId: string, body: string) =>
         request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
+
+      // ─── Notifications patient (F-PATIENT-ACCUEIL-DASHBOARD-V2-LIVE-DATA) ──
+      // GET   /patient/notifications/feed?limit=N&section=all|unread
+      // PATCH /patient/notifications/:id/read
+      // Backend : src/routes/patientNotifications.ts (Nami repo PR #59 + PR #61).
       notifications: {
-        feed: (options?: { limit?: number; section?: "all" | "unread" }) => {
+        feed: (params?: { limit?: number; section?: "all" | "unread" }) => {
           const qs = new URLSearchParams();
-          if (options?.limit) qs.set("limit", String(options.limit));
-          if (options?.section) qs.set("section", options.section);
-          const query = qs.toString();
-          return request<PatientNotificationsFeed>(
-            `/patient/notifications/feed${query ? `?${query}` : ""}`,
-            {},
-            token,
-          );
+          if (params?.limit) qs.set("limit", String(params.limit));
+          if (params?.section) qs.set("section", params.section);
+          const suffix = qs.size > 0 ? `?${qs.toString()}` : "";
+          return request<PatientNotificationFeed>(`/patient/notifications/feed${suffix}`, {}, token);
         },
-        // PATCH /patient/notifications/:id/read — marque une notif comme lue.
-        // Backend PR #61 nami : idempotent (200 si déjà lue), 403 si pas owner.
-        markRead: (notificationId: string) =>
-          request<{ success: true }>(
-            `/patient/notifications/${notificationId}/read`,
-            { method: "PATCH" },
-            token,
-          ),
+        markRead: (id: string) =>
+          request<{ id: string; readAt: string }>(`/patient/notifications/${id}/read`, { method: "PATCH" }, token),
       },
     },
     persons: {
