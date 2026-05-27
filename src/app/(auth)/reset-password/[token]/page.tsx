@@ -1,77 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
-const OWASP_RE = {
-  upper: /[A-Z]/,
-  lower: /[a-z]/,
-  digit: /[0-9]/,
-  special: /[^A-Za-z0-9]/,
-};
-
-function getStrengthHint(password: string): { ok: boolean; message: string } | null {
-  if (!password) return null;
-  if (password.length < 12) return { ok: false, message: "12 caractères minimum" };
-  if (!OWASP_RE.upper.test(password)) return { ok: false, message: "Au moins une majuscule" };
-  if (!OWASP_RE.lower.test(password)) return { ok: false, message: "Au moins une minuscule" };
-  if (!OWASP_RE.digit.test(password)) return { ok: false, message: "Au moins un chiffre" };
-  if (!OWASP_RE.special.test(password)) return { ok: false, message: "Au moins un caractère spécial (!@#…)" };
-  return { ok: true, message: "Mot de passe valide" };
-}
+import { authApi, ApiError } from "@/lib/api";
+import {
+  PasswordStrengthMeter,
+  evaluatePassword,
+} from "@/components/public/PasswordStrengthMeter";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const params = useParams();
-  const token = params.token as string;
+  const token = (params?.token as string | undefined) ?? "";
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorIsExpired, setErrorIsExpired] = useState(false);
 
-  const hint = getStrengthHint(password);
-  const passwordsMatch = password === confirm;
-  const canSubmit = hint?.ok && passwordsMatch && !loading;
+  const strength = evaluatePassword(password);
+  const passwordsMatch = password.length > 0 && password === confirm;
+  const canSubmit = strength.isValid && passwordsMatch && !loading && token.length > 0;
+
+  // Focus auto sur le champ password au mount
+  useEffect(() => {
+    document.getElementById("password")?.focus();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
     setError(null);
+    setErrorIsExpired(false);
     setLoading(true);
     try {
-      const res = await fetch(`${API}/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (res.status === 400) {
-          if (data?.error?.includes("expiré") || data?.errors) {
-            setError("Ce lien a expiré ou est invalide. Demandez un nouveau lien.");
-          } else {
-            setError(data?.error ?? "Erreur de validation.");
-          }
-          return;
-        }
-        setError("Une erreur est survenue. Veuillez réessayer.");
-        return;
-      }
+      await authApi.resetPassword(token, password);
       setDone(true);
-      setTimeout(() => router.push("/login"), 3000);
-    } catch {
-      setError("Impossible de contacter le serveur. Vérifiez votre connexion.");
+      setTimeout(() => router.push("/login?reset=success"), 2500);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        // Backend renvoie 400 pour : lien invalide / expiré / déjà utilisé.
+        if (err.status === 400 || err.status === 401 || err.status === 410) {
+          const body = err.body as { error?: string } | undefined;
+          const msg = body?.error ?? "";
+          if (
+            msg.includes("expiré") ||
+            msg.includes("invalide") ||
+            msg.includes("déjà utilisé")
+          ) {
+            setError("Ce lien a expiré ou n'est plus valide. Demandez un nouveau lien.");
+            setErrorIsExpired(true);
+          } else {
+            setError(msg || "Le lien n'est plus valide.");
+          }
+        } else {
+          setError("Une erreur est survenue. Veuillez réessayer.");
+        }
+      } else {
+        setError("Impossible de contacter le serveur. Vérifiez votre connexion.");
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  // Cas : pas de token dans l'URL (route normalement impossible, mais
+  // garde-fou si quelqu'un atterrit sur /reset-password/ sans token).
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-8" style={{ background: "#FAFAF8" }}>
+        <div className="w-full max-w-[380px] text-center space-y-4">
+          <h1
+            className="text-2xl font-extrabold tracking-tight"
+            style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}
+          >
+            Lien manquant
+          </h1>
+          <p className="text-sm" style={{ color: "#6B7280" }}>
+            Ce lien de réinitialisation ne contient pas de jeton.
+            Demandez un nouveau lien pour continuer.
+          </p>
+          <Link
+            href="/forgot-password"
+            className="inline-block px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "#5B4EC4" }}
+          >
+            Demander un nouveau lien
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -97,10 +121,12 @@ export default function ResetPasswordPage() {
 
           {done ? (
             <div
+              role="status"
+              aria-live="polite"
               className="rounded-xl p-5 space-y-2"
               style={{ background: "#F5F3EF" }}
             >
-              <p className="text-2xl text-center">✅</p>
+              <p className="text-2xl text-center" aria-hidden="true">✅</p>
               <p className="text-sm font-semibold text-center" style={{ color: "#1A1A2E" }}>
                 Mot de passe mis à jour
               </p>
@@ -109,8 +135,8 @@ export default function ResetPasswordPage() {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-1.5">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <div className="space-y-2">
                 <Label
                   htmlFor="password"
                   className="text-xs font-semibold uppercase tracking-wider"
@@ -120,6 +146,7 @@ export default function ResetPasswordPage() {
                 </Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   autoComplete="new-password"
                   value={password}
@@ -127,15 +154,12 @@ export default function ResetPasswordPage() {
                   className="h-11 rounded-xl border-0 text-sm"
                   style={{ background: "#F5F3EF", color: "#1A1A2E" }}
                   required
+                  aria-required="true"
+                  aria-invalid={password.length > 0 && !strength.isValid}
+                  aria-describedby="password-strength"
+                  minLength={12}
                 />
-                {hint && (
-                  <p
-                    className="text-xs"
-                    style={{ color: hint.ok ? "#059669" : "#D97706" }}
-                  >
-                    {hint.ok ? "✓ " : "· "}{hint.message}
-                  </p>
-                )}
+                <PasswordStrengthMeter password={password} id="password-strength" />
               </div>
 
               <div className="space-y-1.5">
@@ -148,6 +172,7 @@ export default function ResetPasswordPage() {
                 </Label>
                 <Input
                   id="confirm"
+                  name="confirm"
                   type="password"
                   autoComplete="new-password"
                   value={confirm}
@@ -155,25 +180,38 @@ export default function ResetPasswordPage() {
                   className="h-11 rounded-xl border-0 text-sm"
                   style={{ background: "#F5F3EF", color: "#1A1A2E" }}
                   required
+                  aria-required="true"
+                  aria-invalid={confirm.length > 0 && !passwordsMatch}
+                  aria-describedby="confirm-feedback"
                 />
-                {confirm && !passwordsMatch && (
-                  <p className="text-xs" style={{ color: "#D97706" }}>
-                    · Les mots de passe ne correspondent pas
-                  </p>
-                )}
+                <p
+                  id="confirm-feedback"
+                  aria-live="polite"
+                  className="text-xs min-h-[1rem]"
+                  style={{ color: confirm.length > 0 && !passwordsMatch ? "#D97706" : "transparent" }}
+                >
+                  {confirm.length > 0 && !passwordsMatch
+                    ? "Les mots de passe ne correspondent pas"
+                    : "·"}
+                </p>
               </div>
 
               {error && (
                 <div
+                  role="alert"
+                  aria-live="assertive"
                   className="rounded-xl px-4 py-3 text-sm"
                   style={{ background: "rgba(220,38,38,0.06)", color: "#DC2626", border: "1px solid rgba(220,38,38,0.15)" }}
                 >
                   {error}
-                  {error.includes("expiré") && (
+                  {errorIsExpired && (
                     <>
                       {" "}
-                      <Link href="/forgot-password" className="underline font-medium">
-                        Nouveau lien
+                      <Link
+                        href="/forgot-password"
+                        className="underline font-medium"
+                      >
+                        Demander un nouveau lien
                       </Link>
                     </>
                   )}
@@ -233,7 +271,7 @@ export default function ResetPasswordPage() {
             className="w-16 h-16 rounded-2xl flex items-center justify-center"
             style={{ background: "rgba(91,78,196,0.15)", border: "1px solid rgba(91,78,196,0.3)" }}
           >
-            <span className="text-3xl">🔒</span>
+            <span className="text-3xl" aria-hidden="true">🔒</span>
           </div>
           <p
             className="text-xl font-bold leading-snug"

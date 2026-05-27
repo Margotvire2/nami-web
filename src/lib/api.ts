@@ -166,6 +166,14 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify({ email }),
     }),
+
+  // POST /auth/reset-password — change le mot de passe à partir d'un token reçu par email.
+  // Backend : 200 { message } | 400 { error } si lien invalide / expiré / déjà utilisé.
+  resetPassword: (token: string, password: string) =>
+    request<{ message: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
 };
 
 export const mfaApi = {

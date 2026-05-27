@@ -1,29 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import { authApi } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Focus auto sur le premier input au mount
+  useEffect(() => {
+    document.getElementById("email")?.focus();
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch(`${API}/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      // Le backend répond toujours 200 avec le même message neutre
+      // (anti-énumération). En cas d'erreur réseau on garde le même UX
+      // pour ne pas leaker d'info — d'où le try/catch silencieux.
+      await authApi.forgotPassword(email);
     } catch {
-      // silently ignored — anti-enumeration: always show confirmation
+      // anti-énumération : on affiche le même message quel que soit le résultat
     } finally {
       setLoading(false);
       setSubmitted(true);
@@ -52,7 +55,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           {!submitted ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div className="space-y-1.5">
                 <Label
                   htmlFor="email"
@@ -63,6 +66,7 @@ export default function ForgotPasswordPage() {
                 </Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   autoComplete="email"
                   value={email}
@@ -71,6 +75,7 @@ export default function ForgotPasswordPage() {
                   className="h-11 rounded-xl border-0 text-sm"
                   style={{ background: "#F5F3EF", color: "#1A1A2E" }}
                   required
+                  aria-required="true"
                 />
               </div>
 
@@ -78,24 +83,26 @@ export default function ForgotPasswordPage() {
                 type="submit"
                 className="w-full h-11 rounded-xl text-sm font-semibold text-white border-0"
                 style={{ background: "#5B4EC4", boxShadow: "0 2px 10px rgba(91,78,196,0.3)" }}
-                disabled={loading}
+                disabled={loading || !email}
               >
                 {loading ? "Envoi…" : "Envoyer le lien"}
               </Button>
             </form>
           ) : (
             <div
+              role="status"
+              aria-live="polite"
               className="rounded-xl p-5 space-y-2"
               style={{ background: "#F5F3EF" }}
             >
-              <p className="text-2xl text-center">📬</p>
+              <p className="text-2xl text-center" aria-hidden="true">📬</p>
               <p className="text-sm font-semibold text-center" style={{ color: "#1A1A2E" }}>
                 Vérifiez votre boîte mail
               </p>
               <p className="text-sm text-center" style={{ color: "#6B7280" }}>
                 Si un compte est associé à{" "}
                 <span className="font-medium" style={{ color: "#1A1A2E" }}>{email}</span>,
-                vous recevrez un email dans quelques minutes.
+                vous recevrez un lien de réinitialisation dans les minutes qui viennent.
               </p>
             </div>
           )}
@@ -142,7 +149,7 @@ export default function ForgotPasswordPage() {
             className="w-16 h-16 rounded-2xl flex items-center justify-center"
             style={{ background: "rgba(91,78,196,0.15)", border: "1px solid rgba(91,78,196,0.3)" }}
           >
-            <span className="text-3xl">🔑</span>
+            <span className="text-3xl" aria-hidden="true">🔑</span>
           </div>
           <p
             className="text-xl font-bold leading-snug"
