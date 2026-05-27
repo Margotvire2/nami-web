@@ -995,6 +995,10 @@ export const appointmentsApi = {
     return request<Appointment[]>(`/appointments${q ? `?${q}` : ""}`, {}, token);
   },
 
+  // Backend GET /appointments/:id — utilisé par /rendez-vous/[id] côté patient.
+  get: (token: string, id: string) =>
+    request<PatientAppointmentDetail>(`/appointments/${id}`, {}, token),
+
   create: (token: string, data: {
     patientId: string; providerId: string; locationType: "IN_PERSON" | "VIDEO" | "PHONE";
     startAt: string; endAt: string; consultationTypeId?: string;
@@ -2673,6 +2677,23 @@ export interface PatientAppointment {
 }
 
 /**
+ * Détail RDV pour la page /rendez-vous/[id] (CC #61).
+ * Le backend GET /appointments/:id (src/routes/appointments.ts:338) renvoie
+ * un superset enrichi via PROVIDER_PUBLIC_SELECT — on type ici uniquement
+ * les champs réellement consommés par la page détail.
+ */
+export interface PatientAppointmentDetail extends PatientAppointment {
+  provider: {
+    id?: string;
+    personId?: string;
+    bio?: string | null;
+    specialties?: string[];
+    person: { firstName: string; lastName: string };
+  };
+  locationDetails?: string | null;
+}
+
+/**
  * Profil consultable par le patient connecté : lui-même + ses délégations actives
  * (parent → enfant mineur, tuteur → protégé, etc.). Renvoyé par
  * GET /patient/switchable-profiles (backend Espace Patient PR #40).
@@ -2795,6 +2816,7 @@ export function apiWithToken(token: string) {
     },
     appointments: {
       list: (params?: { careCaseId?: string; status?: string; from?: string; to?: string; providerId?: string }) => appointmentsApi.list(token, params),
+      get: (id: string) => appointmentsApi.get(token, id),
       create: (data: Parameters<typeof appointmentsApi.create>[1]) => appointmentsApi.create(token, data),
       patch: (id: string, data: Parameters<typeof appointmentsApi.patch>[2]) => appointmentsApi.patch(token, id, data),
       cancel: (id: string, data: Parameters<typeof appointmentsApi.cancel>[2]) => appointmentsApi.cancel(token, id, data),
