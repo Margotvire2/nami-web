@@ -2757,6 +2757,27 @@ export interface PatientMessage {
   reads: Array<{ personId: string; readAt: string }>;
 }
 
+// Feed notifications patient — alimenté par GET /patient/notifications/feed
+// (PR #59 backend). Shape distinct du feed cockpit (cf. NotificationFeed).
+export interface PatientNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  appointmentId: string | null;
+  messageId: string | null;
+  documentId: string | null;
+  careCaseId: string | null;
+  createdAt: string;
+  readAt: string | null;
+  deliveries: { channel: string; sentAt: string | null }[];
+}
+
+export interface PatientNotificationsFeed {
+  items: PatientNotification[];
+  unreadCount: number;
+}
+
 export function apiWithToken(token: string) {
   return {
     careCases: {
@@ -3067,6 +3088,27 @@ export function apiWithToken(token: string) {
         request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
       sendMessage: (careCaseId: string, body: string) =>
         request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
+      notifications: {
+        feed: (options?: { limit?: number; section?: "all" | "unread" }) => {
+          const qs = new URLSearchParams();
+          if (options?.limit) qs.set("limit", String(options.limit));
+          if (options?.section) qs.set("section", options.section);
+          const query = qs.toString();
+          return request<PatientNotificationsFeed>(
+            `/patient/notifications/feed${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+        // PATCH /patient/notifications/:id/read — marque une notif comme lue.
+        // Backend PR #61 nami : idempotent (200 si déjà lue), 403 si pas owner.
+        markRead: (notificationId: string) =>
+          request<{ success: true }>(
+            `/patient/notifications/${notificationId}/read`,
+            { method: "PATCH" },
+            token,
+          ),
+      },
     },
     persons: {
       patch: (id: string, data: {

@@ -4,12 +4,14 @@ import {
   Home,
   Search,
   Calendar,
+  Bell,
   Route,
   TrendingUp,
   MessageCircle,
   FileText,
 } from "lucide-react";
 import { PatientNavItem } from "./PatientNavItem";
+import { usePatientNotifications } from "@/hooks/usePatientNotifications";
 
 const NAV_ITEMS = [
   { href: "/accueil", icon: Home, label: "Accueil", disabled: false },
@@ -21,6 +23,7 @@ const NAV_ITEMS = [
     tooltip: "Bientôt disponible",
   },
   { href: "/rendez-vous", icon: Calendar, label: "Mes rendez-vous", disabled: false },
+  { href: "/notifications", icon: Bell, label: "Notifications", disabled: false },
   {
     href: "/parcours",
     icon: Route,
@@ -44,6 +47,12 @@ interface PatientSidebarProps {
 }
 
 export function PatientSidebar({ className = "" }: PatientSidebarProps) {
+  // Réutilise la query "patient-notifications" du PatientHeader (même cache
+  // TanStack) → un seul fetch pour les deux composants. Badge mis à jour
+  // par polling 60s + invalidation au markRead.
+  const { data: notifications } = usePatientNotifications();
+  const unreadCount = notifications?.unreadCount ?? 0;
+
   return (
     <aside
       aria-label="Navigation principale"
@@ -58,6 +67,7 @@ export function PatientSidebar({ className = "" }: PatientSidebarProps) {
             label={item.label}
             disabled={item.disabled}
             tooltip={"tooltip" in item ? item.tooltip : undefined}
+            badge={item.href === "/notifications" ? unreadCount : undefined}
             variant="sidebar"
           />
         ))}
