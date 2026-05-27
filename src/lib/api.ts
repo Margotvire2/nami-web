@@ -1851,6 +1851,71 @@ export const appointmentRequestsApi = {
     }, token),
 };
 
+// ─── Public Slots & Booking submission (F-PATIENT-BOOKING-FLOW-V1) ──────────
+//
+// Consomme GET /appointment-requests/public-slots/:providerId (route publique
+// non auth) et POST /appointment-requests (auth optionnelle). Shape vérifié
+// dans nami/src/routes/appointmentRequests.ts (lines 39-121 et 368-502).
+
+export interface PublicBookingSlot {
+  id: string;
+  date: string;        // ISO yyyy-mm-dd
+  startTime: string;   // HH:mm
+  endTime: string;     // HH:mm
+  weekday: number;     // 0=dimanche
+  locationType: string; // "IN_PERSON" | "VIDEO" | "PHONE"
+  consultationType: { name: string; durationMinutes: number } | null;
+  priority: "recommended" | "available";
+}
+
+export const publicSlotsApi = {
+  getSlots: async (providerId: string): Promise<PublicBookingSlot[]> => {
+    const res = await fetch(`${API_URL}/appointment-requests/public-slots/${providerId}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body.error || `Erreur ${res.status}`, body);
+    }
+    return res.json();
+  },
+};
+
+export interface SubmitAppointmentRequestInput {
+  providerId: string;
+  patientFirstName: string;
+  patientLastName: string;
+  patientEmail: string;
+  patientPhone?: string;
+  patientBirthDate?: string;
+  motif?: string;
+  requestedDate?: string; // ISO datetime
+  locationType?: "IN_PERSON" | "VIDEO" | "PHONE";
+}
+
+export interface SubmitAppointmentRequestResponse {
+  requestId: string;
+  message: string;
+}
+
+export const submitAppointmentRequestApi = async (
+  data: SubmitAppointmentRequestInput,
+  token?: string,
+): Promise<SubmitAppointmentRequestResponse> => {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${API_URL}/appointment-requests`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, body.error || `Erreur ${res.status}`, body);
+  }
+  return res.json();
+};
+
 // ─── Provider Directory (public) ────────────────────────────────────────────
 
 export interface PublicProvider {
