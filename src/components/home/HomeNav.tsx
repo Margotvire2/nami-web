@@ -56,7 +56,7 @@ export function HomeNav() {
               style={{ color: "var(--nami-text-2)", fontSize: 14, fontWeight: 500, transition: "color 0.2s", textDecoration: "none" }}
               onMouseEnter={e => (e.currentTarget.style.color = "var(--nami-primary)")}
               onMouseLeave={e => (e.currentTarget.style.color = "var(--nami-text-2)")}
-            >Connexion</Link>
+            >Se connecter</Link>
             <Link href="/login?role=patient"
               aria-label="Accéder à l'espace patient"
               style={{ color: "var(--nami-text-2)", fontSize: 14, fontWeight: 500, transition: "color 0.2s", textDecoration: "none" }}
@@ -91,7 +91,7 @@ export function HomeNav() {
               >{l}</Link>
             ))}
             <div style={{ height: 1, background: "rgba(26,26,46,0.07)", margin: "8px 0" }} />
-            <Link href="/login" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text-2)", textDecoration: "none", minHeight: 44 }}>Connexion</Link>
+            <Link href="/login" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text-2)", textDecoration: "none", minHeight: 44 }}>Se connecter</Link>
             <Link href="/login?role=patient" onClick={() => setMobileMenuOpen(false)} aria-label="Accéder à l'espace patient" style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text-2)", textDecoration: "none", minHeight: 44 }}>Espace patient</Link>
             <Link href="/signup?role=patient" onClick={() => setMobileMenuOpen(false)} aria-label="Créer un compte patient" style={{ display: "block", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 500, color: "var(--nami-text-2)", textDecoration: "none", minHeight: 44 }}>Créer un compte patient</Link>
             <Link href="/demander-une-demo" onClick={() => setMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 16px", borderRadius: 12, fontSize: 16, fontWeight: 700, color: "#fff", background: "var(--nami-primary)", textDecoration: "none", boxShadow: "0 4px 16px rgba(91,78,196,0.30)", minHeight: 44 }}>Demander une démo →</Link>

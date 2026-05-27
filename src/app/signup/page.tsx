@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -25,10 +25,15 @@ const PROFESSION_TYPES: { value: string; label: string; emoji: string }[] = [
   { value: "OTHER",           label: "Autre soignant", emoji: "🏥" },
 ];
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [loading, setLoading] = useState(false);
+
+  // Pré-sélection du rôle depuis ?role=patient (CTAs B2C HomeNav + /patient landing).
+  // Symétrie avec /login?role=patient (login page consume déjà ce param).
+  const isPatientContext = searchParams.get("role") === "patient";
 
   const [form, setForm] = useState({
     firstName: "",
@@ -38,11 +43,17 @@ export default function SignupPage() {
     phone: "",
     birthDate: "", // YYYY-MM-DD
     sex: "" as "" | "M" | "F",
-    roleType: "PROVIDER" as "PROVIDER" | "PATIENT",
+    roleType: (isPatientContext ? "PATIENT" : "PROVIDER") as "PROVIDER" | "PATIENT",
     rppsNumber: "",
     specialties: [] as string[],
     professionType: "" as string,
   });
+
+  // Wording adapté au contexte d'arrivée (patient vs soignant générique).
+  const heroTitle = isPatientContext ? "Créez votre espace patient." : "Créez votre espace.";
+  const heroSubtitle = isPatientContext
+    ? "Coordonnez vos soins avec votre équipe soignante."
+    : "Rejoignez les soignants qui coordonnent mieux.";
 
   function set(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -104,6 +115,9 @@ export default function SignupPage() {
     }
   }
 
+  // Lien retour vers /login en propageant le contexte patient si applicable.
+  const loginHref = isPatientContext ? "/login?role=patient" : "/login";
+
   // LEFT PANEL — form
   // RIGHT PANEL — visual dark with quote + stats + animation rings
 
@@ -135,10 +149,10 @@ export default function SignupPage() {
             <img src="/nami-mascot.png" alt="Nami" className="w-10 h-10 mb-5" style={{ borderRadius: 12, objectFit: "contain" }} />
             <h1 className="text-2xl font-extrabold tracking-tight mb-1"
               style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}>
-              Créez votre espace.
+              {heroTitle}
             </h1>
             <p className="text-sm" style={{ color: "#6B7280" }}>
-              Rejoignez les soignants qui coordonnent mieux.
+              {heroSubtitle}
             </p>
           </div>
 
@@ -322,7 +336,7 @@ export default function SignupPage() {
 
           <p className="text-center text-sm mt-6" style={{ color: "#6B7280" }}>
             Déjà un compte ?{" "}
-            <Link href="/login" className="font-semibold hover:underline underline-offset-2" style={{ color: "#5B4EC4" }}>
+            <Link href={loginHref} className="font-semibold hover:underline underline-offset-2" style={{ color: "#5B4EC4" }}>
               Se connecter
             </Link>
           </p>
@@ -370,5 +384,14 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  // Suspense requis par Next.js 15 pour les composants client utilisant useSearchParams.
+  return (
+    <Suspense fallback={<div className="min-h-screen" style={{ background: "#FAFAF8" }} />}>
+      <SignupForm />
+    </Suspense>
   );
 }
