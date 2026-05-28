@@ -44,6 +44,7 @@ describe("ProfileSwitcher", () => {
             birthDate: null,
             isSelf: true,
             delegationScopes: null,
+            delegationId: null,
           },
         ]}
         currentPersonId="1"
@@ -65,6 +66,7 @@ describe("ProfileSwitcher", () => {
             birthDate: null,
             isSelf: true,
             delegationScopes: null,
+            delegationId: null,
           },
           {
             personId: "lea",
@@ -73,6 +75,7 @@ describe("ProfileSwitcher", () => {
             birthDate: "2016-03-15",
             isSelf: false,
             delegationScopes: ["VIEW_APPOINTMENTS", "CANCEL_APPOINTMENTS"],
+            delegationId: "del-lea",
           },
           {
             personId: "ines",
@@ -81,6 +84,7 @@ describe("ProfileSwitcher", () => {
             birthDate: "2010-09-22",
             isSelf: false,
             delegationScopes: ["VIEW_APPOINTMENTS", "CANCEL_APPOINTMENTS"],
+            delegationId: "del-ines",
           },
         ]}
         currentPersonId="parent"
@@ -106,6 +110,7 @@ describe("ProfileSwitcher", () => {
             birthDate: null,
             isSelf: true,
             delegationScopes: null,
+            delegationId: null,
           },
           {
             personId: "lea",
@@ -114,6 +119,7 @@ describe("ProfileSwitcher", () => {
             birthDate: "2016-03-15",
             isSelf: false,
             delegationScopes: ["VIEW_APPOINTMENTS"],
+            delegationId: "del-lea",
           },
         ]}
         currentPersonId="lea"
