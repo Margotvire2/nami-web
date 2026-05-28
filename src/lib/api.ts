@@ -2760,6 +2760,36 @@ export interface CloseRcpInput {
 
 // ─── Patient Portal types ─────────────────────────────────────────────────────
 
+/**
+ * Sous-ensemble OrgType (backend Prisma) exposé côté patient.
+ * Source canonique : nami repo, schema.prisma `enum OrgType` (PR #68
+ * F-STRUCT-V1-ORG-EXTEND). Maintenir aligné si l'enum évolue.
+ */
+export type PatientOrganizationType =
+  | "PRIVATE_PRACTICE"
+  | "CLINIC"
+  | "HOSPITAL"
+  | "HEALTH_CENTER"
+  | "NETWORK"
+  | "MSP"
+  | "CPTS"
+  | "ASSOCIATION"
+  | "PROFESSIONAL_GROUP"
+  | "HOSPITAL_SERVICE"
+  | "INTERNAL"
+  | "FEDERATION"
+  | "INSTITUTIONNEL"
+  | "ACCELERATEUR";
+
+export interface PatientCareCaseOrganization {
+  id: string;
+  name: string;
+  type: PatientOrganizationType;
+  missionStatement: string | null;
+  publicMetadata: Record<string, unknown> | null;
+  logoUrl: string | null;
+}
+
 export interface PatientMe {
   person: {
     id: string; firstName: string; lastName: string; email: string;
@@ -2767,6 +2797,7 @@ export interface PatientMe {
   };
   careCases: Array<{
     id: string; caseTitle: string; caseType: string; status: string; startDate: string;
+    organization: PatientCareCaseOrganization | null;
     members: Array<{
       id: string; personId: string; roleInCase: string;
       person: { id: string; firstName: string; lastName: string; photoUrl: string | null };
