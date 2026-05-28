@@ -11,6 +11,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { RecentNotificationsCard } from "./RecentNotificationsCard";
 import { RecentMessagesCard } from "./RecentMessagesCard";
 import { QuickActionsCard } from "./QuickActionsCard";
+import { NetworkAwarenessBadge } from "@/components/patient/NetworkAwarenessBadge";
 
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -107,6 +108,11 @@ export default function AccueilPage() {
           </h1>
           <p style={{ fontSize: 15, color: "var(--nami-text-muted)", marginTop: 6 }}>Votre parcours, au même endroit.</p>
         </div>
+      </ScrollReveal>
+
+      {/* Badge structure de coordination (F-STRUCT-Q11) */}
+      <ScrollReveal variant="fade-up" delay={0.04} duration={0.6}>
+        <NetworkAwarenessBadge organization={careCase?.organization} />
       </ScrollReveal>
 
       {/* Prochain RDV */}
