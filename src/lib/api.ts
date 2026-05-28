@@ -2848,6 +2848,7 @@ export interface SwitchableProfile {
   birthDate: string | null;
   isSelf: boolean;
   delegationScopes: string[] | null; // null pour self
+  delegationId: string | null; // null pour self — PR #72 backend
 }
 
 // ─── Consentements F4 G5 (Foundation V1 G5, INIT-246) ──────────────────────
