@@ -3209,6 +3209,7 @@ export function apiWithToken(token: string) {
             { method: "POST", body: JSON.stringify(body) },
             token,
           ),
+        get: (appointmentId: string) => appointmentsApi.get(token, appointmentId),
       },
       documents: () => request<PatientDocument[]>("/patient/documents", {}, token),
       messages: (careCaseId: string) =>
