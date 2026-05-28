@@ -1891,6 +1891,10 @@ export interface SubmitAppointmentRequestInput {
   motif?: string;
   requestedDate?: string; // ISO datetime
   locationType?: "IN_PERSON" | "VIDEO" | "PHONE";
+  // PR #70 — Si fourni, le backend persiste l'audit trail (bookedByPersonId
+  // = délégué, bookedByDelegationId = cette autorisation) et IGNORE les
+  // patient* du body : le grantor de la Delegation est la source de vérité.
+  bookedByDelegationId?: string;
 }
 
 export interface SubmitAppointmentRequestResponse {
