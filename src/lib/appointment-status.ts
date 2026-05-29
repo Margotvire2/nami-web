@@ -190,3 +190,34 @@ export const STATUS_CFG: Record<
     canCancel: false,
   },
 };
+
+/**
+ * Tabs UI possibles sur la page /rendez-vous V2.
+ *
+ * 'pending' est réservé aux AppointmentRequest (statuts SUBMITTED/PROPOSED côté
+ * backend) qui ne sont pas confondus avec les Appointment confirmés. La V2.1
+ * affiche un EmptyState statique pour ce tab (lien vers /rendez-vous/demandes)
+ * tant que le endpoint GET /patient/appointment-requests n'est pas câblé ici.
+ */
+export type AppointmentTab = "upcoming" | "pending" | "past" | "cancelled";
+
+/**
+ * Classe un Appointment dans le tab UI correspondant.
+ *
+ * Règles :
+ * - CANCELLED + CANCELLED_BY_* (5 variantes) + NO_SHOW → "cancelled"
+ * - statuts STATUS_CFG.isPast === true (COMPLETED, RESCHEDULED) → "past"
+ * - sinon → "upcoming"
+ *
+ * Le tab "pending" n'est jamais retourné ici car il concerne uniquement les
+ * AppointmentRequest, pas les Appointment.
+ */
+export function computeTab(
+  appt: { status: string },
+): Exclude<AppointmentTab, "pending"> {
+  if (isCancelledLike(appt.status) || appt.status === "NO_SHOW") {
+    return "cancelled";
+  }
+  const cfg = STATUS_CFG[appt.status as AppointmentStatus];
+  return cfg?.isPast ? "past" : "upcoming";
+}

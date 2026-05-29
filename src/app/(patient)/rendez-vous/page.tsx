@@ -3,15 +3,25 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type PatientAppointment, type SwitchableProfile } from "@/lib/api";
-import { STATUS_CFG, type AppointmentStatus } from "@/lib/appointment-status";
+import { computeTab, type AppointmentTab } from "@/lib/appointment-status";
 import { getProviderName } from "@/lib/appointment-helpers";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { ProfileSwitcher } from "@/components/patient/ProfileSwitcher";
 import { CancelAppointmentModal } from "@/components/patient/CancelAppointmentModal";
 import { AppointmentCard } from "@/components/patient/AppointmentCard";
+import { RdvHeroCard } from "./_components/RdvHeroCard";
+import { RdvStatusTabs } from "./_components/RdvStatusTabs";
+import { RdvEmptyState } from "./_components/RdvEmptyState";
+
+const VALID_TABS: AppointmentTab[] = ["upcoming", "pending", "past", "cancelled"];
+
+function parseTab(raw: string | null): AppointmentTab {
+  if (raw && (VALID_TABS as string[]).includes(raw)) return raw as AppointmentTab;
+  return "upcoming";
+}
 
 export default function RendezVousPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -19,6 +29,8 @@ export default function RendezVousPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentProfileId = searchParams.get("profile");
+  const activeTab = parseTab(searchParams.get("tab"));
+
   const setCurrentProfileId = (id: string | null) => {
     const params = new URLSearchParams(searchParams);
     if (id) params.set("profile", id);
@@ -26,6 +38,15 @@ export default function RendezVousPage() {
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : window.location.pathname);
   };
+
+  const setActiveTab = (tab: AppointmentTab) => {
+    const params = new URLSearchParams(searchParams);
+    if (tab === "upcoming") params.delete("tab");
+    else params.set("tab", tab);
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : window.location.pathname);
+  };
+
   const [cancelTarget, setCancelTarget] = useState<PatientAppointment | null>(null);
 
   // ── Profils consultables (self + délégations actives) ─────────────────────
@@ -57,27 +78,46 @@ export default function RendezVousPage() {
     enabled: !!accessToken && !!effectiveProfileId,
   });
 
-  // ── Tri Active / Passés (utilise STATUS_CFG.isPast) ───────────────────────
-  const { upcoming, past } = useMemo(() => {
+  // ── Tri par tab (upcoming / past / cancelled) — pending = AppointmentRequest, pas géré ici
+  const { upcomingList, pastList, cancelledList } = useMemo(() => {
     const list = appointments ?? [];
     const upcomingArr: PatientAppointment[] = [];
     const pastArr: PatientAppointment[] = [];
+    const cancelledArr: PatientAppointment[] = [];
     for (const appt of list) {
-      const cfg = STATUS_CFG[appt.status as AppointmentStatus];
-      if (cfg?.isPast) pastArr.push(appt);
-      else upcomingArr.push(appt);
+      const tab = computeTab(appt);
+      if (tab === "upcoming") upcomingArr.push(appt);
+      else if (tab === "past") pastArr.push(appt);
+      else cancelledArr.push(appt);
     }
     upcomingArr.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
     pastArr.sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime());
-    return { upcoming: upcomingArr, past: pastArr };
+    cancelledArr.sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime());
+    return { upcomingList: upcomingArr, pastList: pastArr, cancelledList: cancelledArr };
   }, [appointments]);
+
+  // Compteurs pour les badges des tabs — pending toujours 0 en V2.1
+  const tabCounts: Record<AppointmentTab, number> = useMemo(
+    () => ({
+      upcoming: upcomingList.length,
+      pending: 0,
+      past: pastList.length,
+      cancelled: cancelledList.length,
+    }),
+    [upcomingList.length, pastList.length, cancelledList.length],
+  );
 
   function refreshAppointments() {
     queryClient.invalidateQueries({ queryKey: ["patient-appointments", effectiveProfileId] });
   }
 
+  const heroAppointment = activeTab === "upcoming" ? upcomingList[0] ?? null : null;
+  const upcomingRest = heroAppointment ? upcomingList.slice(1) : upcomingList;
+  const profileFirstName =
+    currentProfile && !currentProfile.isSelf ? currentProfile.firstName : undefined;
+
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-8 min-h-screen bg-[var(--nami-bg)]">
+    <main className="max-w-3xl mx-auto p-6 space-y-6 min-h-screen bg-[var(--nami-bg)]">
       <h1 className="text-3xl font-bold text-[var(--nami-dark)] tracking-tight">
         Mes rendez-vous
       </h1>
@@ -90,51 +130,84 @@ export default function RendezVousPage() {
         />
       )}
 
+      <RdvStatusTabs counts={tabCounts} active={activeTab} onChange={setActiveTab} />
+
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="animate-spin text-[var(--nami-primary)]" size={22} />
         </div>
       ) : (
-        <>
-          <ScrollReveal variant="fade-up" duration={0.5}>
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-[var(--nami-dark)]">
-                À venir ({upcoming.length})
-              </h2>
-              {upcoming.length === 0 ? (
-                <EmptyMessage
-                  message="Aucun rendez-vous à venir"
-                  hint="Contactez votre soignant pour planifier un nouveau RDV."
-                />
-              ) : (
-                <div className="space-y-3">
-                  {upcoming.map((appt) => (
-                    <AppointmentCard
-                      key={appt.id}
-                      appointment={appt}
-                      onCancel={() => setCancelTarget(appt)}
-                    />
-                  ))}
-                </div>
+        <div
+          role="tabpanel"
+          id={`rdv-panel-${activeTab}`}
+          aria-labelledby={`rdv-tab-${activeTab}`}
+          className="space-y-6"
+        >
+          {activeTab === "upcoming" && (
+            <>
+              {heroAppointment && (
+                <ScrollReveal variant="fade-up" duration={0.5}>
+                  <RdvHeroCard
+                    appointment={heroAppointment}
+                    onCancel={() => setCancelTarget(heroAppointment)}
+                  />
+                </ScrollReveal>
               )}
-            </section>
-          </ScrollReveal>
-
-          {past.length > 0 && (
-            <ScrollReveal variant="fade-up" delay={0.1} duration={0.5}>
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--nami-dark)]">
-                  Passés ({past.length})
-                </h2>
-                <div className="space-y-3">
-                  {past.map((appt) => (
-                    <AppointmentCard key={appt.id} appointment={appt} />
-                  ))}
-                </div>
-              </section>
-            </ScrollReveal>
+              {upcomingRest.length > 0 && (
+                <ScrollReveal variant="fade-up" delay={0.1} duration={0.5}>
+                  <div className="space-y-3">
+                    {upcomingRest.map((appt) => (
+                      <AppointmentCard
+                        key={appt.id}
+                        appointment={appt}
+                        onCancel={() => setCancelTarget(appt)}
+                      />
+                    ))}
+                  </div>
+                </ScrollReveal>
+              )}
+              {upcomingList.length === 0 && (
+                <RdvEmptyState variant="upcoming" profileFirstName={profileFirstName} />
+              )}
+            </>
           )}
-        </>
+
+          {activeTab === "pending" && (
+            <RdvEmptyState variant="pending" profileFirstName={profileFirstName} />
+          )}
+
+          {activeTab === "past" && (
+            <>
+              {pastList.length === 0 ? (
+                <RdvEmptyState variant="past" profileFirstName={profileFirstName} />
+              ) : (
+                <ScrollReveal variant="fade-up" duration={0.5}>
+                  <div className="space-y-3">
+                    {pastList.map((appt) => (
+                      <AppointmentCard key={appt.id} appointment={appt} />
+                    ))}
+                  </div>
+                </ScrollReveal>
+              )}
+            </>
+          )}
+
+          {activeTab === "cancelled" && (
+            <>
+              {cancelledList.length === 0 ? (
+                <RdvEmptyState variant="cancelled" profileFirstName={profileFirstName} />
+              ) : (
+                <ScrollReveal variant="fade-up" duration={0.5}>
+                  <div className="space-y-3">
+                    {cancelledList.map((appt) => (
+                      <AppointmentCard key={appt.id} appointment={appt} />
+                    ))}
+                  </div>
+                </ScrollReveal>
+              )}
+            </>
+          )}
+        </div>
       )}
 
       {cancelTarget && currentProfile && (
@@ -154,15 +227,5 @@ export default function RendezVousPage() {
         />
       )}
     </main>
-  );
-}
-
-function EmptyMessage({ message, hint }: { message: string; hint?: string }) {
-  return (
-    <div className="text-center py-12 px-6 bg-white/50 rounded-2xl border border-[var(--nami-border)]">
-      <Calendar size={32} className="mx-auto mb-3 text-[var(--nami-text-muted)] opacity-50" />
-      <p className="text-sm text-[var(--nami-text-muted)]">{message}</p>
-      {hint && <p className="text-xs text-[var(--nami-text-muted)]/70 mt-2">{hint}</p>}
-    </div>
   );
 }
