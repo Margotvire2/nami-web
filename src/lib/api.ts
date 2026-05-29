@@ -2895,6 +2895,31 @@ export interface PatientDocument {
   uploadedBy: { firstName: string; lastName: string; roleType: string };
 }
 
+/**
+ * Bilan biologique uploadé par le patient.
+ * Étend PatientDocument avec les champs d'analyse IA (CC #79 backend).
+ * Les champs analysis* sont OPTIONNELS car CC #79 peut ne pas être déployé
+ * — fallback côté composant: badge neutre "Bilan reçu".
+ */
+export interface PatientBilan extends PatientDocument {
+  analysisStatus?: "pending" | "completed" | "failed" | null;
+  observationsCount?: number | null;
+}
+
+/**
+ * Bilan créé via POST /patient/documents/upload — pas de uploadedBy dans la
+ * réponse 201 (backend select restreint). Sous-ensemble PatientDocument.
+ */
+export interface PatientBilanCreated {
+  id: string; title: string; documentType: string; fileUrl: string;
+  mimeType: string; sizeBytes: number; createdAt: string; careCaseId: string;
+}
+
+export interface PatientBilanAnalyzeResult {
+  observationsCount: number;
+  confidence?: number;
+}
+
 export interface PatientMessage {
   id: string; body: string; createdAt: string; careCaseId: string;
   sender: { id: string; firstName: string; lastName: string; roleType: string; photoUrl: string | null };
@@ -3244,6 +3269,40 @@ export function apiWithToken(token: string) {
         get: (appointmentId: string) => appointmentsApi.get(token, appointmentId),
       },
       documents: () => request<PatientDocument[]>("/patient/documents", {}, token),
+
+      // ─── Bilans biologiques patient (CC #80 — F-PATIENT-MES-BILANS-V1) ────
+      // Réutilise les endpoints documents (filtre client BIOLOGICAL_REPORT pour
+      // list). L'endpoint /analyze dépend de CC #79 backend — useUploadBilan
+      // tolère 404 si pas encore déployé.
+      bilans: {
+        // GET /patient/documents puis filtre BIOLOGICAL_REPORT côté client
+        // (backend actuel ne supporte pas ?type=).
+        list: async (): Promise<PatientBilan[]> => {
+          const docs = await request<PatientDocument[]>("/patient/documents", {}, token);
+          return docs.filter((d) => d.documentType === "BIOLOGICAL_REPORT");
+        },
+        // POST /patient/documents/upload — multipart, title obligatoire
+        // (auto-généré côté hook). documentType fixé BIOLOGICAL_REPORT.
+        upload: (file: File, title: string) => {
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("documentType", "BIOLOGICAL_REPORT");
+          fd.append("title", title);
+          return request<PatientBilanCreated>(
+            "/patient/documents/upload",
+            { method: "POST", body: fd },
+            token,
+          );
+        },
+        // POST /patient/documents/:id/analyze — CC #79 backend (tolère 404)
+        analyze: (documentId: string) =>
+          request<PatientBilanAnalyzeResult>(
+            `/patient/documents/${documentId}/analyze`,
+            { method: "POST" },
+            token,
+          ),
+      },
+
       messages: (careCaseId: string) =>
         request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
       sendMessage: (careCaseId: string, body: string) =>
