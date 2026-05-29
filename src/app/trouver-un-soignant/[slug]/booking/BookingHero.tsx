@@ -1,8 +1,19 @@
 import Link from "next/link";
-import { ArrowLeft, MapPin, Video } from "lucide-react";
+import { ArrowLeft, MapPin, Video, Users } from "lucide-react";
 import type { BookingProviderHero } from "./page";
 
-export default function BookingHero({ provider }: { provider: BookingProviderHero }) {
+export interface BookingHeroOnBehalfOf {
+  firstName: string;
+  lastName: string;
+}
+
+export default function BookingHero({
+  provider,
+  onBehalfOf,
+}: {
+  provider: BookingProviderHero;
+  onBehalfOf?: BookingHeroOnBehalfOf | null;
+}) {
   const initials = `${provider.firstName[0] ?? ""}${provider.lastName[0] ?? ""}`.toUpperCase();
   return (
     <header className="bg-white border-b border-[rgba(26,26,46,0.06)]">
@@ -41,6 +52,16 @@ export default function BookingHero({ provider }: { provider: BookingProviderHer
               {" — "}
               <span className="text-[#6B7280]">{provider.specialty}</span>
             </p>
+
+            {onBehalfOf && (
+              <p
+                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-[#5B4EC4] bg-[#EEEDFB] rounded-full px-3 py-1"
+                aria-live="polite"
+              >
+                <Users className="w-4 h-4" aria-hidden="true" />
+                Pour {onBehalfOf.firstName} {onBehalfOf.lastName}
+              </p>
+            )}
 
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-[#6B7280]">
               {provider.city && (

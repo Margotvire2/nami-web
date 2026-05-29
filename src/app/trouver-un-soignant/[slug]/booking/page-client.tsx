@@ -14,6 +14,8 @@ import SlotPicker from "./SlotPicker";
 import BookingForm, { type BookingMode } from "./BookingForm";
 import BookingSubmitButton from "./BookingSubmitButton";
 import type { BookingProviderHero } from "./page";
+import DelegationPickerModal from "@/components/patient/DelegationPickerModal";
+import { useDelegationPicker } from "@/hooks/useDelegationPicker";
 
 const FULL_WEEKDAY_LABELS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 const MONTH_LABELS = [
@@ -63,6 +65,19 @@ export default function BookingPageClient({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // PR #70/72/104 — Picker "Pour qui ?" : self vs enfant délégué (scope
+  // BOOK_APPOINTMENTS). Modal affichée d'office si ≥ 1 délégation active.
+  const picker = useDelegationPicker({
+    scope: "BOOK_APPOINTMENTS",
+    accessToken,
+    enabled: hasHydrated && !!accessToken,
+  });
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerConfirmed, setPickerConfirmed] = useState(false);
+  useEffect(() => {
+    if (!pickerConfirmed && picker.hasDelegations) setPickerOpen(true);
+  }, [pickerConfirmed, picker.hasDelegations]);
+
   // Rafraîchir les slots côté client (no-store) pour avoir l'état le plus frais
   useEffect(() => {
     let cancelled = false;
@@ -102,16 +117,26 @@ export default function BookingPageClient({
       .filter(Boolean)
       .join("\n\n");
 
+    // Si délégation active : envoyer bookedByDelegationId, backend résout
+    // les patient* depuis le grantor (PR #70). On envoie quand même des
+    // patient* du grantor (firstName/lastName du picker) + un email
+    // syntactiquement valide pour passer Zod — discardés côté backend.
+    const isDelegated = !!picker.selectedDelegationId && !picker.selectedProfile?.isSelf;
+    const grantor = isDelegated ? picker.selectedProfile : null;
+
     try {
       const { requestId } = await submitAppointmentRequestApi(
         {
           providerId: provider.id,
-          patientFirstName: user.firstName,
-          patientLastName: user.lastName,
-          patientEmail: user.email,
+          patientFirstName: grantor?.firstName ?? user.firstName,
+          patientLastName: grantor?.lastName ?? user.lastName,
+          patientEmail: grantor
+            ? `delegation-${picker.selectedDelegationId}@nami.local`
+            : user.email,
           motif: fullMotif || undefined,
           requestedDate,
           locationType: mode,
+          bookedByDelegationId: picker.selectedDelegationId ?? undefined,
         },
         accessToken ?? undefined,
       );
@@ -140,12 +165,31 @@ export default function BookingPageClient({
 
   const canSubmit = !!selectedSlot && !isSubmitting;
 
+  const onBehalfOf =
+    picker.selectedProfile && !picker.selectedProfile.isSelf
+      ? {
+          firstName: picker.selectedProfile.firstName,
+          lastName: picker.selectedProfile.lastName,
+        }
+      : null;
+
   return (
     <main
       aria-label="Demande de rendez-vous"
       className="min-h-screen bg-[#FAFAF8]"
     >
-      <BookingHero provider={provider} />
+      <DelegationPickerModal
+        open={pickerOpen}
+        profiles={picker.profiles}
+        selectedPersonId={picker.selectedPersonId}
+        onSelect={picker.setSelectedPersonId}
+        onConfirm={() => {
+          setPickerOpen(false);
+          setPickerConfirmed(true);
+        }}
+      />
+
+      <BookingHero provider={provider} onBehalfOf={onBehalfOf} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Récap créneau sélectionné */}
