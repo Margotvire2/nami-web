@@ -9,6 +9,7 @@ import {
   TrendingUp,
   MessageCircle,
   FileText,
+  FileHeart,
 } from "lucide-react";
 import { PatientNavItem } from "./PatientNavItem";
 import { usePatientNotifications } from "@/hooks/usePatientNotifications";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
     tooltip: "Bientôt disponible",
   },
   { href: "/rendez-vous", icon: Calendar, label: "Mes rendez-vous", disabled: false },
+  { href: "/mes-bilans", icon: FileHeart, label: "Mes bilans", disabled: false },
   { href: "/notifications", icon: Bell, label: "Notifications", disabled: false },
   {
     href: "/parcours",
