@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, use, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type RcpSummary, type CreateRcpInput, type CareCaseMember } from "@/lib/api";
+import {
+  apiWithToken,
+  organizationsApi,
+  isRcpPickerEligible,
+  type RcpSummary,
+  type CreateRcpInput,
+  type CareCaseMember,
+  type RcpPickerGroup,
+} from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,9 +19,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, ChevronLeft, Clock, CheckCircle2, Users, MessageSquare, AlertTriangle, Zap, Calendar } from "lucide-react";
+import { Plus, ChevronLeft, Clock, CheckCircle2, Users, MessageSquare, AlertTriangle, Zap, Calendar, Network } from "lucide-react";
 import Link from "next/link";
 import { formatDate, formatShortDate } from "@/lib/date-utils";
+import { RcpPickerNetworkGroup } from "@/components/cockpit/RcpPickerNetworkGroup";
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -80,6 +89,36 @@ function CreateRcpModal({
         ? f.participantIds.filter((id) => id !== personId)
         : [...(f.participantIds ?? []), personId],
     }));
+
+  const addManyParticipants = (personIds: string[]) =>
+    setForm((f) => {
+      const current = new Set(f.participantIds ?? []);
+      personIds.forEach((id) => current.add(id));
+      return { ...f, participantIds: Array.from(current) };
+    });
+
+  // ── Mes réseaux (INIT-489) ──────────────────────────────────────────────
+  // Récupère mes adhésions, filtre par kind whitelist (réseaux/CPTS/hôpitaux),
+  // puis fetch les membres de chaque org pour permettre "Tout inviter par groupe".
+  const { data: myOrgs = [] } = useQuery({
+    queryKey: ["organizations", "mine"],
+    queryFn: () => organizationsApi.mine(accessToken!),
+    enabled: !!accessToken,
+  });
+
+  const eligibleOrgs = myOrgs.filter(
+    (o) =>
+      isRcpPickerEligible(o.type) &&
+      o.myMembership?.status === "ACTIVE"
+  );
+
+  const groupQueries = useQueries({
+    queries: eligibleOrgs.map((o) => ({
+      queryKey: ["organizations", o.id, "for-rcp-picker"],
+      queryFn: () => organizationsApi.membersForRcpPicker(accessToken!, o.id),
+      enabled: !!accessToken,
+    })),
+  });
 
   const canSubmit = !!form.title?.trim() && (form.participantIds?.length ?? 0) > 0;
 
@@ -226,6 +265,38 @@ function CreateRcpModal({
               })}
             </div>
           </div>
+
+          {/* Mes réseaux (INIT-489) ─────────────────────────────────────── */}
+          {eligibleOrgs.length > 0 && (
+            <div data-testid="rcp-picker-networks">
+              <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-1.5">
+                <Network className="w-4 h-4 text-indigo-500" />
+                Mes réseaux
+                <span className="text-gray-400 font-normal">(inviter par groupe)</span>
+              </label>
+              <div className="space-y-2">
+                {eligibleOrgs.map((org, i) => {
+                  const q = groupQueries[i];
+                  const group = q?.data as RcpPickerGroup | undefined;
+                  return (
+                    <RcpPickerNetworkGroup
+                      key={org.id}
+                      orgName={org.name}
+                      orgType={org.type}
+                      isLoading={q?.isLoading ?? true}
+                      group={group}
+                      selectedIds={form.participantIds ?? []}
+                      onToggleMember={toggleParticipant}
+                      onInviteAll={(ids) => {
+                        addManyParticipants(ids);
+                        toast.success(`${ids.length} membre${ids.length > 1 ? "s" : ""} ajouté${ids.length > 1 ? "s" : ""} depuis « ${org.name} »`);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="pt-4">

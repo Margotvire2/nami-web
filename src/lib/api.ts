@@ -3755,13 +3755,101 @@ export interface OrganizationMember {
   directoryVisibility: DirectoryVisibility;
 }
 
+// ── Picker RCP "Mes réseaux" (INIT-489) ──────────────────────────────────────
+
+export interface RcpPickerMember {
+  personId: string;
+  firstName: string;
+  lastName: string;
+  photoUrl: string | null;
+  specialty: string | null;
+  memberRole: OrganizationMemberRole;
+}
+
+export interface RcpPickerGroup {
+  organization: {
+    id: string;
+    name: string;
+    type: string;
+    logoUrl: string | null;
+  };
+  members: RcpPickerMember[];
+}
+
+// ── Annuaire structure (INIT-494) ────────────────────────────────────────────
+
+export type DirectoryViewer = "ANON" | "MEMBER" | "ADMIN";
+
+export interface DirectoryMember {
+  personId: string;
+  firstName: string;
+  lastName: string;
+  photoUrl: string | null;
+  specialty: string | null;
+  city: string | null;
+  conventionSector: string | null;
+  providerProfileSlug: string | null;
+}
+
+export interface OrganizationDirectory {
+  organization: {
+    id: string;
+    name: string;
+    type: string;
+    logoUrl: string | null;
+  };
+  viewer: DirectoryViewer;
+  members: DirectoryMember[];
+}
+
 export const organizationsApi = {
   // Liste les organisations dans lesquelles l'utilisateur courant a une adhésion
   // (PROVIDER ou ORG_ADMIN). Renvoie chaque org avec `myMembership` pour
   // filtrer côté front (ex. memberRole === "ADMIN" → console d'animation).
   mine: (token: string) =>
     request<OrganizationMembership[]>("/organizations/mine", {}, token),
+
+  // GET /organizations/:orgId/members/for-rcp-picker (INIT-489)
+  // Réservé aux membres ACTIVE de l'org. 404 si l'org n'est pas dans la
+  // whitelist kind (NETWORK, FEDERATION, CPTS, HOSPITAL, HOSPITAL_SERVICE, MSP).
+  membersForRcpPicker: (token: string, orgId: string) =>
+    request<RcpPickerGroup>(`/organizations/${orgId}/members/for-rcp-picker`, {}, token),
+
+  // GET /organizations/:orgId/members/directory (INIT-494)
+  // 3 niveaux de visibilité selon le viewer :
+  //   ANON → PUBLIC uniquement ; MEMBER → MEMBERS_ONLY + PUBLIC ; ADMIN → tout (incl. HIDDEN).
+  membersDirectory: (
+    token: string,
+    orgId: string,
+    filters?: { specialty?: string; city?: string }
+  ) => {
+    const params = new URLSearchParams();
+    if (filters?.specialty) params.set("specialty", filters.specialty);
+    if (filters?.city) params.set("city", filters.city);
+    const qs = params.toString();
+    return request<OrganizationDirectory>(
+      `/organizations/${orgId}/members/directory${qs ? `?${qs}` : ""}`,
+      {},
+      token
+    );
+  },
 };
+
+// Kind whitelist pour la section "Mes réseaux" du picker RCP — aligné backend PR #81.
+// Exclut PRIVATE_PRACTICE, CLINIC, HEALTH_CENTER, ASSOCIATION, PROFESSIONAL_GROUP,
+// INTERNAL, INSTITUTIONNEL, ACCELERATEUR.
+export const RCP_PICKER_ORG_KINDS = [
+  "NETWORK",
+  "FEDERATION",
+  "CPTS",
+  "HOSPITAL",
+  "HOSPITAL_SERVICE",
+  "MSP",
+] as const;
+
+export function isRcpPickerEligible(orgType: string): boolean {
+  return (RCP_PICKER_ORG_KINDS as readonly string[]).includes(orgType);
+}
 
 export const membershipRequestsApi = {
   create: (token: string, organizationId: string, message?: string) =>
