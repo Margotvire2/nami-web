@@ -33,13 +33,7 @@ const NAV_ITEMS = [
     disabled: true,
     tooltip: "Bientôt disponible",
   },
-  {
-    href: "/suivi",
-    icon: TrendingUp,
-    label: "Mon suivi",
-    disabled: true,
-    tooltip: "Bientôt disponible",
-  },
+  { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-messages", icon: MessageCircle, label: "Mes messages", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
 ] as const;

@@ -2966,6 +2966,23 @@ export interface PatientNotificationFeed {
   unreadCount: number;
 }
 
+// ─── Indicateurs /suivi patient (CC #95 backend) ─────────────────────────────
+// MDR strict côté backend : aucun champ interprétatif (normal/anormal/alert).
+// "trend" = direction numérique pure entre les 2 dernières mesures.
+export interface PatientIndicatorMeasurement {
+  date: string; // ISO YYYY-MM-DD
+  value: number;
+}
+export interface PatientIndicator {
+  slug: string; // MetricCatalog.key
+  label: string;
+  unit: string;
+  latestValue: number;
+  latestDate: string; // ISO YYYY-MM-DD
+  trend: "up" | "down" | "stable";
+  measurements: PatientIndicatorMeasurement[];
+}
+
 export function apiWithToken(token: string) {
   return {
     careCases: {
@@ -3311,6 +3328,24 @@ export function apiWithToken(token: string) {
         request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
       sendMessage: (careCaseId: string, body: string) =>
         request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
+
+      // ─── Indicateurs /suivi (CC #95 — F-PATIENT-OBSERVATIONS-LIST-BACKEND) ─
+      // GET /patient/observations?periodDays=&onBehalfOf=
+      // Réponse : PatientIndicator[] groupé par MetricCatalog.key, tri date desc.
+      // Délégation parent→enfant via onBehalfOf (scope VIEW_MEDICAL_HISTORY).
+      observations: {
+        list: (params?: { periodDays?: 7 | 30 | 90 | 180 | 365; onBehalfOf?: string }) => {
+          const qs = new URLSearchParams();
+          if (params?.periodDays) qs.set("periodDays", String(params.periodDays));
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientIndicator[]>(
+            `/patient/observations${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+      },
 
       // ─── Notifications patient (F-PATIENT-ACCUEIL-DASHBOARD-V2-LIVE-DATA) ──
       // GET   /patient/notifications/feed?limit=N&section=all|unread

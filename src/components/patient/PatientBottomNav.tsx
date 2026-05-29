@@ -40,7 +40,7 @@ const SECONDARY_IN_MORE_MENU = [
     label: "Trouver un soignant",
     disabled: true,
   },
-  { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: true },
+  { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-bilans", icon: FileHeart, label: "Mes bilans", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
   { href: "/mon-compte", icon: UserIcon, label: "Mon compte", disabled: false },
