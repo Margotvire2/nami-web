@@ -3611,3 +3611,95 @@ export interface InvoiceLineInput {
   depassement?: number;
   isExonerated?: boolean;
 }
+
+// ─── Structures & memberships ────────────────────────────────────────────────
+// Routes post PR backend #73 (F-STRUCT-V1-MEMBERSHIP-REQUEST + MEMBER-LIFECYCLE).
+// Breaking change : PATCH /organizations/:id/members/:memberId a été supprimée.
+// Les flows admin doivent désormais utiliser :
+//   - POST   /organizations/:orgId/membership-requests  → créer une demande
+//   - PATCH  /membership-requests/:id                   → valider / refuser
+//   - PATCH  /organization-members/:id                  → lifecycle (INACTIVE,
+//                                                        SUSPENDED,
+//                                                        directoryVisibility)
+
+export type MembershipRequestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
+export type OrganizationMemberStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
+export type OrganizationMemberRole = "MEMBER" | "ADMIN" | "OWNER";
+export type DirectoryVisibility = "PUBLIC" | "ORG_ONLY" | "HIDDEN";
+
+export interface OrganizationMembership {
+  id: string;
+  name: string;
+  type: string;
+  myMembership: {
+    id: string;
+    memberRole: OrganizationMemberRole;
+    status: OrganizationMemberStatus;
+  } | null;
+}
+
+export interface MembershipRequest {
+  id: string;
+  organizationId: string;
+  personId: string;
+  status: MembershipRequestStatus;
+  message?: string | null;
+  createdAt: string;
+  decidedAt?: string | null;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organizationId: string;
+  personId: string;
+  memberRole: OrganizationMemberRole;
+  status: OrganizationMemberStatus;
+  directoryVisibility: DirectoryVisibility;
+}
+
+export const organizationsApi = {
+  // Liste les organisations dans lesquelles l'utilisateur courant a une adhésion
+  // (PROVIDER ou ORG_ADMIN). Renvoie chaque org avec `myMembership` pour
+  // filtrer côté front (ex. memberRole === "ADMIN" → console d'animation).
+  mine: (token: string) =>
+    request<OrganizationMembership[]>("/organizations/mine", {}, token),
+};
+
+export const membershipRequestsApi = {
+  create: (token: string, organizationId: string, message?: string) =>
+    request<MembershipRequest>(
+      `/organizations/${organizationId}/membership-requests`,
+      { method: "POST", body: JSON.stringify({ message }) },
+      token
+    ),
+
+  update: (
+    token: string,
+    id: string,
+    data: { status: Extract<MembershipRequestStatus, "ACCEPTED" | "DECLINED"> }
+  ) =>
+    request<MembershipRequest>(
+      `/membership-requests/${id}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const organizationMembersApi = {
+  // Lifecycle : INACTIVE / SUSPENDED + directoryVisibility (PUBLIC/ORG_ONLY/HIDDEN).
+  // memberRole est mis à jour via le même PATCH côté backend.
+  update: (
+    token: string,
+    id: string,
+    data: Partial<{
+      status: OrganizationMemberStatus;
+      directoryVisibility: DirectoryVisibility;
+      memberRole: OrganizationMemberRole;
+    }>
+  ) =>
+    request<OrganizationMember>(
+      `/organization-members/${id}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+};

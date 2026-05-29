@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authApi, mfaApi } from "@/lib/api";
+import { authApi, mfaApi, organizationsApi, type User } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +88,47 @@ export default function LoginPage() {
     if (mfaStep) totpInputRef.current?.focus();
   }, [mfaStep]);
 
+  // Calcule la route post-login selon le rôle dominant et sync le cookie
+  // nami-admin-org-ids lu par le middleware pour les ORG_ADMIN purs.
+  async function resolvePostLoginRedirect(user: User, accessToken: string): Promise<string> {
+    if (user.roleType === "PATIENT") return "/accueil";
+    if (user.roleType === "SECRETARY") return "/secretariat";
+
+    // PROVIDER ou ORG_ADMIN → besoin de connaître les adhésions ADMIN.
+    // Échec API non bloquant : on retombe sur /aujourd-hui pour ne pas
+    // bloquer le login si /organizations/mine est down.
+    let adminOrgIds: string[] = [];
+    try {
+      const orgs = await organizationsApi.mine(accessToken);
+      adminOrgIds = orgs
+        .filter((o) => {
+          const m = o.myMembership;
+          return !!m && m.status === "ACTIVE" && (m.memberRole === "ADMIN" || m.memberRole === "OWNER");
+        })
+        .map((o) => o.id);
+    } catch {
+      adminOrgIds = [];
+    }
+
+    if (typeof document !== "undefined") {
+      const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+      const maxAge = 30 * 24 * 60 * 60;
+      if (adminOrgIds.length > 0) {
+        document.cookie = `nami-admin-org-ids=${adminOrgIds.join(",")}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
+      } else {
+        document.cookie = `nami-admin-org-ids=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
+      }
+    }
+
+    // ORG_ADMIN pur (sans ProviderProfile) → console d'animation
+    if (user.roleType === "ORG_ADMIN" && !user.providerProfile && adminOrgIds.length > 0) {
+      return `/structure/${adminOrgIds[0]}/admin`;
+    }
+
+    // Multi-casquette (PROVIDER + ADMIN membership) ou PROVIDER simple → cockpit
+    return "/aujourd-hui";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -101,7 +142,8 @@ export default function LoginPage() {
       const user = await authApi.me(res.accessToken);
       setAuth(user, res.accessToken, res.refreshToken);
       track.login({ method: "email" });
-      router.push(user.roleType === "PATIENT" ? "/accueil" : user.roleType === "SECRETARY" ? "/secretariat" : "/aujourd-hui");
+      const dest = await resolvePostLoginRedirect(user, res.accessToken);
+      router.push(dest);
     } catch {
       toast.error("Email ou mot de passe incorrect");
     } finally {
@@ -118,7 +160,8 @@ export default function LoginPage() {
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
       track.login({ method: "email_mfa" });
-      router.push(user.roleType === "PATIENT" ? "/accueil" : user.roleType === "SECRETARY" ? "/secretariat" : "/aujourd-hui");
+      const dest = await resolvePostLoginRedirect(user, tokens.accessToken);
+      router.push(dest);
     } catch {
       toast.error("Code incorrect. Réessayez.");
       setTotpCode("");
