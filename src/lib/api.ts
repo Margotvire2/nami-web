@@ -2900,6 +2900,44 @@ export interface PatientDocument {
 }
 
 /**
+ * Soignant autorisé sur le dossier de coordination du patient connecté.
+ * Renvoyé par GET /patient/care-team (optionnellement filtré par careCaseId).
+ * Aucune donnée clinique exposée — uniquement identité + spécialité publique
+ * + stats RDV administratives.
+ *
+ * Backend source : nami/src/services/patientCareTeam.service.ts
+ * (PatientAuthorizedProvider). PR #83 = F-CARETEAM-V2-OPTIM.
+ */
+export interface PatientAuthorizedProvider {
+  id: string; // ProviderProfile.id
+  firstName: string;
+  lastName: string;
+  specialty: string | null;
+  avatarUrl: string | null;
+  authorizedSince: string; // ISO
+  lastAppointmentAt: string | null; // ISO
+  totalAppointments: number;
+  slug: string;
+}
+
+/**
+ * CareCase ACTIVE du patient connecté (administratif uniquement).
+ * Renvoyé par GET /patient/care-cases.
+ *
+ * Backend source : nami/src/services/patientCareCases.service.ts
+ * (PatientCareCaseSummary). PR #83 = F-PATIENT-CARECASES-LIST-COMPANION.
+ */
+export interface PatientCareCaseSummary {
+  id: string;
+  caseTitle: string;
+  caseType: string;
+  status: string;
+  startDate: string; // ISO
+  organizationId: string | null;
+  organizationName: string | null;
+}
+
+/**
  * Bilan biologique uploadé par le patient.
  * Étend PatientDocument avec les champs d'analyse IA (CC #79 backend).
  * Les champs analysis* sont OPTIONNELS car CC #79 peut ne pas être déployé
@@ -3345,6 +3383,37 @@ export function apiWithToken(token: string) {
             token,
           );
         },
+      },
+
+      // ─── Care team & parcours (CC #SOIGNANTS-V2 — F-MES-SOIGNANTS-REAL-API) ─
+      // GET    /patient/care-cases             → liste des CareCase ACTIVE
+      // GET    /patient/care-team?careCaseId=  → care team filtrée par parcours
+      // DELETE /patient/care-team/:providerId  → révoque l'accès sur tous CareCases
+      careCases: {
+        list: () =>
+          request<PatientCareCaseSummary[]>("/patient/care-cases", {}, token),
+      },
+      careTeam: {
+        list: (params?: { careCaseId?: string; onBehalfOf?: string }) => {
+          const qs = new URLSearchParams();
+          if (params?.careCaseId) qs.set("careCaseId", params.careCaseId);
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientAuthorizedProvider[]>(
+            `/patient/care-team${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+        revoke: (providerId: string, reason?: string) =>
+          request<{ revokedCount: number }>(
+            `/patient/care-team/${providerId}`,
+            {
+              method: "DELETE",
+              body: JSON.stringify(reason ? { reason } : {}),
+            },
+            token,
+          ),
       },
 
       // ─── Notifications patient (F-PATIENT-ACCUEIL-DASHBOARD-V2-LIVE-DATA) ──
