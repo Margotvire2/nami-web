@@ -6,6 +6,7 @@ import MonComptePage from "../page";
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 const mockPatchPerson = vi.fn();
+const mockPatchMe = vi.fn();
 const mockPatientMe = vi.fn();
 const mockForgotPassword = vi.fn();
 const mockSwitchableProfiles = vi.fn();
@@ -21,6 +22,7 @@ vi.mock("@/lib/api", async () => {
     apiWithToken: () => ({
       patient: {
         me: mockPatientMe,
+        patchMe: mockPatchMe,
         switchableProfiles: mockSwitchableProfiles,
       },
       persons: {
@@ -85,6 +87,10 @@ const FAKE_ME = {
     birthDate: "1985-04-12T00:00:00.000Z",
     sex: "FEMALE",
     photoUrl: null,
+    // PR #76 backend (CC #92) — adresse FR PatientProfile
+    address: "12 rue de Rivoli",
+    city: "Paris",
+    postalCode: "75001",
   },
   careCases: [
     {
@@ -100,6 +106,9 @@ const FAKE_ME = {
 
 beforeEach(() => {
   mockPatchPerson.mockReset();
+  mockPatchMe.mockReset();
+  // Par défaut, patchMe résout — le submit chaîne persons.patch puis patchMe
+  mockPatchMe.mockResolvedValue({});
   mockPatientMe.mockReset();
   mockForgotPassword.mockReset();
   mockSwitchableProfiles.mockReset();
@@ -280,6 +289,62 @@ describe("MonComptePage — Section Mes informations (Art. 16)", () => {
     expect(calledData.email).toBeUndefined();
     // Sex normalisé en enum backend
     expect(calledData.sex).toBe("FEMALE");
+  });
+
+  // ─── PR #76 backend (CC #92) — adresse FR via patient.patchMe ──────────
+  it("4-bis. affiche adresse/CP/ville en lecture seule depuis person.address/postalCode/city", async () => {
+    renderWithClient(<MonComptePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Mes informations")).toBeInTheDocument();
+    });
+    expect(screen.getByText("12 rue de Rivoli")).toBeInTheDocument();
+    expect(screen.getByText("75001")).toBeInTheDocument();
+    expect(screen.getByText("Paris")).toBeInTheDocument();
+  });
+
+  it("4-ter. submit chaîne persons.patch PUIS patient.patchMe avec address/city/postalCode", async () => {
+    mockPatchPerson.mockResolvedValueOnce({ id: "u1", firstName: "Marie" });
+    mockPatchMe.mockResolvedValueOnce({});
+
+    renderWithClient(<MonComptePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Mes informations")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Modifier mes informations/i }));
+
+    // Modifier l'adresse
+    const addressInput = screen.getByRole("textbox", { name: /^Adresse$/i });
+    fireEvent.change(addressInput, { target: { value: "5 boulevard Voltaire" } });
+    const cpInput = screen.getByRole("textbox", { name: /Code postal/i });
+    fireEvent.change(cpInput, { target: { value: "75011" } });
+    const cityInput = screen.getByRole("textbox", { name: /Ville/i });
+    fireEvent.change(cityInput, { target: { value: "Paris 11e" } });
+
+    fireEvent.click(screen.getByRole("button", { name: /Enregistrer/i }));
+
+    await waitFor(() => {
+      expect(mockPatchMe).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPatchPerson).toHaveBeenCalledTimes(1);
+    const patchMeArg = mockPatchMe.mock.calls[0][0];
+    expect(patchMeArg.address).toBe("5 boulevard Voltaire");
+    expect(patchMeArg.city).toBe("Paris 11e");
+    expect(patchMeArg.postalCode).toBe("75011");
+  });
+
+  it("4-quater. code postal invalide (4 chiffres) bloque le submit + erreur visible", async () => {
+    renderWithClient(<MonComptePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Mes informations")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Modifier mes informations/i }));
+
+    const cpInput = screen.getByRole("textbox", { name: /Code postal/i });
+    fireEvent.change(cpInput, { target: { value: "7500" } });
+
+    expect(screen.getByText(/Code postal invalide/i)).toBeInTheDocument();
+    const submitBtn = screen.getByRole("button", { name: /Enregistrer/i });
+    expect(submitBtn).toBeDisabled();
   });
 });
 

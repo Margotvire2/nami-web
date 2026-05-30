@@ -2798,6 +2798,8 @@ export interface PatientMe {
   person: {
     id: string; firstName: string; lastName: string; email: string;
     phone: string | null; birthDate: string | null; sex: string | null; photoUrl: string | null;
+    // PR #76 backend (CC #92) — adresse FR du PatientProfile, mapping API postalCode ↔ DB.zipcode
+    address: string | null; city: string | null; postalCode: string | null;
   };
   careCases: Array<{
     id: string; caseTitle: string; caseType: string; status: string; startDate: string;
@@ -3265,7 +3267,15 @@ export function apiWithToken(token: string) {
     },
     patient: {
       me: () => request<PatientMe>("/patient/me", {}, token),
-      patchMe: (data: { phone?: string; birthDate?: string; sex?: string }) =>
+      patchMe: (data: {
+        phone?: string;
+        birthDate?: string;
+        sex?: string;
+        // PR #76 backend (CC #92) — adresse FR (postalCode ↔ DB.zipcode mappé côté backend)
+        address?: string;
+        city?: string;
+        postalCode?: string;
+      }) =>
         request<PatientMe["person"]>("/patient/me", { method: "PATCH", body: JSON.stringify(data) }, token),
       switchableProfiles: () =>
         request<SwitchableProfile[]>("/patient/switchable-profiles", {}, token),
