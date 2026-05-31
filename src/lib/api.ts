@@ -2983,6 +2983,89 @@ export interface PatientPathwaySummary {
 }
 
 /**
+ * Hub agrégé d'un CareCase patient — toutes les sections d'un parcours
+ * en 1 seul fetch. Renvoyé par GET /patient/care-case-hub/:careCaseId.
+ *
+ * Backend source : nami/src/services/patientCareCaseHub.service.ts
+ * (PR backend #99 — F-PATIENT-CARECASE-HUB-BACKEND).
+ *
+ * Wording strictement patient-friendly :
+ *   - patientFacingTitle : titre dynamique calculé via computePatientFacingTitle
+ *   - aucun champ clinique (status administratif uniquement)
+ *   - métriques (Observation) exposées par metricLabel + unit + valeur brute,
+ *     sans interprétation normal/anormal/alerte.
+ */
+export interface PatientCareCaseHubInfo {
+  id: string;
+  patientFacingTitle: string;
+  pathwayTemplateLabel: string | null;
+  status: string;
+  startDate: string; // ISO
+  organizationName: string | null;
+}
+
+export interface PatientCareCaseHubAppointment {
+  id: string;
+  startAt: string; // ISO
+  endAt: string; // ISO
+  status: string;
+  locationType: string;
+  consultationTypeName: string | null;
+  provider: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    specialties: string[];
+  };
+}
+
+export interface PatientCareCaseHubAppointmentToBook {
+  pathwayStepId: string;
+  label: string;
+  expectedDayOffset: number;
+  expectedDate: string | null; // ISO
+  isRequired: boolean;
+}
+
+export interface PatientCareCaseHubObservation {
+  metricKey: string;
+  metricLabel: string;
+  unit: string;
+  effectiveAt: string; // ISO
+  valueNumeric: number;
+}
+
+export interface PatientCareCaseHubDocument {
+  id: string;
+  title: string;
+  documentType: string;
+  createdAt: string; // ISO
+}
+
+export interface PatientCareCaseHubMessages {
+  threadId: string;
+  unreadCount: number;
+  lastMessage: { id: string; body: string; createdAt: string } | null;
+}
+
+export interface PatientCareCaseHub {
+  careCase: PatientCareCaseHubInfo;
+  pathway: PatientPathwaySummary | null;
+  providers: PatientAuthorizedProvider[];
+  appointments: {
+    upcoming: PatientCareCaseHubAppointment[];
+    toBook: PatientCareCaseHubAppointmentToBook[];
+  };
+  observations: {
+    recent: PatientCareCaseHubObservation[];
+  };
+  documents: {
+    recent: PatientCareCaseHubDocument[];
+  };
+  messages: PatientCareCaseHubMessages;
+}
+
+/**
  * Bilan biologique uploadé par le patient.
  * Étend PatientDocument avec les champs d'analyse IA (CC #79 backend).
  * Les champs analysis* sont OPTIONNELS car CC #79 peut ne pas être déployé
@@ -3691,6 +3774,27 @@ export function apiWithToken(token: string) {
           const query = qs.toString();
           return request<PatientPathwaySummary[]>(
             `/patient/pathway${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+      },
+
+      // ─── Hub d'un parcours (CC #PARCOURS-HUB-CARECASE-ID) ─────────────────
+      // GET /patient/care-case-hub/:careCaseId[?onBehalfOf=]
+      // Backend PR #99 : agrège pathway + providers + RDV + observations
+      // + documents + messages scoped au CareCase, en 1 seul call.
+      // Ownership check + délégation VIEW_MEDICAL_HISTORY côté backend.
+      careCaseHub: {
+        get: (
+          careCaseId: string,
+          params?: { onBehalfOf?: string },
+        ) => {
+          const qs = new URLSearchParams();
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientCareCaseHub>(
+            `/patient/care-case-hub/${encodeURIComponent(careCaseId)}${query ? `?${query}` : ""}`,
             {},
             token,
           );
