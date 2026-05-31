@@ -74,16 +74,6 @@ export function PatientHeader() {
             </span>
           </Link>
 
-          {/* Zone 2 — Recherche placeholder (desktop only, non-fonctionnelle V1) */}
-          {/* TODO F6.3-CONTEXTUAL-SEARCH P2 */}
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            disabled
-            aria-label="Recherche (bientôt disponible)"
-            className="hidden md:block flex-1 max-w-md bg-[#F5F3EF] rounded-xl px-4 py-2 text-sm text-[#6B7280] cursor-not-allowed border border-transparent focus:outline-none"
-          />
-
           {/* Zone 3 — Bell + ProfileSwitcher + Avatar */}
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             <div className="relative">
