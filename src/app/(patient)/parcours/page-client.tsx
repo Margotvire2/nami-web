@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   computeGlobalProgress,
   type ParcoursPhase as ParcoursPhaseType,
@@ -11,11 +12,13 @@ import {
 import { ParcoursHero } from "./ParcoursHero";
 import { ParcoursPhase } from "./ParcoursPhase";
 import { ParcoursEmptyState } from "./ParcoursEmptyState";
+import { ParcoursCareCaseCard } from "./ParcoursCareCaseCard";
 import { usePatientPathway } from "@/hooks/usePatientPathway";
 import type {
   PatientPathwayPhase,
   PatientPathwayStep,
   PatientPathwayStepStatus,
+  PatientPathwaySummary,
 } from "@/lib/api";
 
 // ─── Adapter backend → types UI existants ────────────────────────────────────
@@ -65,15 +68,32 @@ const PAGE_LAYOUT = {
 
 export function ParcoursPageClient() {
   const { data, isLoading, error } = usePatientPathway();
+  const searchParams = useSearchParams();
+  const careCaseQuery = searchParams.get("careCase");
 
-  // V1 : si plusieurs CareCase avec parcours, affiche le plus récent (tri
-  // backend startDate desc). V2 ticket dérivé : sélecteur CareCase pour
-  // patients suivis pour plusieurs pathologies.
-  const pathway = data?.find((p) => p.phases.length > 0) ?? data?.[0] ?? null;
+  // Concept multi-CareCase acté 30/05 : un patient peut avoir N parcours
+  // actifs simultanés. Trois branches :
+  //   a) 0 parcours → ParcoursEmptyState
+  //   b) 1 parcours (ou ?careCase=<id> qui matche) → vue phases (mode unique)
+  //   c) N parcours sans sélection → liste de cartes "Mes parcours"
+  const pathways: PatientPathwaySummary[] = useMemo(
+    () => data ?? [],
+    [data],
+  );
+
+  const selectedPathway = useMemo<PatientPathwaySummary | null>(() => {
+    if (pathways.length === 0) return null;
+    if (careCaseQuery) {
+      const match = pathways.find((p) => p.careCaseId === careCaseQuery);
+      if (match) return match;
+    }
+    if (pathways.length === 1) return pathways[0];
+    return null;
+  }, [pathways, careCaseQuery]);
 
   const phases: ParcoursPhaseType[] = useMemo(
-    () => (pathway ? pathway.phases.map(backendPhaseToUI) : []),
-    [pathway],
+    () => (selectedPathway ? selectedPathway.phases.map(backendPhaseToUI) : []),
+    [selectedPathway],
   );
 
   const defaultOpenId = useMemo(
@@ -128,7 +148,57 @@ export function ParcoursPageClient() {
     );
   }
 
-  if (!pathway || phases.length === 0) {
+  // Branche A — 0 parcours actif
+  if (pathways.length === 0) {
+    return (
+      <main aria-label="Mon parcours de soins" style={PAGE_LAYOUT}>
+        <ParcoursEmptyState />
+      </main>
+    );
+  }
+
+  // Branche C — N parcours, pas de sélection : liste de cartes
+  if (!selectedPathway) {
+    return (
+      <main aria-label="Mes parcours" style={PAGE_LAYOUT}>
+        <ParcoursHero
+          title="Mes parcours"
+          subtitle={`Vous avez ${pathways.length} suivis actifs avec différentes équipes.`}
+        />
+
+        <section
+          aria-label="Liste de mes parcours"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+            gap: 16,
+          }}
+        >
+          {pathways.map((pw) => (
+            <ParcoursCareCaseCard key={pw.careCaseId} pathway={pw} />
+          ))}
+        </section>
+
+        {/* Footer MDR obligatoire — Nami n'est pas un dispositif médical */}
+        <p
+          style={{
+            marginTop: 48,
+            fontSize: 12,
+            color: "#9CA3AF",
+            textAlign: "center",
+            lineHeight: 1.5,
+          }}
+        >
+          Nami n&apos;est pas un dispositif médical. Les étapes ci-dessus
+          reflètent l&apos;organisation de votre dossier de coordination.
+        </p>
+      </main>
+    );
+  }
+
+  // Branche B — pathway unique : phases (avec progression)
+  if (phases.length === 0) {
     return (
       <main aria-label="Mon parcours de soins" style={PAGE_LAYOUT}>
         <ParcoursEmptyState />
@@ -137,8 +207,12 @@ export function ParcoursPageClient() {
   }
 
   return (
-    <main aria-label="Mon parcours de soins" style={PAGE_LAYOUT}>
-      <ParcoursHero current={progress.current} total={progress.total} />
+    <main aria-label={selectedPathway.careCaseTitle} style={PAGE_LAYOUT}>
+      <ParcoursHero
+        title={selectedPathway.careCaseTitle}
+        current={progress.current}
+        total={progress.total}
+      />
 
       <section
         aria-label="Phases du parcours"
