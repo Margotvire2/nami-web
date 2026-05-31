@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiWithToken, notificationsApi, type ConnectionRequest, type AppointmentRequest, type ProConversation, type Referral, type TaskWithContext, type NotificationItem } from "@/lib/api";
 import { toast } from "sonner";
 import { useConsultation } from "@/contexts/ConsultationContext";
+import CockpitDmBadgeCard from "./CockpitDmBadgeCard";
 
 const PENDING_REFERRAL_STATUSES = ["SENT", "RECEIVED", "UNDER_REVIEW"];
 
@@ -314,6 +315,9 @@ export default function DashboardPage() {
 
               {/* DEMANDES DE RDV */}
               <AppointmentRequestsSection />
+
+              {/* MESSAGES PRIVÉS PATIENTS — synergie PR 13 frontend cockpit /messages */}
+              <CockpitDmBadgeCard />
 
               {/* MESSAGES */}
               <ProMessagesSection />
