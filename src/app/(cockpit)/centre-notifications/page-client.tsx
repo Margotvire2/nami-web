@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Bell, Check, Loader2 } from "lucide-react";
 import CockpitMeshBackground from "@/components/cockpit/CockpitMeshBackground";
 import { useNotificationFeed } from "@/hooks/useNotificationFeed";
+import { useNotificationFilter } from "@/hooks/useNotificationFilter";
 import type { NotificationFeedItem, NotificationFeedSource } from "@/lib/api";
 import { FiltersBar, type FilterKey } from "./FiltersBar";
 import { NotificationGroupedList } from "./NotificationGroupedList";
@@ -40,7 +41,7 @@ const EMPTY_HINT: Record<FilterKey, string> = {
 };
 
 export function CentreNotificationsClient() {
-  const [filter, setFilter] = useState<FilterKey>("all");
+  const [filter, setFilter] = useNotificationFilter();
 
   const { data, isLoading } = useNotificationFeed({
     limit: 50,
