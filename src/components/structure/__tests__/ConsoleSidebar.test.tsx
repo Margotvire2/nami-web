@@ -35,7 +35,6 @@ describe("ConsoleSidebar", () => {
 
     for (const label of [
       "Membres",
-      "Événements",
       "Actualités",
       "Ressources",
       "Recherche",
@@ -46,6 +45,12 @@ describe("ConsoleSidebar", () => {
     }
   });
 
+  it("active=events → l'item Événements a aria-current=page", () => {
+    render(<ConsoleSidebar orgId="org-1" active="events" />);
+    const evts = screen.getByRole("link", { name: /événements/i });
+    expect(evts).toHaveAttribute("aria-current", "page");
+  });
+
   it("liens actifs pointent vers les bonnes URL", () => {
     render(<ConsoleSidebar orgId="org-42" active="dashboard" />);
     expect(
@@ -54,5 +59,8 @@ describe("ConsoleSidebar", () => {
     expect(
       screen.getByRole("link", { name: /discussions/i })
     ).toHaveAttribute("href", "/messages");
+    expect(
+      screen.getByRole("link", { name: /événements/i })
+    ).toHaveAttribute("href", "/structure/org-42/admin/evenements");
   });
 });
