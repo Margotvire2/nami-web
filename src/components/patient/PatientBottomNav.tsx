@@ -23,13 +23,7 @@ const PRIMARY = [
   { href: "/accueil", icon: Home, label: "Accueil", disabled: false },
   { href: "/rendez-vous", icon: Calendar, label: "RDV", disabled: false },
   { href: "/notifications", icon: Bell, label: "Notifs", disabled: false },
-  {
-    href: "/parcours",
-    icon: Route,
-    label: "Parcours",
-    disabled: true,
-    tooltip: "Bientôt disponible",
-  },
+  { href: "/parcours", icon: Route, label: "Parcours", disabled: false },
   { href: "/mes-messages", icon: MessageCircle, label: "Messages", disabled: false },
 ] as const;
 
@@ -83,7 +77,6 @@ export function PatientBottomNav({ className = "" }: PatientBottomNavProps) {
             icon={item.icon}
             label={item.label}
             disabled={item.disabled}
-            tooltip={"tooltip" in item ? item.tooltip : undefined}
             badge={item.href === "/notifications" ? unreadCount : undefined}
             variant="bottom"
           />
