@@ -791,6 +791,8 @@ export interface CareCaseDetail extends Omit<CareCase, "_count"> {
   napValue: number | null;
   napDescription: string | null;
   pathwayTemplateId: string | null;
+  // Override soignant du nom doux affiché côté patient (null = nom doux par défaut)
+  patientFacingTitle: string | null;
   members: CareCaseMember[];
   _count: { members: number; activities: number; notes: number; documents: number; tasks: number; alerts: number };
 }

@@ -19,10 +19,13 @@ interface Props {
     birthDate?: string | null
     sex?: string | null
   }
+  initialPatientFacingTitle?: string | null
   onClose: () => void
 }
 
-export function EditPatientModal({ careCaseId, personId, initialData, onClose }: Props) {
+const PATIENT_FACING_TITLE_MAX = 80
+
+export function EditPatientModal({ careCaseId, personId, initialData, initialPatientFacingTitle, onClose }: Props) {
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
   const qc = useQueryClient()
@@ -35,10 +38,12 @@ export function EditPatientModal({ careCaseId, personId, initialData, onClose }:
     initialData.birthDate ? initialData.birthDate.slice(0, 10) : ""
   )
   const [sex, setSex] = useState(initialData.sex ?? "")
+  const [patientFacingTitle, setPatientFacingTitle] = useState(initialPatientFacingTitle ?? "")
   const [emailError, setEmailError] = useState("")
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
+      // 1. Person update (firstName/lastName/email/phone/birthDate/sex)
       const data: Parameters<typeof api.persons.patch>[1] = {}
       if (firstName !== initialData.firstName) data.firstName = firstName
       if (lastName !== initialData.lastName) data.lastName = lastName
@@ -51,7 +56,17 @@ export function EditPatientModal({ careCaseId, personId, initialData, onClose }:
       }
       const prevSex = initialData.sex ?? ""
       if (sex !== prevSex) data.sex = sex as "MALE" | "FEMALE" | "OTHER" | "UNKNOWN"
-      return api.persons.patch(personId, data)
+      const personUpdated = Object.keys(data).length > 0
+      if (personUpdated) await api.persons.patch(personId, data)
+
+      // 2. CareCase override patientFacingTitle (vide = reset au nom doux par défaut)
+      const trimmed = patientFacingTitle.trim()
+      const prevTitle = (initialPatientFacingTitle ?? "").trim()
+      if (trimmed !== prevTitle) {
+        await api.careCases.update(careCaseId, {
+          patientFacingTitle: trimmed === "" ? null : trimmed,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["care-case", careCaseId] })
@@ -77,6 +92,10 @@ export function EditPatientModal({ careCaseId, personId, initialData, onClose }:
     setEmailError("")
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setEmailError("Format d'email invalide")
+      return
+    }
+    if (patientFacingTitle.trim().length > PATIENT_FACING_TITLE_MAX) {
+      toast.error(`Nom visible patient : ${PATIENT_FACING_TITLE_MAX} caractères maximum`)
       return
     }
     mutation.mutate()
@@ -169,6 +188,26 @@ export function EditPatientModal({ careCaseId, personId, initialData, onClose }:
                 <option value="UNKNOWN">Inconnu</option>
               </select>
             </div>
+          </div>
+
+          <div className="pt-2 border-t border-gray-100">
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Nom visible patient
+              <span className="ml-1.5 text-[10px] text-gray-400 font-normal">
+                {patientFacingTitle.length}/{PATIENT_FACING_TITLE_MAX}
+              </span>
+            </label>
+            <input
+              type="text"
+              maxLength={PATIENT_FACING_TITLE_MAX}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4]"
+              value={patientFacingTitle}
+              onChange={(e) => setPatientFacingTitle(e.target.value)}
+              placeholder="Ex: Mon parcours TCA"
+            />
+            <p className="mt-1 text-[10px] text-gray-500">
+              Si vide, un nom doux par défaut sera utilisé côté patient.
+            </p>
           </div>
         </div>
 
