@@ -429,6 +429,7 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
             birthDate: careCase.patient.birthDate,
             sex: careCase.patient.sex,
           }}
+          initialPatientFacingTitle={careCase.patientFacingTitle}
           onClose={() => setEditPatientOpen(false)}
         />
       )}
