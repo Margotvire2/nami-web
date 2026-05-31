@@ -416,6 +416,75 @@ export const messagesApi = {
     }, token),
 };
 
+// ─── Cockpit DM inbox (PR #107 backend) ──────────────────────────────────────
+
+export interface CockpitDmInboxPatient {
+  personId: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface CockpitDmInboxLastMessage {
+  id: string;
+  body: string;
+  createdAt: string;
+  senderId: string;
+  senderName: string;
+}
+
+export interface CockpitDmInboxThread {
+  patientPersonId: string;
+  patient: CockpitDmInboxPatient;
+  lastMessage: CockpitDmInboxLastMessage | null;
+  unreadCount: number;
+  totalCount: number;
+}
+
+export interface CockpitDmInboxMessage {
+  id: string;
+  body: string;
+  createdAt: string;
+  senderId: string;
+  senderName: string;
+  parentId: string | null;
+  isRead: boolean;
+}
+
+export const cockpitDmInboxApi = {
+  list: (token: string, params?: { page?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.limit) qs.set("limit", String(params.limit));
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    return request<{ threads: CockpitDmInboxThread[] }>(
+      `/care-team/messages/dm-inbox${suffix}`,
+      {},
+      token,
+    );
+  },
+  thread: (
+    token: string,
+    patientPersonId: string,
+    params?: { limit?: number; before?: string },
+  ) => {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.before) qs.set("before", params.before);
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    return request<{ messages: CockpitDmInboxMessage[] }>(
+      `/care-team/messages/dm-inbox/${patientPersonId}${suffix}`,
+      {},
+      token,
+    );
+  },
+  send: (token: string, patientPersonId: string, body: string) =>
+    request<{ id: string; createdAt: string }>(
+      `/care-team/messages/dm-inbox/${patientPersonId}`,
+      { method: "POST", body: JSON.stringify({ body }) },
+      token,
+    ),
+};
+
 // ─── Referrals ───────────────────────────────────────────────────────────────
 
 export type ReferralStatus =
@@ -3232,6 +3301,13 @@ export function apiWithToken(token: string) {
       get: (careCaseId: string, messageId: string) => messagesApi.get(token, careCaseId, messageId),
       send: (careCaseId: string, body: string, parentId?: string) => messagesApi.send(token, careCaseId, body, parentId),
       markRead: (careCaseId: string, messageId: string) => messagesApi.markRead(token, careCaseId, messageId),
+      dmInbox: {
+        list: (params?: { page?: number; limit?: number }) => cockpitDmInboxApi.list(token, params),
+        thread: (patientPersonId: string, params?: { limit?: number; before?: string }) =>
+          cockpitDmInboxApi.thread(token, patientPersonId, params),
+        send: (patientPersonId: string, body: string) =>
+          cockpitDmInboxApi.send(token, patientPersonId, body),
+      },
     },
     notifications: {
       feed: (params?: { limit?: number; section?: "todo" | "activity" | "all" }) =>
