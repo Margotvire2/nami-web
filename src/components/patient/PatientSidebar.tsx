@@ -5,15 +5,17 @@ import {
   Search,
   Calendar,
   Bell,
-  Route,
   TrendingUp,
   MessageCircle,
   FileText,
   FileHeart,
 } from "lucide-react";
 import { PatientNavItem } from "./PatientNavItem";
+import { PatientNavParcoursItem } from "./PatientNavParcoursItem";
 import { usePatientNotifications } from "@/hooks/usePatientNotifications";
 
+// Item "Mon parcours" extrait dans <PatientNavParcoursItem/> (adaptatif
+// 0/1/N CareCases). Position préservée : juste après "Notifications".
 const NAV_ITEMS = [
   { href: "/accueil", icon: Home, label: "Accueil", disabled: false },
   {
@@ -26,11 +28,14 @@ const NAV_ITEMS = [
   { href: "/rendez-vous", icon: Calendar, label: "Mes rendez-vous", disabled: false },
   { href: "/mes-bilans", icon: FileHeart, label: "Mes bilans", disabled: false },
   { href: "/notifications", icon: Bell, label: "Notifications", disabled: false },
-  { href: "/parcours", icon: Route, label: "Mon parcours", disabled: false },
   { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-messages", icon: MessageCircle, label: "Mes messages", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
 ] as const;
+
+// Position d'insertion de <PatientNavParcoursItem/> (juste après cet href —
+// préserve l'ordre de l'ancienne sidebar : Notifications → Parcours → Suivi).
+const PARCOURS_INSERT_AFTER_HREF: string = "/notifications";
 
 interface PatientSidebarProps {
   className?: string;
@@ -50,16 +55,20 @@ export function PatientSidebar({ className = "" }: PatientSidebarProps) {
     >
       <nav className="flex flex-col gap-1">
         {NAV_ITEMS.map((item) => (
-          <PatientNavItem
-            key={item.href}
-            href={item.href}
-            icon={item.icon}
-            label={item.label}
-            disabled={item.disabled}
-            tooltip={"tooltip" in item ? item.tooltip : undefined}
-            badge={item.href === "/notifications" ? unreadCount : undefined}
-            variant="sidebar"
-          />
+          <span key={item.href} className="contents">
+            <PatientNavItem
+              href={item.href}
+              icon={item.icon}
+              label={item.label}
+              disabled={item.disabled}
+              tooltip={"tooltip" in item ? item.tooltip : undefined}
+              badge={item.href === "/notifications" ? unreadCount : undefined}
+              variant="sidebar"
+            />
+            {item.href === PARCOURS_INSERT_AFTER_HREF && (
+              <PatientNavParcoursItem variant="sidebar" />
+            )}
+          </span>
         ))}
       </nav>
     </aside>

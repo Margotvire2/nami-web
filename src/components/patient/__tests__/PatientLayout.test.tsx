@@ -43,6 +43,13 @@ vi.mock("@/lib/api", () => ({
   }),
 }));
 
+// Mock du hook usePatientCareCases utilisé par <PatientNavParcoursItem/>
+// inséré dans la sidebar (PR V1-NAV-PATIENT-MULTI-CARECASE).
+// Par défaut : 0 CareCase → branche "disabled + Bientôt — démarrez..."
+vi.mock("@/hooks/usePatientCareCases", () => ({
+  usePatientCareCases: () => ({ data: [], isLoading: false }),
+}));
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function renderWithClient(ui: React.ReactNode) {
@@ -78,17 +85,19 @@ beforeEach(() => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Test 1 — PatientSidebar rend 7 entrées avec bons labels
+// Test 1 — PatientSidebar rend les 8 entrées (Notifications + Parcours adaptatif)
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("PatientSidebar", () => {
-  it("1. rend 8 entrées avec les bons libellés (Notifications inséré post-RDV)", () => {
+  it("1. rend 8 entrées avec les bons libellés (Notifications + Parcours adaptatif)", () => {
     renderWithClient(<PatientSidebar />);
 
     expect(screen.getByText("Accueil")).toBeInTheDocument();
     expect(screen.getByText("Trouver un soignant")).toBeInTheDocument();
     expect(screen.getByText("Mes rendez-vous")).toBeInTheDocument();
     expect(screen.getByText("Notifications")).toBeInTheDocument();
+    // "Mon parcours" provient désormais de <PatientNavParcoursItem/> —
+    // branche 0 CareCase = item disabled avec ce libellé.
     expect(screen.getByText("Mon parcours")).toBeInTheDocument();
     expect(screen.getByText("Mon suivi")).toBeInTheDocument();
     expect(screen.getByText("Mes messages")).toBeInTheDocument();
@@ -96,25 +105,31 @@ describe("PatientSidebar", () => {
   });
 
   // ═════════════════════════════════════════════════════════════════════════
-  // Test 2 — Entries disabled (3) avec attribut title "Bientôt disponible"
+  // Test 2 — "Trouver un soignant" disabled (tooltip "Bientôt disponible")
+  //          + "Mon parcours" disabled via PatientNavParcoursItem (branche 0)
   // ═════════════════════════════════════════════════════════════════════════
-  it("2. les 3 entries disabled (Trouver soignant / Parcours / Suivi) sont non-cliquables + title 'Bientôt disponible'", () => {
+  it("2. 'Trouver un soignant' disabled tooltip + 'Mon parcours' disabled (branche 0 CareCase)", () => {
     renderWithClient(<PatientSidebar />);
 
-    const disabledLabels = ["Trouver un soignant", "Mon parcours", "Mon suivi"];
-    for (const label of disabledLabels) {
-      const node = screen.getByText(label).closest('[aria-disabled="true"]');
-      expect(node).not.toBeNull();
-      expect(node).toHaveAttribute("title", "Bientôt disponible");
-      // .closest div n'a pas de role link → pas de Link Next.js (non-cliquable)
-      expect(node?.tagName).toBe("DIV");
-    }
+    // Item "Trouver un soignant" → disabled NAV_ITEMS classique
+    const trouver = screen.getByText("Trouver un soignant").closest('[aria-disabled="true"]');
+    expect(trouver).not.toBeNull();
+    expect(trouver).toHaveAttribute("title", "Bientôt disponible");
+    expect(trouver?.tagName).toBe("DIV");
 
-    // Les 5 entries actives sont en <a> Link (Notifications inclus)
+    // Item "Mon parcours" via PatientNavParcoursItem (branche 0 CareCase)
+    // → disabled avec tooltip dédié "Bientôt — démarrez avec un soignant"
+    const parcours = screen.getByText("Mon parcours").closest('[aria-disabled="true"]');
+    expect(parcours).not.toBeNull();
+    expect(parcours).toHaveAttribute("title", "Bientôt — démarrez avec un soignant");
+    expect(parcours?.tagName).toBe("DIV");
+
+    // Les autres entries actives sont en <a> Link
     const activeLabels = [
       "Accueil",
       "Mes rendez-vous",
       "Notifications",
+      "Mon suivi",
       "Mes messages",
       "Mes documents",
     ];
@@ -188,14 +203,14 @@ describe("PatientHeader", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Test 5 — PatientBottomNav : 4 entrées primaires + bouton Plus⋯ + 4 items secondary
+// Test 5 — PatientBottomNav : 5 entrées primaires + bouton Plus⋯ + items secondary
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("PatientBottomNav", () => {
   it("5. rend 5 entrées primaires (Notifs inséré) + bouton 'Plus' qui ouvre un drawer avec 4 items secondaires", () => {
     renderWithClient(<PatientBottomNav />);
 
-    // 5 entrées primaires : Accueil, RDV, Notifs, Parcours (disabled), Messages
+    // 5 entrées primaires : Accueil, RDV, Notifs, Parcours, Messages
     expect(screen.getByText("Accueil")).toBeInTheDocument();
     expect(screen.getByText("RDV")).toBeInTheDocument();
     expect(screen.getByText("Notifs")).toBeInTheDocument();
@@ -212,7 +227,7 @@ describe("PatientBottomNav", () => {
     // Ouvrir le drawer
     fireEvent.click(moreBtn);
 
-    // 4 items secondaires visibles : Trouver soignant (disabled), Suivi (disabled), Documents, Mon compte
+    // 4 items secondaires visibles : Trouver soignant (disabled), Suivi, Documents, Mon compte
     expect(screen.getByText("Trouver un soignant")).toBeInTheDocument();
     expect(screen.getByText("Mon suivi")).toBeInTheDocument();
     expect(screen.getByText("Mes documents")).toBeInTheDocument();
