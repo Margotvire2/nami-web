@@ -2966,6 +2966,34 @@ export interface PatientNotificationFeed {
   unreadCount: number;
 }
 
+// ─── Préférences notifications patient (CC #90 backend + CC #93 wire) ────────
+// Matrice 5 catégories × 4 canaux. Absence côté backend = enabled=true (les
+// nouveaux patients reçoivent tout par défaut). Les canaux désactivés sont
+// filtrés par NotificationService.create en prod (CC #93).
+export const NOTIFICATION_PREFERENCE_CATEGORIES = [
+  "APPOINTMENTS",
+  "DOCUMENTS_SHARED",
+  "MESSAGES",
+  "PATHWAY",
+  "COORDINATION",
+] as const;
+export type NotificationPreferenceCategory =
+  (typeof NOTIFICATION_PREFERENCE_CATEGORIES)[number];
+
+export const NOTIFICATION_PREFERENCE_CHANNELS = [
+  "EMAIL",
+  "PUSH",
+  "SMS",
+  "IN_APP",
+] as const;
+export type NotificationPreferenceChannel =
+  (typeof NOTIFICATION_PREFERENCE_CHANNELS)[number];
+
+export type NotificationPreferencesMatrix = Record<
+  NotificationPreferenceCategory,
+  Record<NotificationPreferenceChannel, boolean>
+>;
+
 // ─── Indicateurs /suivi patient (CC #95 backend) ─────────────────────────────
 // MDR strict côté backend : aucun champ interprétatif (normal/anormal/alert).
 // "trend" = direction numérique pure entre les 2 dernières mesures.
@@ -3345,6 +3373,32 @@ export function apiWithToken(token: string) {
             token,
           );
         },
+      },
+
+      // ─── Préférences notifications patient (CC #90 + CC #93 backend) ──────
+      // GET   /patient/notification-preferences → matrice 5 cat × 4 canaux
+      // PATCH /patient/notification-preferences → toggle 1 cellule (upsert)
+      // Backend : src/routes/patientPortal.ts + services/notificationPreferences.service.ts
+      // Sémantique : absence DB = enabled=true (les nouveaux patients reçoivent
+      // tout par défaut). NotificationService.create filtre déjà les canaux
+      // désactivés via canSendNotification (PR #80 wire CC #93).
+      notificationPreferences: {
+        get: () =>
+          request<NotificationPreferencesMatrix>(
+            "/patient/notification-preferences",
+            {},
+            token,
+          ),
+        update: (body: {
+          category: NotificationPreferenceCategory;
+          channel: NotificationPreferenceChannel;
+          enabled: boolean;
+        }) =>
+          request<{ success: boolean }>(
+            "/patient/notification-preferences",
+            { method: "PATCH", body: JSON.stringify(body) },
+            token,
+          ),
       },
 
       // ─── Notifications patient (F-PATIENT-ACCUEIL-DASHBOARD-V2-LIVE-DATA) ──
