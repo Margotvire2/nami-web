@@ -24,13 +24,9 @@ export function useAdminMemberships() {
     queryFn: async (): Promise<AdminMembership[]> => {
       if (!accessToken) return [];
       const all: OrganizationMembership[] = await organizationsApi.mine(accessToken);
+      // Backend /organizations/mine filtre déjà status=ACTIVE et expose myRole directement.
       return all
-        .filter((o) => {
-          const m = o.myMembership;
-          if (!m) return false;
-          if (m.status !== "ACTIVE") return false;
-          return m.memberRole === "ADMIN" || m.memberRole === "OWNER";
-        })
+        .filter((o) => o.myRole === "ADMIN" || o.myRole === "OWNER")
         .map((o) => ({ id: o.id, name: o.name, type: o.type }));
     },
     enabled: !!accessToken && !!personId,

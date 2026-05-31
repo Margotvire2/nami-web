@@ -3993,15 +3993,25 @@ export type OrganizationMemberStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 export type OrganizationMemberRole = "MEMBER" | "ADMIN" | "OWNER";
 export type DirectoryVisibility = "PUBLIC" | "ORG_ONLY" | "HIDDEN";
 
+// Shape retourné par GET /organizations/mine — le backend filtre déjà sur
+// status=ACTIVE et expose directement le rôle dans `myRole`. Voir
+// src/routes/organizations.ts dans le repo backend.
 export interface OrganizationMembership {
   id: string;
   name: string;
   type: string;
-  myMembership: {
+  description?: string | null;
+  specialty?: string | null;
+  city?: string | null;
+  logoUrl?: string | null;
+  memberCount: number;
+  myRole: OrganizationMemberRole;
+  conversations?: Array<{
     id: string;
-    memberRole: OrganizationMemberRole;
-    status: OrganizationMemberStatus;
-  } | null;
+    name: string | null;
+    _count: { messages: number };
+    messages: Array<{ createdAt: string }>;
+  }>;
 }
 
 export interface MembershipRequest {

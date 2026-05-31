@@ -100,11 +100,9 @@ export default function LoginPage() {
     let adminOrgIds: string[] = [];
     try {
       const orgs = await organizationsApi.mine(accessToken);
+      // Backend filtre déjà status=ACTIVE et expose myRole directement.
       adminOrgIds = orgs
-        .filter((o) => {
-          const m = o.myMembership;
-          return !!m && m.status === "ACTIVE" && (m.memberRole === "ADMIN" || m.memberRole === "OWNER");
-        })
+        .filter((o) => o.myRole === "ADMIN" || o.myRole === "OWNER")
         .map((o) => o.id);
     } catch {
       adminOrgIds = [];
