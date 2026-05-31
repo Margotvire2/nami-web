@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import { HubLinkButton } from "@/components/patient/HubLinkButton";
 import { MesSoignantsList } from "./MesSoignantsList";
 import type { AuthorizedProvider } from "./mock-data";
 import type { PatientCareCaseSummary } from "./types";
@@ -44,13 +45,20 @@ export function CareCaseSection({
         >
           {careCase.caseTitle}
         </h2>
-        {!isLoading && !isError && (
-          <span className="text-sm text-[#6B7280] shrink-0">
-            {count === 0
-              ? "Aucun soignant"
-              : `${count} soignant${count > 1 ? "s" : ""}`}
-          </span>
-        )}
+        <div className="flex items-baseline gap-4 shrink-0">
+          {!isLoading && !isError && (
+            <span className="text-sm text-[#6B7280]">
+              {count === 0
+                ? "Aucun soignant"
+                : `${count} soignant${count > 1 ? "s" : ""}`}
+            </span>
+          )}
+          <HubLinkButton
+            careCaseId={careCase.id}
+            careCaseLabel={careCase.caseTitle}
+            sectionAnchor="soignants"
+          />
+        </div>
       </div>
 
       {isLoading ? (
