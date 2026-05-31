@@ -1,0 +1,42 @@
+name: Conflict Markers Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-conflict-markers:
+    name: Check unresolved conflict markers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan tree for unresolved conflict markers
+        run: |
+          set -e
+          PATTERN='^<<<<<<<\|^=======\|^>>>>>>>'
+          TARGETS=(src public .github)
+          for f in package.json tsconfig.json next.config.ts next.config.js next.config.mjs; do
+            [ -f "$f" ] && TARGETS+=("$f")
+          done
+          if grep -rln "$PATTERN" \
+              --include="*.ts" --include="*.tsx" \
+              --include="*.js" --include="*.jsx" \
+              --include="*.json" \
+              --include="*.yml" --include="*.yaml" \
+              --include="*.md" \
+              --include="*.css" \
+              --include="*.html" \
+              "${TARGETS[@]}" 2>/dev/null; then
+            echo ""
+            echo "❌ Conflict markers détectés ci-dessus — résoudre avant merge."
+            echo "   (incident PR #129 du 31/05 — 9 markers pushés en remote dans page-client.tsx)"
+            exit 1
+          fi
+          echo "✅ Aucun marker de conflit non résolu."

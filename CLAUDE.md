@@ -126,3 +126,12 @@ Nami remplit la case vide : coordination pluridisciplinaire ville-hôpital + int
 - Avant de construire une page pitch ou investisseur : lire docs/pitch-deck-scroll/SKILL.md et ses references/
 - Avant d'écrire du copy marketing ou UI : respecter les mots interdits ci-dessus
 - Avant de toucher au design : palette Nami + proportions premium (sections 100vh, titres géants)
+
+## Garde-fou conflict markers
+
+Symétrique à PR #104 sur le repo backend `nami`. Deux étages :
+
+- **Local** : `scripts/check-conflict-markers.sh` — exécuté via `npm run check:conflict-markers`. Avec `--staged`, scanne uniquement les fichiers staged (à câbler dans `.husky/pre-commit` le jour où husky est ajouté).
+- **CI** : `.github/workflows/conflict-markers-guard.yml` — bloque tout PR ciblant `main` qui contient un marker non résolu (`<<<<<<<`, `=======`, `>>>>>>>`) dans `.ts/.tsx/.js/.jsx/.json/.yml/.yaml/.md/.css/.html`.
+
+**Pourquoi** : incident PR #129 du 31/05 — 9 markers pushés en remote dans `page-client.tsx`, attrappés avant `gh pr merge`. Sans ce garde-fou, `main` aurait été cassé comme l'incident backend PR #101 (hotfix 688ba577).
