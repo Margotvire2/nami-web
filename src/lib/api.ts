@@ -2798,6 +2798,8 @@ export interface PatientMe {
   person: {
     id: string; firstName: string; lastName: string; email: string;
     phone: string | null; birthDate: string | null; sex: string | null; photoUrl: string | null;
+    // PR #76 backend (CC #92) — adresse FR du PatientProfile, mapping API postalCode ↔ DB.zipcode
+    address: string | null; city: string | null; postalCode: string | null;
   };
   careCases: Array<{
     id: string; caseTitle: string; caseType: string; status: string; startDate: string;
@@ -2897,6 +2899,44 @@ export interface PatientDocument {
   id: string; title: string; documentType: string; fileUrl: string;
   mimeType: string; sizeBytes: number; createdAt: string; careCaseId: string;
   uploadedBy: { firstName: string; lastName: string; roleType: string };
+}
+
+/**
+ * Soignant autorisé sur le dossier de coordination du patient connecté.
+ * Renvoyé par GET /patient/care-team (optionnellement filtré par careCaseId).
+ * Aucune donnée clinique exposée — uniquement identité + spécialité publique
+ * + stats RDV administratives.
+ *
+ * Backend source : nami/src/services/patientCareTeam.service.ts
+ * (PatientAuthorizedProvider). PR #83 = F-CARETEAM-V2-OPTIM.
+ */
+export interface PatientAuthorizedProvider {
+  id: string; // ProviderProfile.id
+  firstName: string;
+  lastName: string;
+  specialty: string | null;
+  avatarUrl: string | null;
+  authorizedSince: string; // ISO
+  lastAppointmentAt: string | null; // ISO
+  totalAppointments: number;
+  slug: string;
+}
+
+/**
+ * CareCase ACTIVE du patient connecté (administratif uniquement).
+ * Renvoyé par GET /patient/care-cases.
+ *
+ * Backend source : nami/src/services/patientCareCases.service.ts
+ * (PatientCareCaseSummary). PR #83 = F-PATIENT-CARECASES-LIST-COMPANION.
+ */
+export interface PatientCareCaseSummary {
+  id: string;
+  caseTitle: string;
+  caseType: string;
+  status: string;
+  startDate: string; // ISO
+  organizationId: string | null;
+  organizationName: string | null;
 }
 
 /**
@@ -3293,7 +3333,15 @@ export function apiWithToken(token: string) {
     },
     patient: {
       me: () => request<PatientMe>("/patient/me", {}, token),
-      patchMe: (data: { phone?: string; birthDate?: string; sex?: string }) =>
+      patchMe: (data: {
+        phone?: string;
+        birthDate?: string;
+        sex?: string;
+        // PR #76 backend (CC #92) — adresse FR (postalCode ↔ DB.zipcode mappé côté backend)
+        address?: string;
+        city?: string;
+        postalCode?: string;
+      }) =>
         request<PatientMe["person"]>("/patient/me", { method: "PATCH", body: JSON.stringify(data) }, token),
       switchableProfiles: () =>
         request<SwitchableProfile[]>("/patient/switchable-profiles", {}, token),
@@ -3397,6 +3445,37 @@ export function apiWithToken(token: string) {
           request<{ success: boolean }>(
             "/patient/notification-preferences",
             { method: "PATCH", body: JSON.stringify(body) },
+            token,
+          ),
+      },
+
+      // ─── Care team & parcours (CC #SOIGNANTS-V2 — F-MES-SOIGNANTS-REAL-API) ─
+      // GET    /patient/care-cases             → liste des CareCase ACTIVE
+      // GET    /patient/care-team?careCaseId=  → care team filtrée par parcours
+      // DELETE /patient/care-team/:providerId  → révoque l'accès sur tous CareCases
+      careCases: {
+        list: () =>
+          request<PatientCareCaseSummary[]>("/patient/care-cases", {}, token),
+      },
+      careTeam: {
+        list: (params?: { careCaseId?: string; onBehalfOf?: string }) => {
+          const qs = new URLSearchParams();
+          if (params?.careCaseId) qs.set("careCaseId", params.careCaseId);
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientAuthorizedProvider[]>(
+            `/patient/care-team${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+        revoke: (providerId: string, reason?: string) =>
+          request<{ revokedCount: number }>(
+            `/patient/care-team/${providerId}`,
+            {
+              method: "DELETE",
+              body: JSON.stringify(reason ? { reason } : {}),
+            },
             token,
           ),
       },
