@@ -3463,11 +3463,36 @@ export function apiWithToken(token: string) {
         },
         // POST /patient/documents/upload — multipart, title obligatoire
         // (auto-généré côté hook). documentType fixé BIOLOGICAL_REPORT.
-        upload: (file: File, title: string) => {
+        //
+        // Routing CC #UPLOAD-MODAL-CARECASE-PICKER (backend PR #96) :
+        //   - careCaseIds[]              : un ou plusieurs CareCases (fan-out équipes)
+        //   - directRecipientPersonId    : DM 1 soignant (pas de fan-out équipe)
+        //   - XOR client-side : si DM set, careCaseIds est ignoré.
+        //
+        // Backward compat : si aucun routing fourni, le backend fallback sur le
+        // CareCase actif le plus récent (legacy comportement avant PR #96).
+        upload: (
+          file: File,
+          title: string,
+          routing?: {
+            careCaseIds?: string[];
+            directRecipientPersonId?: string;
+          },
+        ) => {
           const fd = new FormData();
           fd.append("file", file);
           fd.append("documentType", "BIOLOGICAL_REPORT");
           fd.append("title", title);
+
+          // XOR client-side : DM exclut careCaseIds.
+          if (routing?.directRecipientPersonId) {
+            fd.append("directRecipientPersonId", routing.directRecipientPersonId);
+          } else if (routing?.careCaseIds && routing.careCaseIds.length > 0) {
+            for (const id of routing.careCaseIds) {
+              fd.append("careCaseIds[]", id);
+            }
+          }
+
           return request<PatientBilanCreated>(
             "/patient/documents/upload",
             { method: "POST", body: fd },
