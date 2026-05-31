@@ -35,7 +35,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const p = getPathologyBySlug(slug)
-  if (!p) return { title: "Pathologie introuvable" }
+  // Canonical autoréférent même en cas de pathologie introuvable : évite que Google
+  // indexe ces URLs comme duplicate de la homepage via le metadataBase hérité.
+  if (!p) return {
+    title: "Pathologie introuvable",
+    robots: { index: false, follow: false },
+    alternates: { canonical: `/pathologies/${slug}` },
+  }
 
   return {
     title: p.title,
