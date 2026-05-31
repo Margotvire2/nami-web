@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, MessageCircle, Loader2, Lock, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, MessageCircle, Loader2, Lock, UserPlus, Newspaper, Calendar, Search, BookOpen, Settings, ChevronRight } from "lucide-react";
 import { formatProviderSpecialty } from "@/lib/provider-display";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -61,6 +61,118 @@ function MemberCard({ m }: { m: Member }) {
   );
 }
 
+function PlaceholderSection({
+  icon,
+  title,
+  subtitle,
+  accent,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  accent: string;
+}) {
+  return (
+    <div
+      data-testid={`placeholder-${title.toLowerCase().replace(/[^a-z]/g, "-")}`}
+      className="bg-white rounded-xl border border-dashed border-[#E8ECF4] p-5"
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: `${accent}15`, color: accent }}
+          aria-hidden
+        >
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3
+              className="text-[14px] font-semibold text-[#1A1A2E]"
+              style={{ fontFamily: "var(--font-jakarta)" }}
+            >
+              {title}
+            </h3>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#64748B] tracking-wide">
+              Bientôt
+            </span>
+          </div>
+          <p className="text-[12px] text-[#64748B] leading-relaxed">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniMemberAvatar({ m }: { m: Member }) {
+  const initials = `${m.firstName?.[0] ?? "?"}${m.lastName?.[0] ?? ""}`;
+  if (m.photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={m.photoUrl}
+        alt={`${m.firstName} ${m.lastName}`}
+        className="w-9 h-9 rounded-full object-cover ring-2 ring-white shrink-0"
+      />
+    );
+  }
+  return (
+    <div
+      className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white ring-2 ring-white shrink-0"
+      style={{ background: "linear-gradient(135deg, #5B4EC4, #2BA89C)" }}
+      aria-hidden
+    >
+      {initials}
+    </div>
+  );
+}
+
+function DirectoryCard({ org, isMember }: { org: OrgDetail; isMember: boolean }) {
+  const previewMembers = (org.members ?? []).slice(0, 4);
+  const remaining = Math.max(0, org.memberCount - previewMembers.length);
+
+  return (
+    <Link
+      href={`/reseau/${org.id}/annuaire`}
+      data-testid="directory-preview-card"
+      className="block bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-5 hover:border-[rgba(91,78,196,0.2)] transition-all"
+      style={{ boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Users size={15} className="text-[#5B4EC4]" strokeWidth={1.75} />
+          <h3
+            className="text-[14px] font-semibold text-[#1A1A2E]"
+            style={{ fontFamily: "var(--font-jakarta)" }}
+          >
+            Annuaire des membres
+          </h3>
+        </div>
+        <ChevronRight size={16} className="text-[#94A3B8]" strokeWidth={1.75} />
+      </div>
+
+      {previewMembers.length > 0 ? (
+        <div className="flex items-center gap-3">
+          <div className="flex -space-x-2">
+            {previewMembers.map((m) => (
+              <MiniMemberAvatar key={m.personId} m={m} />
+            ))}
+          </div>
+          <span className="text-[12px] text-[#64748B]">
+            {remaining > 0 ? `+${remaining} autre${remaining > 1 ? "s" : ""} membre${remaining > 1 ? "s" : ""}` : `${org.memberCount} membre${org.memberCount > 1 ? "s" : ""}`}
+          </span>
+        </div>
+      ) : (
+        <p className="text-[12px] text-[#64748B] leading-relaxed">
+          {isMember
+            ? `Découvrez les ${org.memberCount} membre${org.memberCount > 1 ? "s" : ""} de l'organisation.`
+            : "L'annuaire affiche les membres ayant choisi d'être visibles publiquement. Les profils complets sont réservés aux membres."}
+        </p>
+      )}
+    </Link>
+  );
+}
+
 export default function OrgDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { accessToken } = useAuthStore();
@@ -98,6 +210,7 @@ export default function OrgDetailPage() {
 
   const isMember = org.myMembership?.status === "ACCEPTED";
   const isPending = org.myMembership?.status === "PENDING";
+  const isAdmin = isMember && (org.myMembership?.memberRole === "ADMIN" || org.myMembership?.memberRole === "OWNER");
   const color = ORG_TYPE_COLORS[org.type] ?? "#5B4EC4";
 
   const TABS = [
@@ -145,7 +258,16 @@ export default function OrgDetailPage() {
               {isPending && (
                 <div className="px-4 py-2 rounded-[10px] text-[12px] font-medium text-[#64748B] bg-[#F1F5F9] shrink-0">⏳ Demande en attente</div>
               )}
-              {isMember && (
+              {isAdmin ? (
+                <Link
+                  href={`/structure/${id}/admin`}
+                  data-testid="admin-console-link"
+                  className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-[13px] font-semibold text-white transition-colors shrink-0 hover:opacity-90"
+                  style={{ background: color }}
+                >
+                  <Settings size={13} strokeWidth={2} /> Console d&apos;animation
+                </Link>
+              ) : isMember && (
                 <div className="px-4 py-2 rounded-[10px] text-[12px] font-medium shrink-0" style={{ background: `${color}12`, color }}>✓ Membre</div>
               )}
             </div>
@@ -185,9 +307,57 @@ export default function OrgDetailPage() {
                 <p className="text-[14px] text-[#374151] leading-relaxed">{org.description}</p>
               </div>
             )}
+
+            {/* Annuaire — encart preview membres */}
+            <DirectoryCard org={org} isMember={isMember} />
+
+            {/* Actualités du réseau — placeholder V2 */}
+            <PlaceholderSection
+              icon={<Newspaper size={16} strokeWidth={1.75} />}
+              title="Actualités du réseau"
+              subtitle="Les publications de l'organisation arrivent bientôt. Coordonnateurs : prises de parole, infos pratiques, comptes-rendus."
+              accent="#5B4EC4"
+            />
+
+            {isMember && (
+              <>
+                {/* Événements à venir — placeholder V2 */}
+                <PlaceholderSection
+                  icon={<Calendar size={16} strokeWidth={1.75} />}
+                  title="Événements à venir"
+                  subtitle="Sessions de coordination, formations, RCP de l'organisation. Bientôt accessibles ici."
+                  accent="#2BA89C"
+                />
+
+                {/* Recherche — placeholder V2 */}
+                <PlaceholderSection
+                  icon={<Search size={16} strokeWidth={1.75} />}
+                  title="Rechercher dans le réseau"
+                  subtitle="Une barre de recherche pour retrouver un membre, une discussion ou une ressource partagée."
+                  accent="#4F8FEC"
+                />
+
+                {/* Ressources partagées — placeholder V2 */}
+                <PlaceholderSection
+                  icon={<BookOpen size={16} strokeWidth={1.75} />}
+                  title="Ressources partagées"
+                  subtitle="Protocoles, documents de référence et ressources de l'organisation, accessibles à tous les membres."
+                  accent="#F59E0B"
+                />
+              </>
+            )}
+
             {isMember && org.conversations && org.conversations.length > 0 && (
               <div className="bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-5" style={{ boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}>
-                <div className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-3">Discussions actives</div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide">Discussions actives</div>
+                  <button
+                    onClick={() => setActiveTab("discussions")}
+                    className="text-[11px] font-medium text-[#5B4EC4] hover:underline"
+                  >
+                    Tout voir
+                  </button>
+                </div>
                 {org.conversations.slice(0, 3).map((c) => (
                   <div key={c.id} className="flex items-center gap-3 py-2.5 border-b last:border-0 border-[#F1F5F9]">
                     <MessageCircle size={16} className="text-[#5B4EC4] shrink-0" strokeWidth={1.75} />
@@ -200,10 +370,21 @@ export default function OrgDetailPage() {
                 ))}
               </div>
             )}
+
             {!isMember && (
               <div className="bg-[#F8F8FF] rounded-xl border border-[rgba(91,78,196,0.15)] p-5">
                 <div className="text-[13px] font-semibold text-[#5B4EC4] mb-1.5">Rejoignez ce réseau pour accéder au contenu</div>
-                <p className="text-[12px] text-[#64748B]">Les membres ont accès aux discussions, à l&apos;annuaire des membres, et aux événements.</p>
+                <p className="text-[12px] text-[#64748B] mb-3">Les membres ont accès aux discussions, à l&apos;annuaire complet des membres, aux événements et aux ressources partagées.</p>
+                {!isPending && (
+                  <button
+                    onClick={() => joinMutation.mutate(undefined)}
+                    disabled={joinMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-[13px] font-semibold text-white transition-colors"
+                    style={{ background: "#5B4EC4" }}
+                  >
+                    {org.requiresApproval ? <><Lock size={13} /> Demander à rejoindre</> : <><UserPlus size={13} /> Rejoindre</>}
+                  </button>
+                )}
               </div>
             )}
           </div>
