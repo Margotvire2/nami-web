@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SENSATION_COLORS, MACRO_COLORS, namiPalette } from "@/lib/namiColors"
+import { useSpecialtyView } from "@/hooks/useSpecialtyView"
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const V  = namiPalette.violet[500]  // violet — données primaires
@@ -795,6 +796,7 @@ function CrisisCard({ entry }: { entry: JournalEntry }) {
 export function PatientJournalView({ careCaseId, pathwayName, currentPhase, permissions }: Props) {
   const { accessToken } = useAuthStore()
   const api = apiWithToken(accessToken!)
+  const { journalTypes: metierJournalTypes, isGenericView } = useSpecialtyView()
   const [period, setPeriod] = useState<Period>("7d")
   const [overviewWeekOffset, setOverviewWeekOffset] = useState(0)
 
@@ -967,39 +969,75 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
 
       {filtered.length > 0 && (
         <>
-          {/* ── Stats row ── */}
-          <div className="flex gap-3 flex-wrap">
-            <StatCard
-              icon={<Brain size={14} style={{ color: V }} />}
-              title="Énergie"
-              value={avgEnergy != null ? `${avgEnergy}%` : "—"}
-              sub={energyEntries.length > 0 ? `${energyEntries.length} check-ins` : "Pas de données"}
-              trend={avgEnergy != null ? (avgEnergy > 60 ? "up" : avgEnergy < 40 ? "down" : "stable") : undefined}
-            />
-            <StatCard
-              icon={<span className="text-sm">🍽</span>}
-              title="Repas enregistrés"
-              value={String(meals.length)}
-              sub={period === "7d" ? "cette semaine" : "sur la période"}
-            />
-            {!anorexiaSurveillance ? (
-              <StatCard
-                icon={<Activity size={14} style={{ color: T }} />}
-                title="Activité"
-                value={`${totalActivityMin} min`}
-                sub={avgPleasure != null ? `Plaisir ${avgPleasure}/10` : "—"}
-                trend={totalActivityMin >= 150 ? "up" : totalActivityMin > 0 ? "stable" : undefined}
-              />
-            ) : (
-              <StatCard
-                icon={<Activity size={14} className="text-amber-500" />}
-                title="Activité — À évaluer"
-                value={`${totalActivityMin} min`}
-                sub={painCount > 0 ? `${painCount} douleurs` : "—"}
-                alert={totalActivityMin > 420 || (avgPleasure === 0 && totalActivityMin > 60)}
-              />
-            )}
-          </div>
+          {/* ── Stats row — réordonnée selon les journalTypes du métier ── */}
+          {(() => {
+            const cards: { key: "EMOTION" | "MEAL" | "PHYSICAL_ACTIVITY"; node: React.ReactNode }[] = [
+              {
+                key: "EMOTION",
+                node: (
+                  <StatCard
+                    key="energy"
+                    icon={<Brain size={14} style={{ color: V }} />}
+                    title="Énergie"
+                    value={avgEnergy != null ? `${avgEnergy}%` : "—"}
+                    sub={energyEntries.length > 0 ? `${energyEntries.length} check-ins` : "Pas de données"}
+                    trend={avgEnergy != null ? (avgEnergy > 60 ? "up" : avgEnergy < 40 ? "down" : "stable") : undefined}
+                  />
+                ),
+              },
+              {
+                key: "MEAL",
+                node: (
+                  <StatCard
+                    key="meals"
+                    icon={<span className="text-sm">🍽</span>}
+                    title="Repas enregistrés"
+                    value={String(meals.length)}
+                    sub={period === "7d" ? "cette semaine" : "sur la période"}
+                  />
+                ),
+              },
+              {
+                key: "PHYSICAL_ACTIVITY",
+                node: !anorexiaSurveillance ? (
+                  <StatCard
+                    key="activity"
+                    icon={<Activity size={14} style={{ color: T }} />}
+                    title="Activité"
+                    value={`${totalActivityMin} min`}
+                    sub={avgPleasure != null ? `Plaisir ${avgPleasure}/10` : "—"}
+                    trend={totalActivityMin >= 150 ? "up" : totalActivityMin > 0 ? "stable" : undefined}
+                  />
+                ) : (
+                  <StatCard
+                    key="activity-watch"
+                    icon={<Activity size={14} className="text-amber-500" />}
+                    title="Activité — À évaluer"
+                    value={`${totalActivityMin} min`}
+                    sub={painCount > 0 ? `${painCount} douleurs` : "—"}
+                    alert={totalActivityMin > 420 || (avgPleasure === 0 && totalActivityMin > 60)}
+                  />
+                ),
+              },
+            ]
+            const ordered = isGenericView
+              ? cards
+              : (() => {
+                  const priority = new Map<string, number>()
+                  metierJournalTypes.forEach((t, i) => priority.set(t, i))
+                  // Stable sort : priorisé > non-priorisé ; au sein, ordre du métier ; sinon ordre d'origine.
+                  return [...cards].sort((a, b) => {
+                    const pa = priority.has(a.key) ? priority.get(a.key)! : Number.MAX_SAFE_INTEGER
+                    const pb = priority.has(b.key) ? priority.get(b.key)! : Number.MAX_SAFE_INTEGER
+                    return pa - pb
+                  })
+                })()
+            return (
+              <div className="flex gap-3 flex-wrap">
+                {ordered.map((c) => c.node)}
+              </div>
+            )
+          })()}
 
           {/* ── Alert banner ── */}
           <AlertBanner

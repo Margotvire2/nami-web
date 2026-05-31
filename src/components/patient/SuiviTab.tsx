@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { Pencil, FileText, Scale, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react"
 import { getMetricRange, getValueColor, getQuestionnaireScoring } from "@/lib/metricRanges"
 import { MetricDef, KEY_TO_METRIC, interpretValue, EXAM_TYPE_LABELS } from "@/lib/metricCatalog"
+import { useSpecialtyView } from "@/hooks/useSpecialtyView"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
@@ -479,7 +480,19 @@ export function SuiviTab({ careCaseId, pathwayKey, personId, patient, height, na
 function DeltaCard({ obs, pathwayKey, sex, age, height }: {
   obs: Map<string, ObsRecord>; pathwayKey: string; sex: string; age: number; height?: number
 }) {
-  const keys = ["weight_kg", "heart_rate_bpm", "potassium_mmol", "phosphore_mmol", "phq9_score", "eat26_score"]
+  const { metrics: metierMetrics, isGenericView } = useSpecialtyView()
+  const baseKeys = ["weight_kg", "heart_rate_bpm", "potassium_mmol", "phosphore_mmol", "phq9_score", "eat26_score"]
+  const metierSet = new Set(metierMetrics)
+  // Métier prioritaires d'abord (ceux du référentiel + ceux du métier non encore listés),
+  // puis le reste. Fallback ordre d'origine si vue générique ou aucun match.
+  const matched = baseKeys.filter((k) => metierSet.has(k))
+  const keys = !isGenericView && matched.length > 0
+    ? [
+        ...matched,
+        ...metierMetrics.filter((k) => !baseKeys.includes(k) && KEY_TO_METRIC[k]),
+        ...baseKeys.filter((k) => !metierSet.has(k)),
+      ]
+    : baseKeys
   const deltas = keys.map((k) => {
     const o = obs.get(k)
     const v = numVal(o)
@@ -506,12 +519,19 @@ function DeltaCard({ obs, pathwayKey, sex, age, height }: {
 }
 
 function BioSection({ obs, pathwayKey, sex, age }: { obs: Map<string, ObsRecord>; pathwayKey: string; sex: "MALE" | "FEMALE"; age: number | null }) {
+  const { metrics: metierMetrics, isGenericView } = useSpecialtyView()
   // Priority keys per pathway (shown first)
-  const priorityKeys = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
+  const pathwayPriority = pathwayKey.includes("anorex") || pathwayKey.includes("tca")
     ? ["potassium_mmol", "phosphorus_mmol", "albumin_g_l", "hemoglobin_g_dl", "calcium_mmol", "magnesium_mmol"]
     : pathwayKey.includes("obes")
       ? ["hba1c_percent", "fasting_glycemia_mmol", "total_cholesterol_mmol", "ldl_mmol", "hdl_mmol", "triglycerides_mmol"]
       : []
+  // Métier en tête : les clés du métier (présentes dans le catalogue + dans obs)
+  // viennent avant les clés pathway. Fallback : ordre pathway si vue générique.
+  const metierBio = !isGenericView
+    ? metierMetrics.filter((k) => KEY_TO_METRIC[k] && obs.has(k))
+    : []
+  const priorityKeys = Array.from(new Set([...metierBio, ...pathwayPriority]))
 
   // Strictement les examTypes sanguins/urine/selles
   // ANTHROPOMETRY → Synthèse clinique (section 1)
