@@ -12,9 +12,12 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { ProfileSwitcher } from "@/components/patient/ProfileSwitcher";
 import { CancelAppointmentModal } from "@/components/patient/CancelAppointmentModal";
 import { AppointmentCard } from "@/components/patient/AppointmentCard";
+import { usePatientAppointmentRequests } from "@/hooks/usePatientAppointmentRequests";
+import { useWithdrawAppointmentRequest } from "@/hooks/useWithdrawAppointmentRequest";
 import { RdvHeroCard } from "./_components/RdvHeroCard";
 import { RdvStatusTabs } from "./_components/RdvStatusTabs";
 import { RdvEmptyState } from "./_components/RdvEmptyState";
+import { DemandeCard } from "./_components/DemandeCard";
 
 const VALID_TABS: AppointmentTab[] = ["upcoming", "pending", "past", "cancelled"];
 
@@ -78,6 +81,21 @@ export default function RendezVousPage() {
     enabled: !!accessToken && !!effectiveProfileId,
   });
 
+  // ── Demandes de RDV PENDING (tab « En attente » — CC #89 PR #74) ──────────
+  // On charge en permanence pour alimenter le compteur du tab, indépendamment
+  // du tab actif. Pas de fetch si pas de profil résolu.
+  const isSelfProfile = currentProfile?.isSelf ?? true;
+  const requestsQueryParams = useMemo(
+    () => ({
+      status: "pending" as const,
+      onBehalfOf: isSelfProfile ? undefined : effectiveProfileId ?? undefined,
+    }),
+    [isSelfProfile, effectiveProfileId],
+  );
+  const { data: pendingRequests, isLoading: isLoadingRequests } =
+    usePatientAppointmentRequests(requestsQueryParams);
+  const withdrawMutation = useWithdrawAppointmentRequest();
+
   // ── Tri par tab (upcoming / past / cancelled) — pending = AppointmentRequest, pas géré ici
   const { upcomingList, pastList, cancelledList } = useMemo(() => {
     const list = appointments ?? [];
@@ -96,15 +114,22 @@ export default function RendezVousPage() {
     return { upcomingList: upcomingArr, pastList: pastArr, cancelledList: cancelledArr };
   }, [appointments]);
 
-  // Compteurs pour les badges des tabs — pending toujours 0 en V2.1
+  // Compteurs pour les badges des tabs.
+  // V2.2 (CC #RDV-DEMANDES-FUSION) : pending = nombre d'AppointmentRequest
+  // PENDING (CC #89 PR #74 backend).
   const tabCounts: Record<AppointmentTab, number> = useMemo(
     () => ({
       upcoming: upcomingList.length,
-      pending: 0,
+      pending: pendingRequests?.length ?? 0,
       past: pastList.length,
       cancelled: cancelledList.length,
     }),
-    [upcomingList.length, pastList.length, cancelledList.length],
+    [
+      upcomingList.length,
+      pendingRequests?.length,
+      pastList.length,
+      cancelledList.length,
+    ],
   );
 
   function refreshAppointments() {
@@ -173,7 +198,34 @@ export default function RendezVousPage() {
           )}
 
           {activeTab === "pending" && (
-            <RdvEmptyState variant="pending" profileFirstName={profileFirstName} />
+            <>
+              {isLoadingRequests ? (
+                <div className="flex justify-center py-12">
+                  <Loader2
+                    className="animate-spin text-[var(--nami-primary)]"
+                    size={22}
+                  />
+                </div>
+              ) : (pendingRequests?.length ?? 0) === 0 ? (
+                <RdvEmptyState variant="pending" profileFirstName={profileFirstName} />
+              ) : (
+                <ScrollReveal variant="fade-up" duration={0.5}>
+                  <div className="space-y-3">
+                    {pendingRequests!.map((req) => (
+                      <DemandeCard
+                        key={req.id}
+                        request={req}
+                        onWithdraw={(id) => withdrawMutation.mutate({ id })}
+                        isWithdrawing={
+                          withdrawMutation.isPending &&
+                          withdrawMutation.variables?.id === req.id
+                        }
+                      />
+                    ))}
+                  </div>
+                </ScrollReveal>
+              )}
+            </>
           )}
 
           {activeTab === "past" && (

@@ -32,8 +32,9 @@ const VARIANTS: Record<
   pending: {
     Icon: Clock,
     title: "Aucune demande en attente",
-    description: "Vos demandes en cours de traitement apparaissent ici.",
-    cta: { label: "Voir mes demandes en cours", href: "/rendez-vous/demandes" },
+    description:
+      "Vos demandes de rendez-vous en cours de traitement apparaîtront ici.",
+    cta: { label: "Prendre un rendez-vous", href: "/trouver-un-soignant" },
   },
   past: {
     Icon: History,

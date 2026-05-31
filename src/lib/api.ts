@@ -3034,6 +3034,46 @@ export type NotificationPreferencesMatrix = Record<
   Record<NotificationPreferenceChannel, boolean>
 >;
 
+// ─── Demandes de rendez-vous patient (CC #89 backend — PR #74) ───────────────
+// GET    /patient/appointment-requests?status=&onBehalfOf=
+// DELETE /patient/appointment-requests/:id  (transition WITHDRAWN_BY_PATIENT)
+// Shape vérifié : src/services/patientAppointmentRequests.service.ts include
+// provider { id, specialties, person { firstName, lastName } }.
+export type PatientAppointmentRequestStatus =
+  | "PENDING"
+  | "ACCEPTED"
+  | "DECLINED"
+  | "WITHDRAWN_BY_PATIENT";
+
+export interface PatientAppointmentRequest {
+  id: string;
+  providerId: string;
+  patientPersonId: string | null;
+  patientFirstName: string;
+  patientLastName: string;
+  patientEmail: string;
+  patientPhone: string | null;
+  patientBirthDate: string | null;
+  motif: string | null;
+  requestedDate: string | null;
+  locationType: string; // "IN_PERSON" | "VIDEO" | "PHONE"
+  status: PatientAppointmentRequestStatus | string;
+  careCaseId: string | null;
+  appointmentId: string | null;
+  acceptedAt: string | null;
+  declinedAt: string | null;
+  declineReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  bookedByPersonId: string | null;
+  bookedByDelegationId: string | null;
+  provider: {
+    id: string;
+    specialties: string[];
+    person: { firstName: string; lastName: string };
+  };
+}
+
 // ─── Indicateurs /suivi patient (CC #95 backend) ─────────────────────────────
 // MDR strict côté backend : aucun champ interprétatif (normal/anormal/alert).
 // "trend" = direction numérique pure entre les 2 dernières mesures.
@@ -3472,6 +3512,36 @@ export function apiWithToken(token: string) {
         revoke: (providerId: string, reason?: string) =>
           request<{ revokedCount: number }>(
             `/patient/care-team/${providerId}`,
+            {
+              method: "DELETE",
+              body: JSON.stringify(reason ? { reason } : {}),
+            },
+            token,
+          ),
+      },
+
+      // ─── Demandes de RDV patient (CC #89 backend — PR #74) ────────────────
+      // GET    /patient/appointment-requests?status=pending|accepted|declined|withdrawn|all&onBehalfOf=
+      // DELETE /patient/appointment-requests/:id (passage à WITHDRAWN_BY_PATIENT,
+      //        pas de hard delete — audit légal). Body optionnel : { reason }.
+      appointmentRequests: {
+        list: (params?: {
+          status?: "pending" | "accepted" | "declined" | "withdrawn" | "all";
+          onBehalfOf?: string;
+        }) => {
+          const qs = new URLSearchParams();
+          if (params?.status) qs.set("status", params.status);
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientAppointmentRequest[]>(
+            `/patient/appointment-requests${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+        withdraw: (id: string, reason?: string) =>
+          request<Omit<PatientAppointmentRequest, "provider">>(
+            `/patient/appointment-requests/${id}`,
             {
               method: "DELETE",
               body: JSON.stringify(reason ? { reason } : {}),
