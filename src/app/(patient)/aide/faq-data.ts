@@ -5,9 +5,8 @@
  * Avantages : zero latence, accessible offline (PWA-ready), pas de
  * dépendance backend.
  *
- * Wording strictement MDR-safe (cf. CLAUDE.md) :
- *   ❌ Aucun "diagnostic", "traitement", "prescription", "guérison"
- *   ✅ "rendez-vous", "soignant", "coordination", "compte", "données"
+ * Wording strictement MDR-safe (cf. CLAUDE.md, section "Mots interdits").
+ * Vocabulaire autorisé : rendez-vous, soignant, coordination, compte, données.
  *
  * Évolution V2 (ticket F-AIDE-FAQ-BACKEND) : remplacer ce fichier par
  * un fetch CMS pour mise à jour sans déploiement.
@@ -18,7 +17,8 @@ export type FAQIconName =
   | "message"
   | "document"
   | "account"
-  | "shield";
+  | "shield"
+  | "pathway";
 
 export interface FAQItem {
   id: string;
@@ -38,6 +38,115 @@ export interface FAQCategory {
 }
 
 export const FAQ_CATEGORIES: FAQCategory[] = [
+  // ─── Mes parcours de soins ────────────────────────────────────────────────
+  {
+    id: "mes-parcours",
+    title: "Mes parcours de soins",
+    icon: "pathway",
+    description:
+      "Comprendre vos parcours, l'isolation entre soignants et le partage ciblé",
+    items: [
+      {
+        id: "parcours-definition",
+        question: "Qu'est-ce qu'un parcours de soins sur Nami ?",
+        answerMarkdown:
+          "Un **parcours de soins** est un espace de coordination organisé autour d'un sujet précis (par exemple un suivi nutritionnel, un accompagnement pédiatrique, un bilan ponctuel). Chaque parcours regroupe **une équipe de soignants**, **les rendez-vous**, **les documents** et **les messages** rattachés à ce sujet.",
+        keywords: [
+          "parcours",
+          "carecase",
+          "définition",
+          "qu'est-ce que",
+          "coordination",
+        ],
+      },
+      {
+        id: "parcours-multiple",
+        question: "Pourquoi j'ai plusieurs parcours ?",
+        answerMarkdown:
+          "Vous avez **plusieurs parcours** lorsque vous êtes suivi(e) par plusieurs équipes pour des sujets différents — par exemple un parcours avec votre diététicienne et un autre avec un cabinet pédiatrique. Chaque parcours reste **organisé séparément** pour vous éviter de mélanger les échanges. Retrouvez la liste depuis **Accueil → Mes parcours**.",
+        keywords: [
+          "plusieurs",
+          "parcours",
+          "multi",
+          "carecase",
+          "équipes",
+          "séparé",
+        ],
+      },
+      {
+        id: "parcours-isolation",
+        question: "Mes soignants peuvent-ils voir mes autres parcours ?",
+        answerMarkdown:
+          "**Non.** Chaque parcours est **strictement isolé**. Un soignant qui fait partie d'un parcours **ne voit ni les autres parcours**, **ni leurs équipes**, **ni leurs documents**, **ni leurs messages**. Cette séparation respecte le **secret médical** : seuls les soignants explicitement ajoutés à un parcours en ont connaissance.",
+        keywords: [
+          "isolation",
+          "confidentialité",
+          "secret",
+          "voir",
+          "accès",
+          "séparation",
+          "autres parcours",
+        ],
+      },
+      {
+        id: "parcours-document-cible",
+        question: "Comment partager un document avec un seul soignant ?",
+        answerMarkdown:
+          "Quand vous ajoutez un document depuis **Mes bilans → Ajouter un document**, Nami vous demande **à quel parcours** le rattacher. Le document n'est alors visible que par les soignants **de ce parcours**. Pour le partager avec un autre soignant, ajoutez-le au parcours correspondant.",
+        keywords: [
+          "partager",
+          "document",
+          "ciblé",
+          "un seul",
+          "parcours",
+          "soignant",
+        ],
+      },
+      {
+        id: "parcours-message-prive",
+        question: "Comment envoyer un message privé à un soignant ?",
+        answerMarkdown:
+          "Dans **Mes messages**, ouvrez le parcours concerné et choisissez entre :\n\n• Un **message au parcours** (visible par toute l'équipe du parcours)\n• Un **message direct (DM)** à un soignant en particulier (visible uniquement par lui et vous)\n\nLe DM reste rattaché au parcours mais **n'est pas partagé** avec les autres soignants de l'équipe.",
+        keywords: [
+          "message",
+          "privé",
+          "direct",
+          "dm",
+          "soignant",
+          "channel",
+        ],
+      },
+      {
+        id: "parcours-nouveau",
+        question: "Mon soignant a créé un nouveau parcours, que faire ?",
+        answerMarkdown:
+          "Vous recevez une **notification** dès qu'un soignant vous ajoute à un nouveau parcours. Il apparaît automatiquement dans la liste **Accueil → Mes parcours**. Vous n'avez rien à valider : votre accord est déjà donné lors de la création du compte. Si vous ne souhaitez plus en faire partie, contactez le soignant concerné.",
+        keywords: [
+          "nouveau",
+          "créé",
+          "ajout",
+          "parcours",
+          "notification",
+          "soignant",
+        ],
+      },
+      {
+        id: "parcours-renommer",
+        question: "Comment changer le nom affiché d'un parcours ?",
+        answerMarkdown:
+          "Le **nom du parcours** est défini par le soignant qui l'a créé. Si vous trouvez le libellé peu clair, envoyez-lui un message dans la messagerie du parcours pour lui demander de l'ajuster côté soignant — il peut le renommer pour vous.",
+        keywords: [
+          "renommer",
+          "changer",
+          "nom",
+          "titre",
+          "libellé",
+          "parcours",
+        ],
+      },
+    ],
+  },
+
   // ─── Rendez-vous ──────────────────────────────────────────────────────────
   {
     id: "rendez-vous",
@@ -117,6 +226,36 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
         answerMarkdown:
           "Oui. Vos messages sont chiffrés en transit et hébergés en France chez un Hébergeur de Données de Santé certifié (HDS). Seuls vous et votre équipe soignante y ont accès.",
         keywords: ["confidentiel", "sécurité", "HDS", "chiffré", "RGPD"],
+      },
+      {
+        id: "msg-channel-vs-dm",
+        question:
+          "Quelle différence entre un message au parcours et un message direct ?",
+        answerMarkdown:
+          "Dans la messagerie de chaque parcours, vous avez deux options :\n\n• Le **message au parcours** est partagé avec **toute l'équipe** du parcours — utile pour une question qui concerne tout le monde.\n• Le **message direct (DM)** s'adresse à **un seul soignant** — utile pour une question personnelle ou un échange ciblé.\n\nLes DM restent rattachés au parcours mais ne sont **pas visibles** par les autres soignants.",
+        keywords: [
+          "channel",
+          "direct",
+          "dm",
+          "parcours",
+          "différence",
+          "privé",
+          "équipe",
+        ],
+      },
+      {
+        id: "msg-multi-parcours",
+        question: "Comment retrouver mes messages dans plusieurs parcours ?",
+        answerMarkdown:
+          "Dans **Mes messages**, vos parcours sont **listés séparément**. Chaque parcours a sa propre conversation. Les messages d'un parcours **ne sont pas mélangés** avec ceux d'un autre — l'équipe d'un parcours ne voit pas les échanges des autres parcours.",
+        keywords: [
+          "plusieurs",
+          "parcours",
+          "messages",
+          "retrouver",
+          "multi",
+          "séparé",
+        ],
       },
     ],
   },

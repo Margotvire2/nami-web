@@ -4,6 +4,7 @@ import {
   FileText,
   User as UserIcon,
   Shield,
+  Route,
   type LucideIcon,
 } from "lucide-react";
 import type { FAQCategory, FAQIconName } from "./faq-data";
@@ -15,6 +16,7 @@ const ICON_MAP: Record<FAQIconName, LucideIcon> = {
   document: FileText,
   account: UserIcon,
   shield: Shield,
+  pathway: Route,
 };
 
 interface AideCategorySectionProps {
