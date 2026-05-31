@@ -3982,7 +3982,13 @@ export interface InvoiceLineInput {
 //                                                        SUSPENDED,
 //                                                        directoryVisibility)
 
-export type MembershipRequestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
+export type MembershipRequestStatus =
+  | "PENDING"
+  | "TO_CONTACT"
+  | "IN_REVIEW"
+  | "ACCEPTED"
+  | "REJECTED"
+  | "WITHDRAWN";
 export type OrganizationMemberStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 export type OrganizationMemberRole = "MEMBER" | "ADMIN" | "OWNER";
 export type DirectoryVisibility = "PUBLIC" | "ORG_ONLY" | "HIDDEN";
@@ -4114,17 +4120,20 @@ export function isRcpPickerEligible(orgType: string): boolean {
 }
 
 export const membershipRequestsApi = {
-  create: (token: string, organizationId: string, message?: string) =>
+  // Body backend (zod) : { motivationMessage?: string }
+  create: (token: string, organizationId: string, motivationMessage?: string) =>
     request<MembershipRequest>(
       `/organizations/${organizationId}/membership-requests`,
-      { method: "POST", body: JSON.stringify({ message }) },
+      { method: "POST", body: JSON.stringify({ motivationMessage }) },
       token
     ),
 
+  // Backend zod enum : "TO_CONTACT" | "IN_REVIEW" | "ACCEPTED" | "REJECTED".
+  // V1 utilise uniquement ACCEPTED / REJECTED depuis la console d'animation.
   update: (
     token: string,
     id: string,
-    data: { status: Extract<MembershipRequestStatus, "ACCEPTED" | "DECLINED"> }
+    data: { status: Extract<MembershipRequestStatus, "ACCEPTED" | "REJECTED"> }
   ) =>
     request<MembershipRequest>(
       `/membership-requests/${id}`,
