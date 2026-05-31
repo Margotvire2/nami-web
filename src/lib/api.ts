@@ -416,12 +416,20 @@ export const messagesApi = {
     }, token),
 };
 
-// ─── Cockpit DM inbox (PR #107 backend) ──────────────────────────────────────
-
+// ─── Cockpit DM inbox (côté soignant) — backend PR #107 ──────────────────────
+// GET  /care-team/messages/dm-inbox            → liste threads DM patient↔soignant
+// GET  /care-team/messages/dm-inbox/:patientId → messages d'un thread DM
+// POST /care-team/messages/dm-inbox/:patientId → envoie un DM au patient
+//
+// Permet au cockpit /aujourd-hui d'afficher un badge "messages privés patients"
+// global, sans devoir agréger côté client la liste des CareCases.
+// Signature alignée avec PR 13 frontend (cockpit /messages tab DM) — la
+// déduplication des deux PRs se fera au merge.
 export interface CockpitDmInboxPatient {
   personId: string;
   firstName: string;
   lastName: string;
+  avatarUrl: string | null;
 }
 
 export interface CockpitDmInboxLastMessage {
