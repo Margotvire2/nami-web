@@ -4014,14 +4014,22 @@ export interface OrganizationMembership {
   }>;
 }
 
+// Shape Prisma OrganizationMembershipRequest. Tous les champs review-side
+// sont optionnels — ils n'apparaissent qu'après transition de status.
 export interface MembershipRequest {
   id: string;
   organizationId: string;
   personId: string;
   status: MembershipRequestStatus;
-  message?: string | null;
+  motivationMessage?: string | null;
+  reviewedByPersonId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+  rejectionReason?: string | null;
+  acceptedAt?: string | null;
+  organizationMemberId?: string | null;
   createdAt: string;
-  decidedAt?: string | null;
+  withdrawnAt?: string | null;
 }
 
 export interface OrganizationMember {
