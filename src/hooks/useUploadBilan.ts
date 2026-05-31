@@ -28,12 +28,25 @@ export function useUploadBilan() {
   const token = useAuthStore((s) => s.accessToken);
   const qc = useQueryClient();
 
-  return useMutation<PatientBilanCreated, ApiError, { file: File; title?: string }>({
-    mutationFn: async ({ file, title }) => {
+  return useMutation<
+    PatientBilanCreated,
+    ApiError,
+    {
+      file: File;
+      title?: string;
+      // Routing CC #UPLOAD-MODAL-CARECASE-PICKER (XOR aligné backend PR #96).
+      careCaseIds?: string[];
+      directRecipientPersonId?: string;
+    }
+  >({
+    mutationFn: async ({ file, title, careCaseIds, directRecipientPersonId }) => {
       if (!token) throw new ApiError(401, "Non authentifié");
       const api = apiWithToken(token);
       const finalTitle = (title?.trim() || formatTodayTitleFr()).slice(0, 200);
-      const bilan = await api.patient.bilans.upload(file, finalTitle);
+      const bilan = await api.patient.bilans.upload(file, finalTitle, {
+        careCaseIds,
+        directRecipientPersonId,
+      });
 
       try {
         await api.patient.bilans.analyze(bilan.id);

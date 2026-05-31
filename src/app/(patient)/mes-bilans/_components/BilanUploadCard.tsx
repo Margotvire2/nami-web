@@ -27,7 +27,19 @@ interface PhaseMessage {
   sub?: string;
 }
 
-export function BilanUploadCard() {
+interface BilanUploadCardProps {
+  /**
+   * Quand fourni : la carte ne déclenche PAS l'upload directement, mais
+   * délègue le fichier au parent (qui ouvre la modal de targeting).
+   * Backward compat : pas de prop → comportement legacy (upload immédiat
+   * vers le CareCase actif le plus récent, fan-out équipe).
+   *
+   * CC #UPLOAD-MODAL-CARECASE-PICKER (Phase 3).
+   */
+  onFileSelected?: (file: File) => void;
+}
+
+export function BilanUploadCard({ onFileSelected }: BilanUploadCardProps = {}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +67,16 @@ export function BilanUploadCard() {
       return;
     }
 
+    // Mode délégué (Phase 3) : on remet le fichier au parent et on reset.
+    // C'est le parent qui ouvre la modal de targeting + déclenche l'upload.
+    if (onFileSelected) {
+      onFileSelected(file);
+      setPhase("idle");
+      setMessage(null);
+      return;
+    }
+
+    // Mode legacy (backward compat) : upload immédiat.
     setPhase("uploading");
     setMessage({
       kind: "uploading",
