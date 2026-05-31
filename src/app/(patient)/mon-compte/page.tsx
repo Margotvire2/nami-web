@@ -27,12 +27,14 @@ import {
   ChevronDown,
   Download,
   Trash2,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DeleteAccountModal,
   type ActiveCareCaseSummary,
 } from "@/components/patient/DeleteAccountModal";
+import NotificationPreferencesMatrix from "./_components/NotificationPreferencesMatrix";
 
 // ─── Helpers UI ─────────────────────────────────────────────────────────────
 
@@ -1017,6 +1019,14 @@ export default function MonComptePage() {
             })}
           </div>
         )}
+      </Section>
+
+      {/* ─── Section 4.5 — Notifications (CC #NOTIF-PREFS-WIRE) ──────────── */}
+      {/* Matrice 5 catégories × 4 canaux. Backend PR #75 (CC #90) + filtrage   */}
+      {/* fanout PR #80 (CC #93). Granular opt-in/out par canal, complémentaire */}
+      {/* du consentement NOTIFICATIONS de Section 4 (légal RGPD).              */}
+      <Section title="Notifications" icon={Bell}>
+        <NotificationPreferencesMatrix />
       </Section>
 
       {/* ─── Section 5 — Mes données (D2.C, RGPD Art. 15/20) ─────────────── */}
