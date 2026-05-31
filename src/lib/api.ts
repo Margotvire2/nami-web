@@ -2940,6 +2940,47 @@ export interface PatientCareCaseSummary {
 }
 
 /**
+ * Parcours guidé du patient — un summary par CareCase ACTIVE.
+ * Renvoyé par GET /patient/pathway. Phases groupées par phaseLabel,
+ * steps avec status mappé depuis PathwayNode (cron pathway_status_update).
+ *
+ * Backend : nami/src/services/patientPathway.service.ts (PR backend
+ * F-PATIENT-PATHWAY-LIST-BACKEND, CC #PATHWAY-PATIENT-BACKEND).
+ * Aucun champ clinique exposé : actLabel et phaseLabel sont des libellés
+ * administratifs (ex. "Bilan biologique J0", "Phase d'évaluation").
+ */
+export type PatientPathwayStepStatus = "completed" | "in_progress" | "upcoming";
+
+export interface PatientPathwayStep {
+  id: string;
+  label: string;
+  expectedDayOffset: number;
+  isRequired: boolean;
+  status: PatientPathwayStepStatus;
+  completedAt: string | null; // ISO
+}
+
+export interface PatientPathwayPhase {
+  label: string;
+  status: PatientPathwayStepStatus;
+  steps: PatientPathwayStep[];
+}
+
+export interface PatientPathwaySummary {
+  careCaseId: string;
+  careCaseTitle: string;
+  caseType: string;
+  pathwayTemplate: {
+    id: string;
+    label: string;
+    family: string;
+  } | null;
+  pathwayStatus: string | null;
+  pathwayStartedAt: string | null; // ISO
+  phases: PatientPathwayPhase[];
+}
+
+/**
  * Bilan biologique uploadé par le patient.
  * Étend PatientDocument avec les champs d'analyse IA (CC #79 backend).
  * Les champs analysis* sont OPTIONNELS car CC #79 peut ne pas être déployé
@@ -3496,6 +3537,24 @@ export function apiWithToken(token: string) {
       careCases: {
         list: () =>
           request<PatientCareCaseSummary[]>("/patient/care-cases", {}, token),
+      },
+
+      // ─── Parcours guidé patient (CC #PATHWAY-PATIENT-BACKEND) ─────────────
+      // GET /patient/pathway[?onBehalfOf=]
+      // Réponse : PatientPathwaySummary[] (un par CareCase ACTIVE), phases
+      // groupées par phaseLabel, status mappé depuis PathwayNode.
+      // Délégation parent→enfant via onBehalfOf (scope VIEW_MEDICAL_HISTORY).
+      pathway: {
+        list: (params?: { onBehalfOf?: string }) => {
+          const qs = new URLSearchParams();
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientPathwaySummary[]>(
+            `/patient/pathway${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
       },
       careTeam: {
         list: (params?: { careCaseId?: string; onBehalfOf?: string }) => {
