@@ -3631,10 +3631,12 @@ export function apiWithToken(token: string) {
       // Réponse : PatientIndicator[] groupé par MetricCatalog.key, tri date desc.
       // Délégation parent→enfant via onBehalfOf (scope VIEW_MEDICAL_HISTORY).
       observations: {
-        list: (params?: { periodDays?: 7 | 30 | 90 | 180 | 365; onBehalfOf?: string }) => {
+        list: (params?: { periodDays?: 7 | 30 | 90 | 180 | 365; onBehalfOf?: string; careCaseId?: string }) => {
           const qs = new URLSearchParams();
           if (params?.periodDays) qs.set("periodDays", String(params.periodDays));
           if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          // V2-SUIVI-INDICATEURS-CARECASE-SCOPING : scope par parcours.
+          if (params?.careCaseId) qs.set("careCaseId", params.careCaseId);
           const query = qs.toString();
           return request<PatientIndicator[]>(
             `/patient/observations${query ? `?${query}` : ""}`,
