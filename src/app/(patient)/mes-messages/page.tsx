@@ -1,154 +1,168 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Suspense, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type PatientMe, type PatientMessage } from "@/lib/api";
-import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Loader2, MessageCircle } from "lucide-react";
-import { ComposerEnhanced } from "./ComposerEnhanced";
+import { usePatientMessageThreads } from "@/hooks/usePatientMessageThreads";
+import { usePatientMessagesInThread } from "@/hooks/usePatientMessagesInThread";
+import { useSendPatientMessage } from "@/hooks/useSendPatientMessage";
+import type { PatientMessageThread, PatientMessageThreadType } from "@/lib/api";
+import { ThreadsSidebar } from "./_components/ThreadsSidebar";
+import { ConversationPanel } from "./_components/ConversationPanel";
+import { EmergencyBanner } from "./_components/EmergencyBanner";
+import { EmptyState } from "./_components/EmptyState";
 
-function Avatar({ name, size = 32 }: { name: string; size?: number }) {
-  const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+/**
+ * /mes-messages — refonte channels + DM (CC #MES-MESSAGES-CHANNELS-DM).
+ *
+ * Pattern Slack/WhatsApp adapté MDR :
+ *   - Sidebar 320px à gauche → 2 sections (équipes CARECASE + DM 1:1)
+ *   - ConversationPanel flex-1 à droite → header + timeline + composer
+ *   - Bannière urgence permanente top non-dismissible (CLAUDE.md requirement)
+ *
+ * Pré-sélection via query params :
+ *   - ?careCase=<careCaseId> → ouvre le channel CARECASE correspondant
+ *   - ?dm=<providerPersonId> → ouvre le DM 1:1 correspondant
+ *   - Sinon : EmptyState (variant "no-selection" si threads existent,
+ *     "no-threads" sinon).
+ *
+ * Sélection robuste : on ne *force* la sélection que si le thread désigné
+ * par l'URL est PRÉSENT dans la liste backend (sinon on retombe sur
+ * EmptyState — évite d'afficher une conversation 403/404).
+ *
+ * Le composant est wrappé dans <Suspense> pour permettre useSearchParams()
+ * pendant le SSR/CSR Next 15+ (React 19).
+ */
+function MesMessagesInner() {
+  const user = useAuthStore((s) => s.user);
+  const searchParams = useSearchParams();
+
+  const careCaseParam = searchParams.get("careCase");
+  const dmParam = searchParams.get("dm");
+
+  const threadsQuery = usePatientMessageThreads();
+  const threads = threadsQuery.data ?? [];
+
+  // Résolution déterministe : URL d'abord, fallback null. On NE choisit PAS
+  // automatiquement le premier thread — c'est explicite côté patient.
+  const selectedThread: PatientMessageThread | null = useMemo(() => {
+    if (careCaseParam) {
+      return (
+        threads.find(
+          (t) => t.threadType === "CARECASE" && t.threadId === careCaseParam,
+        ) ?? null
+      );
+    }
+    if (dmParam) {
+      return threads.find((t) => t.threadType === "DM" && t.threadId === dmParam) ?? null;
+    }
+    return null;
+  }, [careCaseParam, dmParam, threads]);
+
+  const selectedThreadType: PatientMessageThreadType | null = selectedThread?.threadType ?? null;
+  const selectedThreadId: string | null = selectedThread?.threadId ?? null;
+
+  const messagesQuery = usePatientMessagesInThread({
+    threadType: selectedThreadType,
+    threadId: selectedThreadId,
+    limit: 100,
+  });
+  const messages = messagesQuery.data ?? [];
+
+  const sendMutation = useSendPatientMessage();
+
+  function handleSelectThread(thread: PatientMessageThread) {
+    const params = new URLSearchParams();
+    if (thread.threadType === "CARECASE") params.set("careCase", thread.threadId);
+    else params.set("dm", thread.threadId);
+    // window.history pour éviter un rerender Next coûteux ; le hook
+    // useSearchParams réagit naturellement aux changements d'URL côté client.
+    if (typeof window !== "undefined") {
+      const url = `${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({}, "", url);
+      // Déclenche la mise à jour de useSearchParams (Next 15+).
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  }
+
+  function handleSend(body: string) {
+    if (!selectedThread) return;
+    sendMutation.mutate({
+      threadType: selectedThread.threadType,
+      threadId: selectedThread.threadId,
+      body,
+    });
+  }
+
   return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%", background: "var(--nami-primary-light)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.36, fontWeight: 700, color: "var(--nami-primary)", flexShrink: 0,
-    }}>
-      {initials}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        background: "var(--nami-bg, #FAFAF8)",
+      }}
+    >
+      <EmergencyBanner />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          minHeight: 0,
+        }}
+      >
+        <ThreadsSidebar
+          threads={threads}
+          selectedThreadType={selectedThreadType}
+          selectedThreadId={selectedThreadId}
+          isLoading={threadsQuery.isLoading}
+          onSelect={handleSelectThread}
+        />
+        {selectedThread ? (
+          <ConversationPanel
+            thread={selectedThread}
+            messages={messages}
+            isLoading={messagesQuery.isLoading}
+            isSending={sendMutation.isPending}
+            currentUserPersonId={user?.id ?? null}
+            onSend={handleSend}
+          />
+        ) : (
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              background: "var(--nami-bg, #FAFAF8)",
+              minWidth: 0,
+            }}
+          >
+            <EmptyState variant={threads.length === 0 ? "no-threads" : "no-selection"} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-export default function MessagesPage() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const user = useAuthStore((s) => s.user);
-  const api = apiWithToken(accessToken!);
-  const qc = useQueryClient();
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  // Récupérer le care case du patient
-  const { data: me } = useQuery<PatientMe>({
-    queryKey: ["patient-me"],
-    queryFn: () => api.patient.me(),
-    enabled: !!accessToken,
-  });
-
-  const careCaseId = me?.careCases?.[0]?.id;
-
-  // Charger les messages
-  const { data: messages = [], isLoading } = useQuery<PatientMessage[]>({
-    queryKey: ["patient-messages", careCaseId],
-    queryFn: () => api.patient.messages(careCaseId!),
-    enabled: !!accessToken && !!careCaseId,
-    refetchInterval: 15_000, // polling 15s
-  });
-
-  // Scroll to bottom quand nouveaux messages
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
-
-  // Envoyer un message — API REELLE PRÉSERVÉE INCHANGÉE
-  // ComposerEnhanced appelle handleSendBody(body) qui delegue à cette mutation
-  const sendMutation = useMutation({
-    mutationFn: (body: string) => api.patient.sendMessage(careCaseId!, body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["patient-messages", careCaseId] });
-    },
-  });
-
-  function handleSendBody(body: string) {
-    if (!careCaseId || sendMutation.isPending) return;
-    sendMutation.mutate(body);
-  }
-
-  const team = me?.careCases?.[0]?.members ?? [];
-  const teamNames = team.map((m) => `${m.person.firstName} ${m.person.lastName}`).join(", ");
-
+export default function MesMessagesPage() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--nami-bg)" }}>
-      {/* Header */}
-      <div style={{ background: "var(--nami-card)", borderBottom: `1px solid var(--nami-border)`, padding: "16px 24px", flexShrink: 0 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--nami-dark)", letterSpacing: "-0.3px" }}>Messages</h1>
-        {teamNames && (
-          <p style={{ fontSize: 12, color: "var(--nami-text-muted)", marginTop: 2 }}>
-            Conversation avec votre équipe soignante · {teamNames}
-          </p>
-        )}
-      </div>
-
-      {/* Disclaimer urgences */}
-      <div style={{ background: "#FFFBEB", borderBottom: "1px solid #FDE68A", padding: "8px 24px", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 13 }}>⚠️</span>
-        <p style={{ fontSize: 12, color: "#92400E" }}>
-          Ce canal n&apos;est pas destiné aux urgences médicales. En cas d&apos;urgence, appelez le <strong>15</strong> ou le <strong>112</strong>.
-        </p>
-      </div>
-
-      {/* Messages */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
-        {isLoading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-            <Loader2 size={22} className="animate-spin" style={{ color: "var(--nami-primary)" }} />
-          </div>
-        ) : !careCaseId ? (
-          <div style={{ textAlign: "center", padding: "48px 24px" }}>
-            <MessageCircle size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
-            <p style={{ fontSize: 14, color: "var(--nami-text-muted)" }}>Aucun suivi actif trouvé.</p>
-          </div>
-        ) : messages.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "48px 24px" }}>
-            <MessageCircle size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
-            <p style={{ fontSize: 14, color: "var(--nami-text-muted)" }}>Aucun message pour l&apos;instant.</p>
-            <p style={{ fontSize: 12, color: "var(--nami-text-muted)", opacity: 0.7, marginTop: 4 }}>
-              Vous pouvez écrire à votre équipe soignante ci-dessous.
-            </p>
-          </div>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender.id === user?.id;
-            const senderName = `${msg.sender.firstName} ${msg.sender.lastName}`;
-            return (
-              <div key={msg.id} style={{ display: "flex", flexDirection: isMe ? "row-reverse" : "row", gap: 10, alignItems: "flex-end" }}>
-                {!isMe && <Avatar name={senderName} size={30} />}
-                <div style={{ maxWidth: "70%" }}>
-                  {!isMe && (
-                    <div style={{ fontSize: 11, color: "var(--nami-text-muted)", marginBottom: 3, fontWeight: 500 }}>
-                      {senderName}
-                    </div>
-                  )}
-                  <div style={{
-                    padding: "10px 14px", borderRadius: isMe ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                    background: isMe ? "var(--nami-primary)" : "var(--nami-card)",
-                    border: isMe ? "none" : `1px solid var(--nami-border)`,
-                    color: isMe ? "#fff" : "var(--nami-dark)",
-                    fontSize: 14, lineHeight: 1.5,
-                  }}>
-                    {msg.body}
-                  </div>
-                  <div style={{ fontSize: 10, color: "var(--nami-text-muted)", marginTop: 4, textAlign: isMe ? "right" : "left" }}>
-                    {format(parseISO(msg.createdAt), "d MMM à HH:mm", { locale: fr })}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Composer enhanced V2 — autogrow + char counter + attachments UI mock.
-          API reste celle de sendMutation existant (préservation totale). */}
-      {careCaseId && (
-        <ComposerEnhanced
-          disabled={!careCaseId}
-          isPending={sendMutation.isPending}
-          onSend={handleSendBody}
-        />
-      )}
-    </div>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            background: "var(--nami-bg, #FAFAF8)",
+          }}
+        >
+          <EmergencyBanner />
+          <div style={{ flex: 1 }} />
+        </div>
+      }
+    >
+      <MesMessagesInner />
+    </Suspense>
   );
 }
