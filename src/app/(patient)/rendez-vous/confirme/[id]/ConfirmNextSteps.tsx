@@ -85,7 +85,7 @@ export function ConfirmNextSteps() {
       {/* 3 CTAs */}
       <div className="flex flex-col sm:flex-row gap-2.5">
         <Link
-          href="/rendez-vous/demandes"
+          href="/rendez-vous?tab=pending"
           className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(91,78,196,0.4)] focus-visible:ring-offset-2 flex-1"
           style={{
             background: "#5B4EC4",

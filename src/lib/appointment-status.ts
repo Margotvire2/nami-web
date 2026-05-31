@@ -194,10 +194,9 @@ export const STATUS_CFG: Record<
 /**
  * Tabs UI possibles sur la page /rendez-vous V2.
  *
- * 'pending' est réservé aux AppointmentRequest (statuts SUBMITTED/PROPOSED côté
- * backend) qui ne sont pas confondus avec les Appointment confirmés. La V2.1
- * affiche un EmptyState statique pour ce tab (lien vers /rendez-vous/demandes)
- * tant que le endpoint GET /patient/appointment-requests n'est pas câblé ici.
+ * 'pending' est réservé aux AppointmentRequest (statut PENDING côté backend)
+ * qui ne sont pas confondus avec les Appointment confirmés. V2.2 (CC
+ * #RDV-DEMANDES-FUSION) câble le tab sur GET /patient/appointment-requests.
  */
 export type AppointmentTab = "upcoming" | "pending" | "past" | "cancelled";
 
