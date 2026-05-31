@@ -53,7 +53,7 @@ describe("nouveaux endpoints membership (PR backend #73)", () => {
     const [url, init] = lastFetchCall(fetchSpy);
     expect(url).toContain("/organizations/org-rtf/membership-requests");
     expect((init as RequestInit).method).toBe("POST");
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ message: "Hello" });
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ motivationMessage: "Hello" });
   });
 
   it("membershipRequestsApi.update → PATCH /membership-requests/:id", async () => {

@@ -106,11 +106,8 @@ function CreateRcpModal({
     enabled: !!accessToken,
   });
 
-  const eligibleOrgs = myOrgs.filter(
-    (o) =>
-      isRcpPickerEligible(o.type) &&
-      o.myMembership?.status === "ACTIVE"
-  );
+  // Backend /organizations/mine filtre déjà status=ACTIVE → on garde juste le filtre kind whitelist.
+  const eligibleOrgs = myOrgs.filter((o) => isRcpPickerEligible(o.type));
 
   const groupQueries = useQueries({
     queries: eligibleOrgs.map((o) => ({

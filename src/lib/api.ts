@@ -3982,30 +3982,54 @@ export interface InvoiceLineInput {
 //                                                        SUSPENDED,
 //                                                        directoryVisibility)
 
-export type MembershipRequestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
+export type MembershipRequestStatus =
+  | "PENDING"
+  | "TO_CONTACT"
+  | "IN_REVIEW"
+  | "ACCEPTED"
+  | "REJECTED"
+  | "WITHDRAWN";
 export type OrganizationMemberStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 export type OrganizationMemberRole = "MEMBER" | "ADMIN" | "OWNER";
 export type DirectoryVisibility = "PUBLIC" | "ORG_ONLY" | "HIDDEN";
 
+// Shape retourné par GET /organizations/mine — le backend filtre déjà sur
+// status=ACTIVE et expose directement le rôle dans `myRole`. Voir
+// src/routes/organizations.ts dans le repo backend.
 export interface OrganizationMembership {
   id: string;
   name: string;
   type: string;
-  myMembership: {
+  description?: string | null;
+  specialty?: string | null;
+  city?: string | null;
+  logoUrl?: string | null;
+  memberCount: number;
+  myRole: OrganizationMemberRole;
+  conversations?: Array<{
     id: string;
-    memberRole: OrganizationMemberRole;
-    status: OrganizationMemberStatus;
-  } | null;
+    name: string | null;
+    _count: { messages: number };
+    messages: Array<{ createdAt: string }>;
+  }>;
 }
 
+// Shape Prisma OrganizationMembershipRequest. Tous les champs review-side
+// sont optionnels — ils n'apparaissent qu'après transition de status.
 export interface MembershipRequest {
   id: string;
   organizationId: string;
   personId: string;
   status: MembershipRequestStatus;
-  message?: string | null;
+  motivationMessage?: string | null;
+  reviewedByPersonId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+  rejectionReason?: string | null;
+  acceptedAt?: string | null;
+  organizationMemberId?: string | null;
   createdAt: string;
-  decidedAt?: string | null;
+  withdrawnAt?: string | null;
 }
 
 export interface OrganizationMember {
@@ -4114,17 +4138,20 @@ export function isRcpPickerEligible(orgType: string): boolean {
 }
 
 export const membershipRequestsApi = {
-  create: (token: string, organizationId: string, message?: string) =>
+  // Body backend (zod) : { motivationMessage?: string }
+  create: (token: string, organizationId: string, motivationMessage?: string) =>
     request<MembershipRequest>(
       `/organizations/${organizationId}/membership-requests`,
-      { method: "POST", body: JSON.stringify({ message }) },
+      { method: "POST", body: JSON.stringify({ motivationMessage }) },
       token
     ),
 
+  // Backend zod enum : "TO_CONTACT" | "IN_REVIEW" | "ACCEPTED" | "REJECTED".
+  // V1 utilise uniquement ACCEPTED / REJECTED depuis la console d'animation.
   update: (
     token: string,
     id: string,
-    data: { status: Extract<MembershipRequestStatus, "ACCEPTED" | "DECLINED"> }
+    data: { status: Extract<MembershipRequestStatus, "ACCEPTED" | "REJECTED"> }
   ) =>
     request<MembershipRequest>(
       `/membership-requests/${id}`,
