@@ -22,7 +22,7 @@ interface SidebarItem {
 
 interface ConsoleSidebarProps {
   orgId: string;
-  active: "dashboard" | "discussions";
+  active: "dashboard" | "discussions" | "events";
 }
 
 export function ConsoleSidebar({ orgId, active }: ConsoleSidebarProps) {
@@ -35,7 +35,11 @@ export function ConsoleSidebar({ orgId, active }: ConsoleSidebarProps) {
       href: `/structure/${orgId}/admin`,
     },
     { label: "Membres", icon: Users, comingSoon: true },
-    { label: "Événements", icon: CalendarDays, comingSoon: true },
+    {
+      label: "Événements",
+      icon: CalendarDays,
+      href: `/structure/${orgId}/admin/evenements`,
+    },
     { label: "Actualités", icon: Megaphone, comingSoon: true },
     { label: "Ressources", icon: Library, comingSoon: true },
     { label: "Recherche", icon: Search, comingSoon: true },
@@ -52,7 +56,8 @@ export function ConsoleSidebar({ orgId, active }: ConsoleSidebarProps) {
         const Icon = item.icon;
         const isActive =
           (active === "dashboard" && item.label === "Tableau de bord") ||
-          (active === "discussions" && item.label === "Discussions");
+          (active === "discussions" && item.label === "Discussions") ||
+          (active === "events" && item.label === "Événements");
 
         const base =
           "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors";
