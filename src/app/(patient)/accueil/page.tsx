@@ -196,9 +196,9 @@ export default function AccueilPage() {
         <RecentNotificationsCard />
       </ScrollReveal>
 
-      {/* Messages récents (live data depuis premier care case) */}
+      {/* Messages récents — threads CARECASE + DM (PR #94) */}
       <ScrollReveal variant="fade-up" delay={0.24} duration={0.6}>
-        <RecentMessagesCard me={me} />
+        <RecentMessagesCard />
       </ScrollReveal>
 
       {/* Derniers documents */}
