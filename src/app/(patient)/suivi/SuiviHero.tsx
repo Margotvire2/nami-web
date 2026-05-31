@@ -48,24 +48,6 @@ export function SuiviHero({ indicatorsCount, latestMeasurementDate, period, onPe
         {indicatorsCount > 1 ? "s" : ""} · Dernière mesure {formatLastMeasurement(latestMeasurementDate).toLowerCase()}
       </p>
 
-      {/* Banner V1 transparent (pattern PR #83 + symétrie /parcours) */}
-      <div
-        role="note"
-        style={{
-          background: "rgba(91,78,196,0.08)",
-          border: "1px solid rgba(91,78,196,0.2)",
-          borderRadius: 12,
-          padding: "10px 16px",
-          fontSize: 13,
-          color: "#374151",
-          marginBottom: 24,
-          lineHeight: 1.5,
-        }}
-      >
-        Aperçu de votre suivi — version d&apos;aperçu, bientôt branchée sur vos
-        mesures réelles partagées avec vos soignants.
-      </div>
-
       {/* Tabs filter période */}
       <nav
         role="tablist"
