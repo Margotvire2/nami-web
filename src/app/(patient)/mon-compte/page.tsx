@@ -269,12 +269,18 @@ export default function MonComptePage() {
   const person = me?.person;
 
   // ─── Form rectification Art. 16 ──────────────────────────────────────────
+  // PR #76 backend (CC #92) : ajout adresse FR (address/city/postalCode →
+  // PatientProfile.address/city/zipcode). Validation postalCode FR 5 chiffres
+  // côté frontend cohérente backend Zod.
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     phone: "",
     birthDate: "",
     sex: "",
+    address: "",
+    city: "",
+    postalCode: "",
   });
 
   function startEdit() {
@@ -286,35 +292,54 @@ export default function MonComptePage() {
         ? format(parseISO(person.birthDate), "yyyy-MM-dd")
         : "",
       sex: person?.sex ?? "",
+      address: person?.address ?? "",
+      city: person?.city ?? "",
+      postalCode: person?.postalCode ?? "",
     });
     setEditing(true);
   }
 
-  // Single mutation : passe par api.persons.patch (Art. 16 unifié pour tous
-  // les champs editables — firstName/lastName/phone/birthDate/sex).
-  // Email volontairement EXCLU (read-only V1 — cf. ticket dérivé D2.2).
+  // Validation locale postalCode FR (cohérente backend Zod /^\d{5}$/).
+  // Vide = OK (champ optionnel). Sinon : exactement 5 chiffres.
+  const postalCodeError =
+    form.postalCode && !/^\d{5}$/.test(form.postalCode)
+      ? "Code postal invalide (5 chiffres)"
+      : null;
+
+  // Mutation : persons.patch pour firstName/lastName/phone/birthDate/sex
+  // (Art. 16 existant) PUIS patient.patchMe pour address/city/postalCode
+  // (PR #76 backend, mapping postalCode ↔ DB.zipcode côté Nami). Email exclu
+  // (read-only V1 — cf. ticket dérivé D2.2).
   const patchMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!user?.id) throw new Error("User ID manquant");
+      if (postalCodeError) throw new Error(postalCodeError);
       const sexEnum = normalizeSexForBackend(form.sex);
       // birthDate en input HTML "yyyy-MM-dd" → conversion ISO datetime
       const birthDateISO = form.birthDate
         ? new Date(form.birthDate + "T00:00:00Z").toISOString()
         : undefined;
-      return api.persons.patch(user.id, {
+      await api.persons.patch(user.id, {
         firstName: form.firstName || undefined,
         lastName: form.lastName || undefined,
         phone: form.phone || undefined,
         birthDate: birthDateISO,
         sex: sexEnum,
       });
+      // PR #76 : adresse FR via /patient/me (PatientProfile écrit côté backend)
+      await api.patient.patchMe({
+        address: form.address || undefined,
+        city: form.city || undefined,
+        postalCode: form.postalCode || undefined,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["patient-me"] });
       setEditing(false);
-      toast.success("Informations mises à jour");
+      toast.success("Profil mis à jour");
     },
-    onError: () => toast.error("Erreur lors de la mise à jour"),
+    onError: (e: Error) =>
+      toast.error(e.message || "Erreur lors de la mise à jour"),
   });
 
   // ─── Réinitialisation mot de passe (Option A — bouton trigger email) ─────
@@ -501,6 +526,9 @@ export default function MonComptePage() {
               }
             />
             <Field label="Sexe" value={SEX_LABELS[person?.sex ?? ""] ?? ""} />
+            <Field label="Adresse" value={person?.address ?? ""} />
+            <Field label="Code postal" value={person?.postalCode ?? ""} />
+            <Field label="Ville" value={person?.city ?? ""} />
             <button
               onClick={startEdit}
               style={{
@@ -608,10 +636,64 @@ export default function MonComptePage() {
                 <option value="OTHER">Autre</option>
               </select>
             </div>
+            <div>
+              <label style={labelSt}>Adresse</label>
+              <input
+                style={inputSt}
+                type="text"
+                maxLength={255}
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="12 rue de Rivoli"
+                aria-label="Adresse"
+              />
+            </div>
+            <div>
+              <label style={labelSt}>Code postal</label>
+              <input
+                style={{
+                  ...inputSt,
+                  borderColor: postalCodeError
+                    ? "var(--nami-danger, #DC2626)"
+                    : (inputSt.border as string),
+                }}
+                type="text"
+                inputMode="numeric"
+                maxLength={5}
+                value={form.postalCode}
+                onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                placeholder="75001"
+                aria-label="Code postal"
+                aria-invalid={postalCodeError ? true : undefined}
+              />
+              {postalCodeError && (
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--nami-danger, #DC2626)",
+                    marginTop: 4,
+                  }}
+                >
+                  {postalCodeError}
+                </p>
+              )}
+            </div>
+            <div>
+              <label style={labelSt}>Ville</label>
+              <input
+                style={inputSt}
+                type="text"
+                maxLength={100}
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                placeholder="Paris"
+                aria-label="Ville"
+              />
+            </div>
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
               <button
                 onClick={() => patchMutation.mutate()}
-                disabled={patchMutation.isPending}
+                disabled={patchMutation.isPending || !!postalCodeError}
                 style={{
                   flex: 1,
                   padding: "10px 0",
