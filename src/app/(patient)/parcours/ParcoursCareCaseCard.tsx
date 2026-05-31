@@ -63,7 +63,7 @@ export function ParcoursCareCaseCard({ pathway }: ParcoursCareCaseCardProps) {
     return null;
   }, [pathway.pathwayStatus]);
 
-  const href = `/parcours?careCase=${encodeURIComponent(pathway.careCaseId)}`;
+  const href = `/parcours/${encodeURIComponent(pathway.careCaseId)}`;
 
   return (
     <Link
