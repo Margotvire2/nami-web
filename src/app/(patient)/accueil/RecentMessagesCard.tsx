@@ -1,29 +1,26 @@
 "use client";
 
 /**
- * RecentMessagesCard — section /accueil patient (F-PATIENT-ACCUEIL-DASHBOARD-V2-LIVE-DATA).
+ * RecentMessagesCard — section /accueil patient.
  *
- * Affiche les 3 derniers messages reçus de l'équipe de coordination sur le
- * premier care case du patient. Filtre côté client les messages dont l'auteur
- * est le patient lui-même (pour ne pas lister ses propres envois) et trie par
- * createdAt desc.
+ * Affiche les 3 threads (channels CARECASE OU DM 1:1) les plus récents — tri
+ * par lastMessage.createdAt desc. Source : usePatientMessageThreads() (backend
+ * PR #94 : GET /patient/messages/threads).
  *
- * Source : GET /patient/messages/:careCaseId (existant).
- * Pas d'endpoint dédié /patient/messages/unread → on filtre côté client, sans
- * créer de waterfall (la requête tourne en parallèle des autres useQuery).
+ * Migration V1-MIGRATE-RECENTMESSAGESCARD-PR94 : retire l'appel legacy
+ * api.patient.messages(careCaseId) (couplage premier CareCase uniquement) et
+ * unifie sur la nouvelle API thread-aware (multi-CareCase + DMs).
  *
- * Wording MDR-safe : "messagerie de coordination" — vocabulaire organisationnel uniquement.
+ * Wording MDR-safe : "messagerie de coordination" — vocabulaire organisationnel.
  * A11y : section aria-labelledby + role=status empty + aria-busy.
  *
  * Bannière urgence vitale rendue globalement dans /(patient)/mes-messages — pas
- * répétée ici pour ne pas dramatiser le tableau de bord (la card reste un
- * indicateur organisationnel).
+ * répétée ici pour ne pas dramatiser le tableau de bord.
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type PatientMe, type PatientMessage } from "@/lib/api";
-import { MessageCircle, Loader2 } from "lucide-react";
+import { usePatientMessageThreads } from "@/hooks/usePatientMessageThreads";
+import type { PatientMessageThread } from "@/lib/api";
+import { MessageCircle, Loader2, Users, User } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
@@ -54,27 +51,19 @@ function Card({
   );
 }
 
-export function RecentMessagesCard({ me }: { me: PatientMe | undefined }) {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const api = apiWithToken(accessToken!);
+function sortByLastMessageDesc(a: PatientMessageThread, b: PatientMessageThread): number {
+  const ta = a.lastMessage?.createdAt ?? "";
+  const tb = b.lastMessage?.createdAt ?? "";
+  if (ta === tb) return 0;
+  return ta < tb ? 1 : -1;
+}
 
-  const careCaseId = me?.careCases?.[0]?.id;
-  const myPersonId = me?.person?.id;
+export function RecentMessagesCard() {
+  const { data: threads, isLoading } = usePatientMessageThreads();
 
-  const { data: messages, isLoading } = useQuery<PatientMessage[]>({
-    queryKey: ["patient-messages", careCaseId],
-    queryFn: () => api.patient.messages(careCaseId!),
-    enabled: !!accessToken && !!careCaseId,
-    staleTime: 30_000,
-  });
-
-  // Filtre : messages reçus (pas mes envois), triés desc, top 3.
-  // On NE dépend pas du flag `reads` côté frontend — les 3 plus récents
-  // reçus de l'équipe constituent un indicateur organisationnel correct.
-  const recentReceived = (messages ?? [])
-    .filter((m) => m.sender.id !== myPersonId)
+  const recent = (threads ?? [])
     .slice()
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .sort(sortByLastMessageDesc)
     .slice(0, 3);
 
   const headingId = "accueil-messages-heading";
@@ -105,7 +94,7 @@ export function RecentMessagesCard({ me }: { me: PatientMe | undefined }) {
             Messages récents
           </h2>
         </div>
-        {recentReceived.length > 0 && (
+        {recent.length > 0 && (
           <Link
             href="/mes-messages"
             style={{
@@ -115,7 +104,7 @@ export function RecentMessagesCard({ me }: { me: PatientMe | undefined }) {
               fontWeight: 500,
             }}
           >
-            Tout voir →
+            Voir tous mes messages →
           </Link>
         )}
       </div>
@@ -130,7 +119,7 @@ export function RecentMessagesCard({ me }: { me: PatientMe | undefined }) {
           />
           <span className="sr-only">Chargement des messages…</span>
         </Card>
-      ) : recentReceived.length === 0 ? (
+      ) : recent.length === 0 ? (
         <Card style={{ textAlign: "center", padding: "24px 20px" }} role="status">
           <MessageCircle
             size={26}
@@ -162,73 +151,122 @@ export function RecentMessagesCard({ me }: { me: PatientMe | undefined }) {
             }}
           >
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-              {recentReceived.map((msg, i) => (
-                <li
-                  key={msg.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
-                    padding: "12px 16px",
-                    borderBottom:
-                      i < recentReceived.length - 1
-                        ? "1px solid var(--nami-border)"
-                        : "none",
-                  }}
-                >
-                  <div
-                    aria-hidden="true"
+              {recent.map((t, i) => {
+                const ThreadIcon = t.threadType === "CARECASE" ? Users : User;
+                const iconLabel =
+                  t.threadType === "CARECASE" ? "Équipe de coordination" : "Échange direct";
+                return (
+                  <li
+                    key={`${t.threadType}-${t.threadId}`}
                     style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      background: "var(--nami-primary-light)",
-                      color: "var(--nami-primary)",
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      flexShrink: 0,
+                      alignItems: "flex-start",
+                      gap: 12,
+                      padding: "12px 16px",
+                      borderBottom:
+                        i < recent.length - 1 ? "1px solid var(--nami-border)" : "none",
                     }}
                   >
-                    {(msg.sender.firstName?.[0] ?? "") + (msg.sender.lastName?.[0] ?? "")}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
+                      aria-label={iconLabel}
                       style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "var(--nami-dark)",
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: "var(--nami-primary-light)",
+                        color: "var(--nami-primary)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
                       }}
                     >
-                      {msg.sender.firstName} {msg.sender.lastName}
+                      <ThreadIcon size={18} strokeWidth={2} aria-hidden="true" />
                     </div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color: "var(--nami-text-muted)",
-                        marginTop: 2,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {msg.body}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "var(--nami-dark)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {t.title}
+                        </div>
+                        {t.unreadCount > 0 && (
+                          <span
+                            aria-label={`${t.unreadCount} message${t.unreadCount > 1 ? "s" : ""} non lu${t.unreadCount > 1 ? "s" : ""}`}
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "2px 8px",
+                              borderRadius: 999,
+                              background: "var(--nami-primary)",
+                              color: "#fff",
+                              flexShrink: 0,
+                              minWidth: 22,
+                              textAlign: "center",
+                            }}
+                          >
+                            {t.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      {t.lastMessage ? (
+                        <>
+                          <div
+                            style={{
+                              fontSize: 13,
+                              color: "var(--nami-text-muted)",
+                              marginTop: 2,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {t.lastMessage.body}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "var(--nami-text-muted)",
+                              opacity: 0.7,
+                              marginTop: 4,
+                            }}
+                          >
+                            {format(parseISO(t.lastMessage.createdAt), "d MMM 'à' HH:mm", {
+                              locale: fr,
+                            })}
+                          </div>
+                        </>
+                      ) : (
+                        <div
+                          style={{
+                            fontSize: 13,
+                            color: "var(--nami-text-muted)",
+                            opacity: 0.7,
+                            marginTop: 2,
+                            fontStyle: "italic",
+                          }}
+                        >
+                          Aucun message pour le moment.
+                        </div>
+                      )}
                     </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--nami-text-muted)",
-                        opacity: 0.7,
-                        marginTop: 4,
-                      }}
-                    >
-                      {format(parseISO(msg.createdAt), "d MMM 'à' HH:mm", { locale: fr })}
-                    </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </Card>
         </Link>

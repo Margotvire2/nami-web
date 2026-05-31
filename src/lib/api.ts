@@ -3007,12 +3007,6 @@ export interface PatientBilanAnalyzeResult {
   confidence?: number;
 }
 
-export interface PatientMessage {
-  id: string; body: string; createdAt: string; careCaseId: string;
-  sender: { id: string; firstName: string; lastName: string; roleType: string; photoUrl: string | null };
-  reads: Array<{ personId: string; readAt: string }>;
-}
-
 // ─── Channels + DM (CC #MES-MESSAGES-CHANNELS-DM — backend PR #94) ──────────
 // Backend wire : threadType = "CARECASE" | "DM" (str enum côté handler).
 // Un thread CARECASE = un canal d'équipe (channel) — broadcast à tous les
@@ -3567,64 +3561,53 @@ export function apiWithToken(token: string) {
       //   GET  /patient/messages/threads
       //   GET  /patient/messages/:threadType/:threadId?limit=&before=&onBehalfOf=
       //   POST /patient/messages { threadType, threadId, body }   (?onBehalfOf=)
-      // Legacy GET/POST /patient/messages/:careCaseId conservés côté backend
-      // (alias backward-compat) et toujours exposés ici via patient.messages
-      // (fonction appelable directe) + patient.sendMessage pour préserver les
-      // call sites existants tant que tous n'ont pas migré.
-      messages: Object.assign(
-        // forme legacy : api.patient.messages(careCaseId) → PatientMessage[]
-        (careCaseId: string) =>
-          request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
-        {
-          threads: (params?: { onBehalfOf?: string }) => {
-            const qs = new URLSearchParams();
-            if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
-            const query = qs.toString();
-            return request<PatientMessageThread[]>(
-              `/patient/messages/threads${query ? `?${query}` : ""}`,
-              {},
-              token,
-            );
-          },
-          list: (args: {
-            threadType: PatientMessageThreadType;
-            threadId: string;
-            limit?: number;
-            before?: string;
-            onBehalfOf?: string;
-          }) => {
-            const qs = new URLSearchParams();
-            if (args.limit !== undefined) qs.set("limit", String(args.limit));
-            if (args.before) qs.set("before", args.before);
-            if (args.onBehalfOf) qs.set("onBehalfOf", args.onBehalfOf);
-            const query = qs.toString();
-            return request<PatientMessageItem[]>(
-              `/patient/messages/${args.threadType}/${args.threadId}${query ? `?${query}` : ""}`,
-              {},
-              token,
-            );
-          },
-          send: (body: {
-            threadType: PatientMessageThreadType;
-            threadId: string;
-            body: string;
-            onBehalfOf?: string;
-          }) => {
-            const qs = new URLSearchParams();
-            if (body.onBehalfOf) qs.set("onBehalfOf", body.onBehalfOf);
-            const query = qs.toString();
-            const { onBehalfOf: _drop, ...payload } = body;
-            void _drop;
-            return request<SendPatientMessageResult>(
-              `/patient/messages${query ? `?${query}` : ""}`,
-              { method: "POST", body: JSON.stringify(payload) },
-              token,
-            );
-          },
+      messages: {
+        threads: (params?: { onBehalfOf?: string }) => {
+          const qs = new URLSearchParams();
+          if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientMessageThread[]>(
+            `/patient/messages/threads${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
         },
-      ),
-      sendMessage: (careCaseId: string, body: string) =>
-        request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
+        list: (args: {
+          threadType: PatientMessageThreadType;
+          threadId: string;
+          limit?: number;
+          before?: string;
+          onBehalfOf?: string;
+        }) => {
+          const qs = new URLSearchParams();
+          if (args.limit !== undefined) qs.set("limit", String(args.limit));
+          if (args.before) qs.set("before", args.before);
+          if (args.onBehalfOf) qs.set("onBehalfOf", args.onBehalfOf);
+          const query = qs.toString();
+          return request<PatientMessageItem[]>(
+            `/patient/messages/${args.threadType}/${args.threadId}${query ? `?${query}` : ""}`,
+            {},
+            token,
+          );
+        },
+        send: (body: {
+          threadType: PatientMessageThreadType;
+          threadId: string;
+          body: string;
+          onBehalfOf?: string;
+        }) => {
+          const qs = new URLSearchParams();
+          if (body.onBehalfOf) qs.set("onBehalfOf", body.onBehalfOf);
+          const query = qs.toString();
+          const { onBehalfOf: _drop, ...payload } = body;
+          void _drop;
+          return request<SendPatientMessageResult>(
+            `/patient/messages${query ? `?${query}` : ""}`,
+            { method: "POST", body: JSON.stringify(payload) },
+            token,
+          );
+        },
+      },
 
       // ─── Indicateurs /suivi (CC #95 — F-PATIENT-OBSERVATIONS-LIST-BACKEND) ─
       // GET /patient/observations?periodDays=&onBehalfOf=
