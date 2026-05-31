@@ -3013,6 +3013,60 @@ export interface PatientMessage {
   reads: Array<{ personId: string; readAt: string }>;
 }
 
+// ─── Channels + DM (CC #MES-MESSAGES-CHANNELS-DM — backend PR #94) ──────────
+// Backend wire : threadType = "CARECASE" | "DM" (str enum côté handler).
+// Un thread CARECASE = un canal d'équipe (channel) — broadcast à tous les
+// membres ACTIVE de la CareCase. Un thread DM = 1:1 patient ↔ providerPerson.
+// La discrimination XOR est posée côté DB (Message.careCaseId XOR
+// directRecipientPersonId) et appliquée côté service.
+export type PatientMessageThreadType = "CARECASE" | "DM";
+
+export interface PatientMessageThreadParticipant {
+  personId: string;
+  firstName: string;
+  lastName: string;
+  specialty: string | null;
+  avatarUrl: string | null;
+}
+
+export interface PatientMessageThreadLastMessage {
+  id: string;
+  body: string;
+  createdAt: string;
+  senderId: string;
+  senderName: string;
+}
+
+export interface PatientMessageThread {
+  threadType: PatientMessageThreadType;
+  /** careCaseId pour CARECASE, directRecipientPersonId pour DM. */
+  threadId: string;
+  title: string;
+  participants: PatientMessageThreadParticipant[];
+  lastMessage: PatientMessageThreadLastMessage | null;
+  unreadCount: number;
+  totalCount: number;
+}
+
+export interface PatientMessageItem {
+  id: string;
+  body: string;
+  createdAt: string;
+  senderId: string;
+  senderName: string;
+  parentId: string | null;
+  isRead: boolean;
+}
+
+export interface SendPatientMessageResult {
+  id: string;
+  threadType: PatientMessageThreadType;
+  threadId: string;
+  body: string;
+  senderId: string;
+  createdAt: string;
+}
+
 /**
  * Notification persistée côté patient — shape Prisma Notification + deliveries.
  * Backend : prisma/schema.prisma (model Notification) + getFeedForPatient().
@@ -3483,8 +3537,67 @@ export function apiWithToken(token: string) {
           ),
       },
 
-      messages: (careCaseId: string) =>
-        request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
+      // ─── Messages patient : channels CARECASE + DM 1:1 (CC #MES-MESSAGES-CHANNELS-DM)
+      // Backend PR #94 :
+      //   GET  /patient/messages/threads
+      //   GET  /patient/messages/:threadType/:threadId?limit=&before=&onBehalfOf=
+      //   POST /patient/messages { threadType, threadId, body }   (?onBehalfOf=)
+      // Legacy GET/POST /patient/messages/:careCaseId conservés côté backend
+      // (alias backward-compat) et toujours exposés ici via patient.messages
+      // (fonction appelable directe) + patient.sendMessage pour préserver les
+      // call sites existants tant que tous n'ont pas migré.
+      messages: Object.assign(
+        // forme legacy : api.patient.messages(careCaseId) → PatientMessage[]
+        (careCaseId: string) =>
+          request<PatientMessage[]>(`/patient/messages/${careCaseId}`, {}, token),
+        {
+          threads: (params?: { onBehalfOf?: string }) => {
+            const qs = new URLSearchParams();
+            if (params?.onBehalfOf) qs.set("onBehalfOf", params.onBehalfOf);
+            const query = qs.toString();
+            return request<PatientMessageThread[]>(
+              `/patient/messages/threads${query ? `?${query}` : ""}`,
+              {},
+              token,
+            );
+          },
+          list: (args: {
+            threadType: PatientMessageThreadType;
+            threadId: string;
+            limit?: number;
+            before?: string;
+            onBehalfOf?: string;
+          }) => {
+            const qs = new URLSearchParams();
+            if (args.limit !== undefined) qs.set("limit", String(args.limit));
+            if (args.before) qs.set("before", args.before);
+            if (args.onBehalfOf) qs.set("onBehalfOf", args.onBehalfOf);
+            const query = qs.toString();
+            return request<PatientMessageItem[]>(
+              `/patient/messages/${args.threadType}/${args.threadId}${query ? `?${query}` : ""}`,
+              {},
+              token,
+            );
+          },
+          send: (body: {
+            threadType: PatientMessageThreadType;
+            threadId: string;
+            body: string;
+            onBehalfOf?: string;
+          }) => {
+            const qs = new URLSearchParams();
+            if (body.onBehalfOf) qs.set("onBehalfOf", body.onBehalfOf);
+            const query = qs.toString();
+            const { onBehalfOf: _drop, ...payload } = body;
+            void _drop;
+            return request<SendPatientMessageResult>(
+              `/patient/messages${query ? `?${query}` : ""}`,
+              { method: "POST", body: JSON.stringify(payload) },
+              token,
+            );
+          },
+        },
+      ),
       sendMessage: (careCaseId: string, body: string) =>
         request<PatientMessage>(`/patient/messages/${careCaseId}`, { method: "POST", body: JSON.stringify({ body }) }, token),
 

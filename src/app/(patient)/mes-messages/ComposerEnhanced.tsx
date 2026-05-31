@@ -3,6 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Loader2, Paperclip, X, FileText } from "lucide-react";
 
+/**
+ * Cible d'envoi du composer — utilisée uniquement pour contextualiser le
+ * placeholder + aria-label (CARECASE vs DM). Optionnelle pour préserver les
+ * call sites legacy qui passent encore juste onSend(body). Le wiring réel
+ * de la mutation (threadType + threadId → backend) reste à la charge du
+ * parent via le hook useSendPatientMessage.
+ */
+export interface ComposerEnhancedTarget {
+  threadType: "CARECASE" | "DM";
+  threadId: string;
+}
+
 interface ComposerEnhancedProps {
   /** Patient sans care case actif → désactive complètement le composer. */
   disabled?: boolean;
@@ -12,6 +24,8 @@ interface ComposerEnhancedProps {
    *  (preview UI seulement). V2 : ticket dérivé F-PATIENT-MESSAGES-ATTACHMENTS-UPLOAD-SUPABASE-STORAGE
    *  refera la signature avec File[] effectivement uploadé. */
   onSend: (body: string) => void;
+  /** Cible courante (optionnelle) — contextualise wording UI uniquement. */
+  target?: ComposerEnhancedTarget;
 }
 
 const MAX_LENGTH = 2000;
@@ -29,7 +43,7 @@ const TEXTAREA_MAX_HEIGHT = TEXTAREA_LINE_HEIGHT * TEXTAREA_MAX_LINES;
  * AUCUNE régression sur l'API : onSend reçoit le body texte, exactement
  * comme avant. Le parent (page.tsx) appelle sendMutation.mutate(body) inchangé.
  */
-export function ComposerEnhanced({ disabled = false, isPending, onSend }: ComposerEnhancedProps) {
+export function ComposerEnhanced({ disabled = false, isPending, onSend, target }: ComposerEnhancedProps) {
   const [draft, setDraft] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -74,6 +88,15 @@ export function ComposerEnhanced({ disabled = false, isPending, onSend }: Compos
   function removeAttachment(index: number) {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   }
+
+  const placeholder =
+    target?.threadType === "DM"
+      ? "Écrire un message privé…"
+      : "Écrire un message à votre équipe…";
+  const ariaLabel =
+    target?.threadType === "DM"
+      ? "Écrire un message privé"
+      : "Écrire un message à votre équipe soignante";
 
   const charCount = draft.length;
   const charLimitReached = charCount > MAX_LENGTH;
@@ -197,9 +220,9 @@ export function ComposerEnhanced({ disabled = false, isPending, onSend }: Compos
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Écrire un message à votre équipe…"
+            placeholder={placeholder}
             disabled={disabled}
-            aria-label="Écrire un message à votre équipe soignante"
+            aria-label={ariaLabel}
             aria-describedby="composer-char-counter"
             rows={1}
             style={{
