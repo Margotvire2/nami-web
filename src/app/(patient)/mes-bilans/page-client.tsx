@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { usePatientBilans } from "@/hooks/usePatientBilans";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { BilanCard } from "./_components/BilanCard";
+import { usePatientCareCases } from "@/hooks/usePatientCareCases";
 import { BilanEmptyState } from "./_components/BilanEmptyState";
+import { BilansCareCaseSection } from "./_components/BilansCareCaseSection";
+import { BilansOrphanSection } from "./_components/BilansOrphanSection";
 import { MdrDisclaimer } from "./_components/MdrDisclaimer";
 
 const C = {
@@ -16,7 +18,38 @@ const C = {
 };
 
 export function MesBilansClient() {
-  const { data: bilans = [], isLoading } = usePatientBilans();
+  const { data: bilans = [], isLoading: bilansLoading } = usePatientBilans();
+  const { data: careCases = [], isLoading: careCasesLoading } =
+    usePatientCareCases();
+
+  const isLoading = bilansLoading || careCasesLoading;
+
+  // Index : careCaseId → bilans[] + collecte des orphans (sans careCaseId valide
+  // côté CareCase ACTIVE du patient).
+  const { byCareCase, orphans } = useMemo(() => {
+    const activeIds = new Set(careCases.map((cc) => cc.id));
+    const byCareCase = new Map<string, typeof bilans>();
+    const orphans: typeof bilans = [];
+
+    for (const bilan of bilans) {
+      if (bilan.careCaseId && activeIds.has(bilan.careCaseId)) {
+        const arr = byCareCase.get(bilan.careCaseId) ?? [];
+        arr.push(bilan);
+        byCareCase.set(bilan.careCaseId, arr);
+      } else {
+        orphans.push(bilan);
+      }
+    }
+
+    return { byCareCase, orphans };
+  }, [bilans, careCases]);
+
+  const hasAnyBilan = bilans.length > 0;
+  const hasAnyCareCase = careCases.length > 0;
+  const showGroups = !isLoading && hasAnyBilan;
+  const showGlobalEmpty = !isLoading && !hasAnyBilan && !hasAnyCareCase;
+  const showOnlyCareCasesNoBilans =
+    !isLoading && !hasAnyBilan && hasAnyCareCase;
 
   return (
     <main
@@ -54,7 +87,7 @@ export function MesBilansClient() {
           </p>
         </div>
 
-        {bilans.length > 0 ? (
+        {hasAnyBilan ? (
           <Link
             href="/mes-bilans/upload"
             aria-label="Ajouter un bilan"
@@ -92,29 +125,42 @@ export function MesBilansClient() {
             aria-hidden="true"
           />
         </div>
-      ) : bilans.length === 0 ? (
+      ) : showGlobalEmpty ? (
         <BilanEmptyState />
-      ) : (
+      ) : showOnlyCareCasesNoBilans ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {careCases.map((careCase) => (
+            <BilansCareCaseSection
+              key={careCase.id}
+              careCase={careCase}
+              bilans={[]}
+            />
+          ))}
+          <MdrDisclaimer />
+        </div>
+      ) : showGroups ? (
         <>
           <p aria-live="polite" aria-atomic="true" className="sr-only">
             {bilans.length} bilan{bilans.length !== 1 ? "s" : ""} affiché
             {bilans.length !== 1 ? "s" : ""}.
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {bilans.map((bilan, idx) => (
-              <ScrollReveal
-                key={bilan.id}
-                variant="fade-up"
-                delay={idx * 0.05}
-                duration={0.45}
-              >
-                <BilanCard bilan={bilan} />
-              </ScrollReveal>
-            ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {careCases
+              .filter((cc) => (byCareCase.get(cc.id) ?? []).length > 0)
+              .map((careCase) => (
+                <BilansCareCaseSection
+                  key={careCase.id}
+                  careCase={careCase}
+                  bilans={byCareCase.get(careCase.id) ?? []}
+                />
+              ))}
+            {orphans.length > 0 ? (
+              <BilansOrphanSection bilans={orphans} />
+            ) : null}
           </div>
           <MdrDisclaimer />
         </>
-      )}
+      ) : null}
     </main>
   );
 }
