@@ -2980,7 +2980,25 @@ export interface PatientCancelBody {
 
 export interface PatientDocument {
   id: string; title: string; documentType: string; fileUrl: string;
-  mimeType: string; sizeBytes: number; createdAt: string; careCaseId: string;
+  mimeType: string; sizeBytes: number; createdAt: string;
+  /**
+   * careCaseId FK Document (legacy/primary). Reste sur les documents
+   * mono-CareCase. Pour les DM ou les documents multi-CareCase migres
+   * vers le join `DocumentCareCase`, ce champ peut etre null.
+   * Backend PR #96 (CC #DOCUMENTS-CHANNELS-ROUTING).
+   */
+  careCaseId: string | null;
+  /**
+   * Destinataire Person.id quand le document est echange en DM 1:1
+   * (XOR avec careCaseId). null sinon. Backend PR #96.
+   */
+  directRecipientPersonId?: string | null;
+  /**
+   * Tous les CareCaseId auxquels le document est rattache via le join
+   * `DocumentCareCase` (multi-attachement). Backend PR #96. Optionnel
+   * pour rester backward-compatible avec les anciens runtimes.
+   */
+  attachedCareCaseIds?: string[];
   uploadedBy: { firstName: string; lastName: string; roleType: string };
 }
 

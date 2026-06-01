@@ -3,23 +3,29 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type PatientDocument } from "@/lib/api";
-import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
-import { FileText, Download, Loader2 } from "lucide-react";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import {
+  apiWithToken,
+  type PatientDocument,
+  type PatientMessageThread,
+} from "@/lib/api";
+import { FileText, Loader2 } from "lucide-react";
+import { usePatientCareCases } from "@/hooks/usePatientCareCases";
+import { usePatientMessageThreads } from "@/hooks/usePatientMessageThreads";
 import {
   DocumentsFilters,
-  DOC_TYPES,
   FILTER_LABELS,
   bucketize,
   type FilterKey,
-  type DocumentTypeKey,
 } from "./DocumentsFilters";
+import { DocumentsCareCaseSection } from "./_components/DocumentsCareCaseSection";
+import {
+  DocumentsDmSection,
+  type DmGroup,
+} from "./_components/DocumentsDmSection";
+import { DocumentsOrphanSection } from "./_components/DocumentsOrphanSection";
 
 const C = {
   primary: "#5B4EC4",
-  primaryLight: "rgba(91,78,196,0.08)",
   text: "#1A1A2E",
   textSoft: "#6B7280",
   border: "rgba(26,26,46,0.08)",
@@ -27,14 +33,68 @@ const C = {
   bg: "#FAFAF8",
 };
 
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} o`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+/**
+ * Resout la liste des careCaseId rattaches a un document.
+ * Backend PR #96 : `careCaseId` (scalar legacy/primary) + `attachedCareCaseIds`
+ * (join multi-CareCase). On unionne et on deduplique.
+ */
+function resolveDocCareCaseIds(doc: PatientDocument): string[] {
+  const ids = new Set<string>();
+  if (doc.careCaseId) ids.add(doc.careCaseId);
+  for (const id of doc.attachedCareCaseIds ?? []) {
+    if (id) ids.add(id);
+  }
+  return Array.from(ids);
+}
+
+/**
+ * Construit le libelle d'interlocuteur DM en cherchant d'abord parmi les
+ * threads DM connus du patient (mes-messages, PR #130). Fallback : nom de
+ * l'uploader (qui est l'interlocuteur lorsque le patient est destinataire)
+ * ou libelle generique safe.
+ */
+function findDmOtherName(
+  doc: PatientDocument,
+  selfPersonId: string | null,
+  threads: PatientMessageThread[] | undefined,
+): { otherPersonId: string | null; otherName: string } {
+  const recipient = doc.directRecipientPersonId ?? null;
+
+  // Cas 1 : le patient est le destinataire — l'interlocuteur est l'uploader
+  if (selfPersonId && recipient === selfPersonId) {
+    const name =
+      `${doc.uploadedBy.firstName ?? ""} ${doc.uploadedBy.lastName ?? ""}`.trim();
+    return {
+      otherPersonId: null,
+      otherName: name.length > 0 ? name : "Soignant",
+    };
+  }
+
+  // Cas 2 : le patient est l'uploader — l'interlocuteur est `recipient`.
+  // On cherche son identite dans les threads DM connus.
+  if (recipient && threads && threads.length > 0) {
+    for (const t of threads) {
+      if (t.threadType !== "DM") continue;
+      const match = t.participants.find((p) => p.personId === recipient);
+      if (match) {
+        const fullName = `${match.firstName} ${match.lastName}`.trim();
+        return {
+          otherPersonId: recipient,
+          otherName: fullName.length > 0 ? fullName : "Soignant",
+        };
+      }
+    }
+  }
+
+  return {
+    otherPersonId: recipient,
+    otherName: "Soignant",
+  };
 }
 
 export default function DocumentsPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
   const api = apiWithToken(accessToken!);
   const [filter, setFilter] = useState<FilterKey>("ALL");
   const [search, setSearch] = useState("");
@@ -46,7 +106,29 @@ export default function DocumentsPage() {
     staleTime: 5 * 60_000,
   });
 
-  // Counts par bucket de filtre (pour les badges sur les pills)
+  const careCasesQuery = usePatientCareCases();
+  const careCases = useMemo(
+    () => careCasesQuery.data ?? [],
+    [careCasesQuery.data],
+  );
+  const careCaseIdSet = useMemo(
+    () => new Set(careCases.map((c) => c.id)),
+    [careCases],
+  );
+
+  const threadsQuery = usePatientMessageThreads();
+
+  // ─── Filtrage : type + recherche texte ──────────────────────────────────
+  const filteredDocs = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return docs.filter((d) => {
+      if (filter !== "ALL" && bucketize(d.documentType) !== filter) return false;
+      if (q && !d.title.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [docs, filter, search]);
+
+  // ─── Counts par bucket sur le dataset entier (badges) ───────────────────
   const counts = useMemo(() => {
     const acc: Record<FilterKey, number> = {
       ALL: docs.length,
@@ -69,14 +151,69 @@ export default function DocumentsPage() {
     return acc;
   }, [docs]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return docs.filter((d) => {
-      if (filter !== "ALL" && bucketize(d.documentType) !== filter) return false;
-      if (q && !d.title.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [docs, filter, search]);
+  // ─── Buckets : CareCase / DM / Orphan ───────────────────────────────────
+  // Un meme document peut etre rattache a N CareCases (join PR #96). On le
+  // duplique alors visuellement dans chaque section CareCase correspondante
+  // (verite metier : il est bien partage avec ces N parcours).
+  const { byCareCase, dmGroups, orphans } = useMemo(() => {
+    const byCareCase = new Map<string, PatientDocument[]>();
+    const dmByOther = new Map<
+      string,
+      { otherPersonId: string | null; otherName: string; docs: PatientDocument[] }
+    >();
+    const orphans: PatientDocument[] = [];
+
+    for (const doc of filteredDocs) {
+      const ids = resolveDocCareCaseIds(doc).filter((id) =>
+        careCaseIdSet.has(id),
+      );
+      const isDm = !!doc.directRecipientPersonId;
+
+      if (ids.length > 0) {
+        for (const id of ids) {
+          const list = byCareCase.get(id);
+          if (list) list.push(doc);
+          else byCareCase.set(id, [doc]);
+        }
+        continue;
+      }
+
+      if (isDm) {
+        const { otherPersonId, otherName } = findDmOtherName(
+          doc,
+          user?.id ?? null,
+          threadsQuery.data,
+        );
+        const key = otherPersonId ?? `dm-fallback-${otherName}`;
+        const existing = dmByOther.get(key);
+        if (existing) {
+          existing.docs.push(doc);
+        } else {
+          dmByOther.set(key, { otherPersonId, otherName, docs: [doc] });
+        }
+        continue;
+      }
+
+      orphans.push(doc);
+    }
+
+    const dmGroups: DmGroup[] = Array.from(dmByOther.values())
+      .map((g) => ({
+        otherPersonId: g.otherPersonId,
+        otherName: g.otherName,
+        documents: g.docs,
+      }))
+      .sort((a, b) => a.otherName.localeCompare(b.otherName, "fr"));
+
+    return { byCareCase, dmGroups, orphans };
+  }, [filteredDocs, careCaseIdSet, user?.id, threadsQuery.data]);
+
+  const hasAnyDoc = filteredDocs.length > 0;
+  const hasAnyCareCaseSection = careCases.some((c) =>
+    (byCareCase.get(c.id) ?? []).length > 0,
+  );
+  const hasDm = dmGroups.length > 0;
+  const hasOrphans = orphans.length > 0;
 
   return (
     <main
@@ -110,10 +247,10 @@ export default function DocumentsPage() {
         totalAll={docs.length}
       />
 
-      {/* Compteur résultats accessible aux lecteurs d'écran */}
+      {/* Compteur resultats accessible aux lecteurs d'ecran */}
       <p aria-live="polite" aria-atomic="true" className="sr-only">
-        {filtered.length} document{filtered.length !== 1 ? "s" : ""} affiché
-        {filtered.length !== 1 ? "s" : ""}.
+        {filteredDocs.length} document{filteredDocs.length !== 1 ? "s" : ""} affiché
+        {filteredDocs.length !== 1 ? "s" : ""}.
       </p>
 
       {isLoading ? (
@@ -130,7 +267,7 @@ export default function DocumentsPage() {
             aria-hidden="true"
           />
         </div>
-      ) : filtered.length === 0 ? (
+      ) : !hasAnyDoc ? (
         <div
           role="status"
           style={{
@@ -158,98 +295,27 @@ export default function DocumentsPage() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {filtered.map((doc, idx) => {
-            const typeInfo =
-              DOC_TYPES[doc.documentType as DocumentTypeKey] ?? DOC_TYPES.OTHER;
-            return (
-              <ScrollReveal
-                key={doc.id}
-                variant="fade-up"
-                delay={idx * 0.06}
-                duration={0.5}
-              >
-                <article
-                  className="nami-patient-card"
-                  style={{
-                    background: C.card,
-                    borderRadius: 14,
-                    border: `1px solid ${C.border}`,
-                    padding: "14px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                  }}
-                >
-                  {/* Icône type */}
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 10,
-                      background: typeInfo.bg,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 20,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {typeInfo.icon}
-                  </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Sections par CareCase actif (ordre = tri backend startDate desc) */}
+          {hasAnyCareCaseSection
+            ? careCases.map((careCase) => {
+                const documents = byCareCase.get(careCase.id) ?? [];
+                if (documents.length === 0) return null;
+                return (
+                  <DocumentsCareCaseSection
+                    key={careCase.id}
+                    careCase={careCase}
+                    documents={documents}
+                  />
+                );
+              })
+            : null}
 
-                  {/* Infos */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: C.text,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {doc.title}
-                    </div>
-                    <div style={{ fontSize: 12, color: C.textSoft, marginTop: 2 }}>
-                      <span style={{ color: typeInfo.color, fontWeight: 500 }}>
-                        {typeInfo.label}
-                      </span>
-                      {" · "}
-                      {format(parseISO(doc.createdAt), "d MMM yyyy", { locale: fr })}
-                      {" · "}
-                      {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}
-                      {" · "}
-                      {formatSize(doc.sizeBytes)}
-                    </div>
-                  </div>
+          {hasDm ? <DocumentsDmSection groups={dmGroups} /> : null}
 
-                  {/* Télécharger */}
-                  <a
-                    href={doc.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Télécharger ${doc.title}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      background: C.primaryLight,
-                      flexShrink: 0,
-                      color: C.primary,
-                    }}
-                  >
-                    <Download size={16} strokeWidth={2} aria-hidden="true" />
-                  </a>
-                </article>
-              </ScrollReveal>
-            );
-          })}
+          {hasOrphans ? (
+            <DocumentsOrphanSection documents={orphans} />
+          ) : null}
         </div>
       )}
     </main>
