@@ -3538,6 +3538,11 @@ export function apiWithToken(token: string) {
     providers: {
       match: (params: ProviderMatchParams) =>
         request<ProviderMatchResult>("/providers/match", { method: "POST", body: JSON.stringify(params) }, token),
+      specialtyView: () =>
+        request<{
+          specialtyView: "DIETITIAN" | "PSYCHOLOGIST" | "PHYSICIAN" | "PEDIATRICIAN" | "ENDOCRINOLOGIST" | "OTHER";
+          config: { primaryModules: string[]; metrics: string[]; journalTypes: string[]; label: string };
+        }>("/providers/me/specialty-view", {}, token),
     },
     annuaire: {
       search: (params: Parameters<typeof annuaireApi.search>[1]) => annuaireApi.search(token, params),

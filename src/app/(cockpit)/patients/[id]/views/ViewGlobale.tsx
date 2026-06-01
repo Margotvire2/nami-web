@@ -12,6 +12,7 @@ import { ProtocolBanner } from "@/components/protocol/ProtocolBanner";
 import { getClinicalProfile, getDeltaColorClass, type ClinicalProfile } from "@/lib/clinicalProfile";
 import { GrowthCharts } from "@/components/patient/GrowthCharts";
 import { normalizeSex, labelSex } from "@/lib/patient-utils";
+import { useSpecialtyView } from "@/hooks/useSpecialtyView";
 
 interface Props {
   dashboard: PatientDashboard;
@@ -525,14 +526,36 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId, on
   onAddDocument?: (uploadType: string) => void;
 }) {
   const [addObsOpen, setAddObsOpen] = useState(false);
+  const [showSecondary, setShowSecondary] = useState(false);
+  const { metrics: metierMetrics, isGenericView } = useSpecialtyView();
+
   const withValues = indicators.filter((i) => i.value !== null);
-  const byDomain = new Map<string, DashboardIndicator[]>();
-  for (const ind of withValues) {
-    const group = byDomain.get(ind.domain) || [];
-    group.push(ind);
-    byDomain.set(ind.domain, group);
-  }
-  // Conserver l'ordre d'apparition des domaines dans `indicators` (pas trié par sévérité).
+  const metierKeys = new Set(metierMetrics);
+  const matchedPrimary = withValues.filter((i) => metierKeys.has(i.metricKey)).length;
+  const hierarchyActive = !isGenericView && matchedPrimary > 0;
+
+  const primary = hierarchyActive
+    ? withValues.filter((i) => metierKeys.has(i.metricKey))
+    : withValues;
+  const secondary = hierarchyActive
+    ? withValues.filter((i) => !metierKeys.has(i.metricKey))
+    : [];
+
+  // Group helper — conserve l'ordre d'apparition des indicators pour les domaines.
+  const groupByDomain = (list: DashboardIndicator[]) => {
+    const map = new Map<string, DashboardIndicator[]>();
+    for (const ind of list) {
+      const group = map.get(ind.domain) || [];
+      group.push(ind);
+      map.set(ind.domain, group);
+    }
+    return map;
+  };
+  const primaryByDomain = groupByDomain(primary);
+  const secondaryByDomain = groupByDomain(secondary);
+
+  // Empty domains : ceux connus dans `indicators` qui n'ont aucune valeur
+  // → toujours affichés (atteignables) pour proposer l'upload de document.
   const knownDomains: string[] = [];
   const seen = new Set<string>();
   for (const ind of indicators) {
@@ -541,7 +564,8 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId, on
       knownDomains.push(ind.domain);
     }
   }
-  const emptyDomains = knownDomains.filter((d) => !byDomain.has(d));
+  const valuedDomains = new Set(withValues.map((i) => i.domain));
+  const emptyDomains = knownDomains.filter((d) => !valuedDomains.has(d));
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -557,7 +581,7 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId, on
         <button onClick={() => setAddObsOpen(true)} className="text-xs text-[#5B4EC4] hover:underline font-medium">+ Saisir une observation</button>
       </div>
       <div className="space-y-4">
-        {Array.from(byDomain.entries()).map(([domain, inds]) => (
+        {Array.from(primaryByDomain.entries()).map(([domain, inds]) => (
           <div key={domain}>
             <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">{domain}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
@@ -567,6 +591,32 @@ function KeyIndicatorsGrid({ indicators, questionnaires, profile, careCaseId, on
             </div>
           </div>
         ))}
+        {hierarchyActive && secondary.length > 0 && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setShowSecondary((v) => !v)}
+              className="text-[11px] font-medium text-gray-500 hover:text-[#5B4EC4]"
+              aria-expanded={showSecondary}
+            >
+              {showSecondary ? "← Réduire" : `Voir tout (${secondary.length})`}
+            </button>
+            {showSecondary && (
+              <div className="space-y-4 mt-3">
+                {Array.from(secondaryByDomain.entries()).map(([domain, inds]) => (
+                  <div key={domain}>
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">{domain}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                      {inds.map((ind) => (
+                        <IndicatorTile key={ind.metricKey} ind={ind} profile={profile} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {emptyDomains.map((domain) => {
           const uploadType = getUploadTypeForDomain(domain);
           return (
