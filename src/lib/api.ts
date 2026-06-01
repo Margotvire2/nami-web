@@ -2894,6 +2894,10 @@ export interface PatientMe {
 export interface PatientAppointment {
   id: string; startAt: string; endAt: string; status: string;
   locationType: string; notes: string | null;
+  // V1-RENDEZ-VOUS-CARECASE-GROUPING : champ scalar Appointment.careCaseId
+  // retourné par défaut par /patient/appointments (Prisma findMany sans select).
+  // Permet le groupement par parcours sur /rendez-vous.
+  careCaseId?: string | null;
   provider: { person: { firstName: string; lastName: string } };
   consultationType: { name: string; durationMinutes: number } | null;
   location: { name: string; address: string | null; city: string | null; color: string | null } | null;

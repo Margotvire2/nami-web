@@ -5,25 +5,36 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
-import { apiWithToken, type PatientAppointment, type SwitchableProfile } from "@/lib/api";
+import { apiWithToken, type PatientAppointment, type PatientCareCaseSummary, type SwitchableProfile } from "@/lib/api";
 import { computeTab, type AppointmentTab } from "@/lib/appointment-status";
 import { getProviderName } from "@/lib/appointment-helpers";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { ProfileSwitcher } from "@/components/patient/ProfileSwitcher";
 import { CancelAppointmentModal } from "@/components/patient/CancelAppointmentModal";
-import { AppointmentCard } from "@/components/patient/AppointmentCard";
 import { usePatientAppointmentRequests } from "@/hooks/usePatientAppointmentRequests";
 import { useWithdrawAppointmentRequest } from "@/hooks/useWithdrawAppointmentRequest";
+import { usePatientCareCases } from "@/hooks/usePatientCareCases";
 import { RdvHeroCard } from "./_components/RdvHeroCard";
 import { RdvStatusTabs } from "./_components/RdvStatusTabs";
 import { RdvEmptyState } from "./_components/RdvEmptyState";
 import { DemandeCard } from "./_components/DemandeCard";
+import { AppointmentsCareCaseSection } from "./_components/AppointmentsCareCaseSection";
+import { AppointmentsOrphanSection } from "./_components/AppointmentsOrphanSection";
 
 const VALID_TABS: AppointmentTab[] = ["upcoming", "pending", "past", "cancelled"];
 
 function parseTab(raw: string | null): AppointmentTab {
   if (raw && (VALID_TABS as string[]).includes(raw)) return raw as AppointmentTab;
   return "upcoming";
+}
+
+/**
+ * Filtre les RDV pour ne garder que ceux du tab actif, en respectant le mapping
+ * `computeTab` de la lib (upcoming / past / cancelled). Utilisé pour ne pas
+ * dupliquer les sous-blocs dans une vue déjà filtrée par tab.
+ */
+function filterByTab(items: PatientAppointment[], tab: AppointmentTab): PatientAppointment[] {
+  return items.filter((a) => computeTab(a) === tab);
 }
 
 export default function RendezVousPage() {
@@ -81,10 +92,14 @@ export default function RendezVousPage() {
     enabled: !!accessToken && !!effectiveProfileId,
   });
 
-  // ── Demandes de RDV PENDING (tab « En attente » — CC #89 PR #74) ──────────
-  // On charge en permanence pour alimenter le compteur du tab, indépendamment
-  // du tab actif. Pas de fetch si pas de profil résolu.
+  // ── Parcours actifs du patient — pour le groupement V1-RENDEZ-VOUS-CARECASE-GROUPING
+  // Pour le self uniquement (les délégués accèdent à leurs propres parcours,
+  // pas ceux du patient cible). Si délégué, on retombe sur la liste plate
+  // façon "hors parcours" via AppointmentsOrphanSection.
   const isSelfProfile = currentProfile?.isSelf ?? true;
+  const { data: careCases } = usePatientCareCases();
+
+  // ── Demandes de RDV PENDING (tab « En attente » — CC #89 PR #74) ──────────
   const requestsQueryParams = useMemo(
     () => ({
       status: "pending" as const,
@@ -115,8 +130,6 @@ export default function RendezVousPage() {
   }, [appointments]);
 
   // Compteurs pour les badges des tabs.
-  // V2.2 (CC #RDV-DEMANDES-FUSION) : pending = nombre d'AppointmentRequest
-  // PENDING (CC #89 PR #74 backend).
   const tabCounts: Record<AppointmentTab, number> = useMemo(
     () => ({
       upcoming: upcomingList.length,
@@ -140,6 +153,84 @@ export default function RendezVousPage() {
   const upcomingRest = heroAppointment ? upcomingList.slice(1) : upcomingList;
   const profileFirstName =
     currentProfile && !currentProfile.isSelf ? currentProfile.firstName : undefined;
+
+  // ── V1-RENDEZ-VOUS-CARECASE-GROUPING ─────────────────────────────────────
+  // Groupement par CareCase pour le tab actif (upcoming / past / cancelled).
+  // Le hero "upcoming" (1er RDV) reste hors groupement pour préserver la
+  // mise en avant existante (PR #87).
+  const groupedSections = useMemo(() => {
+    if (activeTab === "pending") {
+      return { perCase: [], orphans: [] as PatientAppointment[] };
+    }
+
+    // RDV à afficher dans le tab actif : on retire le hero quand on est
+    // sur "upcoming" pour éviter les doublons (le hero reste rendu à part).
+    const baseList =
+      activeTab === "upcoming"
+        ? upcomingRest
+        : activeTab === "past"
+          ? pastList
+          : cancelledList;
+
+    // Index pour les sous-blocs : le tab est déjà filtré, mais on reconstruit
+    // les 3 sous-listes pour respecter la signature de la section (filtrer
+    // ré-applique computeTab par sécurité — idempotent).
+    const upcomingForGroup = filterByTab(baseList, "upcoming");
+    const pastForGroup = filterByTab(baseList, "past");
+    const cancelledForGroup = filterByTab(baseList, "cancelled");
+
+    const byCase = new Map<string, PatientAppointment[]>();
+    const orphans: PatientAppointment[] = [];
+    for (const appt of baseList) {
+      const cid = appt.careCaseId;
+      if (cid) {
+        const arr = byCase.get(cid) ?? [];
+        arr.push(appt);
+        byCase.set(cid, arr);
+      } else {
+        orphans.push(appt);
+      }
+    }
+
+    // Order = ordre des CareCases ACTIVE (startDate desc côté hook), filtrés
+    // sur ceux qui ont au moins 1 RDV. Les CareCases inconnus restent en
+    // orphans (sécurité : un RDV avec careCaseId d'un CareCase non ACTIVE).
+    const perCase: Array<{
+      careCase: PatientCareCaseSummary;
+      appointments: PatientAppointment[];
+      upcoming: PatientAppointment[];
+      past: PatientAppointment[];
+      cancelled: PatientAppointment[];
+    }> = [];
+    const knownCaseIds = new Set<string>();
+    for (const cc of careCases ?? []) {
+      const items = byCase.get(cc.id);
+      if (items && items.length > 0) {
+        knownCaseIds.add(cc.id);
+        perCase.push({
+          careCase: cc,
+          appointments: items,
+          upcoming: items.filter((a) => upcomingForGroup.includes(a)),
+          past: items.filter((a) => pastForGroup.includes(a)),
+          cancelled: items.filter((a) => cancelledForGroup.includes(a)),
+        });
+      }
+    }
+    // Sécurité : tout RDV pointant vers un CareCase non listé bascule orphan.
+    for (const [cid, items] of byCase.entries()) {
+      if (!knownCaseIds.has(cid)) {
+        for (const it of items) orphans.push(it);
+      }
+    }
+
+    return {
+      perCase,
+      orphans,
+      orphansUpcoming: filterByTab(orphans, "upcoming"),
+      orphansPast: filterByTab(orphans, "past"),
+      orphansCancelled: filterByTab(orphans, "cancelled"),
+    };
+  }, [activeTab, upcomingRest, pastList, cancelledList, careCases]);
 
   return (
     <main className="max-w-3xl mx-auto p-6 space-y-6 min-h-screen bg-[var(--nami-bg)]">
@@ -178,16 +269,30 @@ export default function RendezVousPage() {
                   />
                 </ScrollReveal>
               )}
-              {upcomingRest.length > 0 && (
+              {(groupedSections.perCase.length > 0 ||
+                (groupedSections.orphans?.length ?? 0) > 0) && (
                 <ScrollReveal variant="fade-up" delay={0.1} duration={0.5}>
-                  <div className="space-y-3">
-                    {upcomingRest.map((appt) => (
-                      <AppointmentCard
-                        key={appt.id}
-                        appointment={appt}
-                        onCancel={() => setCancelTarget(appt)}
+                  <div className="space-y-10">
+                    {groupedSections.perCase.map((g) => (
+                      <AppointmentsCareCaseSection
+                        key={g.careCase.id}
+                        careCase={g.careCase}
+                        appointments={g.appointments}
+                        upcoming={g.upcoming}
+                        past={g.past}
+                        cancelled={g.cancelled}
+                        onCancel={(appt) => setCancelTarget(appt)}
                       />
                     ))}
+                    {(groupedSections.orphans?.length ?? 0) > 0 && (
+                      <AppointmentsOrphanSection
+                        appointments={groupedSections.orphans ?? []}
+                        upcoming={groupedSections.orphansUpcoming ?? []}
+                        past={groupedSections.orphansPast ?? []}
+                        cancelled={groupedSections.orphansCancelled ?? []}
+                        onCancel={(appt) => setCancelTarget(appt)}
+                      />
+                    )}
                   </div>
                 </ScrollReveal>
               )}
@@ -234,10 +339,25 @@ export default function RendezVousPage() {
                 <RdvEmptyState variant="past" profileFirstName={profileFirstName} />
               ) : (
                 <ScrollReveal variant="fade-up" duration={0.5}>
-                  <div className="space-y-3">
-                    {pastList.map((appt) => (
-                      <AppointmentCard key={appt.id} appointment={appt} />
+                  <div className="space-y-10">
+                    {groupedSections.perCase.map((g) => (
+                      <AppointmentsCareCaseSection
+                        key={g.careCase.id}
+                        careCase={g.careCase}
+                        appointments={g.appointments}
+                        upcoming={g.upcoming}
+                        past={g.past}
+                        cancelled={g.cancelled}
+                      />
                     ))}
+                    {(groupedSections.orphans?.length ?? 0) > 0 && (
+                      <AppointmentsOrphanSection
+                        appointments={groupedSections.orphans ?? []}
+                        upcoming={groupedSections.orphansUpcoming ?? []}
+                        past={groupedSections.orphansPast ?? []}
+                        cancelled={groupedSections.orphansCancelled ?? []}
+                      />
+                    )}
                   </div>
                 </ScrollReveal>
               )}
@@ -250,10 +370,25 @@ export default function RendezVousPage() {
                 <RdvEmptyState variant="cancelled" profileFirstName={profileFirstName} />
               ) : (
                 <ScrollReveal variant="fade-up" duration={0.5}>
-                  <div className="space-y-3">
-                    {cancelledList.map((appt) => (
-                      <AppointmentCard key={appt.id} appointment={appt} />
+                  <div className="space-y-10">
+                    {groupedSections.perCase.map((g) => (
+                      <AppointmentsCareCaseSection
+                        key={g.careCase.id}
+                        careCase={g.careCase}
+                        appointments={g.appointments}
+                        upcoming={g.upcoming}
+                        past={g.past}
+                        cancelled={g.cancelled}
+                      />
                     ))}
+                    {(groupedSections.orphans?.length ?? 0) > 0 && (
+                      <AppointmentsOrphanSection
+                        appointments={groupedSections.orphans ?? []}
+                        upcoming={groupedSections.orphansUpcoming ?? []}
+                        past={groupedSections.orphansPast ?? []}
+                        cancelled={groupedSections.orphansCancelled ?? []}
+                      />
+                    )}
                   </div>
                 </ScrollReveal>
               )}
