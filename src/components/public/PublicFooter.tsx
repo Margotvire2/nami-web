@@ -105,6 +105,12 @@ export function PublicFooter() {
           <p style={{ fontSize: 11, color: "rgba(238,236,234,0.15)", textAlign: "center" }}>
             Nami n&apos;est pas un dispositif médical. Aucune information fournie ne constitue un avis médical. En cas d&apos;urgence, appelez le 15 ou le 112.
           </p>
+          <p
+            aria-label="Mentions légales Nami"
+            style={{ fontSize: 11, color: "rgba(238,236,234,0.25)", textAlign: "center", marginTop: 4 }}
+          >
+            Outil de coordination · Non dispositif médical · Conforme RGPD
+          </p>
         </div>
       </div>
     </footer>
