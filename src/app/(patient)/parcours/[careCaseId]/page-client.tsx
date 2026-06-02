@@ -171,9 +171,15 @@ export function ParcoursHubPageClient({
           careCaseId={careCaseId}
           patientId={patientId ?? ""}
         />
-        <HubProvidersSection providers={data.providers} />
+        <HubProvidersSection
+          providers={data.providers}
+          careCaseId={careCaseId}
+        />
         <HubObservationsSection observations={data.observations.recent} />
-        <HubDocumentsSection documents={data.documents.recent} />
+        <HubDocumentsSection
+          documents={data.documents.recent}
+          careCaseId={careCaseId}
+        />
         <HubMessagesSection messages={data.messages} />
       </div>
 

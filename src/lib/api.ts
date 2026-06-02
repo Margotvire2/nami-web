@@ -3216,6 +3216,191 @@ export interface PatientCareCaseHub {
   messages: PatientCareCaseHubMessages;
 }
 
+// ─── Fiches relationnelles scopées CareCase (PRs #128 / #129 / #130) ──────────
+// Drawer EntityHub navigable Provider / Consultation / Document.
+// Backend : src/services/entityHub.service.ts (+ entityHubConsultation.service.ts
+// + entityHubDocument.service.ts). Self-only V1 (pas de onBehalfOf).
+// Routes : GET /patient/care-case-hub/:cc/{provider|consultation|document}/:id
+
+// ── Provider hub ──
+export interface EntityHubProviderLocation {
+  id: string;
+  name: string;
+  city: string | null;
+  postalCode: string | null;
+  locationType: string;
+}
+
+export interface EntityHubProviderInfo {
+  id: string; // ProviderProfile.id
+  firstName: string;
+  lastName: string;
+  specialty: string | null;
+  photoUrl: string | null;
+  locations: EntityHubProviderLocation[];
+}
+
+export interface EntityHubProviderAppointmentLite {
+  id: string;
+  startAt: string; // ISO
+  endAt: string; // ISO
+  status: string;
+  locationType: string;
+  consultationTypeName: string | null;
+}
+
+export interface EntityHubProviderDocumentLite {
+  id: string;
+  title: string;
+  documentType: string;
+  createdAt: string; // ISO
+  summaryAi: string | null;
+}
+
+export interface EntityHubProviderMessages {
+  threadId: string;
+  unreadCount: number;
+  lastMessage: { id: string; body: string; createdAt: string } | null;
+}
+
+export interface EntityHubProvider {
+  provider: EntityHubProviderInfo;
+  appointments: {
+    upcoming: EntityHubProviderAppointmentLite[];
+    past: EntityHubProviderAppointmentLite[];
+  };
+  documents: {
+    sentByMe: EntityHubProviderDocumentLite[];
+    sharedByThem: EntityHubProviderDocumentLite[];
+  };
+  messages: EntityHubProviderMessages;
+  actions: { canBook: boolean; canDM: boolean };
+}
+
+// ── Consultation hub ──
+export interface EntityHubConsultationProvider {
+  id: string;
+  firstName: string;
+  lastName: string;
+  specialty: string | null;
+}
+
+export interface EntityHubConsultationInfo {
+  id: string;
+  startedAt: string;
+  completedAt: string | null;
+  status: string;
+  provider: EntityHubConsultationProvider;
+}
+
+export interface EntityHubConsultationClinicalNote {
+  id: string;
+  body: string;
+  visibility: string;
+  createdAt: string;
+}
+
+export interface EntityHubConsultationDocument {
+  id: string;
+  documentType: string;
+  title: string;
+  fileUrl: string;
+  createdAt: string;
+}
+
+export interface EntityHubConsultationObservation {
+  id: string;
+  metricKey: string;
+  metricLabel: string;
+  unit: string;
+  effectiveAt: string;
+  valueNumeric: number | null;
+  valueText: string | null;
+  valueBoolean: boolean | null;
+}
+
+export interface EntityHubConsultationNextAppointment {
+  id: string;
+  startAt: string;
+  endAt: string;
+  status: string;
+  locationType: string;
+}
+
+export interface EntityHubConsultation {
+  consultation: EntityHubConsultationInfo;
+  /** null si VisibilityScope hors [PATIENT_ONLY, CARE_TEAM] — afficher "Compte-rendu non partagé". */
+  clinicalNote: EntityHubConsultationClinicalNote | null;
+  documents: EntityHubConsultationDocument[];
+  /** Vide si clinicalNote=null (cohérence backend). */
+  observations: EntityHubConsultationObservation[];
+  nextAppointment: EntityHubConsultationNextAppointment | null;
+  /** Sous-ensemble de documents où documentType === "PRESCRIPTION". */
+  prescriptions: EntityHubConsultationDocument[];
+}
+
+// ── Document hub ──
+export interface EntityHubDocumentInfo {
+  id: string;
+  documentType: string;
+  title: string;
+  /** URL signée fraîche TTL 15 min (refetch après expiration). */
+  fileUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  summaryAi: string | null;
+  createdAt: string;
+}
+
+export type EntityHubDocumentSource =
+  | { uploadedBy: "me" }
+  | {
+      uploadedBy: "provider";
+      providerId: string;
+      firstName: string;
+      lastName: string;
+      specialty: string | null;
+    }
+  /** Person sans ProviderProfile (admin / import legacy) — afficher "Source non précisée" (RGPD). */
+  | { uploadedBy: "unknown" };
+
+export interface EntityHubDocumentConsultation {
+  id: string;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export interface EntityHubDocumentObservation {
+  id: string;
+  metricKey: string;
+  metricLabel: string;
+  unit: string;
+  effectiveAt: string;
+  valueNumeric: number | null;
+  valueText: string | null;
+  valueBoolean: boolean | null;
+}
+
+export interface EntityHubDocumentSharingMember {
+  providerId: string;
+  firstName: string;
+  lastName: string;
+  specialty: string | null;
+}
+
+export interface EntityHubDocumentSharing {
+  isSharedWithTeam: boolean;
+  teamMembers: EntityHubDocumentSharingMember[];
+}
+
+export interface EntityHubDocument {
+  document: EntityHubDocumentInfo;
+  source: EntityHubDocumentSource;
+  consultation: EntityHubDocumentConsultation | null;
+  observations: EntityHubDocumentObservation[];
+  sharing: EntityHubDocumentSharing;
+}
+
 /**
  * Bilan biologique uploadé par le patient.
  * Étend PatientDocument avec les champs d'analyse IA (CC #79 backend).
@@ -3992,6 +4177,26 @@ export function apiWithToken(token: string) {
             token,
           );
         },
+        // Fiches relationnelles — V1-ENTITY-HUB (backend PRs #128 / #129 / #130).
+        // Self-only V1, pas de onBehalfOf — la fiche est scopée au patient connecté.
+        provider: (careCaseId: string, providerId: string) =>
+          request<EntityHubProvider>(
+            `/patient/care-case-hub/${encodeURIComponent(careCaseId)}/provider/${encodeURIComponent(providerId)}`,
+            {},
+            token,
+          ),
+        consultation: (careCaseId: string, consultationId: string) =>
+          request<EntityHubConsultation>(
+            `/patient/care-case-hub/${encodeURIComponent(careCaseId)}/consultation/${encodeURIComponent(consultationId)}`,
+            {},
+            token,
+          ),
+        document: (careCaseId: string, documentId: string) =>
+          request<EntityHubDocument>(
+            `/patient/care-case-hub/${encodeURIComponent(careCaseId)}/document/${encodeURIComponent(documentId)}`,
+            {},
+            token,
+          ),
       },
       careTeam: {
         list: (params?: { careCaseId?: string; onBehalfOf?: string }) => {

@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import type { PatientAuthorizedProvider } from "@/lib/api";
+import { useEntityHubControls } from "@/contexts/EntityHubContext";
 
 interface HubProvidersSectionProps {
   providers: PatientAuthorizedProvider[];
+  careCaseId: string;
 }
 
 function formatLastSeen(iso: string | null): string {
@@ -21,8 +23,12 @@ function formatLastSeen(iso: string | null): string {
   }
 }
 
-export function HubProvidersSection({ providers }: HubProvidersSectionProps) {
+export function HubProvidersSection({
+  providers,
+  careCaseId,
+}: HubProvidersSectionProps) {
   const headingId = "hub-providers-heading";
+  const { openEntityHub } = useEntityHubControls();
 
   return (
     <section
@@ -93,82 +99,106 @@ export function HubProvidersSection({ providers }: HubProvidersSectionProps) {
           }}
         >
           {providers.map((p) => (
-            <li
-              key={p.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "10px 12px",
-                borderRadius: 12,
-                background: "#FAFAF8",
-              }}
-            >
-              <div
-                aria-hidden="true"
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() =>
+                  openEntityHub({
+                    type: "provider",
+                    careCaseId,
+                    entityId: p.id,
+                  })
+                }
+                aria-label={`Voir la fiche de ${p.firstName} ${p.lastName}`}
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "50%",
-                  background: "rgba(91,78,196,0.12)",
-                  color: "#5B4EC4",
+                  width: "100%",
+                  textAlign: "left",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  fontFamily: "var(--font-jakarta)",
-                  flexShrink: 0,
-                  overflow: "hidden",
+                  gap: 12,
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  background: "#FAFAF8",
+                  border: "1px solid transparent",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "background 120ms ease, border-color 120ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(91,78,196,0.06)";
+                  e.currentTarget.style.borderColor = "rgba(91,78,196,0.18)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#FAFAF8";
+                  e.currentTarget.style.borderColor = "transparent";
                 }}
               >
-                {p.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.avatarUrl}
-                    alt=""
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  `${p.firstName[0] ?? ""}${p.lastName[0] ?? ""}`
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
                 <div
+                  aria-hidden="true"
                   style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#1A1A2E",
-                    fontFamily: "var(--font-jakarta)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {p.firstName} {p.lastName}
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "#6B7280",
-                    fontFamily: "var(--font-inter)",
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: "rgba(91,78,196,0.12)",
+                    color: "#5B4EC4",
                     display: "flex",
-                    flexWrap: "wrap",
-                    gap: 6,
-                    marginTop: 2,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    fontFamily: "var(--font-jakarta)",
+                    flexShrink: 0,
+                    overflow: "hidden",
                   }}
                 >
-                  {p.specialty ? <span>{p.specialty}</span> : null}
-                  {p.specialty && p.lastAppointmentAt ? (
-                    <span aria-hidden="true">·</span>
-                  ) : null}
-                  <span>{formatLastSeen(p.lastAppointmentAt)}</span>
+                  {p.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.avatarUrl}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    `${p.firstName[0] ?? ""}${p.lastName[0] ?? ""}`
+                  )}
                 </div>
-              </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#1A1A2E",
+                      fontFamily: "var(--font-jakarta)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {p.firstName} {p.lastName}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "#6B7280",
+                      fontFamily: "var(--font-inter)",
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      marginTop: 2,
+                    }}
+                  >
+                    {p.specialty ? <span>{p.specialty}</span> : null}
+                    {p.specialty && p.lastAppointmentAt ? (
+                      <span aria-hidden="true">·</span>
+                    ) : null}
+                    <span>{formatLastSeen(p.lastAppointmentAt)}</span>
+                  </div>
+                </div>
+              </button>
             </li>
           ))}
         </ul>
