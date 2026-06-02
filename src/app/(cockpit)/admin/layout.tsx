@@ -4,20 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
-import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus, Megaphone, Target, TrendingUp } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus, Megaphone, Target, TrendingUp, ClipboardList } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+// F-SEC-RENAME-PLATFORM-ADMIN — accès super-admin Nami : BOTH ADMIN (legacy) et
+// PLATFORM_ADMIN (nouveau, post-rename PR #133). Coexistence transitoire V2 J+30.
+const ADMIN_ROLES = new Set(["ADMIN", "PLATFORM_ADMIN"]);
+
 const TABS = [
-  { href: "/admin",              label: "Vue d'ensemble", icon: LayoutDashboard },
-  { href: "/admin/traction",     label: "Traction",       icon: TrendingUp },
-  { href: "/admin/validations",  label: "Validations",    icon: ShieldCheck,    badge: true },
-  { href: "/admin/utilisateurs", label: "Utilisateurs",   icon: Users },
-  { href: "/admin/organisations",label: "Organisations",  icon: Building2 },
-  { href: "/admin/donnees",      label: "Données",         icon: Database },
-  { href: "/admin/inviter",      label: "Inviter",         icon: UserPlus },
-  { href: "/admin/contenu",      label: "Contenu",         icon: Megaphone },
-  { href: "/admin/strategie",    label: "Stratégie",       icon: Target },
+  { href: "/admin",                          label: "Vue d'ensemble",     icon: LayoutDashboard },
+  { href: "/admin/traction",                 label: "Traction",           icon: TrendingUp },
+  { href: "/admin/validations",              label: "Validations",        icon: ShieldCheck,    badge: true },
+  { href: "/admin/organization-applications",label: "Demandes inscription", icon: ClipboardList },
+  { href: "/admin/utilisateurs",             label: "Utilisateurs",       icon: Users },
+  { href: "/admin/organisations",            label: "Organisations",      icon: Building2 },
+  { href: "/admin/donnees",                  label: "Données",            icon: Database },
+  { href: "/admin/inviter",                  label: "Inviter",            icon: UserPlus },
+  { href: "/admin/contenu",                  label: "Contenu",            icon: Megaphone },
+  { href: "/admin/strategie",                label: "Stratégie",          icon: Target },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -28,9 +33,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
-  // Guard ADMIN
+  // Guard super-admin Nami : ADMIN (legacy) ou PLATFORM_ADMIN (post-rename).
   useEffect(() => {
-    if (user && user.roleType !== "ADMIN") {
+    if (user && !ADMIN_ROLES.has(user.roleType)) {
       router.replace("/aujourd-hui");
     }
   }, [user, router]);
@@ -57,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname]);
 
-  if (!user || user.roleType !== "ADMIN") return null;
+  if (!user || !ADMIN_ROLES.has(user.roleType)) return null;
 
   return (
     <div className="min-h-full" style={{ background: "#FAFAF8", fontFamily: "var(--font-jakarta)" }}>
