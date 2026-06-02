@@ -14,7 +14,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 /*
   Sidebar Nami 2.0 — 3 blocs mentaux :
   1. Mon activité (dashboard + agenda)
-  2. Mes patients (patients + alertes + documents)
+  2. Mes patients (patients + documents)
   3. Mon réseau (adressages + collaboration + équipe)
 */
 
@@ -26,9 +26,7 @@ const NAV_ACTIVITY = [
 
 const NAV_PATIENTS = [
   { href: "/patients",     label: "Patients",           emoji: "👥" },
-  { href: "/alertes",      label: "Rappels",            emoji: "🔔" },
   { href: "/taches",       label: "Tâches",             emoji: "✅" },
-  { href: "/protocoles",   label: "Références",         emoji: "📋" },
   { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
   { href: "/documents",    label: "Documents",          emoji: "📄" },
   { href: "/import",       label: "Importer l'historique", emoji: "📥" },
