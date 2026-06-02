@@ -34,7 +34,6 @@ describe("ConsoleSidebar", () => {
     render(<ConsoleSidebar orgId="org-1" active="dashboard" />);
 
     for (const label of [
-      "Membres",
       "Ressources",
       "Recherche",
       "Paramètres",
@@ -42,6 +41,18 @@ describe("ConsoleSidebar", () => {
       const span = screen.getByText(label, { selector: "[aria-disabled]" });
       expect(span).toHaveAttribute("title", "Disponible en V2");
     }
+  });
+
+  it("Membres est un lien actif vers /admin/membres (V3-B-1)", () => {
+    render(<ConsoleSidebar orgId="org-42" active="dashboard" />);
+    const link = screen.getByRole("link", { name: /membres/i });
+    expect(link).toHaveAttribute("href", "/structure/org-42/admin/membres");
+  });
+
+  it("active=members → l'item Membres a aria-current=page", () => {
+    render(<ConsoleSidebar orgId="org-1" active="members" />);
+    const link = screen.getByRole("link", { name: /membres/i });
+    expect(link).toHaveAttribute("aria-current", "page");
   });
 
   it("Communications est un lien actif (remplace Actualités coming soon)", () => {

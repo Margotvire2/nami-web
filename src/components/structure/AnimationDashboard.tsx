@@ -10,10 +10,13 @@ import {
   Library,
   CalendarRange,
   Newspaper,
+  Moon,
+  Ban,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { useOrgDetail } from "@/hooks/useOrgDetail";
 import { usePendingMembershipRequests } from "@/hooks/usePendingMembershipRequests";
+import { useOrgMembers } from "@/hooks/useOrgMembers";
 import { ConsoleStatCard } from "./ConsoleStatCard";
 import { QuickActionButton } from "./QuickActionButton";
 import { MembershipRequestRow } from "./MembershipRequestRow";
@@ -46,12 +49,14 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
   const { org, isLoading: orgLoading } = useOrgDetail(orgId);
   const { requests, isLoading: requestsLoading } =
     usePendingMembershipRequests(orgId);
+  const { members: suspendedMembers } = useOrgMembers(orgId, "SUSPENDED");
 
   const emoji = org?.type ? (ORG_EMOJI[org.type] ?? "🏢") : "🏢";
   const firstName = user?.firstName ?? "";
 
   const memberCount = org?.memberCount ?? 0;
   const pendingCount = requests.length;
+  const suspendedCount = suspendedMembers.length;
 
   const topConversations = (org?.conversations ?? [])
     .slice()
@@ -93,7 +98,7 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
       </header>
 
       <section aria-label="Indicateurs">
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
           <ConsoleStatCard
             icon={Users}
             label="Membres actifs"
@@ -105,6 +110,18 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
             label="Adhésions à valider"
             value={pendingCount}
             hint={requestsLoading ? "Chargement…" : undefined}
+          />
+          <ConsoleStatCard
+            icon={Moon}
+            label="Membres en sommeil"
+            value={0}
+            comingSoon
+          />
+          <ConsoleStatCard
+            icon={Ban}
+            label="Membres suspendus"
+            value={suspendedCount}
+            hint={suspendedCount > 0 ? "à revoir" : undefined}
           />
           <ConsoleStatCard
             icon={CalendarDays}
