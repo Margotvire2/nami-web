@@ -168,6 +168,7 @@ export function ParcoursHubPageClient({
         <HubCycleConsultationSection
           upcoming={data.appointments.upcoming}
           toBook={data.appointments.toBook}
+          pastConsultations={data.pastConsultations}
           careCaseId={careCaseId}
           patientId={patientId ?? ""}
         />
