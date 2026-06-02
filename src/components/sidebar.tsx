@@ -36,6 +36,7 @@ const NAV_NETWORK = [
   { href: "/messages",      label: "Messages",      emoji: "💬" },
   { href: "/adressages",    label: "Adressages",    emoji: "↔️" },
   { href: "/reseau",        label: "Vue réseau",    emoji: "🌐" },
+  { href: "/evenements",    label: "Événements",    emoji: "📆" },
   { href: "/collaboration", label: "Collaboration", emoji: "📡" },
   { href: "/equipe",        label: "Équipe",        emoji: "👤" },
   { href: "/annuaire",      label: "Annuaire",      emoji: "📖" },
