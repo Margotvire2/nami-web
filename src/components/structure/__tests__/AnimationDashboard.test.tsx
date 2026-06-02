@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { AnimationDashboard } from "../AnimationDashboard";
 import * as orgHook from "@/hooks/useOrgDetail";
 import * as pendingHook from "@/hooks/usePendingMembershipRequests";
+import * as orgMembersHook from "@/hooks/useOrgMembers";
 import type { OrganizationMembership } from "@/lib/api";
 
 vi.mock("next/link", () => ({
@@ -22,6 +23,12 @@ vi.mock("next/link", () => ({
 
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+  useQuery: () => ({
+    data: undefined,
+    isLoading: false,
+    isError: false,
+    refetch: () => Promise.resolve(),
+  }),
 }));
 
 vi.mock("@/lib/store", () => ({
@@ -62,26 +69,60 @@ function mockPending(requests: pendingHook.PendingMembershipRequestRow[]) {
   });
 }
 
+function mockOrgMembers(suspendedCount = 0) {
+  vi.spyOn(orgMembersHook, "useOrgMembers").mockReturnValue({
+    members: Array.from({ length: suspendedCount }, (_, i) => ({
+      personId: `s${i}`,
+      memberRole: "PROVIDER",
+      joinedAt: "2026-01-01T00:00:00Z",
+      id: `s${i}`,
+      firstName: `Susp${i}`,
+      lastName: "Test",
+      photoUrl: null,
+      providerProfile: null,
+    })),
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  });
+}
+
 describe("AnimationDashboard", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("rend les 4 stat cards (Membres / Adhésions / Événements / Actus)", () => {
+  it("rend les 6 stat cards (Actifs / Adhésions / En sommeil / Suspendus / Événements / Actus)", () => {
     mockOrg();
     mockPending([]);
+    mockOrgMembers();
 
     render(<AnimationDashboard orgId="org-rtf" />);
 
     expect(screen.getByText("Membres actifs")).toBeInTheDocument();
     expect(screen.getByText("Adhésions à valider")).toBeInTheDocument();
+    expect(screen.getByText("Membres en sommeil")).toBeInTheDocument();
+    expect(screen.getByText("Membres suspendus")).toBeInTheDocument();
     expect(screen.getByText("Événements à venir")).toBeInTheDocument();
     expect(screen.getByText("Actus publiées")).toBeInTheDocument();
+  });
+
+  it("Membres suspendus = nombre exact depuis useOrgMembers(SUSPENDED)", () => {
+    mockOrg();
+    mockPending([]);
+    mockOrgMembers(3);
+
+    render(<AnimationDashboard orgId="org-rtf" />);
+
+    // 3 affiché dans la stat card Suspendus (memberCount par défaut = 42 sur autre card)
+    expect(screen.getByText("Membres suspendus")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
   });
 
   it("affiche le nom de l'organisation + emoji + bonjour [firstName]", () => {
     mockOrg();
     mockPending([]);
+    mockOrgMembers();
 
     render(<AnimationDashboard orgId="org-rtf" />);
 
@@ -102,6 +143,7 @@ describe("AnimationDashboard", () => {
   it("pipeline d'adhésion : empty state si 0 PENDING", () => {
     mockOrg();
     mockPending([]);
+    mockOrgMembers();
 
     render(<AnimationDashboard orgId="org-rtf" />);
 
@@ -113,6 +155,7 @@ describe("AnimationDashboard", () => {
   it("4 actions rapides en placeholders V2 (disabled)", () => {
     mockOrg();
     mockPending([]);
+    mockOrgMembers();
 
     render(<AnimationDashboard orgId="org-rtf" />);
 
