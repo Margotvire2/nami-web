@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import type { PatientCareCaseHubDocument } from "@/lib/api";
+import { useEntityHubControls } from "@/contexts/EntityHubContext";
 
 interface HubDocumentsSectionProps {
   documents: PatientCareCaseHubDocument[];
+  careCaseId: string;
 }
 
 const DOC_TYPE_LABEL: Record<string, string> = {
@@ -30,8 +32,12 @@ function formatDate(iso: string): string {
   }
 }
 
-export function HubDocumentsSection({ documents }: HubDocumentsSectionProps) {
+export function HubDocumentsSection({
+  documents,
+  careCaseId,
+}: HubDocumentsSectionProps) {
   const headingId = "hub-documents-heading";
+  const { openEntityHub } = useEntityHubControls();
 
   return (
     <section
@@ -102,67 +108,91 @@ export function HubDocumentsSection({ documents }: HubDocumentsSectionProps) {
           }}
         >
           {documents.map((d) => (
-            <li
-              key={d.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                padding: "10px 12px",
-                borderRadius: 12,
-                background: "#FAFAF8",
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#1A1A2E",
-                    fontFamily: "var(--font-jakarta)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {d.title}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 6,
-                    marginTop: 4,
-                  }}
-                >
-                  <span
+            <li key={d.id}>
+              <button
+                type="button"
+                onClick={() =>
+                  openEntityHub({
+                    type: "document",
+                    careCaseId,
+                    entityId: d.id,
+                  })
+                }
+                aria-label={`Voir la fiche du document ${d.title}`}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  background: "#FAFAF8",
+                  border: "1px solid transparent",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "background 120ms ease, border-color 120ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(91,78,196,0.06)";
+                  e.currentTarget.style.borderColor = "rgba(91,78,196,0.18)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#FAFAF8";
+                  e.currentTarget.style.borderColor = "transparent";
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
                     style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      padding: "4px 8px",
-                      borderRadius: 8,
-                      background: "#F5F3EF",
-                      color: "#6B7280",
-                      fontSize: 11,
-                      fontFamily: "var(--font-inter)",
-                      fontWeight: 500,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#1A1A2E",
+                      fontFamily: "var(--font-jakarta)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {DOC_TYPE_LABEL[d.documentType] ?? d.documentType}
-                  </span>
-                  <span
+                    {d.title}
+                  </div>
+                  <div
                     style={{
-                      fontSize: 11,
-                      color: "#9CA3AF",
-                      fontFamily: "var(--font-inter)",
-                      alignSelf: "center",
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      marginTop: 4,
                     }}
                   >
-                    Ajouté le {formatDate(d.createdAt)}
-                  </span>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        padding: "4px 8px",
+                        borderRadius: 8,
+                        background: "#F5F3EF",
+                        color: "#6B7280",
+                        fontSize: 11,
+                        fontFamily: "var(--font-inter)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {DOC_TYPE_LABEL[d.documentType] ?? d.documentType}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "#9CA3AF",
+                        fontFamily: "var(--font-inter)",
+                        alignSelf: "center",
+                      }}
+                    >
+                      Ajouté le {formatDate(d.createdAt)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </button>
             </li>
           ))}
         </ul>
