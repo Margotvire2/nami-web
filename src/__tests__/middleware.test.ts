@@ -48,14 +48,21 @@ function reset() {
 }
 
 describe("middleware — routing role-based post-login", () => {
-  it("ORG_ADMIN pur (sans providerProfile) → redirect /structure/[firstAdminOrgId]/admin depuis /aujourd-hui", () => {
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire. Le cookie
+  // nami-user-role peut porter le nouveau "PLATFORM_ADMIN" (backend post-rename)
+  // OU le legacy "ORG_ADMIN" (sessions héritées) — le middleware doit
+  // accepter les deux pendant la migration (V2 J+30 retirera "ORG_ADMIN").
+  it.each([
+    ["PLATFORM_ADMIN"],
+    ["ORG_ADMIN"],
+  ])("%s pur (sans providerProfile) → redirect /structure/[firstAdminOrgId]/admin depuis /aujourd-hui", (role) => {
     reset();
     middleware(
       makeRequest({
         pathname: "/aujourd-hui",
         cookies: {
           "nami-access-token": "tok",
-          "nami-user-role": "ORG_ADMIN",
+          "nami-user-role": role,
           "nami-has-provider": "0",
           "nami-admin-org-ids": "org-rtf,org-ffab",
         },
@@ -97,14 +104,17 @@ describe("middleware — routing role-based post-login", () => {
     expect(captured.redirectUrl).toBeUndefined();
   });
 
-  it("ORG_ADMIN pur sans admin-org-ids cookie → passe-through (fallback layout client-side)", () => {
+  it.each([
+    ["PLATFORM_ADMIN"],
+    ["ORG_ADMIN"],
+  ])("%s pur sans admin-org-ids cookie → passe-through (fallback layout client-side)", (role) => {
     reset();
     middleware(
       makeRequest({
         pathname: "/aujourd-hui",
         cookies: {
           "nami-access-token": "tok",
-          "nami-user-role": "ORG_ADMIN",
+          "nami-user-role": role,
           "nami-has-provider": "0",
         },
       })

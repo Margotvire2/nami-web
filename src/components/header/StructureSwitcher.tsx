@@ -35,7 +35,12 @@ function writeChoice(choice: Choice) {
 
 // Switcher header pour les utilisateurs multi-casquette (PROVIDER ayant
 // au moins une OrganizationMember avec memberRole=ADMIN). Ne s'affiche pas
-// pour les profils simples (PROVIDER sans adhésion admin, ORG_ADMIN pur).
+// pour les profils simples (PROVIDER sans adhésion admin, PLATFORM_ADMIN/ORG_ADMIN pur).
+// F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
+// La logique de visibilité ne lit pas roleType — elle se base sur providerProfile +
+// memberships ADMIN. Aucun branchement explicite sur PLATFORM_ADMIN/ORG_ADMIN n'est
+// nécessaire ici : un super-admin plateforme sans ProviderProfile renverra null via
+// la garde `!user.providerProfile`, indépendamment du libellé exact du roleType.
 export function StructureSwitcher() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);

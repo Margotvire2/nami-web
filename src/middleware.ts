@@ -108,11 +108,14 @@ export function middleware(request: NextRequest) {
   const role = request.cookies.get("nami-user-role")?.value;
   const hasProvider = request.cookies.get("nami-has-provider")?.value === "1";
 
-  // ORG_ADMIN pur (sans ProviderProfile) qui tente d'aller dans le cockpit soignant
-  // → redirect vers sa console d'animation.
+  // PLATFORM_ADMIN/ORG_ADMIN pur (sans ProviderProfile) qui tente d'aller dans le cockpit
+  // soignant → redirect vers sa console d'animation.
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
+  // Le cookie nami-user-role peut porter "PLATFORM_ADMIN" (nouveau) OU "ORG_ADMIN" (legacy)
+  // pendant la migration ; on accepte les deux.
   // Les layouts (cockpit) finiront le routage côté client si la première org
   // n'est pas connue (fallback gracieux).
-  if (role === "ORG_ADMIN" && !hasProvider && isCockpitPath(pathname)) {
+  if ((role === "PLATFORM_ADMIN" || role === "ORG_ADMIN") && !hasProvider && isCockpitPath(pathname)) {
     const adminOrgId = request.cookies.get("nami-admin-org-ids")?.value?.split(",")[0];
     if (adminOrgId) {
       return NextResponse.redirect(new URL(`/structure/${adminOrgId}/admin`, request.url));
