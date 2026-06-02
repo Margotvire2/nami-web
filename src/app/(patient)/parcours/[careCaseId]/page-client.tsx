@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { ApiError } from "@/lib/api";
 import { usePatientCareCaseHub } from "@/hooks/usePatientCareCaseHub";
+import { useAuthStore } from "@/lib/store";
 import { HubHero } from "./_components/HubHero";
 import { HubPathwaySection } from "./_components/HubPathwaySection";
 import { HubProvidersSection } from "./_components/HubProvidersSection";
-import { HubAppointmentsSection } from "./_components/HubAppointmentsSection";
+import { HubCycleConsultationSection } from "./_components/HubCycleConsultationSection";
 import { HubObservationsSection } from "./_components/HubObservationsSection";
 import { HubDocumentsSection } from "./_components/HubDocumentsSection";
 import { HubMessagesSection } from "./_components/HubMessagesSection";
@@ -31,6 +32,7 @@ export function ParcoursHubPageClient({
   careCaseId,
 }: ParcoursHubPageClientProps) {
   const { data, isLoading, error } = usePatientCareCaseHub(careCaseId);
+  const patientId = useAuthStore((s) => s.user?.id);
 
   if (isLoading) {
     return (
@@ -163,9 +165,11 @@ export function ParcoursHubPageClient({
 
       <div style={SECTIONS_LAYOUT}>
         <HubPathwaySection pathway={data.pathway} />
-        <HubAppointmentsSection
+        <HubCycleConsultationSection
           upcoming={data.appointments.upcoming}
           toBook={data.appointments.toBook}
+          careCaseId={careCaseId}
+          patientId={patientId ?? ""}
         />
         <HubProvidersSection providers={data.providers} />
         <HubObservationsSection observations={data.observations.recent} />

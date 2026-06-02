@@ -3118,12 +3118,42 @@ export interface PatientCareCaseHubAppointment {
   };
 }
 
+/**
+ * Soignant attribué à un step à programmer (backend PR #120).
+ * `null` si aucun match dans la care team — frontend affiche "Soignant à confirmer".
+ * Wording MDR-safe : `specialty` est la spécialité publique (jamais "diagnostic").
+ */
+export interface ProviderAttribution {
+  personId: string;
+  firstName: string;
+  lastName: string;
+  specialty: string;
+}
+
 export interface PatientCareCaseHubAppointmentToBook {
   pathwayStepId: string;
   label: string;
   expectedDayOffset: number;
   expectedDate: string | null; // ISO
   isRequired: boolean;
+  providerAttribution: ProviderAttribution | null;
+}
+
+/**
+ * Créneau concret retourné par GET /providers/:id/availabilities (backend PR #118).
+ * Sérialisé en ISO côté JSON (Date côté backend).
+ */
+export interface ProviderAvailability {
+  startAt: string; // ISO
+  endAt: string; // ISO
+  locationType: "IN_PERSON" | "VIDEO" | "PHONE" | null;
+  consultationTypeId: string | null;
+}
+
+export interface ProviderAvailabilitiesResponse {
+  providerId: string;
+  count: number;
+  slots: ProviderAvailability[];
 }
 
 export interface PatientCareCaseHubObservation {
@@ -3543,6 +3573,29 @@ export function apiWithToken(token: string) {
           specialtyView: "DIETITIAN" | "PSYCHOLOGIST" | "PHYSICIAN" | "PEDIATRICIAN" | "ENDOCRINOLOGIST" | "OTHER";
           config: { primaryModules: string[]; metrics: string[]; journalTypes: string[]; label: string };
         }>("/providers/me/specialty-view", {}, token),
+      // GET /providers/:providerId/availabilities?from=ISO&to=ISO&slotDurationMinutes=30
+      // Backend PR #118 — retourne les créneaux concrets sur la fenêtre [from, to].
+      // Auth : caller doit partager au moins une CareCase ACCEPTED avec ce provider.
+      availabilities: {
+        list: (params: {
+          providerId: string;
+          from: string; // ISO
+          to: string;   // ISO
+          slotDurationMinutes?: number;
+        }) => {
+          const qs = new URLSearchParams();
+          qs.set("from", params.from);
+          qs.set("to", params.to);
+          if (params.slotDurationMinutes) {
+            qs.set("slotDurationMinutes", String(params.slotDurationMinutes));
+          }
+          return request<ProviderAvailabilitiesResponse>(
+            `/providers/${encodeURIComponent(params.providerId)}/availabilities?${qs.toString()}`,
+            {},
+            token,
+          );
+        },
+      },
     },
     annuaire: {
       search: (params: Parameters<typeof annuaireApi.search>[1]) => annuaireApi.search(token, params),
@@ -3689,6 +3742,26 @@ export function apiWithToken(token: string) {
             token,
           ),
         get: (appointmentId: string) => appointmentsApi.get(token, appointmentId),
+        // POST /appointments — backend PR #55 (R4 durcissement caller PATIENT).
+        // Si le caller est PATIENT, bookingSource = PATIENT_BOOKED auto côté backend.
+        // `patientId` doit être self OU déléguant (BOOK_APPOINTMENTS).
+        book: (data: {
+          careCaseId?: string;
+          patientId: string;
+          providerId: string;
+          startAt: string; // ISO
+          endAt: string;   // ISO
+          locationType: "IN_PERSON" | "VIDEO" | "PHONE";
+          consultationTypeId?: string;
+          locationDetails?: string;
+          locationId?: string;
+          notes?: string;
+        }) =>
+          request<{ id: string; startAt: string; endAt: string; status: string }>(
+            "/appointments",
+            { method: "POST", body: JSON.stringify(data) },
+            token,
+          ),
       },
       documents: () => request<PatientDocument[]>("/patient/documents", {}, token),
 
