@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 export function HAPNav() {
@@ -17,26 +18,26 @@ export function HAPNav() {
     }}>
       <style>{`@media (max-width: 479px) { .hap-nav-discover { display: none !important; } }`}</style>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(20px,5vw,80px)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <a href="/demo-hap" style={{ fontSize: "1.25rem", fontWeight: 900, color: "#5B4EC4", letterSpacing: "-0.03em", textDecoration: "none" }}>
+        <Link href="/demo-hap" style={{ fontSize: "1.25rem", fontWeight: 900, color: "#5B4EC4", letterSpacing: "-0.03em", textDecoration: "none" }}>
           nami
-        </a>
+        </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <a href="/demo-hap" style={{
+          <Link href="/demo-hap" style={{
             padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none",
             background: isDemo ? "rgba(91,78,196,0.08)" : "transparent",
             color: isDemo ? "#5B4EC4" : "#374151",
             transition: "all 0.15s ease",
           }}>
             La plateforme
-          </a>
-          <a href="/demo-hap/pitch" style={{
+          </Link>
+          <Link href="/demo-hap/pitch" style={{
             padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none",
             background: isPitch ? "rgba(91,78,196,0.08)" : "transparent",
             color: isPitch ? "#5B4EC4" : "#374151",
             transition: "all 0.15s ease",
           }}>
             La vision
-          </a>
+          </Link>
         </div>
         <a href="https://namipourlavie.com" target="_blank" rel="noopener noreferrer" className="hap-nav-discover" style={{
           padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,

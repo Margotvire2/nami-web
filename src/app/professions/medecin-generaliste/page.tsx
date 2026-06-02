@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 const C = {
   primary: "#5B4EC4",
@@ -336,8 +337,8 @@ export default function MGPage() {
         </Fade>
         <Fade delay={0.3}>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="/signup" style={{ padding: "16px 32px", borderRadius: 12, border: "none", background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: f, textDecoration: "none", display: "inline-block", boxShadow: "0 4px 16px rgba(91,78,196,.2)" }}>Commencer gratuitement</a>
-            <a href="/demo" style={{ padding: "16px 32px", borderRadius: 12, border: `1.5px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: f, textDecoration: "none", display: "inline-block" }}>Voir la démo</a>
+            <Link href="/signup" style={{ padding: "16px 32px", borderRadius: 12, border: "none", background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: f, textDecoration: "none", display: "inline-block", boxShadow: "0 4px 16px rgba(91,78,196,.2)" }}>Commencer gratuitement</Link>
+            <Link href="/demo" style={{ padding: "16px 32px", borderRadius: 12, border: `1.5px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: f, textDecoration: "none", display: "inline-block" }}>Voir la démo</Link>
           </div>
         </Fade>
       </section>
@@ -480,7 +481,7 @@ export default function MGPage() {
           </h2>
         </Fade>
         <Fade delay={0.15}>
-          <a href="/signup" style={{ display: "inline-block", padding: "18px 40px", borderRadius: 12, border: "none", background: C.primary, color: "#fff", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: f, textDecoration: "none", boxShadow: "0 4px 24px rgba(91,78,196,.25)", marginTop: 16 }}>Commencer gratuitement</a>
+          <Link href="/signup" style={{ display: "inline-block", padding: "18px 40px", borderRadius: 12, border: "none", background: C.primary, color: "#fff", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: f, textDecoration: "none", boxShadow: "0 4px 24px rgba(91,78,196,.25)", marginTop: 16 }}>Commencer gratuitement</Link>
         </Fade>
       </section>
 

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 import { AmbientGlowCTA } from "@/components/pitch/AmbientGlow"
 import { HAPNav } from "./HAPNav"
@@ -468,7 +469,7 @@ export function DemoWalkthroughHAPClient() {
                 stratégique
               </span>
             </h2>
-            <a
+            <Link
               href="/demo-hap/pitch"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
@@ -478,7 +479,7 @@ export function DemoWalkthroughHAPClient() {
               }}
             >
               Voir la vision · 3 min →
-            </a>
+            </Link>
           </ScrollReveal>
         </div>
       </section>

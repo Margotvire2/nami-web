@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 
 const C = {
   primary: "#5B4EC4", teal: "#2BA89C", bg: "#FAFAF8", bgAlt: "#F5F3EF",
@@ -346,12 +347,12 @@ export default function FeaturesPage() {
           </p>
         </Fade>
         <Fade delay={0.1}>
-          <a
+          <Link
             href="/signup"
             style={{ display: "inline-block", padding: "16px 36px", borderRadius: 11, background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: "0 6px 24px rgba(91,78,196,.25)", transition: "transform .2s, box-shadow .2s" }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 10px 32px rgba(91,78,196,.35)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "none"; (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 6px 24px rgba(91,78,196,.25)"; }}
-          >Commencer gratuitement</a>
+          >Commencer gratuitement</Link>
         </Fade>
       </section>
 
