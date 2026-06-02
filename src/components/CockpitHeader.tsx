@@ -20,6 +20,7 @@ const ROUTE_LABELS: Record<string, string> = {
   intelligence: "Base documentaire",
   documents: "Documents",
   adressages: "Adressages",
+  communications: "Communications",
   collaboration: "Réseau",
   equipe: "Équipe",
   annuaire: "Annuaire",
