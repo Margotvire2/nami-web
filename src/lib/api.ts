@@ -339,6 +339,12 @@ export const notesApi = {
       body: JSON.stringify(data),
     }, token),
 
+  patch: (token: string, careCaseId: string, noteId: string, data: { title?: string; body?: string; visibility?: string }) =>
+    request<ClinicalNote>(`/care-cases/${careCaseId}/notes/${noteId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, token),
+
   analysis: (token: string, careCaseId: string, noteId: string) =>
     request<NoteAnalysis>(`/care-cases/${careCaseId}/notes/${noteId}/analysis`, {}, token),
 };
@@ -930,6 +936,22 @@ export interface ConsultationDetail extends ConsultationSummary {
   transcript: string | null;
   audioUrl: string | null;
   generatedNote: { id: string; body: string; createdAt: string } | null;
+}
+
+export interface FinalizeConsultationResult {
+  consultationId: string;
+  clinicalNoteId: string;
+  wasAlreadyFinalized: boolean;
+  distribution: {
+    clinicalNoteId: string;
+    careCaseId: string;
+    activeMembers: number;
+    optedOut: number;
+    skippedAuthor: number;
+    notificationsCreated: number;
+    notificationsBlockedByPreference: number;
+    durationMs: number;
+  };
 }
 
 export interface CreateNoteInput {
@@ -3382,6 +3404,8 @@ export function apiWithToken(token: string) {
     notes: {
       list: (id: string) => notesApi.list(token, id),
       create: (id: string, data: CreateNoteInput) => notesApi.create(token, id, data),
+      patch: (careCaseId: string, noteId: string, data: { title?: string; body?: string; visibility?: string }) =>
+        notesApi.patch(token, careCaseId, noteId, data),
       analysis: (careCaseId: string, noteId: string) => notesApi.analysis(token, careCaseId, noteId),
     },
     tasks: {
@@ -4046,6 +4070,12 @@ export function apiWithToken(token: string) {
         request<ConsultationSummary[]>(`/care-cases/${careCaseId}/consultations`, {}, token),
       getOne: (careCaseId: string, consultationId: string) =>
         request<ConsultationDetail>(`/care-cases/${careCaseId}/consultations/${consultationId}`, {}, token),
+      finalize: (careCaseId: string, consultationId: string) =>
+        request<FinalizeConsultationResult>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/finalize`,
+          { method: "POST", body: JSON.stringify({}) },
+          token,
+        ),
     },
   };
 }
