@@ -8,8 +8,9 @@ import { useAdminMemberships } from "@/hooks/useAdminMemberships";
 import { Building2, Stethoscope } from "lucide-react";
 
 // Layout du groupe de routes (structure) — console d'animation pour
-// les ORG_ADMIN purs ET les multi-casquette PROVIDER+ADMIN. Garde l'auth
-// + onboarding minimal, sans la sidebar du cockpit soignant.
+// les PLATFORM_ADMIN / ORG_ADMIN purs ET les multi-casquette PROVIDER+ADMIN.
+// Garde l'auth + onboarding minimal, sans la sidebar du cockpit soignant.
+// F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
 //
 // La page complète est livrée par F-STRUCT-V1-CONSOLE-ANIMATION (ticket
 // séparé). Ce layout pose juste le squelette de chrome + auth.
@@ -43,7 +44,8 @@ export default function StructureLayout({ children }: { children: React.ReactNod
     if (!hasHydrated || isLoading) return;
     if (!accessToken || !user) return;
     if (user.roleType === "PATIENT" || user.roleType === "SECRETARY") return;
-    if (!hasAny && user.roleType !== "ORG_ADMIN") {
+    // F-SEC-RENAME-PLATFORM-ADMIN — accepte BOTH PLATFORM_ADMIN (nouveau) ET ORG_ADMIN (legacy).
+    if (!hasAny && user.roleType !== "PLATFORM_ADMIN" && user.roleType !== "ORG_ADMIN") {
       router.replace("/aujourd-hui");
     }
   }, [hasHydrated, isLoading, hasAny, accessToken, user, router]);

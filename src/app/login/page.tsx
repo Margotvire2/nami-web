@@ -89,12 +89,13 @@ export default function LoginPage() {
   }, [mfaStep]);
 
   // Calcule la route post-login selon le rôle dominant et sync le cookie
-  // nami-admin-org-ids lu par le middleware pour les ORG_ADMIN purs.
+  // nami-admin-org-ids lu par le middleware pour les PLATFORM_ADMIN / ORG_ADMIN purs.
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
   async function resolvePostLoginRedirect(user: User, accessToken: string): Promise<string> {
     if (user.roleType === "PATIENT") return "/accueil";
     if (user.roleType === "SECRETARY") return "/secretariat";
 
-    // PROVIDER ou ORG_ADMIN → besoin de connaître les adhésions ADMIN.
+    // PROVIDER ou PLATFORM_ADMIN/ORG_ADMIN → besoin de connaître les adhésions ADMIN.
     // Échec API non bloquant : on retombe sur /aujourd-hui pour ne pas
     // bloquer le login si /organizations/mine est down.
     let adminOrgIds: string[] = [];
@@ -118,8 +119,13 @@ export default function LoginPage() {
       }
     }
 
-    // ORG_ADMIN pur (sans ProviderProfile) → console d'animation
-    if (user.roleType === "ORG_ADMIN" && !user.providerProfile && adminOrgIds.length > 0) {
+    // PLATFORM_ADMIN/ORG_ADMIN pur (sans ProviderProfile) → console d'animation.
+    // F-SEC-RENAME-PLATFORM-ADMIN — accepte BOTH le nouveau nom et le legacy.
+    if (
+      (user.roleType === "PLATFORM_ADMIN" || user.roleType === "ORG_ADMIN") &&
+      !user.providerProfile &&
+      adminOrgIds.length > 0
+    ) {
       return `/structure/${adminOrgIds[0]}/admin`;
     }
 

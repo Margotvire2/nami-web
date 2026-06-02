@@ -55,8 +55,9 @@ describe("StructureSwitcher", () => {
     vi.restoreAllMocks();
     routerPush.mockReset();
     window.localStorage.clear();
-    // Restaure le providerProfile pour les tests qui suivent
+    // Restaure le providerProfile + roleType pour les tests qui suivent
     mockUser.providerProfile = { id: "pp-1" };
+    mockUser.roleType = "PROVIDER";
   });
 
   it("Aucune adhésion ADMIN → composant null (rien rendu)", () => {
@@ -101,9 +102,17 @@ describe("StructureSwitcher", () => {
     expect(JSON.parse(stored!)).toEqual({ kind: "structure", orgId: "org-rtf" });
   });
 
-  it("User sans providerProfile → composant null (ORG_ADMIN pur n'a pas besoin du switcher)", () => {
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire. Le switcher se base sur
+  // providerProfile, pas sur roleType ; on couvre néanmoins les deux libellés pour
+  // documenter que le composant reste null peu importe la valeur retournée par
+  // l'API pendant la phase de migration (V2 J+30 retirera "ORG_ADMIN").
+  it.each([
+    ["PLATFORM_ADMIN"],
+    ["ORG_ADMIN"],
+  ])("User sans providerProfile (%s pur) → composant null (pas besoin du switcher)", (role) => {
     mockMemberships([{ id: "org-rtf", name: "Réseau TCA Francilien", type: "NETWORK" }]);
     mockUser.providerProfile = undefined;
+    mockUser.roleType = role;
     const { container } = render(<StructureSwitcher />);
     expect(container.firstChild).toBeNull();
   });

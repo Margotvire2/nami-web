@@ -842,7 +842,10 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  roleType: "PATIENT" | "PROVIDER" | "ADMIN" | "ORG_ADMIN" | "SECRETARY";
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
+  // Le backend a renommé le super-admin plateforme ORG_ADMIN → PLATFORM_ADMIN.
+  // Pendant la migration, les réponses API et cookies peuvent porter l'un OU l'autre.
+  roleType: "PATIENT" | "PROVIDER" | "ADMIN" | "PLATFORM_ADMIN" | "ORG_ADMIN" | "SECRETARY";
   emailVerifiedAt?: string | null;
   providerProfile?: {
     id: string;

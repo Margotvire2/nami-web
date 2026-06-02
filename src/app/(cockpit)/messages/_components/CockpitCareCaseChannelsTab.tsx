@@ -328,10 +328,14 @@ function MessageBubble({ message: msg, isOwn, onReply, careCaseId, currentUserId
 }
 
 function roleLabel(roleType: string): string {
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
+  // Le backend a renommé ORG_ADMIN → PLATFORM_ADMIN ; pendant la migration les deux
+  // valeurs peuvent arriver côté frontend. Affichage identique pour les deux.
   const labels: Record<string, string> = {
     PROVIDER: "Soignant",
     PATIENT: "Patient",
     ADMIN: "Admin",
+    PLATFORM_ADMIN: "Admin org.",
     ORG_ADMIN: "Admin org.",
   };
   return labels[roleType] ?? roleType;

@@ -145,7 +145,11 @@ describe("usePendingMembershipRequests — wiring PR #92", () => {
     expect((r1 as unknown as { person?: unknown }).person).toBeUndefined();
   });
 
-  it("Person sans providerProfile (ORG_ADMIN pur, applicant non-soignant) → specialty null", async () => {
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire. Le hook ne lit pas
+  // roleType ; on documente juste dans le nom du test que le persona "super-admin
+  // plateforme sans ProviderProfile" couvre BOTH PLATFORM_ADMIN (nouveau) ET
+  // ORG_ADMIN (legacy) pendant la migration (V2 J+30 retirera "ORG_ADMIN").
+  it("Person sans providerProfile (PLATFORM_ADMIN/ORG_ADMIN pur, applicant non-soignant) → specialty null", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
