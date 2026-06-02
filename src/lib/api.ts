@@ -3196,6 +3196,29 @@ export interface PatientCareCaseHubDocument {
   createdAt: string; // ISO
 }
 
+/**
+ * Consultation passée (clôturée) listée sur le hub patient. Shape V1
+ * minimaliste — pas d'exposition du body ClinicalNote ni des URLs Document.
+ * Le drawer fiche relationnelle 1-consultation (EntityHubConsultation, PR #154)
+ * expose le détail si l'utilisateur clique.
+ *
+ *   - hasClinicalNote : true UNIQUEMENT si une ClinicalNote existe, n'est pas
+ *     soft-deleted, ET sa visibility est PATIENT_ONLY ou CARE_TEAM.
+ *   - hasDocuments : true s'il existe au moins un Document rattaché à la
+ *     consultation (deletedAt IS NULL).
+ *   - providerName : "firstName lastName" — donnée administrative.
+ *
+ * Backend : F-CYCLE-CONSULT-V1.0C-A (#136, merge 7c35bc89). Extension Phase E
+ * INIT-Cycle-Consultation-Intégré.
+ */
+export interface PatientCareCaseHubPastConsultation {
+  id: string;
+  dateISO: string; // ISO completedAt
+  providerName: string;
+  hasClinicalNote: boolean;
+  hasDocuments: boolean;
+}
+
 export interface PatientCareCaseHubMessages {
   threadId: string;
   unreadCount: number;
@@ -3216,6 +3239,7 @@ export interface PatientCareCaseHub {
   documents: {
     recent: PatientCareCaseHubDocument[];
   };
+  pastConsultations: PatientCareCaseHubPastConsultation[];
   messages: PatientCareCaseHubMessages;
 }
 
