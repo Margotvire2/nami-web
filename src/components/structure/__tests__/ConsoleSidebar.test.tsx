@@ -35,7 +35,6 @@ describe("ConsoleSidebar", () => {
 
     for (const label of [
       "Membres",
-      "Actualités",
       "Ressources",
       "Recherche",
       "Paramètres",
@@ -43,6 +42,23 @@ describe("ConsoleSidebar", () => {
       const span = screen.getByText(label, { selector: "[aria-disabled]" });
       expect(span).toHaveAttribute("title", "Disponible en V2");
     }
+  });
+
+  it("Communications est un lien actif (remplace Actualités coming soon)", () => {
+    render(<ConsoleSidebar orgId="org-42" active="dashboard" />);
+    const link = screen.getByRole("link", { name: /communications/i });
+    expect(link).toHaveAttribute(
+      "href",
+      "/structure/org-42/admin/communications",
+    );
+    // pas d'élément aria-disabled avec ce label
+    expect(screen.queryByText("Actualités")).not.toBeInTheDocument();
+  });
+
+  it("active=communications → l'item Communications a aria-current=page", () => {
+    render(<ConsoleSidebar orgId="org-1" active="communications" />);
+    const link = screen.getByRole("link", { name: /communications/i });
+    expect(link).toHaveAttribute("aria-current", "page");
   });
 
   it("active=events → l'item Événements a aria-current=page", () => {
