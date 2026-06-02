@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 
 function useVis(t = 0.08): [React.RefObject<HTMLDivElement | null>, boolean] {
   const ref = useRef<HTMLDivElement>(null);
@@ -150,7 +151,7 @@ export default function MedecinNutritionnistePage() {
             BIA automatisée, bilans métaboliques, journal alimentaire IA et coordination PCR Obésité. Tout dans un dossier partagé, sécurisé HDS.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-            <a href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 12, padding: "14px 32px", fontWeight: 700, fontSize: 16, textDecoration: "none" }}>Essai gratuit 30 jours</a>
+            <Link href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 12, padding: "14px 32px", fontWeight: 700, fontSize: 16, textDecoration: "none" }}>Essai gratuit 30 jours</Link>
             <a href="#cas" style={{ border: "2px solid #E8ECF4", borderRadius: 12, padding: "14px 32px", fontWeight: 600, fontSize: 16, textDecoration: "none", color: "#1A1A2E" }}>Voir un cas clinique</a>
           </div>
         </Fade>
@@ -293,7 +294,7 @@ export default function MedecinNutritionnistePage() {
         <Fade>
           <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16 }}>Orchestrez votre équipe nutrition</h2>
           <p style={{ color: "#6B7280", fontSize: 18, marginBottom: 32 }}>30 jours gratuits, sans carte bancaire.</p>
-          <a href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 14, padding: "16px 40px", fontWeight: 800, fontSize: 18, textDecoration: "none" }}>Commencer maintenant</a>
+          <Link href="/signup" style={{ background: "#5B4EC4", color: "#fff", borderRadius: 14, padding: "16px 40px", fontWeight: 800, fontSize: 18, textDecoration: "none" }}>Commencer maintenant</Link>
         </Fade>
       </section>
 

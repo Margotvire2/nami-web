@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useAuthStore } from "@/lib/store"
@@ -624,7 +625,7 @@ export default function ReglagesPage() {
                   )}
                   <div style={{ padding: "12px 16px", borderRadius: 8, background: PL, fontSize: 13, color: P }}>
                     Pour les paramètres fins de l&apos;agenda (créneaux, durées, smart slots), rendez-vous sur{" "}
-                    <a href="/agenda/parametrage" style={{ fontWeight: 700, color: P }}>Paramètres de l&apos;agenda →</a>
+                    <Link href="/agenda/parametrage" style={{ fontWeight: 700, color: P }}>Paramètres de l&apos;agenda →</Link>
                   </div>
                 </>}
 

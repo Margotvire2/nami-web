@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 const COLORS = {
   primary: "#5B4EC4",
@@ -495,7 +496,7 @@ export default function DieteticienPage() {
         </FadeIn>
         <FadeIn delay={0.3}>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-            <a
+            <Link
               href="/signup"
               style={{
                 padding: "16px 32px",
@@ -513,8 +514,8 @@ export default function DieteticienPage() {
               }}
             >
               Commencer gratuitement
-            </a>
-            <a
+            </Link>
+            <Link
               href="/demo"
               style={{
                 padding: "16px 32px",
@@ -531,7 +532,7 @@ export default function DieteticienPage() {
               }}
             >
               Voir la démo
-            </a>
+            </Link>
           </div>
         </FadeIn>
       </section>
@@ -875,7 +876,7 @@ export default function DieteticienPage() {
           </p>
         </FadeIn>
         <FadeIn delay={0.2}>
-          <a
+          <Link
             href="/signup"
             style={{
               display: "inline-block",
@@ -893,7 +894,7 @@ export default function DieteticienPage() {
             }}
           >
             Commencer gratuitement
-          </a>
+          </Link>
         </FadeIn>
       </section>
 

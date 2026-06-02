@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import {
@@ -147,9 +148,9 @@ function KpiCard({
         >
           <Clock size={11} />
           À valider →{" "}
-          <a href="/admin/validations" style={{ color: "#E6993E", textDecoration: "underline" }}>
+          <Link href="/admin/validations" style={{ color: "#E6993E", textDecoration: "underline" }}>
             Voir
-          </a>
+          </Link>
         </div>
       )}
     </div>
@@ -415,7 +416,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
             ))}
-            <a
+            <Link
               href="/admin/donnees"
               style={{
                 marginTop: 10,
@@ -429,7 +430,7 @@ export default function AdminDashboard() {
               }}
             >
               <BookOpen size={11} /> Voir les stats détaillées →
-            </a>
+            </Link>
           </div>
         </div>
       </div>

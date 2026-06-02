@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 import { AmbientGlowCTA } from "@/components/pitch/AmbientGlow"
@@ -19,10 +20,10 @@ function TCANav() {
     <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(250,250,248,0.88)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: `1px solid ${C.bl}`, padding: "14px 0" }}>
       <style>{`@media (max-width: 479px) { .tca-nav-discover { display: none !important; } }`}</style>
       <div style={{ ...CTR, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <a href="/demo-tca" style={{ fontSize: "1.25rem", fontWeight: 900, color: C.nami, letterSpacing: "-0.03em", textDecoration: "none" }}>nami</a>
+        <Link href="/demo-tca" style={{ fontSize: "1.25rem", fontWeight: 900, color: C.nami, letterSpacing: "-0.03em", textDecoration: "none" }}>nami</Link>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <a href="/demo-tca" style={{ padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none", background: isDemo ? "rgba(91,78,196,0.08)" : "transparent", color: isDemo ? C.nami : C.t2 }}>La plateforme</a>
-          <a href="/demo-tca/pitch" style={{ padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none", background: isPitch ? "rgba(91,78,196,0.08)" : "transparent", color: isPitch ? C.nami : C.t2 }}>La vision</a>
+          <Link href="/demo-tca" style={{ padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none", background: isDemo ? "rgba(91,78,196,0.08)" : "transparent", color: isDemo ? C.nami : C.t2 }}>La plateforme</Link>
+          <Link href="/demo-tca/pitch" style={{ padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, textDecoration: "none", background: isPitch ? "rgba(91,78,196,0.08)" : "transparent", color: isPitch ? C.nami : C.t2 }}>La vision</Link>
         </div>
         <a href="https://namipourlavie.com" target="_blank" rel="noopener" className="tca-nav-discover" style={{ padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, color: C.nami, border: "1px solid rgba(91,78,196,0.2)", textDecoration: "none" }}>Découvrir le site →</a>
       </div>
@@ -378,8 +379,8 @@ export function DemoWalkthroughTCAClient() {
               Maintenant, voyons pourquoi c&apos;est <span style={GRAD}>stratégique</span>
             </h2>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-              <a href="/demo-tca/pitch" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: C.nami, color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 20px rgba(91,78,196,0.30)" }}>Voir la vision · 3 min →</a>
-              <a href="/gabrielle" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: "#fff", color: C.nami, borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", border: `1.5px solid rgba(91,78,196,0.2)`, boxShadow: "0 2px 12px rgba(91,78,196,0.08)" }}>Parcours de Gabrielle →</a>
+              <Link href="/demo-tca/pitch" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: C.nami, color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 20px rgba(91,78,196,0.30)" }}>Voir la vision · 3 min →</Link>
+              <Link href="/gabrielle" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: "#fff", color: C.nami, borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none", border: `1.5px solid rgba(91,78,196,0.2)`, boxShadow: "0 2px 12px rgba(91,78,196,0.08)" }}>Parcours de Gabrielle →</Link>
             </div>
           </ScrollReveal>
         </div>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Shield, ChevronDown, ExternalLink } from "lucide-react";
 
 /**
@@ -89,12 +90,12 @@ export function MesDonneesAdvancedRights() {
               situation particulière, à un traitement fondé sur l&apos;intérêt
               légitime de Nami. Vous pouvez également vous opposer aux
               traitements automatisés décrits dans la{" "}
-              <a
+              <Link
                 href="/confidentialite"
                 className="text-[#5B4EC4] underline underline-offset-2 hover:text-[#4A3EA6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40 rounded-sm"
               >
                 politique de confidentialité
-              </a>{" "}
+              </Link>{" "}
               (structuration des notes, synthèses, extraction de bilans).
             </p>
             <p>
