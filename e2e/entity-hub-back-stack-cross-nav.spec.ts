@@ -20,12 +20,6 @@ import { navigateToParcours } from "./_helpers/navigateToParcours";
 const CARE_CASE_ID = "cmnypqxsx00dxt0p7fh3hqnjb";
 
 test.describe("Entity Hub — back-stack cross-navigation", () => {
-  // ⚠️ SSR race patient layout — voir _helpers/navigateToParcours.ts.
-  test.fixme(
-    true,
-    "Bloqué par SSR race Zustand persist dans (patient)/layout.tsx — fix hasHydrated requis.",
-  );
-
   test.beforeEach(async ({ page }) => {
     await navigateToParcours(page, CARE_CASE_ID);
     await expect(
