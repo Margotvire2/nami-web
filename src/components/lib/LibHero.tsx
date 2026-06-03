@@ -31,12 +31,6 @@ export function LibHero() {
       `}</style>
       <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 72, paddingBottom: 48 }}>
 
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 56 }}>
-          <img src="/nami-mascot.png" alt="Nami" style={{ width: 34, height: 34, borderRadius: 11, objectFit: "contain" }} />
-          <span style={{ fontSize: 17, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.02em" }}>Nami</span>
-        </div>
-
         {/* Eyebrow */}
         <div style={{
           opacity: visible ? 1 : 0,
