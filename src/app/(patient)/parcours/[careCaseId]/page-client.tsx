@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { ApiError } from "@/lib/api";
 import { usePatientCareCaseHub } from "@/hooks/usePatientCareCaseHub";
-import { useAuthStore } from "@/lib/store";
 import { HubHero } from "./_components/HubHero";
 import { HubPathwaySection } from "./_components/HubPathwaySection";
 import { HubProvidersSection } from "./_components/HubProvidersSection";
 import { HubCycleConsultationSection } from "./_components/HubCycleConsultationSection";
-import { HubObservationsSection } from "./_components/HubObservationsSection";
 import { HubDocumentsSection } from "./_components/HubDocumentsSection";
 import { HubMessagesSection } from "./_components/HubMessagesSection";
+// HubObservationsSection retiré du /parcours : les indicateurs vivent désormais
+// dans l'espace /ma-sante (PR #167). Garder ici créerait une duplication
+// d'écran et de la confusion patient.
 
 const PAGE_LAYOUT = {
   maxWidth: 720,
@@ -32,7 +33,6 @@ export function ParcoursHubPageClient({
   careCaseId,
 }: ParcoursHubPageClientProps) {
   const { data, isLoading, error } = usePatientCareCaseHub(careCaseId);
-  const patientId = useAuthStore((s) => s.user?.id);
 
   if (isLoading) {
     return (
@@ -163,20 +163,23 @@ export function ParcoursHubPageClient({
 
       <HubHero careCase={data.careCase} />
 
+      {/*
+        Ordre cible (Wave 2C cleanup) :
+        Hero → Mon prochain RDV + Consultations passées → Mon équipe →
+        Mon parcours (étapes) → Documents → Messagerie.
+        HubObservationsSection (indicateurs) a déménagé vers /ma-sante.
+      */}
       <div style={SECTIONS_LAYOUT}>
-        <HubPathwaySection pathway={data.pathway} />
         <HubCycleConsultationSection
           upcoming={data.appointments.upcoming}
-          toBook={data.appointments.toBook}
           pastConsultations={data.pastConsultations}
           careCaseId={careCaseId}
-          patientId={patientId ?? ""}
         />
         <HubProvidersSection
           providers={data.providers}
           careCaseId={careCaseId}
         />
-        <HubObservationsSection observations={data.observations.recent} />
+        <HubPathwaySection pathway={data.pathway} />
         <HubDocumentsSection
           documents={data.documents.recent}
           careCaseId={careCaseId}
