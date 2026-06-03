@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { Settings } from "lucide-react";
 import { NotificationBell } from "@/components/cockpit/notifications/NotificationBell";
 import { useUnifiedInboxTotal } from "@/hooks/useUnifiedInboxTotal";
+import { organizationsApi } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -33,17 +35,23 @@ const NAV_PATIENTS = [
   { href: "/import",       label: "Importer l'historique", emoji: "📥" },
 ];
 
-const NAV_NETWORK = [
+const NAV_NETWORK_BASE = [
   // Messages englobe désormais les 3 silos (dossiers, DM patients, réseau pro).
   // /collaboration reste accessible via redirect 308 vers /messages?tab=pro.
   { href: "/messages",       label: "Messages",       emoji: "💬" },
   { href: "/adressages",     label: "Adressages",     emoji: "↔️" },
   { href: "/reseau",         label: "Vue réseau",     emoji: "🌐" },
-  { href: "/evenements",     label: "Événements",     emoji: "📆" },
   { href: "/communications", label: "Communications", emoji: "📣" },
   { href: "/equipe",         label: "Équipe",         emoji: "👤" },
   { href: "/annuaire",       label: "Annuaire",       emoji: "📖" },
 ];
+
+const NAV_EVENTS_ITEM = { href: "/evenements", label: "Événements", emoji: "📆" };
+
+// Rôles plateforme qui voient Événements même sans OrganizationMember actif.
+// "ADMIN" = super-admin Nami legacy, "PLATFORM_ADMIN"/"ORG_ADMIN" = renaming
+// transitoire (cf. User.roleType dans src/lib/api.ts).
+const PLATFORM_ROLES_SEE_EVENTS = new Set(["ADMIN", "PLATFORM_ADMIN", "ORG_ADMIN"]);
 
 /**
  * Formate le compteur d'unread pour l'affichage badge sidebar.
@@ -63,6 +71,32 @@ export function Sidebar() {
   // useCockpitDmUnreadTotal qui ne comptait que Pro malgré son nom — bug de
   // sémantique fixé en même temps que la refonte /messages.
   const messagesUnreadTotal = useUnifiedInboxTotal();
+
+  // F-BUG-SIDEBAR-EVENTS-RBAC-PROVIDER-NO-ORG :
+  // Cache "Événements" pour un provider sans OrganizationMember actif.
+  // Backend GET /events est déjà filtré sur memberships ACTIVE — la page serait
+  // vide pour ces users. On masque l'entrée sidebar en miroir.
+  const isPlatformAdmin = user?.roleType
+    ? PLATFORM_ROLES_SEE_EVENTS.has(user.roleType)
+    : false;
+  const { data: myOrgs } = useQuery({
+    queryKey: ["sidebar", "organizations", "mine"],
+    queryFn: () => organizationsApi.mine(accessToken!),
+    enabled: Boolean(accessToken) && !isPlatformAdmin,
+    staleTime: 60_000,
+  });
+  const hasOrgMembership = (myOrgs?.length ?? 0) > 0;
+  const showEvents = isPlatformAdmin || hasOrgMembership;
+
+  const navNetworkItems = showEvents
+    ? [
+        NAV_NETWORK_BASE[0], // Messages
+        NAV_NETWORK_BASE[1], // Adressages
+        NAV_NETWORK_BASE[2], // Vue réseau
+        NAV_EVENTS_ITEM,
+        ...NAV_NETWORK_BASE.slice(3),
+      ]
+    : NAV_NETWORK_BASE;
 
   useEffect(() => {
     if (user?.roleType !== "ADMIN" || !accessToken) return;
@@ -101,7 +135,7 @@ export function Sidebar() {
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
         <NavGroup items={NAV_PATIENTS} isActive={isActive} badges={navBadges} />
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
-        <NavGroup items={NAV_NETWORK} isActive={isActive} badges={navBadges} />
+        <NavGroup items={navNetworkItems} isActive={isActive} badges={navBadges} />
 
         {/* Administration — ADMIN uniquement */}
         {user?.roleType === "ADMIN" && (
@@ -259,7 +293,9 @@ function NavItem({ href, label, emoji, active, badgeCount }: { href: string; lab
   );
 }
 
-function NavGroup({ items, isActive, badges }: { items: typeof NAV_ACTIVITY; isActive: (href: string) => boolean; badges?: Record<string, number> }) {
+type NavItemShape = { href: string; label: string; emoji: string };
+
+function NavGroup({ items, isActive, badges }: { items: readonly NavItemShape[]; isActive: (href: string) => boolean; badges?: Record<string, number> }) {
   return (
     <div className="space-y-0.5">
       {items.map((item) => (
