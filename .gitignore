@@ -18,6 +18,9 @@
 /.next/
 /out/
 
+# lighthouse CI artifacts (HTML/JSON/screenshots per run)
+/.lighthouseci/
+
 # production
 /build
 
