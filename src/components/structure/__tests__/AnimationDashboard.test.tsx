@@ -52,6 +52,14 @@ vi.mock("@tanstack/react-query", () => ({
     isError: false,
     refetch: () => Promise.resolve(),
   }),
+  useMutation: () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
 }));
 
 vi.mock("@/lib/store", () => ({
