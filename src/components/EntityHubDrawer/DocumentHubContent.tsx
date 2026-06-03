@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { ExternalLink } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 import type { EntityHubDocument } from "@/lib/api";
 import { useEntityHubControls } from "@/contexts/EntityHubContext";
 import {
@@ -29,7 +29,7 @@ function humanFileSize(bytes: number): string {
 
 export function DocumentHubContent({ data, careCaseId, onRefetch }: Props) {
   const { openEntityHub } = useEntityHubControls();
-  const { document, source, consultation, observations, sharing } = data;
+  const { document, source, consultation, observations, sharing, signedUrlError } = data;
   // Date.now() pendant le render = impure (react-hooks/purity). On capture
   // l'instant d'arrivée du payload via un effet pour rester deterministe en SSR.
   const issuedAtRef = useRef<number>(0);
@@ -74,14 +74,31 @@ export function DocumentHubContent({ data, careCaseId, onRefetch }: Props) {
               {humanFileSize(document.sizeBytes)} · {formatDate(document.createdAt)}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={openSignedUrl}
-            className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B4EC4] text-white px-4 py-2.5 text-sm font-semibold hover:bg-[#4c44b0] transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
-          >
-            <ExternalLink size={14} aria-hidden />
-            Ouvrir le document
-          </button>
+          {signedUrlError ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-4 w-full rounded-xl border border-[#D97706]/30 bg-[#FEF3C7]/40 px-4 py-3 text-xs text-[#92400E] flex items-start gap-2"
+            >
+              <AlertTriangle
+                size={14}
+                aria-hidden
+                className="shrink-0 mt-0.5 text-[#D97706]"
+              />
+              <span>
+                Document temporairement inaccessible — réessayez plus tard.
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={openSignedUrl}
+              className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B4EC4] text-white px-4 py-2.5 text-sm font-semibold hover:bg-[#4c44b0] transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
+            >
+              <ExternalLink size={14} aria-hidden />
+              Ouvrir le document
+            </button>
+          )}
         </HubCard>
       </section>
 
