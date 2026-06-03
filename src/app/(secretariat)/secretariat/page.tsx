@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SecretariatNotifBell } from "@/components/secretariat/SecretariatNotifBell";
+import { SecretariatSignedDocsSection } from "@/components/secretariat/SecretariatSignedDocsSection";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -491,7 +492,7 @@ function AgendaColumn({
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function SecretariatPage() {
-  const { accessToken } = useAuthStore();
+  const { accessToken, user } = useAuthStore();
   const [date, setDate] = useState(new Date());
   const qc = useQueryClient();
 
@@ -619,28 +620,38 @@ export default function SecretariatPage() {
           )}
         </div>
 
-        {/* Salle d'attente sidebar */}
-        {waiting.length > 0 && (
-          <div className="w-52 shrink-0 border-l border-[#E8ECF4] bg-white overflow-y-auto">
-            <div className="px-3 py-2 border-b border-[#E8ECF4]">
-              <p className="text-[10px] font-semibold text-[#1A1A2E] uppercase tracking-wider flex items-center gap-1.5">
-                <Armchair size={11} className="text-blue-600" />
-                Salle d'attente
-              </p>
-            </div>
-            <div className="p-2 space-y-2">
-              {waiting.map((entry) => (
-                <div key={entry.appointmentId} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                  <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{entry.patientName}</p>
-                  <p className="text-[9px] text-[#6B7280] truncate">{entry.providerName}</p>
-                  <p className="text-[9px] text-blue-600 mt-0.5">
-                    {entry.waitingMinutes > 0 ? `Attend depuis ${entry.waitingMinutes} min` : "Vient d'arriver"}
-                  </p>
-                </div>
-              ))}
-            </div>
+        {/* Sidebar organisationnelle droite — salle d'attente + docs signés */}
+        <div className="w-64 shrink-0 border-l border-[#E8ECF4] bg-white overflow-y-auto">
+          {waiting.length > 0 && (
+            <>
+              <div className="px-3 py-2 border-b border-[#E8ECF4]">
+                <p className="text-[10px] font-semibold text-[#1A1A2E] uppercase tracking-wider flex items-center gap-1.5">
+                  <Armchair size={11} className="text-blue-600" />
+                  Salle d'attente
+                </p>
+              </div>
+              <div className="p-2 space-y-2">
+                {waiting.map((entry) => (
+                  <div key={entry.appointmentId} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{entry.patientName}</p>
+                    <p className="text-[9px] text-[#6B7280] truncate">{entry.providerName}</p>
+                    <p className="text-[9px] text-blue-600 mt-0.5">
+                      {entry.waitingMinutes > 0 ? `Attend depuis ${entry.waitingMinutes} min` : "Vient d'arriver"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* F-CROSS-GAP-Document-SIGNED-SECRETARIAT (V1 shell) */}
+          <div className="p-2">
+            <SecretariatSignedDocsSection
+              accessToken={accessToken}
+              userId={user?.id ?? null}
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
