@@ -3,16 +3,12 @@ import { navigateToParcours } from "./_helpers/navigateToParcours";
 
 // Phase E — fiche document (drawer Document).
 //
-// ⚠️ ÉCUEIL CONNU (PROD 2026-06-03) : le backend
-//   GET /patient/care-case-hub/:cc/document/:docId
-// renvoie 500 pour les 2 documents de Léa. À investiguer hors scope E2E
-// (probable cause : drift schéma Prisma vs migrations #132/#133/#134 pas
-// appliquées prod). Le hub principal lui renvoie bien la liste des docs.
-//
-// Tant que le 500 persiste, on assert l'UI d'erreur du drawer
-// ("Fiche indisponible") plutôt qu'un happy-path. Quand le bug sera fixé,
-// cette spec devra être adaptée pour asserter le contenu (titre, type, bouton
-// "Ouvrir le document").
+// Post-hotfix backend PR #144 (defensive guard getSignedDocumentUrl +
+// partial payload) : le backend ne renvoie plus 500 même quand
+// l'URL signée échoue côté Storage. Il retourne un payload (complet ou
+// partiel) que le drawer rend normalement, ce qui transforme cette spec
+// en anti-régression happy-path : on vérifie que le drawer s'ouvre et
+// affiche les sections clés sans crash.
 
 const CARE_CASE_ID = "cmnypqxsx00dxt0p7fh3hqnjb";
 
@@ -24,7 +20,7 @@ test.describe("Entity Hub — Document drawer", () => {
     ).toBeVisible({ timeout: 20_000 });
   });
 
-  test("affiche l'UI d'erreur quand le backend renvoie 500 (anti-régression)", async ({
+  test("ouvre le drawer document et affiche les sections clés (anti-régression post-hotfix #144)", async ({
     page,
   }) => {
     const documentButton = page
@@ -45,11 +41,14 @@ test.describe("Entity Hub — Document drawer", () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText(/Fiche document/i)).toBeVisible();
 
-    // État d'erreur attendu tant que le 500 backend persiste.
-    const errorBlock = drawer.getByRole("alert");
-    await expect(errorBlock).toBeVisible({ timeout: 15_000 });
-    await expect(errorBlock).toContainText(/Fiche indisponible/i);
-    await expect(errorBlock).toContainText(/n.?est pas accessible/i);
+    // Happy-path post hotfix #144 : le guard défensif côté backend garantit
+    // un payload (complet ou partiel), donc le drawer rend le contenu métier
+    // au lieu d'un fallback d'erreur. On vérifie la CTA "Ouvrir le document"
+    // et la section "Origine" qui identifient la fiche.
+    await expect(
+      drawer.getByRole("button", { name: /Ouvrir le document/i }),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(drawer.getByText(/Origine/i)).toBeVisible();
   });
 
   test("fermeture via Escape vide la pile", async ({ page }) => {
