@@ -3492,6 +3492,13 @@ export interface EntityHubDocument {
   consultation: EntityHubDocumentConsultation | null;
   observations: EntityHubDocumentObservation[];
   sharing: EntityHubDocumentSharing;
+  /**
+   * `true` lorsque le backend n’a pas pu générer l’URL signée (Supabase down,
+   * objet introuvable, etc.). Dans ce cas `document.fileUrl` est `""` et le
+   * front doit afficher un état "Document temporairement inaccessible".
+   * Garde défensive PR #144 — voir entityHubDocument.service.ts.
+   */
+  signedUrlError: boolean;
 }
 
 /**

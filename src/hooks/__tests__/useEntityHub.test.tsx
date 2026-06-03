@@ -106,6 +106,7 @@ function makeDocument(): EntityHubDocument {
     consultation: null,
     observations: [],
     sharing: { isSharedWithTeam: false, teamMembers: [] },
+    signedUrlError: false,
   };
 }
 
