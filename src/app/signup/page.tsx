@@ -91,19 +91,30 @@ function SignupForm() {
     }
     setLoading(true);
     try {
-      const tokens = await authApi.signup({
-        email: form.email,
-        password: form.password,
-        firstName: form.firstName,
-        lastName: form.lastName,
-        roleType: form.roleType,
-        phone: form.phone || undefined,
-        birthDate: form.roleType === "PATIENT" ? form.birthDate : undefined,
-        sex: form.roleType === "PATIENT" ? (form.sex as "M" | "F") : undefined,
-        rppsNumber: form.rppsNumber || undefined,
-        specialties: form.specialties.length ? form.specialties : undefined,
-        professionType: form.roleType === "PROVIDER" && form.professionType ? form.professionType : undefined,
-      });
+      // F-UX-PATIENT-V1-LAUNCH-1 — Patient → endpoint scopé /auth/signup/patient
+      // (force roleType=PATIENT côté serveur). Soignant → legacy (le wizard moderne
+      // /signup/professional appelle /auth/signup/provider riche de #148).
+      const tokens = form.roleType === "PATIENT"
+        ? await authApi.signupPatient({
+            email: form.email,
+            password: form.password,
+            firstName: form.firstName,
+            lastName: form.lastName,
+            phone: form.phone || undefined,
+            birthDate: form.birthDate,
+            sex: form.sex as "M" | "F",
+          })
+        : await authApi.signup({
+            email: form.email,
+            password: form.password,
+            firstName: form.firstName,
+            lastName: form.lastName,
+            roleType: form.roleType,
+            phone: form.phone || undefined,
+            rppsNumber: form.rppsNumber || undefined,
+            specialties: form.specialties.length ? form.specialties : undefined,
+            professionType: form.professionType || undefined,
+          });
       const user = await authApi.me(tokens.accessToken);
       setAuth(user, tokens.accessToken, tokens.refreshToken);
       track.signup({ roleType: form.roleType });

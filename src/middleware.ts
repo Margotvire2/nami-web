@@ -86,8 +86,36 @@ function isCockpitPath(pathname: string): boolean {
   return COCKPIT_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
+// F-UX-PATIENT-V1-LAUNCH-1 — Host detection (Doctolib pattern)
+// app.namipourlavie.com sert les surfaces soignant (landing + signup),
+// namipourlavie.com sert les surfaces patient. Pas de duplication de code :
+// rewrite vers les pages existantes (/soignants-liberaux et /signup/professional).
+const PROVIDER_HOSTS = new Set([
+  "app.namipourlavie.com",
+  "app.localhost:3001",
+  "app.localhost",
+]);
+
+function isProviderHost(host: string | null): boolean {
+  if (!host) return false;
+  return PROVIDER_HOSTS.has(host);
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host");
+
+  // Sous-domaine app. — rewrites vers contenu soignant existant.
+  // /login et /forgot-password restent communs : la page détecte le host
+  // côté client pour appeler le bon endpoint backend.
+  if (isProviderHost(host)) {
+    if (pathname === "/" || pathname === "") {
+      return NextResponse.rewrite(new URL("/soignants-liberaux", request.url));
+    }
+    if (pathname === "/signup" || pathname === "/signup/") {
+      return NextResponse.rewrite(new URL("/signup/professional", request.url));
+    }
+  }
 
   // Public routes — pass through
   if (isPublic(pathname)) return NextResponse.next();
