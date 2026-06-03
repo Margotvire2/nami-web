@@ -3425,6 +3425,13 @@ export interface EntityHubConsultation {
   /** null si VisibilityScope hors [PATIENT_ONLY, CARE_TEAM] — afficher "Compte-rendu non partagé". */
   clinicalNote: EntityHubConsultationClinicalNote | null;
   documents: EntityHubConsultationDocument[];
+  /**
+   * Documents groupés par DocumentType (backend BE #153). TRANSCRIPTION exclus
+   * côté serveur — la vue patient n'expose jamais l'audio brut.
+   * Clés possibles : PRESCRIPTION, BIOLOGICAL_REPORT, HOSPITAL_REPORT,
+   * CONSULTATION_REPORT, LETTER, IMAGING, OTHER. Ordre non garanti.
+   */
+  documentsByType: Record<string, EntityHubConsultationDocument[]>;
   /** Vide si clinicalNote=null (cohérence backend). */
   observations: EntityHubConsultationObservation[];
   nextAppointment: EntityHubConsultationNextAppointment | null;
@@ -4130,6 +4137,50 @@ export function apiWithToken(token: string) {
             { method: "POST" },
             token,
           ),
+      },
+
+      // ─── Upload document patient générique (F-UX-PATIENT-V1-LAUNCH-5) ────
+      // Utilisé par le drawer consultation pour "transmettre un document" à
+      // un soignant ou une équipe précise. Réutilise POST /patient/documents/upload
+      // (route définie src/routes/patientPortal.ts) avec routing XOR :
+      //   - directRecipientPersonId  : DM 1:1 au providerId de la consultation
+      //   - targetCareCaseIds        : fan-out équipe d'un parcours
+      //
+      // Aligné backend (targetCareCaseIds = JSON string, pas tableau multipart).
+      uploadDocument: (params: {
+        file: File;
+        documentType:
+          | "PRESCRIPTION"
+          | "BIOLOGICAL_REPORT"
+          | "HOSPITAL_REPORT"
+          | "LETTER"
+          | "IMAGING"
+          | "OTHER";
+        title: string;
+        routing:
+          | { directRecipientPersonId: string }
+          | { targetCareCaseIds: string[] };
+      }) => {
+        const fd = new FormData();
+        fd.append("file", params.file);
+        fd.append("documentType", params.documentType);
+        fd.append("title", params.title);
+        if ("directRecipientPersonId" in params.routing) {
+          fd.append(
+            "directRecipientPersonId",
+            params.routing.directRecipientPersonId,
+          );
+        } else {
+          fd.append(
+            "targetCareCaseIds",
+            JSON.stringify(params.routing.targetCareCaseIds),
+          );
+        }
+        return request<PatientDocument>(
+          "/patient/documents/upload",
+          { method: "POST", body: fd },
+          token,
+        );
       },
 
       // ─── Messages patient : channels CARECASE + DM 1:1 (CC #MES-MESSAGES-CHANNELS-DM)

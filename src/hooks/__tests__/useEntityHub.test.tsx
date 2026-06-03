@@ -84,6 +84,7 @@ function makeConsultation(): EntityHubConsultation {
     },
     clinicalNote: null,
     documents: [],
+    documentsByType: {},
     observations: [],
     nextAppointment: null,
     prescriptions: [],
