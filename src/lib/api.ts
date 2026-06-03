@@ -150,6 +150,33 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
+  // F-SOIGNANT-SIGNUP-PAR-METIER — signup soignant riche par profession.
+  signupProvider: (data: {
+    email:         string;
+    password:      string;
+    firstName:     string;
+    lastName:      string;
+    phone?:        string;
+    profession:    "MEDECIN" | "DIETICIEN" | "KINE" | "IDE" | "SAGE_FEMME" | "PSY"
+                 | "OSTEO" | "PHARMA" | "ORTHOPHONISTE" | "PEDICURE" | "ERGO" | "AIDE_SOIGNANT";
+    proIdentifier: string;
+    exerciseMode:  "LIBERAL" | "SALARIED" | "MIXED";
+    specialtyView?: "TCA" | "OBESITE" | "ENDOCRINO" | "PEDIA" | "GENERAL" | "AUTRE";
+    publicBio?:    string;
+    photoUrl?:     string;
+    acceptedCGU:   true;
+    acceptedRGPD:  true;
+  }) =>
+    request<{
+      accessToken:        string;
+      refreshToken:       string;
+      preValidated:       boolean;
+      needsManualReview:  boolean;
+    }>("/auth/signup/provider", {
+      method: "POST",
+      body:   JSON.stringify(data),
+    }),
+
   logout: (refreshToken: string) =>
     request("/auth/logout", {
       method: "POST",
