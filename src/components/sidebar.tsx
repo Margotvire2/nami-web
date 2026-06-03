@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { Settings } from "lucide-react";
 import { NotificationBell } from "@/components/cockpit/notifications/NotificationBell";
-import { apiWithToken, type ProConversation } from "@/lib/api";
+import { useUnifiedInboxTotal } from "@/hooks/useUnifiedInboxTotal";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -35,12 +34,13 @@ const NAV_PATIENTS = [
 ];
 
 const NAV_NETWORK = [
+  // Messages englobe désormais les 3 silos (dossiers, DM patients, réseau pro).
+  // /collaboration reste accessible via redirect 308 vers /messages?tab=pro.
   { href: "/messages",       label: "Messages",       emoji: "💬" },
   { href: "/adressages",     label: "Adressages",     emoji: "↔️" },
   { href: "/reseau",         label: "Vue réseau",     emoji: "🌐" },
   { href: "/evenements",     label: "Événements",     emoji: "📆" },
   { href: "/communications", label: "Communications", emoji: "📣" },
-  { href: "/collaboration",  label: "Collaboration",  emoji: "📡" },
   { href: "/equipe",         label: "Équipe",         emoji: "👤" },
   { href: "/annuaire",       label: "Annuaire",       emoji: "📖" },
 ];
@@ -54,33 +54,15 @@ export function formatSidebarBadgeCount(count: number): string {
   return String(count);
 }
 
-/**
- * Hook : récupère le nombre total de messages non lus toutes conversations
- * cockpit confondues (DM + groupes). Branché sur l'endpoint existant
- * /pro-messages/conversations (PR #107 wiring), refetch 60s pour rester à
- * jour partout dans le cockpit.
- */
-function useCockpitDmUnreadTotal(): number {
-  const { accessToken } = useAuthStore();
-  const { data: conversations = [] } = useQuery({
-    queryKey: ["sidebar-cockpit-dm-unread"],
-    queryFn: () => apiWithToken(accessToken!).proMessages.getConversations(),
-    enabled: !!accessToken,
-    staleTime: 30_000,
-    refetchInterval: 60_000,
-  });
-  return (conversations as ProConversation[]).reduce(
-    (sum, c) => sum + (c.unreadCount ?? 0),
-    0,
-  );
-}
-
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, accessToken } = useAuthStore();
   const [pendingCount, setPendingCount] = useState(0);
-  const dmUnreadTotal = useCockpitDmUnreadTotal();
+  // Compteur unifié des 3 silos (Pro + DM patient + CareCase). Remplace l'ancien
+  // useCockpitDmUnreadTotal qui ne comptait que Pro malgré son nom — bug de
+  // sémantique fixé en même temps que la refonte /messages.
+  const messagesUnreadTotal = useUnifiedInboxTotal();
 
   useEffect(() => {
     if (user?.roleType !== "ADMIN" || !accessToken) return;
@@ -99,7 +81,7 @@ export function Sidebar() {
 
   // Map href → badge count : permet d'étendre facilement (ex. /alertes)
   const navBadges: Record<string, number> = {
-    "/messages": dmUnreadTotal,
+    "/messages": messagesUnreadTotal,
   };
 
   return (
