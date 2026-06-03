@@ -191,19 +191,6 @@ export function PitchTcaClient() {
         .pitch-tca-anim { animation: pitch-tca-fade-up 0.4s cubic-bezier(0.16,1,0.3,1); }
       `}</style>
 
-      {/* ── NAV ── */}
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: "rgba(250,250,248,0.88)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: `1px solid ${C.bl}`, padding: "14px 0",
-      }}>
-        <div style={{ ...CTR, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "1.25rem", fontWeight: 900, color: C.nami, letterSpacing: "-0.03em" }}>nami</span>
-          <span style={{ fontSize: 12, fontFamily: FONT_INTER, color: C.tm, fontWeight: 500 }}>Coordination des parcours TCA</span>
-        </div>
-      </nav>
-
       {/* ── HERO ── */}
       <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px 80px" }}>
         <div style={{ maxWidth: 840 }}>
