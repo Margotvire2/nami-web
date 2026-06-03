@@ -12,7 +12,10 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "check:conflict-markers": "bash scripts/check-conflict-markers.sh"
+    "check:conflict-markers": "bash scripts/check-conflict-markers.sh",
+    "audit:lighthouse": "bash scripts/lighthouse/run-audit.sh",
+    "audit:lighthouse:collect": "lhci collect",
+    "audit:lighthouse:assert": "lhci assert"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -44,6 +47,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
