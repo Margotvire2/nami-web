@@ -1,20 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { CockpitCareCaseChannelsTab } from "./_components/CockpitCareCaseChannelsTab";
 import { CockpitDmInboxTab } from "./_components/CockpitDmInboxTab";
-import { useCockpitDmInbox } from "@/hooks/useCockpitDmInbox";
+import { CockpitProConversationsTab } from "./_components/CockpitProConversationsTab";
+import { useUnifiedInbox } from "@/hooks/useUnifiedInbox";
 
-type TabKey = "carecase" | "dm";
+type TabKey = "carecase" | "dm" | "pro";
+const TAB_KEYS: TabKey[] = ["carecase", "dm", "pro"];
+
+function isValidTab(v: string | null): v is TabKey {
+  return v !== null && (TAB_KEYS as string[]).includes(v);
+}
 
 export default function MessagesPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>("carecase");
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Compteur unread total pour badge tab DM
-  const { data: dmData } = useCockpitDmInbox();
-  const dmUnreadTotal =
-    dmData?.threads.reduce((acc, t) => acc + (t.unreadCount > 0 ? 1 : 0), 0) ?? 0;
+  const rawTab = searchParams.get("tab");
+  const activeTab: TabKey = isValidTab(rawTab) ? rawTab : "carecase";
+  const proThreadId = searchParams.get("threadId");
+
+  const { counts } = useUnifiedInbox();
+
+  const updateUrl = useCallback(
+    (next: { tab?: TabKey; threadId?: string | null }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (next.tab !== undefined) params.set("tab", next.tab);
+      if (next.threadId === null) params.delete("threadId");
+      else if (next.threadId !== undefined) params.set("threadId", next.threadId);
+      const qs = params.toString();
+      router.replace(qs ? `/messages?${qs}` : "/messages", { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  const setTab = useCallback(
+    (tab: TabKey) => {
+      // Clear threadId quand on change de tab pour éviter de targeter un id
+      // d'un autre silo.
+      updateUrl({ tab, threadId: null });
+    },
+    [updateUrl],
+  );
+
+  const setProThreadId = useCallback(
+    (id: string | null) => {
+      updateUrl({ threadId: id });
+    },
+    [updateUrl],
+  );
+
+  const dmBadge = useMemo(() => counts.dm, [counts.dm]);
+  const proBadge = useMemo(() => counts.pro, [counts.pro]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-muted/10">
@@ -24,25 +64,36 @@ export default function MessagesPage() {
           <MessageSquare size={16} /> Messages
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Coordination clinique et messages directs avec vos patients
+          Coordination clinique, messages directs patients, et réseau pro
         </p>
 
-        {/* Tabs */}
-        <div role="tablist" aria-label="Catégories de messages" className="flex items-end gap-1 mt-3 -mb-px">
+        <div
+          role="tablist"
+          aria-label="Catégories de messages"
+          className="flex items-end gap-1 mt-3 -mb-px"
+        >
           <TabButton
             id="tab-carecase"
             panelId="panel-carecase"
             active={activeTab === "carecase"}
-            onClick={() => setActiveTab("carecase")}
+            onClick={() => setTab("carecase")}
             label="📁 Dossiers patients"
           />
           <TabButton
             id="tab-dm"
             panelId="panel-dm"
             active={activeTab === "dm"}
-            onClick={() => setActiveTab("dm")}
-            label="💬 Messages privés"
-            badgeCount={dmUnreadTotal}
+            onClick={() => setTab("dm")}
+            label="💬 Messages directs"
+            badgeCount={dmBadge}
+          />
+          <TabButton
+            id="tab-pro"
+            panelId="panel-pro"
+            active={activeTab === "pro"}
+            onClick={() => setTab("pro")}
+            label="🌐 Réseau pro"
+            badgeCount={proBadge}
           />
         </div>
       </div>
@@ -51,10 +102,23 @@ export default function MessagesPage() {
       <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 shrink-0 flex items-center gap-2">
         <span className="text-amber-600 text-xs font-semibold">⚠</span>
         <p className="text-xs text-amber-700">
-          Messagerie réservée à la <strong>coordination non urgente</strong>. En cas d&apos;urgence vitale :{" "}
-          <a href="tel:15" className="font-bold underline hover:text-amber-900">15 (SAMU)</a>
-          {" "}ou{" "}
-          <a href="tel:112" className="font-bold underline hover:text-amber-900">112</a>.
+          Messagerie réservée à la{" "}
+          <strong>coordination non urgente</strong>. En cas d&apos;urgence
+          vitale :{" "}
+          <a
+            href="tel:15"
+            className="font-bold underline hover:text-amber-900"
+          >
+            15 (SAMU)
+          </a>{" "}
+          ou{" "}
+          <a
+            href="tel:112"
+            className="font-bold underline hover:text-amber-900"
+          >
+            112
+          </a>
+          .
         </p>
       </div>
 
@@ -76,6 +140,20 @@ export default function MessagesPage() {
         className={activeTab === "dm" ? "flex-1 flex overflow-hidden" : ""}
       >
         {activeTab === "dm" && <CockpitDmInboxTab />}
+      </div>
+      <div
+        role="tabpanel"
+        id="panel-pro"
+        aria-labelledby="tab-pro"
+        hidden={activeTab !== "pro"}
+        className={activeTab === "pro" ? "flex-1 flex overflow-hidden" : ""}
+      >
+        {activeTab === "pro" && (
+          <CockpitProConversationsTab
+            activeConvId={proThreadId}
+            onSelectConv={setProThreadId}
+          />
+        )}
       </div>
     </div>
   );
@@ -114,6 +192,7 @@ function TabButton({
         {label}
         {badgeCount && badgeCount > 0 ? (
           <span
+            data-testid={`tab-badge-${id}`}
             className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white"
             style={{ background: "#5B4EC4" }}
           >

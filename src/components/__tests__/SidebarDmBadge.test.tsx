@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { Sidebar, formatSidebarBadgeCount } from "../sidebar";
 import * as apiModule from "@/lib/api";
-import type { ProConversation } from "@/lib/api";
+import type { ProConversation, CockpitDmInboxThread } from "@/lib/api";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -40,12 +40,11 @@ vi.mock("@/lib/store", () => ({
   }),
 }));
 
-// NotificationBell fait des appels réseau au montage : on neutralise.
 vi.mock("@/components/cockpit/notifications/NotificationBell", () => ({
   NotificationBell: () => <div data-testid="notification-bell-mock" />,
 }));
 
-function makeConv(unreadCount: number, id = "c1"): ProConversation {
+function makePro(unreadCount: number, id = "c1"): ProConversation {
   return {
     id,
     type: "DIRECT",
@@ -56,9 +55,31 @@ function makeConv(unreadCount: number, id = "c1"): ProConversation {
       { id: "u1", firstName: "Margot", lastName: "Vire", role: "PRO" },
       { id: "u2", firstName: "Léa", lastName: "Rousseau", role: "PATIENT" },
     ],
-    lastMessage: { content: "Bonjour", senderId: "u2", createdAt: "2026-05-31T10:00:00Z" },
+    lastMessage: {
+      content: "Bonjour",
+      senderId: "u2",
+      createdAt: "2026-05-31T10:00:00Z",
+    },
     unreadCount,
     updatedAt: "2026-05-31T10:00:00Z",
+  };
+}
+
+function makeDmThread(
+  unreadCount: number,
+  patientPersonId = "p1",
+): CockpitDmInboxThread {
+  return {
+    patientPersonId,
+    patient: {
+      personId: patientPersonId,
+      firstName: "Léa",
+      lastName: "Rousseau",
+      avatarUrl: null,
+    },
+    lastMessage: null,
+    unreadCount,
+    totalCount: unreadCount,
   };
 }
 
@@ -75,12 +96,22 @@ function makeWrapper() {
   return Wrapper;
 }
 
-function mockGetConversations(convs: ProConversation[]) {
+function mockApi({
+  pro,
+  dm,
+}: {
+  pro: ProConversation[];
+  dm: CockpitDmInboxThread[];
+}) {
   return vi.spyOn(apiModule, "apiWithToken").mockReturnValue({
     proMessages: {
-      getConversations: vi.fn().mockResolvedValue(convs),
+      getConversations: vi.fn().mockResolvedValue(pro),
     },
-    // Le reste du retour de apiWithToken n'est pas utilisé dans la Sidebar.
+    messages: {
+      dmInbox: {
+        list: vi.fn().mockResolvedValue({ threads: dm }),
+      },
+    },
   } as unknown as ReturnType<typeof apiModule.apiWithToken>);
 }
 
@@ -100,13 +131,13 @@ describe("formatSidebarBadgeCount (V1-COCKPIT-SIDEBAR-DM-BADGE)", () => {
   });
 });
 
-describe("Sidebar — badge unread Messages (V1-COCKPIT-SIDEBAR-DM-BADGE)", () => {
+describe("Sidebar — badge unread Messages (F-CROSS-GAP-Message-INBOX-COCKPIT — unifié 3 silos)", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("0 unread → pas de badge sur item Messages", async () => {
-    mockGetConversations([makeConv(0, "c1"), makeConv(0, "c2")]);
+  it("0 unread Pro + 0 unread DM → pas de badge", async () => {
+    mockApi({ pro: [makePro(0)], dm: [makeDmThread(0)] });
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -114,21 +145,17 @@ describe("Sidebar — badge unread Messages (V1-COCKPIT-SIDEBAR-DM-BADGE)", () =
       </Wrapper>,
     );
 
-    // L'item Messages reste affiché mais sans badge.
     expect(screen.getByText("Messages")).toBeInTheDocument();
-
-    // Attente : le hook React Query peut résoudre, mais la somme reste 0.
     await waitFor(() => {
       expect(screen.queryByTestId("sidebar-badge-messages")).toBeNull();
     });
   });
 
-  it("1-9 unread cumulés → badge avec nombre exact", async () => {
-    mockGetConversations([
-      makeConv(2, "c1"),
-      makeConv(3, "c2"),
-      makeConv(0, "c3"),
-    ]);
+  it("Pro 2 + DM 3 → badge '5' (somme des silos)", async () => {
+    mockApi({
+      pro: [makePro(2, "c1")],
+      dm: [makeDmThread(3, "p1")],
+    });
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -138,13 +165,15 @@ describe("Sidebar — badge unread Messages (V1-COCKPIT-SIDEBAR-DM-BADGE)", () =
 
     await waitFor(() => {
       const badge = screen.getByTestId("sidebar-badge-messages");
-      expect(badge).toBeInTheDocument();
       expect(badge.textContent).toBe("5");
     });
   });
 
-  it(">9 unread cumulés → badge '9+'", async () => {
-    mockGetConversations([makeConv(7, "c1"), makeConv(8, "c2")]);
+  it("Pro 7 + DM 8 → badge '9+' (cap >9)", async () => {
+    mockApi({
+      pro: [makePro(7, "c1")],
+      dm: [makeDmThread(8, "p1")],
+    });
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -154,13 +183,12 @@ describe("Sidebar — badge unread Messages (V1-COCKPIT-SIDEBAR-DM-BADGE)", () =
 
     await waitFor(() => {
       const badge = screen.getByTestId("sidebar-badge-messages");
-      expect(badge).toBeInTheDocument();
       expect(badge.textContent).toBe("9+");
     });
   });
 
   it("badge a aria-live='polite' pour l'accessibilité", async () => {
-    mockGetConversations([makeConv(3, "c1")]);
+    mockApi({ pro: [makePro(3)], dm: [] });
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -172,5 +200,46 @@ describe("Sidebar — badge unread Messages (V1-COCKPIT-SIDEBAR-DM-BADGE)", () =
       const badge = screen.getByTestId("sidebar-badge-messages");
       expect(badge).toHaveAttribute("aria-live", "polite");
     });
+  });
+
+  it("Pro uniquement (DM=0) → badge compte Pro", async () => {
+    mockApi({ pro: [makePro(4)], dm: [makeDmThread(0)] });
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <Sidebar />
+      </Wrapper>,
+    );
+
+    await waitFor(() => {
+      const badge = screen.getByTestId("sidebar-badge-messages");
+      expect(badge.textContent).toBe("4");
+    });
+  });
+
+  it("DM uniquement (Pro=0) → badge compte DM", async () => {
+    mockApi({ pro: [makePro(0)], dm: [makeDmThread(6)] });
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <Sidebar />
+      </Wrapper>,
+    );
+
+    await waitFor(() => {
+      const badge = screen.getByTestId("sidebar-badge-messages");
+      expect(badge.textContent).toBe("6");
+    });
+  });
+
+  it("ne contient plus le lien sidebar '/collaboration' (redirect 308 vers /messages?tab=pro)", () => {
+    mockApi({ pro: [], dm: [] });
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <Sidebar />
+      </Wrapper>,
+    );
+    expect(screen.queryByText("Collaboration")).toBeNull();
   });
 });
