@@ -1413,8 +1413,12 @@ export interface NutritionBatchAnalyzeResponse {
 }
 
 export const journalApi = {
-  list: (token: string, careCaseId: string, params?: { type?: string }) => {
-    const qs = params?.type ? `?type=${params.type}` : "";
+  list: (token: string, careCaseId: string, params?: { type?: string; from?: string; to?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.type) search.set("type", params.type);
+    if (params?.from) search.set("from", params.from);
+    if (params?.to) search.set("to", params.to);
+    const qs = search.toString() ? `?${search.toString()}` : "";
     return request<JournalEntry[]>(`/care-cases/${careCaseId}/journal${qs}`, {}, token);
   },
   analyzeNutrition: (token: string, entryId: string) =>
@@ -3739,7 +3743,7 @@ export function apiWithToken(token: string) {
       patchConsultationType: (id: string, data: Partial<ConsultationTypeDTO>) => appointmentsApi.patchConsultationType(token, id, data),
     },
     journal: {
-      list: (careCaseId: string, params?: { type?: string }) => journalApi.list(token, careCaseId, params),
+      list: (careCaseId: string, params?: { type?: string; from?: string; to?: string }) => journalApi.list(token, careCaseId, params),
       analyzeNutrition: (entryId: string) => journalApi.analyzeNutrition(token, entryId),
       updateNutritionAnalysis: (entryId: string, items: NutritionAnalysisItem[]) => journalApi.updateNutritionAnalysis(token, entryId, items),
       nutritionWeekly: (careCaseId: string, weekOffset?: number) => journalApi.nutritionWeekly(token, careCaseId, weekOffset),
