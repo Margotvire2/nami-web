@@ -13,6 +13,7 @@ import { ParcoursHero } from "./ParcoursHero";
 import { ParcoursPhase } from "./ParcoursPhase";
 import { ParcoursEmptyState } from "./ParcoursEmptyState";
 import { ParcoursCareCaseCard } from "./ParcoursCareCaseCard";
+import { PatientRcpHistory } from "@/components/patient/PatientRcpHistory";
 import { usePatientPathway } from "@/hooks/usePatientPathway";
 import type {
   PatientPathwayPhase,
@@ -227,6 +228,12 @@ export function ParcoursPageClient() {
           />
         ))}
       </section>
+
+      {/* F-CROSS-GAP-RCP-PATIENT (CC #5) — historique READ_ONLY des
+          concertations clôturées (Art. L.1111-2 CSP). La section se masque
+          d'elle-même si 0 RCP — pas de bruit visuel sur le parcours
+          dominant V1. */}
+      <PatientRcpHistory careCaseId={selectedPathway.careCaseId} />
 
       {/* Footer MDR obligatoire — Nami n'est pas un dispositif médical */}
       <p

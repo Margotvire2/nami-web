@@ -3132,6 +3132,29 @@ export interface PatientCareCaseSummary {
 }
 
 /**
+ * Synthèse d'une RCP clôturée visible côté patient.
+ * Renvoyé par GET /patient/care-cases/:careCaseId/rcps.
+ *
+ * F-CROSS-GAP-RCP-PATIENT (CC #5) — Art. L.1111-2 CSP.
+ * Backend source : nami/src/routes/patientRcps.ts.
+ *
+ * Wording patient-safe :
+ *   - Aucune identité de participant (participantsCount uniquement).
+ *   - Aucune opinion/ClinicalNote brute : seul `decision` (texte validé par
+ *     l'initiateur lors de POST /rcps/:id/close) est exposé.
+ *   - decisionType : valeur enum brute (CONSENSUS / MAJORITY / INITIATOR_DECISION)
+ *     mappée côté UI vers un label patient-friendly.
+ */
+export interface PatientRcpSummary {
+  id: string;
+  title: string;
+  closedAt: string; // ISO
+  decision: string;
+  decisionType: string | null;
+  participantsCount: number;
+}
+
+/**
  * Parcours guidé du patient — un summary par CareCase ACTIVE.
  * Renvoyé par GET /patient/pathway. Phases groupées par phaseLabel,
  * steps avec status mappé depuis PathwayNode (cron pathway_status_update).
@@ -4238,6 +4261,18 @@ export function apiWithToken(token: string) {
       careCases: {
         list: () =>
           request<PatientCareCaseSummary[]>("/patient/care-cases", {}, token),
+        // ─── F-CROSS-GAP-RCP-PATIENT (CC #5) ───────────────────────────────
+        // GET /patient/care-cases/:careCaseId/rcps
+        // Liste READ-ONLY des concertations CLOSED pour ce parcours.
+        // Wording patient-safe : pas d'identités participants (count seul),
+        // pas de ClinicalNote brute, juste decision validée + closedAt.
+        // Art. L.1111-2 CSP — droit à l'info sur décisions collégiales.
+        rcps: (careCaseId: string) =>
+          request<{ items: PatientRcpSummary[] }>(
+            `/patient/care-cases/${encodeURIComponent(careCaseId)}/rcps`,
+            {},
+            token,
+          ),
       },
 
       // ─── Parcours guidé patient (CC #PATHWAY-PATIENT-BACKEND) ─────────────
