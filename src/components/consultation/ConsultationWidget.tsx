@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useConsultation } from "@/contexts/ConsultationContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Mic, MicOff, Pause, Play, Square, X,
   ChevronUp, Minimize2, FileText, Loader2, Check,
@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { useAuthStore } from "@/lib/store";
+import { apiWithToken } from "@/lib/api";
+import { useAudioConsentGate } from "@/hooks/useAudioConsentGate";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -314,6 +317,19 @@ function MainWidget() {
     startRecording, pauseRecording, resumeRecording, stopRecording,
   } = useConsultation();
 
+  const { accessToken } = useAuthStore();
+  const careCaseQuery = useQuery({
+    queryKey: ["care-case", careCaseId],
+    queryFn: () => apiWithToken(accessToken!).careCases.get(careCaseId!),
+    enabled: !!accessToken && !!careCaseId,
+    staleTime: 60_000,
+  });
+  const patientPersonId = careCaseQuery.data?.patient?.id ?? null;
+  const { check: gateAudioConsent, banner: audioConsentBanner } = useAudioConsentGate(
+    patientPersonId,
+    patientName,
+  );
+
   const isRecording = audioStatus === "recording";
   const isPaused = audioStatus === "paused";
   const isDone = audioStatus === "done";
@@ -495,7 +511,7 @@ function MainWidget() {
               </div>
             </div>
           ) : audioStatus === "idle" ? (
-            <BigRecordButton onStart={startRecording} micDenied={micDenied} />
+            <BigRecordButton onStart={() => gateAudioConsent(startRecording)} micDenied={micDenied} />
           ) : null}
         </div>
 
@@ -527,6 +543,8 @@ function MainWidget() {
           Claude fusionnera vos notes et l&apos;audio pour rédiger un compte-rendu structuré
         </p>
       </div>
+
+      {audioConsentBanner}
     </div>
   );
 }
