@@ -2,6 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import {
+  buildOrganizationJsonLd,
+  buildMedicalOrganizationJsonLd,
+  jsonLdScript,
+} from "@/lib/seo";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -80,7 +85,7 @@ export const metadata: Metadata = {
   },
 };
 
-const globalJsonLd = {
+const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Nami",
@@ -99,13 +104,18 @@ const globalJsonLd = {
   },
 };
 
+const organizationJsonLd = buildOrganizationJsonLd();
+const medicalOrgJsonLd = buildMedicalOrganizationJsonLd();
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${jakarta.variable} ${inter.variable} ${playfair.variable} h-full`}>
       <head>
         <link rel="preconnect" href="https://nami-production-f268.up.railway.app" />
         <link rel="dns-prefetch" href="https://nami-production-f268.up.railway.app" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd)} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(medicalOrgJsonLd)} />
       </head>
       <body className="h-full bg-background font-sans antialiased">
         <Providers>{children}</Providers>

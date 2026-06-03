@@ -37,22 +37,42 @@ const ANNUAIRE_CITIES = [
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Date "fraîche" pour les pages volatiles — Google reste mieux confiant
+  // quand lastModified bouge sur les surfaces actives (blog, annuaire, soignants).
+  const now = new Date().toISOString().slice(0, 10)
+
   // ── Pages statiques ──────────────────────────────────────────────────────────
+  // NB. /login + /signup retirés : ils étaient Disallow dans robots.txt → signal
+  // contradictoire. Pages auth = pas de valeur SEO.
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE,                                    lastModified: LAST.home,        changeFrequency: "weekly",  priority: 1.0 },
     { url: `${BASE}/patient`,                       lastModified: LAST.patient,     changeFrequency: "weekly",  priority: 0.9 },
-    { url: `${BASE}/trouver-un-soignant`,           lastModified: LAST.annuaire,    changeFrequency: "daily",   priority: 0.9 },
+    { url: `${BASE}/trouver-un-soignant`,           lastModified: now,              changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE}/pathologies`,                   lastModified: LAST.pathologies, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/blog`,                          lastModified: LAST.blog,        changeFrequency: "daily",   priority: 0.85 },
-    { url: `${BASE}/annuaire-public`,               lastModified: LAST.annuaire,    changeFrequency: "weekly",  priority: 0.8 },
+    { url: `${BASE}/blog`,                          lastModified: now,              changeFrequency: "daily",   priority: 0.85 },
+    { url: `${BASE}/tarifs`,                        lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE}/annuaire-public`,               lastModified: now,              changeFrequency: "weekly",  priority: 0.8 },
     { url: `${BASE}/soignants`,                     lastModified: LAST.soignants,   changeFrequency: "weekly",  priority: 0.8 },
+    { url: `${BASE}/fonctionnalites`,               lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/pour-structures`,               lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/soignants-liberaux`,            lastModified: LAST.soignants,   changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE}/faq`,                           lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/comment-ca-marche`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/demander-une-demo`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/pour-les-proches`,              lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/professions`,                   lastModified: LAST.professions, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${BASE}/signup`,                        lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.5 },
+    { url: `${BASE}/clinique-pediatrique`,          lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE}/sante-des-femmes`,              lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE}/contact`,                       lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.5 },
+    { url: `${BASE}/gabrielle`,                     lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.5 },
+    { url: `${BASE}/securite-et-donnees`,           lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.5 },
     { url: `${BASE}/methodologie-editoriale`,       lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.4 },
+    { url: `${BASE}/partenaires`,                   lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.4 },
+    { url: `${BASE}/presse`,                        lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.4 },
+    { url: `${BASE}/protocole-recherche`,           lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.4 },
     { url: `${BASE}/mentions-legales`,              lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
     { url: `${BASE}/confidentialite`,               lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
     { url: `${BASE}/cgu`,                           lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
-    { url: `${BASE}/login`,                         lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
   ]
 
   // ── Pathologies ──────────────────────────────────────────────────────────────
