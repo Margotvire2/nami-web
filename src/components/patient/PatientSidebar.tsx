@@ -9,6 +9,7 @@ import {
   MessageCircle,
   FileText,
   FileHeart,
+  Heart,
 } from "lucide-react";
 import { PatientNavItem } from "./PatientNavItem";
 import { PatientNavParcoursItem } from "./PatientNavParcoursItem";
@@ -36,6 +37,9 @@ const NAV_ITEMS = [
 // Position d'insertion de <PatientNavParcoursItem/> (juste après cet href —
 // préserve l'ordre de l'ancienne sidebar : Notifications → Parcours → Suivi).
 const PARCOURS_INSERT_AFTER_HREF: string = "/notifications";
+
+// "Ma santé" rendu juste après <PatientNavParcoursItem/> (donc avant /suivi).
+const MA_SANTE_INSERT_AFTER_PARCOURS = true;
 
 interface PatientSidebarProps {
   className?: string;
@@ -66,7 +70,18 @@ export function PatientSidebar({ className = "" }: PatientSidebarProps) {
               variant="sidebar"
             />
             {item.href === PARCOURS_INSERT_AFTER_HREF && (
-              <PatientNavParcoursItem variant="sidebar" />
+              <>
+                <PatientNavParcoursItem variant="sidebar" />
+                {MA_SANTE_INSERT_AFTER_PARCOURS && (
+                  <PatientNavItem
+                    href="/ma-sante"
+                    icon={Heart}
+                    label="Ma santé"
+                    disabled={false}
+                    variant="sidebar"
+                  />
+                )}
+              </>
             )}
           </span>
         ))}
