@@ -38,7 +38,25 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/lea.json",
       },
+      testIgnore: [
+        "**/auth-scope-patient.spec.ts",
+        "**/forgot-password-url-scope.spec.ts",
+        "**/cross-domain-redirect.spec.ts",
+      ],
       dependencies: ["setup"],
+    },
+    // F-UX-PATIENT-V1-LAUNCH-1 — smoke Chantier 1.
+    // Pas de dépendance auth.setup (les specs partent toujours d'une session
+    // vide), pas de storageState lea.json. Évite que le rate-limit prod du
+    // login de Léa cascade sur ces specs et permet de les exécuter isolément.
+    {
+      name: "chantier1-smoke",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: [
+        "**/auth-scope-patient.spec.ts",
+        "**/forgot-password-url-scope.spec.ts",
+        "**/cross-domain-redirect.spec.ts",
+      ],
     },
   ],
 });
