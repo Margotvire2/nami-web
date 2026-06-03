@@ -13,6 +13,7 @@ import { ParcoursHero } from "./ParcoursHero";
 import { ParcoursPhase } from "./ParcoursPhase";
 import { ParcoursEmptyState } from "./ParcoursEmptyState";
 import { ParcoursCareCaseCard } from "./ParcoursCareCaseCard";
+import { PatientTasksSection } from "@/components/patient/PatientTasksSection";
 import { usePatientPathway } from "@/hooks/usePatientPathway";
 import type {
   PatientPathwayPhase,
@@ -213,6 +214,8 @@ export function ParcoursPageClient() {
         current={progress.current}
         total={progress.total}
       />
+
+      <PatientTasksSection careCaseId={selectedPathway.careCaseId} />
 
       <section
         aria-label="Phases du parcours"

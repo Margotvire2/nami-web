@@ -1048,6 +1048,18 @@ export interface CreateTaskInput {
   assignedToPersonId?: string;
 }
 
+// ─── Tâches patient (F-CROSS-GAP-Task-PATIENT) ───────────────────────────────
+// Réponse GET /tasks/mine : Task + careCase summary (titre + patient).
+// Diffère de Task (cockpit) qui n'inclut pas le careCase pour économiser la
+// réponse (cockpit l'a déjà via le scope careCaseId).
+export interface PatientTask extends Task {
+  careCase: {
+    id: string;
+    caseTitle: string;
+    patient: { id: string; firstName: string; lastName: string };
+  } | null;
+}
+
 export interface Alert {
   id: string;
   careCaseId: string;
@@ -4365,6 +4377,30 @@ export function apiWithToken(token: string) {
         },
         markRead: (id: string) =>
           request<{ id: string; readAt: string }>(`/patient/notifications/${id}/read`, { method: "PATCH" }, token),
+      },
+
+      // ─── Tâches patient (F-CROSS-GAP-Task-PATIENT) ────────────────────────
+      // GET   /tasks/mine          → toutes les tasks où le patient est
+      //                              assignee OU createdBy (multi-CareCase).
+      // PATCH /care-cases/:cid/tasks/:id  → marquer terminé (status=COMPLETED).
+      // Backend : src/routes/tasksMine.ts (GET) + src/routes/tasks.ts (PATCH).
+      // requireCareCaseAccess autorise le patient sur son propre CareCase.
+      // V1 limit : pédiatrie — les tasks assignées au mineur (assignee=child)
+      // ne remontent pas dans /tasks/mine du parent. Tasks "à faire par le
+      // parent" doivent donc être créées avec assignee=parent côté soignant.
+      tasks: {
+        list: (params?: { status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" }) => {
+          const qs = new URLSearchParams();
+          if (params?.status) qs.set("status", params.status);
+          const suffix = qs.size > 0 ? `?${qs.toString()}` : "";
+          return request<PatientTask[]>(`/tasks/mine${suffix}`, {}, token);
+        },
+        complete: (careCaseId: string, taskId: string) =>
+          request<PatientTask>(
+            `/care-cases/${careCaseId}/tasks/${taskId}`,
+            { method: "PATCH", body: JSON.stringify({ status: "COMPLETED" }) },
+            token,
+          ),
       },
     },
     persons: {
