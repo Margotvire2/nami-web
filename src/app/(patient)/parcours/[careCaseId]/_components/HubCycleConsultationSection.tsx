@@ -1,16 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import type {
   PatientCareCaseHubAppointment,
-  PatientCareCaseHubAppointmentToBook,
   PatientCareCaseHubPastConsultation,
 } from "@/lib/api";
 import { useEntityHubControls } from "@/contexts/EntityHubContext";
-import { RdvCycleCard } from "./RdvCycleCard";
 
 interface HubCycleConsultationSectionProps {
+  /**
+   * Rendez-vous à venir de ce parcours (triés croissant côté backend).
+   * Seul `upcoming[0]` est mis en avant via la card "Mon prochain RDV".
+   * Les RDV suivants restent accessibles via l'onglet /rendez-vous global.
+   */
   upcoming: PatientCareCaseHubAppointment[];
-  toBook: PatientCareCaseHubAppointmentToBook[];
   /**
    * Consultations passées (clôturées) — V1.0c-B.
    * - `undefined` : loading (skeleton).
@@ -19,7 +22,10 @@ interface HubCycleConsultationSectionProps {
    */
   pastConsultations?: PatientCareCaseHubPastConsultation[];
   careCaseId: string;
-  patientId: string;
+}
+
+function capitalize(s: string): string {
+  return s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function formatPastConsultationDate(iso: string): string {
@@ -35,113 +41,230 @@ function formatPastConsultationDate(iso: string): string {
   }
 }
 
+function formatNextAppointmentLabel(iso: string): string {
+  const d = new Date(iso);
+  const datePart = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+  return `${capitalize(datePart)} à ${timePart.replace(":", "h")}`;
+}
+
+function formatLocationLabel(locationType: string): string {
+  const map: Record<string, string> = {
+    IN_PERSON: "En cabinet",
+    REMOTE: "Téléconsultation",
+    VIDEO: "Téléconsultation",
+    PHONE: "Par téléphone",
+    HOME: "À domicile",
+  };
+  return map[locationType] ?? "Modalité à confirmer";
+}
+
+/**
+ * Card "Mon prochain RDV" — pattern aligné /rendez-vous RdvHeroCard.
+ *
+ * Empty state assumé par le parent : si `appointment` est null, le hero n'est
+ * pas rendu et la section affiche directement les consultations passées.
+ */
+function NextAppointmentHero({
+  appointment,
+}: {
+  appointment: PatientCareCaseHubAppointment;
+}) {
+  const providerName = `${appointment.provider.firstName} ${appointment.provider.lastName}`;
+  const whenLabel = formatNextAppointmentLabel(appointment.startAt);
+  const locationLabel = formatLocationLabel(appointment.locationType);
+
+  return (
+    <section
+      aria-label="Mon prochain rendez-vous"
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 20,
+        border: "1px solid rgba(26,26,46,0.06)",
+        background:
+          "linear-gradient(135deg, #EEEDFB 0%, #FFFFFF 50%, #E6F4F2 100%)",
+        padding: "24px 24px",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: -96,
+          right: -96,
+          width: 256,
+          height: 256,
+          borderRadius: "50%",
+          background: "rgba(91,78,196,0.15)",
+          filter: "blur(48px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          bottom: -128,
+          left: -64,
+          width: 256,
+          height: 256,
+          borderRadius: "50%",
+          background: "rgba(43,168,156,0.10)",
+          filter: "blur(48px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "#5B4EC4",
+            fontFamily: "var(--font-inter)",
+          }}
+        >
+          Mon prochain rendez-vous
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 700,
+              color: "#1A1A2E",
+              fontFamily: "var(--font-jakarta)",
+              lineHeight: 1.2,
+            }}
+          >
+            {whenLabel}
+          </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 15,
+              color: "#374151",
+              fontFamily: "var(--font-inter)",
+            }}
+          >
+            avec{" "}
+            <span style={{ fontWeight: 600, color: "#1A1A2E" }}>
+              {providerName}
+            </span>
+          </p>
+          {appointment.consultationTypeName && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                color: "#6B7280",
+                fontFamily: "var(--font-inter)",
+              }}
+            >
+              {appointment.consultationTypeName}
+            </p>
+          )}
+        </div>
+
+        <p
+          style={{
+            margin: 0,
+            fontSize: 13,
+            color: "#374151",
+            fontFamily: "var(--font-inter)",
+          }}
+        >
+          {locationLabel}
+        </p>
+
+        <div>
+          <Link
+            href={`/rendez-vous/${appointment.id}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 18px",
+              borderRadius: 12,
+              background: "#5B4EC4",
+              color: "#FFFFFF",
+              fontSize: 14,
+              fontWeight: 600,
+              textDecoration: "none",
+              fontFamily: "var(--font-jakarta)",
+            }}
+          >
+            Voir le détail
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function HubCycleConsultationSection({
   upcoming,
-  toBook,
   pastConsultations,
   careCaseId,
-  patientId,
 }: HubCycleConsultationSectionProps) {
-  const headingId = "hub-cycle-consultation-heading";
   const pastHeadingId = "hub-cycle-consultation-past-heading";
   const { openEntityHub } = useEntityHubControls();
-  const hasContent = upcoming.length > 0 || toBook.length > 0;
+  const nextAppointment = upcoming[0] ?? null;
   const isLoadingPast = pastConsultations === undefined;
   const hasPast = !isLoadingPast && pastConsultations.length > 0;
 
   return (
     <section
-      aria-labelledby={headingId}
+      aria-label="Mes rendez-vous de ce parcours"
       style={{
-        background: "#FFFFFF",
-        border: "1px solid rgba(26,26,46,0.06)",
-        borderRadius: 16,
-        padding: "20px 24px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
       }}
     >
-      <header style={{ marginBottom: 12 }}>
-        <h2
-          id={headingId}
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: "#1A1A2E",
-            fontFamily: "var(--font-jakarta)",
-            margin: 0,
-          }}
-        >
-          Cycle de consultation
-        </h2>
-        <p
-          style={{
-            margin: "4px 0 0",
-            fontSize: 13,
-            color: "#6B7280",
-            fontFamily: "var(--font-inter)",
-          }}
-        >
-          Vos rendez-vous, comptes-rendus et documents.
-        </p>
-      </header>
-
-      {!hasContent ? (
-        <p
-          style={{
-            fontSize: 13,
-            color: "#9CA3AF",
-            fontStyle: "italic",
-            margin: 0,
-          }}
-        >
-          Aucun rendez-vous prévu. Votre équipe construit votre parcours.
-        </p>
-      ) : (
-        <div
-          role="list"
-          style={{ display: "flex", flexDirection: "column", gap: 12 }}
-        >
-          {upcoming.map((appointment) => (
-            <div role="listitem" key={`up-${appointment.id}`}>
-              <RdvCycleCard
-                data={{ mode: "UPCOMING", appointment }}
-                careCaseId={careCaseId}
-                patientId={patientId}
-              />
-            </div>
-          ))}
-          {toBook.map((step) => (
-            <div role="listitem" key={`tb-${step.pathwayStepId}`}>
-              <RdvCycleCard
-                data={{ mode: "TO_BOOK", toBook: step }}
-                careCaseId={careCaseId}
-                patientId={patientId}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      {nextAppointment && <NextAppointmentHero appointment={nextAppointment} />}
 
       <div
         aria-labelledby={pastHeadingId}
         role="group"
         style={{
-          marginTop: 24,
-          paddingTop: 20,
-          borderTop: "1px solid rgba(26,26,46,0.06)",
+          background: "#FFFFFF",
+          border: "1px solid rgba(26,26,46,0.06)",
+          borderRadius: 16,
+          padding: "20px 24px",
         }}
       >
-        <h3
+        <h2
           id={pastHeadingId}
           style={{
-            fontSize: 14,
-            fontWeight: 600,
+            fontSize: 18,
+            fontWeight: 700,
             color: "#1A1A2E",
             fontFamily: "var(--font-jakarta)",
             margin: "0 0 12px",
           }}
         >
           Consultations passées
-        </h3>
+        </h2>
 
         {isLoadingPast ? (
           <div

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { HubCycleConsultationSection } from "../HubCycleConsultationSection";
 import type {
+  PatientCareCaseHubAppointment,
   PatientCareCaseHubPastConsultation,
 } from "@/lib/api";
 
@@ -30,11 +31,9 @@ vi.mock("@/lib/store", () => ({
   useAuthStore: () => "test-token",
 }));
 
-// Le composant RdvCycleCard fetch des disponibilités → on neutralise
-// (cas couverts par sa propre suite de tests).
-vi.mock("../RdvCycleCard", () => ({
-  RdvCycleCard: () => <div data-testid="rdv-cycle-card-mock" />,
-}));
+// Note : depuis le cleanup Wave 2C (PR /parcours), la section n'affiche plus
+// le sous-bloc dépliable "Cycle de consultation" avec RdvCycleCard — un hero
+// "Mon prochain RDV" inline le remplace. Pas de mock RdvCycleCard nécessaire.
 
 // useEntityHubControls : on mock pour intercepter openEntityHub et vérifier
 // le paramètre transmis sur click d'une consultation passée.
@@ -77,19 +76,38 @@ function makeWrapper() {
 
 function renderSection(
   pastConsultations: PatientCareCaseHubPastConsultation[] | undefined,
+  upcoming: PatientCareCaseHubAppointment[] = [],
 ) {
   const Wrapper = makeWrapper();
   return render(
     <Wrapper>
       <HubCycleConsultationSection
-        upcoming={[]}
-        toBook={[]}
+        upcoming={upcoming}
         pastConsultations={pastConsultations}
         careCaseId="cc-1"
-        patientId="patient-1"
       />
     </Wrapper>,
   );
+}
+
+function makeUpcoming(
+  overrides?: Partial<PatientCareCaseHubAppointment>,
+): PatientCareCaseHubAppointment {
+  return {
+    id: "appt-1",
+    startAt: "2026-06-10T14:30:00.000Z",
+    endAt: "2026-06-10T15:00:00.000Z",
+    status: "CONFIRMED",
+    locationType: "IN_PERSON",
+    consultationTypeName: "Suivi diététique",
+    provider: {
+      id: "prov-1",
+      firstName: "Claire",
+      lastName: "Dupont",
+      specialties: ["diététique"],
+    },
+    ...overrides,
+  };
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -216,5 +234,71 @@ describe("HubCycleConsultationSection — Consultations passées (V1.0c-B)", () 
     expect(
       screen.queryByRole("heading", { name: /Historique médical/i }),
     ).toBeNull();
+  });
+
+  // ── Wave 2C cleanup : hero "Mon prochain RDV" ──────────────────────────────
+
+  it("upcoming=[] → hero 'Mon prochain rendez-vous' absent", () => {
+    renderSection([makePast()], []);
+    expect(
+      screen.queryByLabelText("Mon prochain rendez-vous"),
+    ).toBeNull();
+  });
+
+  it("upcoming[0] présent → hero affiché avec date FR longue + provider + lieu", () => {
+    renderSection(
+      [makePast()],
+      [makeUpcoming({ startAt: "2026-06-10T14:30:00.000Z" })],
+    );
+    const hero = screen.getByLabelText("Mon prochain rendez-vous");
+    // libellé eyebrow
+    expect(within(hero).getByText(/Mon prochain rendez-vous/i)).toBeInTheDocument();
+    // date longue FR : "Mercredi 10 juin" (jour de semaine + jour + mois)
+    expect(within(hero).getByText(/Mercredi 10 juin/i)).toBeInTheDocument();
+    // format heure "XXhXX" (TZ-agnostique, environnement de test = Europe/Paris)
+    expect(hero.textContent ?? "").toMatch(/\d{1,2}h\d{2}/);
+    // provider name
+    expect(within(hero).getByText("Claire Dupont")).toBeInTheDocument();
+    // consultation type name affiché
+    expect(within(hero).getByText("Suivi diététique")).toBeInTheDocument();
+    // CTA "Voir le détail" pointant vers /rendez-vous/[id]
+    const cta = within(hero).getByRole("link", { name: /Voir le détail/i });
+    expect(cta).toHaveAttribute("href", "/rendez-vous/appt-1");
+  });
+
+  it("Hero locationType=REMOTE → libellé 'Téléconsultation'", () => {
+    renderSection(
+      [],
+      [makeUpcoming({ locationType: "REMOTE" })],
+    );
+    const hero = screen.getByLabelText("Mon prochain rendez-vous");
+    expect(within(hero).getByText(/Téléconsultation/)).toBeInTheDocument();
+  });
+
+  it("plusieurs upcoming → seul upcoming[0] est promu (les autres restent dans /rendez-vous)", () => {
+    renderSection(
+      [],
+      [
+        makeUpcoming({ id: "appt-first", startAt: "2026-06-10T14:30:00.000Z" }),
+        makeUpcoming({ id: "appt-later", startAt: "2026-07-15T09:00:00.000Z" }),
+      ],
+    );
+    const hero = screen.getByLabelText("Mon prochain rendez-vous");
+    const cta = within(hero).getByRole("link", { name: /Voir le détail/i });
+    expect(cta).toHaveAttribute("href", "/rendez-vous/appt-first");
+    expect(within(hero).queryByText(/15 juillet/i)).toBeNull();
+  });
+
+  it("wording MDR : aucun mot 'signaux'/'alerte'/'surveillance'/'risque' dans la section", () => {
+    const { container } = renderSection(
+      [makePast()],
+      [makeUpcoming()],
+    );
+    const text = container.textContent ?? "";
+    expect(text).not.toMatch(/signaux/i);
+    expect(text).not.toMatch(/alerte/i);
+    expect(text).not.toMatch(/surveillance/i);
+    expect(text).not.toMatch(/risque/i);
+    expect(text).not.toMatch(/anormal/i);
   });
 });
