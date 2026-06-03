@@ -16,7 +16,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: process.env.CI ? [["github"], ["list"]] : "list",
+  reporter: process.env.CI
+    ? [["github"], ["list"], ["json", { outputFile: "playwright-report/results.json" }]]
+    : [["list"], ["json", { outputFile: "playwright-report/results.json" }]],
   timeout: 45_000,
   expect: { timeout: 10_000 },
 
@@ -34,6 +36,25 @@ export default defineConfig({
     },
     {
       name: "chromium",
+      testIgnore: /a11y\/.*\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.auth/lea.json",
+      },
+      dependencies: ["setup"],
+    },
+    // Project a11y : audit accessibility WCAG 2.1 AA via @axe-core/playwright.
+    // Lecture seule, aucun effet de bord — sûr à exécuter en CI ou en local.
+    // Cible la prod par défaut (cf BASE_URL ci-dessus).
+    //
+    // Auth : dépend du project `setup` (lea.json) UNIQUEMENT pour bénéficier
+    // du login centralisé sans hammeriser l'endpoint /login (rate-limit prod).
+    // Les specs publiques overrident `storageState` à anonyme via `test.use`.
+    {
+      name: "a11y",
+      testMatch: /a11y\/.*\.spec\.ts/,
+      // Login partagé + scan axe → 90s laisse de la marge sur prod lente.
+      timeout: 90_000,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/lea.json",

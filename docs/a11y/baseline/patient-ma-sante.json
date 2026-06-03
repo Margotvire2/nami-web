@@ -1,0 +1,13 @@
+{
+  "page": "patient-ma-sante",
+  "url": "https://namipourlavie.com/ma-sante",
+  "scannedAt": "2026-06-03T22:13:49.302Z",
+  "violations": [],
+  "counts": {
+    "critical": 0,
+    "serious": 0,
+    "moderate": 0,
+    "minor": 0,
+    "total": 0
+  }
+}
