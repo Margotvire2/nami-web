@@ -8,6 +8,7 @@ import { apiWithToken, type NoteAnalysis } from "@/lib/api";
 import { usePatientDashboard } from "@/hooks/usePatientDashboard";
 import { useRecording } from "@/contexts/RecordingContext";
 import { useConsultation } from "@/contexts/ConsultationContext";
+import { useAudioConsentGate } from "@/hooks/useAudioConsentGate";
 import { PatientHeader } from "./views/PatientHeader";
 import { ViewGlobale } from "./views/ViewGlobale";
 import { ViewDossier } from "./views/ViewDossier";
@@ -216,6 +217,15 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
 
   const { data: dashboard } = usePatientDashboard(id);
 
+  const patientPersonId = careCase?.patient?.id ?? null;
+  const patientFullName = careCase
+    ? `${careCase.patient.firstName} ${careCase.patient.lastName}`
+    : "";
+  const { check: gateAudioConsent, banner: audioConsentBanner } = useAudioConsentGate(
+    patientPersonId,
+    patientFullName,
+  );
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
   const handleAiSummarize = useCallback(async () => {
@@ -298,7 +308,9 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         onTask={() => setTaskModalOpen(true)}
         onQuestionnaire={() => setQuestionnaireModalOpen(true)}
         onRecord={() =>
-          startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`)
+          gateAudioConsent(() =>
+            startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`),
+          )
         }
         onStartConsultation={async () => {
           try {
@@ -433,6 +445,8 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
           onClose={() => setEditPatientOpen(false)}
         />
       )}
+
+      {audioConsentBanner}
     </div>
   );
 }
