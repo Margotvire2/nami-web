@@ -45,7 +45,10 @@ export function EmptyLine({ children }: { children: ReactNode }) {
 const DOC_TYPE_LABEL: Record<string, string> = {
   PRESCRIPTION: "Ordonnance",
   REPORT: "Compte-rendu",
+  CONSULTATION_REPORT: "Compte-rendu",
+  HOSPITAL_REPORT: "Compte-rendu hospitalier",
   BIOLOGICAL_REPORT: "Bilan biologique",
+  LETTER: "Lettre d'adressage",
   IMAGING: "Imagerie",
   CERTIFICATE: "Certificat",
   CONSENT: "Consentement",
@@ -55,6 +58,57 @@ const DOC_TYPE_LABEL: Record<string, string> = {
 export function documentTypeLabel(documentType: string): string {
   return DOC_TYPE_LABEL[documentType] ?? "Document";
 }
+
+const DOC_TYPE_EMOJI: Record<string, string> = {
+  PRESCRIPTION: "💊",
+  REPORT: "📝",
+  CONSULTATION_REPORT: "📝",
+  HOSPITAL_REPORT: "📝",
+  BIOLOGICAL_REPORT: "🧪",
+  LETTER: "📨",
+  IMAGING: "🩻",
+  CERTIFICATE: "📄",
+  CONSENT: "📄",
+  OTHER: "📄",
+};
+
+export function documentTypeEmoji(documentType: string): string {
+  return DOC_TYPE_EMOJI[documentType] ?? "📄";
+}
+
+const DOC_TYPE_PLURAL_LABEL: Record<string, string> = {
+  PRESCRIPTION: "Ordonnances",
+  REPORT: "Comptes-rendus",
+  CONSULTATION_REPORT: "Comptes-rendus",
+  HOSPITAL_REPORT: "Comptes-rendus hospitaliers",
+  BIOLOGICAL_REPORT: "Bilans biologiques",
+  LETTER: "Lettres d'adressage",
+  IMAGING: "Imageries",
+  CERTIFICATE: "Certificats",
+  CONSENT: "Consentements",
+  OTHER: "Autres documents",
+};
+
+export function documentTypePluralLabel(documentType: string): string {
+  return DOC_TYPE_PLURAL_LABEL[documentType] ?? "Documents";
+}
+
+/**
+ * Ordre d'affichage des groupes documentType dans la fiche consultation
+ * (les plus pertinents au patient en premier, OTHER en dernier).
+ */
+export const DOCUMENT_TYPE_DISPLAY_ORDER: readonly string[] = [
+  "PRESCRIPTION",
+  "BIOLOGICAL_REPORT",
+  "CONSULTATION_REPORT",
+  "HOSPITAL_REPORT",
+  "REPORT",
+  "LETTER",
+  "IMAGING",
+  "CERTIFICATE",
+  "CONSENT",
+  "OTHER",
+];
 
 const LOCATION_LABEL: Record<string, string> = {
   IN_PERSON: "En cabinet",
