@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Users,
@@ -23,6 +24,7 @@ import { MembershipRequestRow } from "./MembershipRequestRow";
 import { ConsoleSidebar } from "./ConsoleSidebar";
 import { DiscussionRow } from "./DiscussionRow";
 import { PlaceholderSection } from "./PlaceholderSection";
+import { BroadcastComposeModal } from "./BroadcastComposeModal";
 
 const ORG_EMOJI: Record<string, string> = {
   HOSPITAL: "🏥",
@@ -45,6 +47,7 @@ interface AnimationDashboardProps {
 export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
+  const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
   const { org, isLoading: orgLoading } = useOrgDetail(orgId);
   const { requests, isLoading: requestsLoading } =
@@ -82,19 +85,31 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2 text-2xl">
-          <span aria-hidden>{emoji}</span>
-          <h1
-            className="font-bold text-[#0F172A]"
-            style={{ fontFamily: "var(--font-jakarta)" }}
-          >
-            {org?.name ?? (orgLoading ? "Chargement…" : "Organisation")}
-          </h1>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-2xl">
+            <span aria-hidden>{emoji}</span>
+            <h1
+              className="font-bold text-[#0F172A]"
+              style={{ fontFamily: "var(--font-jakarta)" }}
+            >
+              {org?.name ?? (orgLoading ? "Chargement…" : "Organisation")}
+            </h1>
+          </div>
+          <p className="text-sm text-[#6B7280]">
+            Bonjour {firstName || "vous"} — voici votre console
+            d&apos;animation.
+          </p>
         </div>
-        <p className="text-sm text-[#6B7280]">
-          Bonjour {firstName || "vous"} — voici votre console d&apos;animation.
-        </p>
+        <button
+          type="button"
+          onClick={() => setBroadcastModalOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#5B4EC4] px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#4A3FB0] focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30"
+          style={{ fontFamily: "var(--font-jakarta)" }}
+        >
+          <Megaphone size={14} />
+          Nouveau broadcast
+        </button>
       </header>
 
       <section aria-label="Indicateurs">
@@ -266,6 +281,13 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
       </div>
 
       <ConsoleSidebar orgId={orgId} active="dashboard" />
+
+      <BroadcastComposeModal
+        orgId={orgId}
+        memberCount={memberCount}
+        open={broadcastModalOpen}
+        onClose={() => setBroadcastModalOpen(false)}
+      />
     </div>
   );
 }

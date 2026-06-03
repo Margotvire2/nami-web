@@ -1,10 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { AnimationDashboard } from "../AnimationDashboard";
 import * as orgHook from "@/hooks/useOrgDetail";
 import * as pendingHook from "@/hooks/usePendingMembershipRequests";
 import * as orgMembersHook from "@/hooks/useOrgMembers";
 import type { OrganizationMembership } from "@/lib/api";
+
+// Mock du modal broadcast : on capture les props (open, memberCount) sans
+// exécuter la logique réelle (testée dans BroadcastComposeModal.test.tsx).
+const composeModalProps = vi.fn();
+vi.mock("../BroadcastComposeModal", () => ({
+  BroadcastComposeModal: (props: {
+    orgId: string;
+    memberCount: number;
+    open: boolean;
+    onClose: () => void;
+  }) => {
+    composeModalProps(props);
+    return props.open ? (
+      <div data-testid="broadcast-compose-modal-mock">
+        <span data-testid="modal-member-count">{props.memberCount}</span>
+        <button type="button" onClick={props.onClose}>
+          Mock close
+        </button>
+      </div>
+    ) : null;
+  },
+}));
 
 vi.mock("next/link", () => ({
   default: ({
@@ -90,6 +113,7 @@ function mockOrgMembers(suspendedCount = 0) {
 describe("AnimationDashboard", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    composeModalProps.mockReset();
   });
 
   it("rend les 6 stat cards (Actifs / Adhésions / En sommeil / Suspendus / Événements / Actus)", () => {
@@ -179,6 +203,64 @@ describe("AnimationDashboard", () => {
     expect(
       screen.getByText(/aucune discussion pour le moment/i)
     ).toBeInTheDocument();
+  });
+
+  // ── Wave 2C : bouton "Nouveau broadcast" ────────────────────────────────
+
+  it("CTA 'Nouveau broadcast' présent dans le header", () => {
+    mockOrg();
+    mockPending([]);
+    mockOrgMembers();
+
+    render(<AnimationDashboard orgId="org-rtf" />);
+
+    expect(
+      screen.getByRole("button", { name: /Nouveau broadcast/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("modal fermée au mount, open=true après click CTA", async () => {
+    const user = userEvent.setup();
+    mockOrg({ memberCount: 42 });
+    mockPending([]);
+    mockOrgMembers();
+
+    render(<AnimationDashboard orgId="org-rtf" />);
+
+    // Au mount : modal fermée (mock retourne null si open=false)
+    expect(
+      screen.queryByTestId("broadcast-compose-modal-mock"),
+    ).toBeNull();
+
+    await user.click(
+      screen.getByRole("button", { name: /Nouveau broadcast/i }),
+    );
+
+    // Modal ouverte, memberCount transmis = 42
+    expect(
+      screen.getByTestId("broadcast-compose-modal-mock"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("modal-member-count")).toHaveTextContent("42");
+  });
+
+  it("modal reçoit orgId + memberCount à jour depuis l'organisation", async () => {
+    const user = userEvent.setup();
+    mockOrg({ memberCount: 7 });
+    mockPending([]);
+    mockOrgMembers();
+
+    render(<AnimationDashboard orgId="org-custom" />);
+
+    await user.click(
+      screen.getByRole("button", { name: /Nouveau broadcast/i }),
+    );
+
+    // composeModalProps a été appelé au moins une fois avec open=true
+    const calls = composeModalProps.mock.calls.map((c) => c[0]);
+    const opened = calls.find((c) => c.open === true);
+    expect(opened).toBeDefined();
+    expect(opened.orgId).toBe("org-custom");
+    expect(opened.memberCount).toBe(7);
   });
 
   it("section discussions non vide → top 3 triées par dernier message desc", () => {
