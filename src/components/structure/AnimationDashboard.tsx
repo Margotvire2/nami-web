@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Users,
   Inbox,
@@ -20,11 +19,11 @@ import { usePendingMembershipRequests } from "@/hooks/usePendingMembershipReques
 import { useOrgMembers } from "@/hooks/useOrgMembers";
 import { ConsoleStatCard } from "./ConsoleStatCard";
 import { QuickActionButton } from "./QuickActionButton";
-import { MembershipRequestRow } from "./MembershipRequestRow";
 import { ConsoleSidebar } from "./ConsoleSidebar";
 import { DiscussionRow } from "./DiscussionRow";
 import { PlaceholderSection } from "./PlaceholderSection";
 import { BroadcastComposeModal } from "./BroadcastComposeModal";
+import { MembershipRequestsList } from "./membership/MembershipRequestsList";
 
 const ORG_EMOJI: Record<string, string> = {
   HOSPITAL: "🏥",
@@ -46,7 +45,6 @@ interface AnimationDashboardProps {
 
 export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
   const user = useAuthStore((s) => s.user);
-  const queryClient = useQueryClient();
   const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
   const { org, isLoading: orgLoading } = useOrgDetail(orgId);
@@ -73,15 +71,6 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
       return bTs - aTs;
     })
     .slice(0, 3);
-
-  function handleResolved() {
-    queryClient.invalidateQueries({
-      queryKey: ["org-membership-requests", orgId],
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["organizations", "mine"],
-    });
-  }
 
   return (
     <div className="space-y-8">
@@ -168,47 +157,7 @@ export function AnimationDashboard({ orgId }: AnimationDashboardProps) {
         </div>
       </section>
 
-      <section aria-label="Pipeline d'adhésion" className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h2
-            className="text-sm font-semibold text-[#0F172A]"
-            style={{ fontFamily: "var(--font-jakarta)" }}
-          >
-            Pipeline d&apos;adhésion
-          </h2>
-          {pendingCount > 0 && (
-            <span className="text-xs text-[#6B7280]">
-              {pendingCount} demande{pendingCount > 1 ? "s" : ""} en attente
-            </span>
-          )}
-        </div>
-
-        {requestsLoading ? (
-          <div className="rounded-xl border border-[#E8ECF4] bg-white px-5 py-6 text-sm text-[#6B7280] text-center">
-            Chargement des demandes…
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[#E8ECF4] bg-white/50 px-5 py-6 text-center">
-            <Inbox size={20} className="mx-auto text-[#6B7280] mb-2" />
-            <p className="text-sm font-medium text-[#0F172A]">
-              Aucune demande d&apos;adhésion en attente.
-            </p>
-            <p className="text-xs text-[#6B7280] mt-1">
-              Les nouvelles demandes apparaîtront ici.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {requests.slice(0, 5).map((r) => (
-              <MembershipRequestRow
-                key={r.id}
-                request={r}
-                onResolved={handleResolved}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      <MembershipRequestsList orgId={orgId} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section
