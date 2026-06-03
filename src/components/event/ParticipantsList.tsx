@@ -46,7 +46,7 @@ export function ParticipantsList({
           value={patientSubmissionsCount}
           hint={
             acceptsPatientSubmissions
-              ? "Pattern A.2 — RCP élargie"
+              ? "Pattern A.2 — RCP"
               : "Non activé pour cet événement"
           }
           muted={!acceptsPatientSubmissions}
@@ -59,7 +59,7 @@ export function ParticipantsList({
           La liste nominative des inscrits et des dossiers soumis sera disponible
           dans une prochaine itération. En attendant, les compteurs ci-dessus
           reflètent l&apos;état temps réel des inscriptions (RSVP) et des soumissions
-          de dossiers (Pattern A.2 — RCP élargie).
+          de dossiers (Pattern A.2 — RCP).
         </p>
       </div>
     </div>

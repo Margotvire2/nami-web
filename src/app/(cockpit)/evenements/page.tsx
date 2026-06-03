@@ -102,7 +102,7 @@ export default function CockpitEvenementsPage() {
           Mes événements
         </h1>
         <p className="text-sm text-[#6B7280] mt-1">
-          RCP élargies, webinaires, formations DPC et groupes de travail
+          RCP, webinaires, formations DPC et groupes de travail
           organisés par les structures dont je suis membre.
         </p>
       </header>

@@ -24,11 +24,11 @@ interface TypeVisual {
 }
 
 // Wording UI : on évite tout terme à risque MDR ("clinique", "alerte").
-// "RCP élargie" = vocabulaire métier établi (réunion de concertation
-// pluridisciplinaire), non concerné par les interdits.
+// Label "RCP" (et non "RCP élargie") : décision produit 04/06/2026 — l'enum
+// backend reste RCP_ELARGIE, seule la surface UI est simplifiée.
 const VISUAL_BY_TYPE: Record<EventType, TypeVisual> = {
   WEBINAR: { icon: Video, label: "Webinaire", color: "#5B4EC4" },
-  RCP_ELARGIE: { icon: Users, label: "RCP élargie", color: "#2BA89C" },
+  RCP_ELARGIE: { icon: Users, label: "RCP", color: "#2BA89C" },
   FORMATION_DPC: { icon: GraduationCap, label: "Formation DPC", color: "#D97706" },
   WORKING_GROUP_MEET: { icon: Briefcase, label: "Groupe de travail", color: "#374151" },
   GENERAL: { icon: Calendar, label: "Événement", color: "#6B7280" },

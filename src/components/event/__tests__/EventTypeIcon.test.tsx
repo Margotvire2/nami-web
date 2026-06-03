@@ -18,11 +18,12 @@ describe("EventTypeIcon", () => {
 
   it("affiche le label quand showLabel=true", () => {
     render(<EventTypeIcon type="RCP_ELARGIE" showLabel />);
-    expect(screen.getByText(/rcp élargie/i)).toBeInTheDocument();
+    expect(screen.getByText("RCP")).toBeInTheDocument();
   });
 
   it("eventTypeLabel renvoie la traduction FR", () => {
     expect(eventTypeLabel("WEBINAR")).toBe("Webinaire");
+    expect(eventTypeLabel("RCP_ELARGIE")).toBe("RCP");
     expect(eventTypeLabel("FORMATION_DPC")).toBe("Formation DPC");
     expect(eventTypeLabel("WORKING_GROUP_MEET")).toBe("Groupe de travail");
   });
