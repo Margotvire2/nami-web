@@ -56,7 +56,7 @@ export default function NewEventPage({
           Nouvel événement
         </h1>
         <p className="text-sm text-[#6B7280] mt-1">
-          Planifiez une RCP élargie, une formation DPC, un webinaire ou une
+          Planifiez une RCP, une formation DPC, un webinaire ou une
           réunion de groupe de travail.
         </p>
       </header>

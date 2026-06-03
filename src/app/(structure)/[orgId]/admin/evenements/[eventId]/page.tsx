@@ -456,7 +456,7 @@ function SubmissionsTab({
           Cet événement n&apos;accepte pas de soumissions de dossiers.
         </p>
         <p className="text-xs text-[#6B7280] mt-1">
-          Activable depuis l&apos;onglet Édition (RCP élargie uniquement).
+          Activable depuis l&apos;onglet Édition (RCP uniquement).
         </p>
       </div>
     );

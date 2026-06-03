@@ -74,7 +74,7 @@ export default function EventsListPage({
             Événements
           </h1>
           <p className="text-sm text-[#6B7280] mt-1">
-            RCP élargies, webinaires, formations DPC et groupes de travail.
+            RCP, webinaires, formations DPC et groupes de travail.
           </p>
         </div>
         <Link
@@ -140,7 +140,7 @@ export default function EventsListPage({
               Aucun événement pour le moment.
             </p>
             <p className="text-xs text-[#6B7280] mt-1">
-              Planifiez votre première RCP élargie ou formation DPC.
+              Planifiez votre première RCP ou formation DPC.
             </p>
             <Link
               href={`/structure/${orgId}/admin/evenements/nouveau`}

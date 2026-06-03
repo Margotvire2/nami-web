@@ -53,7 +53,7 @@ describe("EventCard", () => {
   it("rend le titre et le type", () => {
     render(<EventCard event={makeEvent()} href="/evt/1" />);
     expect(screen.getByText("RCP TCA juin")).toBeInTheDocument();
-    expect(screen.getByText(/rcp élargie/i)).toBeInTheDocument();
+    expect(screen.getByText("RCP")).toBeInTheDocument();
   });
 
   it("statut UI = OPEN pour PUBLISHED dans le futur sans cap", () => {
