@@ -21,6 +21,7 @@ import {
   Armchair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SecretariatNotifBell } from "@/components/secretariat/SecretariatNotifBell";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -43,6 +44,26 @@ const STATUS_CONFIG = {
   CANCELLED_BY_SYSTEM:    { label: "Annulé (système)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
   NO_SHOW:                { label: "Non présenté",     bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
 } as const;
+
+// Statuts du cycle de vie consultation à signaler visuellement sur la card RDV
+// (F-CROSS-GAP-Consultation-SECRETARIAT — audit cross-espaces §5.2).
+// La secrétaire doit pouvoir distinguer en un coup d'œil :
+//   - IN_PROGRESS : consultation en cours, ne pas interrompre
+//   - COMPLETED   : terminé, envoi CR / planification suite possible
+//   - CANCELLED_BY_PROVIDER : à reprogrammer côté soignant
+export const CONSULTATION_LIFECYCLE_STATUSES = [
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED_BY_PROVIDER",
+] as const satisfies ReadonlyArray<keyof typeof STATUS_CONFIG>;
+
+type ConsultationLifecycleStatus = typeof CONSULTATION_LIFECYCLE_STATUSES[number];
+
+export function isConsultationLifecycleStatus(
+  status: SecretaryAppointment["status"],
+): status is ConsultationLifecycleStatus {
+  return (CONSULTATION_LIFECYCLE_STATUSES as readonly string[]).includes(status);
+}
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -397,6 +418,17 @@ function AgendaColumn({
                 <p className={cn("text-[10px] font-semibold truncate", cfg.text)}>
                   {format(start, "HH:mm")} {appt.patient ? `· ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
                 </p>
+                {isConsultationLifecycleStatus(appt.status) && (
+                  <span
+                    data-testid="consultation-lifecycle-pill"
+                    className={cn(
+                      "inline-block mt-0.5 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded",
+                      cfg.bg, cfg.text, "border", cfg.border,
+                    )}
+                  >
+                    {cfg.label}
+                  </span>
+                )}
                 {appt.consultationType && height > 30 && (
                   <p className="text-[9px] text-[#6B7280] truncate">{appt.consultationType.name}</p>
                 )}
@@ -535,6 +567,7 @@ export default function SecretariatPage() {
               </span>
             </div>
           )}
+          {accessToken && <SecretariatNotifBell accessToken={accessToken} />}
           <button
             onClick={refresh}
             disabled={agendasQuery.isFetching}

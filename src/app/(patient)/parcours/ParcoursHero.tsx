@@ -1,5 +1,7 @@
 "use client";
 
+import { PATHWAY_TERMS } from "@/lib/pathway-labels";
+
 interface ParcoursHeroProps {
   current?: number;
   total?: number;
@@ -95,7 +97,7 @@ export function ParcoursHero({
             aria-valuemin={0}
             aria-valuemax={total}
             aria-label={`Progression du parcours : étape ${current} sur ${total}`}
-            aria-valuetext={`${current} sur ${total} phases engagées`}
+            aria-valuetext={`${current} sur ${total} ${PATHWAY_TERMS.stepUnit.plural} engagées`}
             style={{
               position: "relative",
               height: 8,
