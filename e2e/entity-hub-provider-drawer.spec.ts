@@ -7,16 +7,6 @@ import { navigateToParcours } from "./_helpers/navigateToParcours";
 const CARE_CASE_ID = "cmnypqxsx00dxt0p7fh3hqnjb";
 
 test.describe("Entity Hub — Provider drawer", () => {
-  // ⚠️ SSR race patient layout — voir _helpers/navigateToParcours.ts.
-  // Le layout src/app/(patient)/layout.tsx fire useEffect avant rehydratation
-  // Zustand persist → router.replace('/login') systématique sur cold-load.
-  // À activer dès que hasHydrated est ajouté dans (patient)/layout.tsx
-  // (mémoire feedback_zustand_ssr_race). Scaffold E2E prêt + sélecteurs validés.
-  test.fixme(
-    true,
-    "Bloqué par SSR race Zustand persist dans (patient)/layout.tsx — fix hasHydrated requis avant activation.",
-  );
-
   test.beforeEach(async ({ page }) => {
     await navigateToParcours(page, CARE_CASE_ID);
     // Attendre que la section "Mon équipe soignante" soit montée — c'est le
