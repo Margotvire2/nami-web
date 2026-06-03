@@ -21,6 +21,7 @@ import {
   Armchair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SecretariatNotifBell } from "@/components/secretariat/SecretariatNotifBell";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -566,6 +567,7 @@ export default function SecretariatPage() {
               </span>
             </div>
           )}
+          {accessToken && <SecretariatNotifBell accessToken={accessToken} />}
           <button
             onClick={refresh}
             disabled={agendasQuery.isFetching}
