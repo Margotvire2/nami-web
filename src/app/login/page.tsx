@@ -133,11 +133,29 @@ export default function LoginPage() {
     return "/aujourd-hui";
   }
 
+  // F-UX-PATIENT-V1-LAUNCH-1 — Détection surface (host ou query).
+  // app.namipourlavie.com → loginProvider (403 si compte patient)
+  // namipourlavie.com → loginPatient (403 si compte soignant)
+  // localhost/preview → legacy login (smart fallback backend, pas d'enforcement)
+  function detectSurface(): "patient" | "provider" | "legacy" {
+    if (typeof window === "undefined") return "legacy";
+    const host = window.location.hostname;
+    if (host === "app.namipourlavie.com" || host.startsWith("app.localhost")) return "provider";
+    if (host === "namipourlavie.com" || host === "www.namipourlavie.com") return "patient";
+    const surface = searchParams.get("surface");
+    if (surface === "patient" || surface === "provider") return surface;
+    return "legacy";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await authApi.login(email, password);
+      const surface = detectSurface();
+      const res =
+        surface === "patient"  ? await authApi.loginPatient(email, password)
+        : surface === "provider" ? await authApi.loginProvider(email, password)
+        : await authApi.login(email, password);
       if (res.mfaRequired) {
         setMfaPendingToken(res.mfaPendingToken);
         setMfaStep(true);
@@ -148,8 +166,13 @@ export default function LoginPage() {
       track.login({ method: "email" });
       const dest = await resolvePostLoginRedirect(user, res.accessToken);
       router.push(dest);
-    } catch {
-      toast.error("Email ou mot de passe incorrect");
+    } catch (err) {
+      const apiErr = err as { status?: number; body?: { error?: string; message?: string } };
+      if (apiErr?.status === 403 && apiErr?.body?.error === "role_mismatch") {
+        toast.error(apiErr.body.message ?? "Vous n'avez pas accès à cet espace");
+      } else {
+        toast.error("Email ou mot de passe incorrect");
+      }
     } finally {
       setLoading(false);
     }

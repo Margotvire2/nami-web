@@ -117,8 +117,27 @@ export type LoginResponse =
   | { mfaRequired: true; mfaPendingToken: string };
 
 export const authApi = {
+  // Legacy /auth/login — smart fallback backend (pas d'enforcement rôle).
+  // À utiliser uniquement quand on ne connaît pas la surface (mobile V1, fallback).
   login: (email: string, password: string) =>
     request<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
+  // F-UX-PATIENT-V1-LAUNCH-1 — login scopé patient (namipourlavie.com).
+  // Renvoie 403 role_mismatch si le compte n'est pas PATIENT.
+  loginPatient: (email: string, password: string) =>
+    request<LoginResponse>("/auth/login/patient", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
+  // F-UX-PATIENT-V1-LAUNCH-1 — login scopé soignant (app.namipourlavie.com).
+  // Renvoie 403 role_mismatch si le compte est PATIENT. Couvre les 7 valeurs
+  // RoleType non-patient (PROVIDER, SECRETARY, STRUCTURE_ADMIN, ORG_ADMIN, ADMIN, PLATFORM_ADMIN).
+  loginProvider: (email: string, password: string) =>
+    request<LoginResponse>("/auth/login/provider", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
@@ -146,6 +165,22 @@ export const authApi = {
     professionType?: string;
   }) =>
     request<{ accessToken: string; refreshToken: string }>("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // F-UX-PATIENT-V1-LAUNCH-1 — signup scopé patient (namipourlavie.com).
+  // Le serveur force roleType=PATIENT et ignore toute valeur fournie côté client.
+  signupPatient: (data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    birthDate: string;
+    sex: "M" | "F";
+  }) =>
+    request<{ accessToken: string; refreshToken: string }>("/auth/signup/patient", {
       method: "POST",
       body: JSON.stringify(data),
     }),
