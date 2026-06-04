@@ -6,6 +6,8 @@ import { usePatientCareCases } from "@/hooks/usePatientCareCases";
 import { useMaSante } from "@/hooks/useMaSante";
 import { MeteoCard } from "@/components/ma-sante/MeteoCard";
 import { EnergieCard } from "@/components/ma-sante/EnergieCard";
+import { HumeurCard } from "@/components/ma-sante/HumeurCard";
+import { SommeilCard } from "@/components/ma-sante/SommeilCard";
 import { TendancesCard } from "@/components/ma-sante/TendancesCard";
 import { SaisirMesuresCTA } from "@/components/ma-sante/SaisirMesuresCTA";
 
@@ -104,12 +106,25 @@ export function MaSantePageClient() {
             />
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={0.14} duration={0.6}>
+            <SommeilCard
+              latestSleepHours={maSanteQuery.data?.latestSleepHours ?? null}
+              sleepHours7d={maSanteQuery.data?.sleepHours7d ?? null}
+              sleepPoints7d={maSanteQuery.data?.sleepPoints7d ?? []}
+            />
+          </ScrollReveal>
+          <ScrollReveal variant="fade-up" delay={0.18} duration={0.6}>
+            <HumeurCard
+              moodAvg7d={maSanteQuery.data?.moodAvg7d ?? null}
+              moodPoints7d={maSanteQuery.data?.moodPoints7d ?? []}
+            />
+          </ScrollReveal>
+          <ScrollReveal variant="fade-up" delay={0.22} duration={0.6}>
             <TendancesCard
               entriesCount7d={maSanteQuery.data?.entriesCount7d ?? 0}
               entriesCountPrev7d={maSanteQuery.data?.entriesCountPrev7d ?? 0}
             />
           </ScrollReveal>
-          <ScrollReveal variant="fade-up" delay={0.18} duration={0.6}>
+          <ScrollReveal variant="fade-up" delay={0.26} duration={0.6}>
             <SaisirMesuresCTA />
           </ScrollReveal>
         </div>

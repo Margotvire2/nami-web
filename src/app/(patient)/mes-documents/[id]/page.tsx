@@ -11,9 +11,12 @@ import {
   AlertCircle,
   Loader2,
   Image as ImageIcon,
+  Printer,
 } from "lucide-react";
 import { apiWithToken } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { PrintHeader } from "@/components/print/PrintHeader";
+import { PrintFooter } from "@/components/print/PrintFooter";
 
 // Sous-ensemble safe DocumentType (aligné backend PR #62 + frontend PR #51).
 // Note legacy : BILAN_BIO est un alias historique de BIOLOGICAL_REPORT
@@ -164,11 +167,21 @@ export default function DocumentDetailPage() {
   const isImage = document.mimeType?.startsWith("image/") ?? false;
   const isPdf = document.mimeType === "application/pdf";
 
+  // Le label letterhead reste générique côté impression (pas de PHI rendue
+  // par la feuille de style). On indique simplement la nature du document.
+  const printDocumentLabel =
+    document.documentType === "PRESCRIPTION"
+      ? "Ordonnance"
+      : typeLabel;
+
   return (
     <main
+      className="print-content"
       style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px 96px" }}
       aria-label="Détail du document"
     >
+      <PrintHeader documentLabel={printDocumentLabel} reference={document.id} />
+
       {/* Breadcrumb */}
       <Link
         href="/mes-documents"
@@ -317,7 +330,12 @@ export default function DocumentDetailPage() {
       </section>
 
       {/* Actions */}
-      <section style={{ display: "flex", flexWrap: "wrap", gap: 12 }} aria-label="Actions sur le document">
+      <section
+        style={{ display: "flex", flexWrap: "wrap", gap: 12 }}
+        aria-label="Actions sur le document"
+        className="no-print"
+        data-print="hide"
+      >
         {document.fileUrl && (
           <a
             href={document.fileUrl}
@@ -344,6 +362,32 @@ export default function DocumentDetailPage() {
             Télécharger
           </a>
         )}
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.print();
+            }
+          }}
+          aria-label={`Imprimer ${document.title}`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "12px 24px",
+            borderRadius: 12,
+            background: "#fff",
+            color: "#1A1A2E",
+            border: "1px solid rgba(26,26,46,0.12)",
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: "pointer",
+          }}
+          className="hover:bg-[rgba(91,78,196,0.04)]"
+        >
+          <Printer size={16} aria-hidden="true" />
+          Imprimer
+        </button>
         <Link
           href="/mes-documents"
           style={{
@@ -368,6 +412,8 @@ export default function DocumentDetailPage() {
 
       {/* Hint compliance */}
       <p
+        className="no-print"
+        data-print="hide"
         style={{
           marginTop: 20,
           padding: "12px 16px",
@@ -382,6 +428,8 @@ export default function DocumentDetailPage() {
         Ce document est partagé avec votre équipe soignante. Pour toute question médicale,
         contactez votre soignant via la messagerie.
       </p>
+
+      <PrintFooter signatureLabel="Signature du soignant prescripteur" />
     </main>
   );
 }

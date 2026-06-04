@@ -7,6 +7,8 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useNamiStore } from "@/lib/nami-store";
 import { getInitialData } from "@/lib/nami-store/initialData";
 import { PostHogProvider } from "@/components/posthog-provider";
+import { CookieConsentProvider } from "@/hooks/useCookieConsent";
+import { CookieBanner } from "@/components/cookie/CookieBanner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -31,11 +33,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <Suspense>
-        <PostHogProvider>
-          {children}
-          <Toaster richColors position="top-right" />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </PostHogProvider>
+        <CookieConsentProvider>
+          <PostHogProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+            <ReactQueryDevtools initialIsOpen={false} />
+            <CookieBanner />
+          </PostHogProvider>
+        </CookieConsentProvider>
       </Suspense>
     </QueryClientProvider>
   );

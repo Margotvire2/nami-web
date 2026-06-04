@@ -17,9 +17,29 @@ export interface MaSanteAggregate {
   latestEnergy: number | null;
   averageEnergy7d: number | null;
   energyPoints7d: number[];
+  /** Score moyen d'humeur 7 j sur l'échelle 1-6 (1 = tornado, 6 = sunny), arrondi 1 décimale. */
+  moodAvg7d: number | null;
+  /** Suite des scores d'humeur 1-6 sur 7 j, triés chronologiquement. */
+  moodPoints7d: number[];
+  /** Dernière durée de sommeil renseignée (heures), bornée 0-24. */
+  latestSleepHours: number | null;
+  /** Moyenne heures de sommeil sur 7 j (arrondie 1 décimale), null si aucune donnée. */
+  sleepHours7d: number | null;
+  /** Suite des durées de sommeil 7 j (heures), triées chronologiquement. */
+  sleepPoints7d: number[];
   entriesCount7d: number;
   entriesCountPrev7d: number;
 }
+
+/** Échelle subjective MDR-safe : 6 = belle journée → 1 = très dure. */
+export const MOOD_SCORE: Record<MoodKey, number> = {
+  sunny: 6,
+  partly_cloudy: 5,
+  cloudy: 4,
+  rainy: 3,
+  stormy: 2,
+  tornado: 1,
+};
 
 const MOOD_KEYS: ReadonlySet<MoodKey> = new Set([
   "sunny",
@@ -45,6 +65,32 @@ function readMood(payload: Record<string, unknown>): MoodKey | null {
 }
 
 /**
+ * Lit les heures de sommeil dans le payload — supporte 3 clés possibles
+ * pour absorber la diversité des sources mobiles/intégrations à venir :
+ * - `sleepHours` (number, heures)
+ * - `sleep_hours` (number, heures)
+ * - `sleepMinutes` (number, converti en heures)
+ * Borné 0-24 h.
+ */
+function readSleepHours(payload: Record<string, unknown>): number | null {
+  const candidates: Array<unknown> = [payload.sleepHours, payload.sleep_hours];
+  for (const raw of candidates) {
+    if (typeof raw === "number" && Number.isFinite(raw)) {
+      return Math.max(0, Math.min(24, raw));
+    }
+  }
+  const minutes = payload.sleepMinutes;
+  if (typeof minutes === "number" && Number.isFinite(minutes)) {
+    return Math.max(0, Math.min(24, minutes / 60));
+  }
+  return null;
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+/**
  * Agrège les entrées EMOTION sur 14 jours :
  * - dernière humeur / énergie (entrée la plus récente avec la valeur présente)
  * - moyenne énergie 7j courants
@@ -66,6 +112,7 @@ export function aggregate(
       occurredAt: new Date(e.occurredAt),
       mood: readMood(e.payload),
       energy: readEnergy(e.payload),
+      sleepHours: readSleepHours(e.payload),
     }))
     .filter((e) => e.occurredAt >= cutoff14 && e.occurredAt <= now);
 
@@ -75,6 +122,8 @@ export function aggregate(
 
   const latestMood = sortedDesc.find((e) => e.mood !== null)?.mood ?? null;
   const latestEnergy = sortedDesc.find((e) => e.energy !== null)?.energy ?? null;
+  const latestSleepHours =
+    sortedDesc.find((e) => e.sleepHours !== null)?.sleepHours ?? null;
 
   const current7 = emotions.filter((e) => e.occurredAt >= cutoff7);
   const prev7 = emotions.filter(
@@ -93,11 +142,40 @@ export function aggregate(
         )
       : null;
 
+  const moodPoints7d = current7
+    .filter((e): e is typeof e & { mood: MoodKey } => e.mood !== null)
+    .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
+    .map((e) => MOOD_SCORE[e.mood]);
+
+  const moodAvg7d =
+    moodPoints7d.length > 0
+      ? round1(
+          moodPoints7d.reduce((sum, v) => sum + v, 0) / moodPoints7d.length,
+        )
+      : null;
+
+  const sleepPoints7d = current7
+    .filter((e): e is typeof e & { sleepHours: number } => e.sleepHours !== null)
+    .sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime())
+    .map((e) => e.sleepHours);
+
+  const sleepHours7d =
+    sleepPoints7d.length > 0
+      ? round1(
+          sleepPoints7d.reduce((sum, v) => sum + v, 0) / sleepPoints7d.length,
+        )
+      : null;
+
   return {
     latestMood,
     latestEnergy,
     averageEnergy7d,
     energyPoints7d,
+    moodAvg7d,
+    moodPoints7d,
+    latestSleepHours,
+    sleepHours7d,
+    sleepPoints7d,
     entriesCount7d: current7.length,
     entriesCountPrev7d: prev7.length,
   };

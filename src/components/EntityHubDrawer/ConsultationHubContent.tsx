@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { Printer } from "lucide-react";
 import type { EntityHubConsultation } from "@/lib/api";
 import { useEntityHubControls } from "@/contexts/EntityHubContext";
+import { PrintHeader } from "@/components/print/PrintHeader";
+import { PrintFooter } from "@/components/print/PrintFooter";
 import {
   DOCUMENT_TYPE_DISPLAY_ORDER,
   EmptyLine,
@@ -71,8 +74,21 @@ export function ConsultationHubContent({ data, careCaseId }: Props) {
   const otherDocTypeKeys = sortedDocumentTypeKeys(documentsByType);
   const hasOtherDocuments = otherDocTypeKeys.length > 0;
 
+  // Lance la boîte de dialogue d'impression native. La feuille de style
+  // `print.css` (chargée globalement) ne rend que `.print-content` + les
+  // blocs `.print-only` (PrintHeader / PrintFooter).
+  const handlePrint = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.print();
+    }
+  }, []);
+
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-5 pb-24 print-content">
+      <PrintHeader
+        documentLabel="Compte-rendu de consultation"
+        reference={consultation.id}
+      />
       <section>
         <SectionLabel>Votre consultation</SectionLabel>
         <HubCard>
@@ -241,13 +257,28 @@ export function ConsultationHubContent({ data, careCaseId }: Props) {
         </section>
       )}
 
-      {/* CTA sticky bas : transmettre un document à ce soignant. Pré-rempli
-          avec careCaseId + providerId du drawer. */}
-      <div className="fixed bottom-0 right-0 w-[480px] max-w-[100vw] bg-white border-t border-[#1A1A2E]/06 px-6 py-3 z-10">
+      {/* Footer letterhead — visible uniquement à l'impression */}
+      <PrintFooter signatureLabel={`Signature — ${providerFullName}`} />
+
+      {/* CTA sticky bas : transmettre un document à ce soignant + imprimer
+          le compte-rendu. La feuille print.css masque ce bloc (`.fixed`). */}
+      <div
+        className="fixed bottom-0 right-0 w-[480px] max-w-[100vw] bg-white border-t border-[#1A1A2E]/06 px-6 py-3 z-10 flex gap-2 no-print"
+        data-print="hide"
+      >
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="shrink-0 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#1A1A2E]/12 bg-white text-[#1A1A2E] text-sm font-medium hover:bg-[#FAFAF8] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
+          aria-label="Imprimer le compte-rendu"
+        >
+          <Printer size={16} aria-hidden="true" />
+          Imprimer CR
+        </button>
         <button
           type="button"
           onClick={() => setUploadOpen(true)}
-          className="w-full py-2.5 rounded-xl bg-[#5B4EC4] hover:bg-[#4A3FA8] text-white text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
+          className="flex-1 py-2.5 rounded-xl bg-[#5B4EC4] hover:bg-[#4A3FA8] text-white text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40"
           aria-label={`Transmettre un document à ${providerFullName}`}
         >
           <span aria-hidden="true">📤 </span>Transmettre un document

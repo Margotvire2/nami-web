@@ -14,6 +14,7 @@ const FOOTER_COLS = [
   {
     title: "Ressources",
     links: [
+      { l: "FAQ", h: "/faq" },
       { l: "Annuaire", h: "/trouver-un-soignant" },
       { l: "Spécialités", h: "/professions" },
       { l: "Pathologies", h: "/pathologies" },
@@ -26,6 +27,7 @@ const FOOTER_COLS = [
       { l: "CGU", h: "/cgu" },
       { l: "Confidentialité", h: "/confidentialite" },
       { l: "Mentions légales", h: "/mentions-legales" },
+      { l: "Contact & support", h: "/contact" },
     ],
   },
 ];

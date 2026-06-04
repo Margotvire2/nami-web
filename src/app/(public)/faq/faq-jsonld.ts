@@ -3,13 +3,13 @@
  *
  * Documentation : https://schema.org/FAQPage
  * Permet à Google d'afficher la FAQ directement dans les résultats de recherche
- * (rich snippets expansibles) — boost SEO et taux de clic significatif.
+ * (rich snippets expansibles).
  *
  * Strip markdown léger pour garder un texte propre dans le JSON-LD
- * (Google ne rendra pas le markdown — il attend du texte brut).
+ * (Google attend du texte brut, pas du markdown rendu).
  */
 
-import type { FAQPublicCategory } from "./faq-public-data";
+import type { FAQSectionData } from "@/data/faq-items";
 
 function stripMarkdown(md: string): string {
   return md
@@ -32,8 +32,8 @@ export interface FAQJsonLD {
   }>;
 }
 
-export function buildFAQJsonLD(categories: FAQPublicCategory[]): FAQJsonLD {
-  const allItems = categories.flatMap((c) => c.items);
+export function buildFAQJsonLD(sections: FAQSectionData[]): FAQJsonLD {
+  const allItems = sections.flatMap((c) => c.items);
 
   return {
     "@context": "https://schema.org",

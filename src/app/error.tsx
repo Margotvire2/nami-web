@@ -1,9 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import * as Sentry from "@sentry/nextjs";
+import { AlertTriangle, RotateCcw, LifeBuoy } from "lucide-react";
 import Link from "next/link";
 
+/**
+ * F-WEB-PAGES-404-500-CUSTOM-ERROR-BOUNDARIES
+ *
+ * Error boundary global (root). Capture toute erreur React non rattrapée
+ * par les boundaries enfants (cockpit, patient, secretariat, structure).
+ * - Sentry.captureException avec tag `boundary=root`
+ * - JAMAIS de stack trace en prod (RGPD + UX patient)
+ * - Wording neutre (cf checklist MDR projet)
+ */
 export default function RootError({
   error,
   reset,
@@ -12,30 +22,73 @@ export default function RootError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[Nami] Root error:", error);
+    Sentry.withScope((scope) => {
+      scope.setTag("boundary", "root");
+      scope.setTag("error.digest", error.digest ?? "unknown");
+      Sentry.captureException(error);
+    });
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[Nami] Root error:", error);
+    }
   }, [error]);
 
+  const isDev = process.env.NODE_ENV === "development";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F0F2F8]">
-      <div className="bg-white rounded-2xl p-10 max-w-md text-center">
-        <div className="w-14 h-14 rounded-2xl bg-[#FEE2E2] flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle size={28} className="text-[#DC2626]" />
-        </div>
-        <h1
-          className="text-xl font-bold text-[#1E293B] mb-2"
-          style={{ fontFamily: "var(--font-jakarta), system-ui" }}
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: "#FAFAF8" }}
+    >
+      <div
+        className="bg-white rounded-2xl p-10 max-w-md w-full text-center"
+        style={{ border: "1px solid rgba(26,26,46,0.06)", boxShadow: "0 10px 40px rgba(26,26,46,0.06)" }}
+      >
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6"
+          style={{ backgroundColor: "#FEE2E2" }}
         >
-          Une erreur est survenue
+          <AlertTriangle size={28} style={{ color: "#DC2626" }} />
+        </div>
+
+        <h1
+          className="text-xl font-bold mb-2"
+          style={{ fontFamily: "var(--font-jakarta), system-ui", color: "#1A1A2E" }}
+        >
+          Une erreur inattendue est survenue
         </h1>
-        <p className="text-sm text-[#64748B] mb-8">
-          Veuillez réessayer ou revenir à la page d'accueil.
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: "#6B7280" }}>
+          Notre équipe a été notifiée. Vous pouvez réessayer ou revenir à l&apos;accueil.
+          {error.digest && (
+            <span className="block mt-2 text-xs font-mono" style={{ color: "#9CA3AF" }}>
+              Réf : {error.digest}
+            </span>
+          )}
         </p>
-        <div className="flex items-center justify-center gap-3">
-          <button onClick={reset} className="bg-[#4F46E5] text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-[#3B55E0] transition-colors flex items-center gap-2">
+
+        {isDev && (
+          <pre
+            className="mb-6 text-left text-[11px] rounded-lg p-3 overflow-auto max-h-40 whitespace-pre-wrap break-words"
+            style={{ backgroundColor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}
+          >
+            {error?.message ?? String(error)}
+            {error?.stack ? "\n\n" + error.stack : ""}
+          </pre>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            onClick={reset}
+            className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors inline-flex items-center justify-center gap-2"
+            style={{ backgroundColor: "#5B4EC4", color: "#FFFFFF" }}
+          >
             <RotateCcw size={14} /> Réessayer
           </button>
-          <Link href="/" className="bg-[#EEF1FF] text-[#4F46E5] text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-[#E0E5FF] transition-colors">
-            Accueil
+          <Link
+            href="/contact"
+            className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors inline-flex items-center justify-center gap-2"
+            style={{ backgroundColor: "#EEEDFB", color: "#5B4EC4" }}
+          >
+            <LifeBuoy size={14} /> Contact support
           </Link>
         </div>
       </div>
