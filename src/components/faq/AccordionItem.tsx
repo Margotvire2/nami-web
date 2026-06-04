@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import type { FAQPublicItem } from "./faq-public-data";
+import type { FAQItem } from "@/data/faq-items";
 
 /**
  * Parseur markdown léger inline (sans lib externe).
@@ -8,7 +8,7 @@ import type { FAQPublicItem } from "./faq-public-data";
  * - *italique* → <em>
  * - [texte](url) → <a> (interne ou externe avec rel="noopener noreferrer")
  *
- * Cas d'usage : FAQ statique trustée (pas user input) — pas d'XSS.
+ * Cas d'usage : FAQ statique trustée (pas user input) — pas de surface XSS.
  */
 function escapeHtml(s: string): string {
   return s
@@ -19,7 +19,7 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function renderMarkdown(md: string): string {
+export function renderFaqMarkdown(md: string): string {
   let html = escapeHtml(md);
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
@@ -34,21 +34,21 @@ function renderMarkdown(md: string): string {
   );
   html = html.replace(
     /\*\*([^*]+)\*\*/g,
-    "<strong style=\"font-weight:600;color:#1A1A2E\">$1</strong>",
+    '<strong style="font-weight:600;color:#1A1A2E">$1</strong>',
   );
   html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
   return html;
 }
 
-interface FAQItemProps {
-  item: FAQPublicItem;
-  categoryId: string;
+interface AccordionItemProps {
+  item: FAQItem;
+  sectionId: string;
 }
 
-export function FAQItem({ item, categoryId }: FAQItemProps) {
+export function AccordionItem({ item, sectionId }: AccordionItemProps) {
   return (
     <details
-      id={`faq-${categoryId}-${item.id}`}
+      id={`faq-${sectionId}-${item.id}`}
       className="group rounded-xl transition-all"
       style={{
         background: "#fff",
@@ -73,7 +73,7 @@ export function FAQItem({ item, categoryId }: FAQItemProps) {
       <div
         className="px-4 pb-4 text-sm md:text-base leading-relaxed"
         style={{ color: "#374151" }}
-        dangerouslySetInnerHTML={{ __html: renderMarkdown(item.answerMarkdown) }}
+        dangerouslySetInnerHTML={{ __html: renderFaqMarkdown(item.answerMarkdown) }}
       />
     </details>
   );

@@ -7,8 +7,8 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import type { FAQPublicCategory, FAQIconName } from "./faq-public-data";
-import { FAQItem } from "./FAQItem";
+import type { FAQSectionData, FAQIconName } from "@/data/faq-items";
+import { AccordionItem } from "./AccordionItem";
 
 const ICON_MAP: Record<FAQIconName, LucideIcon> = {
   compass: Compass,
@@ -19,13 +19,13 @@ const ICON_MAP: Record<FAQIconName, LucideIcon> = {
   users: Users,
 };
 
-interface FAQCategorySectionProps {
-  category: FAQPublicCategory;
+interface FAQSectionProps {
+  section: FAQSectionData;
 }
 
-export function FAQCategorySection({ category }: FAQCategorySectionProps) {
-  const Icon = ICON_MAP[category.iconName];
-  const headingId = `faq-category-${category.id}`;
+export function FAQSection({ section }: FAQSectionProps) {
+  const Icon = ICON_MAP[section.iconName];
+  const headingId = `faq-section-${section.id}`;
 
   return (
     <section
@@ -51,20 +51,20 @@ export function FAQCategorySection({ category }: FAQCategorySectionProps) {
               fontFamily: "var(--font-jakarta)",
             }}
           >
-            {category.title}
+            {section.title}
           </h2>
           <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
-            {category.description}
+            {section.description}
           </p>
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
-        {category.items.map((item) => (
-          <FAQItem
+        {section.items.map((item) => (
+          <AccordionItem
             key={item.id}
             item={item}
-            categoryId={category.id}
+            sectionId={section.id}
           />
         ))}
       </div>
