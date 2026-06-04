@@ -27,7 +27,9 @@ const NAV_ACTIVITY = [
 
 const NAV_PATIENTS = [
   { href: "/patients",     label: "Patients",           emoji: "👥" },
-  { href: "/alertes",      label: "Rappels",            emoji: "🔔" },
+  // INIT-682 : entrée « Rappels »→/alertes retirée (la route /alertes redirigeait
+  // déjà vers /taches — doublon avec l'entrée Tâches juste en dessous).
+  // Conformité MDR : /alertes archivée (alertes auto = risque DM Class IIa).
   { href: "/taches",       label: "Tâches",             emoji: "✅" },
   { href: "/protocoles",   label: "Références",         emoji: "📋" },
   { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
