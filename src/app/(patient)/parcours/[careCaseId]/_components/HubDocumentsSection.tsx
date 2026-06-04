@@ -84,7 +84,10 @@ export function HubDocumentsSection({
         </Link>
       </div>
 
-      {documents.length === 0 ? (
+      {(() => {
+        // Filter TRANSCRIPTION (alignement gap d'omission cross-espace, cf. PR #145 + PR #153 + PR #203 accueil)
+        const visibleDocs = documents.filter((d) => d.documentType !== "TRANSCRIPTION");
+        return visibleDocs.length === 0 ? (
         <p
           style={{
             fontSize: 13,
@@ -107,7 +110,7 @@ export function HubDocumentsSection({
             gap: 8,
           }}
         >
-          {documents.map((d) => (
+          {visibleDocs.map((d) => (
             <li key={d.id}>
               <button
                 type="button"
@@ -196,7 +199,8 @@ export function HubDocumentsSection({
             </li>
           ))}
         </ul>
-      )}
+      );
+      })()}
     </section>
   );
 }
