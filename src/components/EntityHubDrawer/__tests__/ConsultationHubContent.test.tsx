@@ -210,6 +210,28 @@ describe("ConsultationHubContent — wording MDR-safe", () => {
   });
 });
 
+describe("ConsultationHubContent — CTA Imprimer CR", () => {
+  it("affiche un bouton 'Imprimer CR' qui appelle window.print()", () => {
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
+    renderHub(makeConsultation());
+    const cta = screen.getByRole("button", {
+      name: /imprimer le compte-rendu/i,
+    });
+    expect(cta).toBeInTheDocument();
+    expect(cta).toHaveTextContent(/imprimer cr/i);
+    fireEvent.click(cta);
+    expect(printSpy).toHaveBeenCalledTimes(1);
+    printSpy.mockRestore();
+  });
+
+  it("rend les blocs print-only (letterhead + footer)", () => {
+    const { container } = renderHub(makeConsultation());
+    const printOnly = container.querySelectorAll(".print-only");
+    // 1 letterhead (PrintHeader) + 1 footer (PrintFooter).
+    expect(printOnly.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe("ConsultationHubContent — CTA Transmettre un document", () => {
   it("affiche le CTA sticky 'Transmettre un document' avec nom du soignant en aria-label", () => {
     renderHub(makeConsultation());

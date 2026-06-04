@@ -1,0 +1,190 @@
+/* ────────────────────────────────────────────────────────────────────────────
+ * Print stylesheet — Nami
+ *
+ * Cible : impression sobre des comptes-rendus de consultation (CR) et des
+ * ordonnances depuis l'espace patient et le drawer EntityHub.
+ *
+ * Principes :
+ *  - On masque la sidebar, le header, les CTA et tout élément interactif.
+ *  - On rend uniquement le contenu marqué `.print-content` ainsi que le
+ *    `PrintHeader` (letterhead) et le `PrintFooter` (date + signature).
+ *  - On évite les coupures de pages au milieu des sections cliniques.
+ *  - Aucune PHI (Protected Health Information) n'est exposée par la
+ *    feuille de style elle-même : le letterhead reste générique (nom Nami,
+ *    URL publique). C'est le composant React qui décide quoi rendre.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* Écran : les blocs print-only sont cachés en navigation normale. */
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  /* Reset global pour impression : fond blanc, texte noir, suppression
+     des ombres et arrondis qui n'ont pas de sens sur papier. */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  }
+
+  /* Marges page A4 lisibles, suffisantes pour reliure éventuelle. */
+  @page {
+    size: A4;
+    margin: 16mm 16mm 20mm 16mm;
+  }
+
+  /* Masquer tout ce qui n'a pas vocation à être imprimé : éléments
+     interactifs (navigation, boutons, sidebars, headers d'app), zones
+     "no-print" explicitement marquées par les composants. */
+  nav,
+  aside,
+  header.app-header,
+  .no-print,
+  [data-print="hide"],
+  button,
+  [role="button"]:not(.print-keep),
+  .fixed,
+  .sticky,
+  [aria-label="Navigation"],
+  [aria-label="Menu"] {
+    display: none !important;
+  }
+
+  /* Bloc imprimé : ne rendre que les zones marquées print-content + les
+     blocs print-only (header / footer letterhead). */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Lorsque le DOM contient un conteneur `.print-content`, on l'isole
+     visuellement : le reste du document reste dans le flux mais ses
+     éléments interactifs sont déjà cachés ci-dessus. */
+  .print-content {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Titres : éviter de couper juste après un titre (orphelin). */
+  .print-content h1,
+  .print-content h2,
+  .print-content h3,
+  .print-content h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+    color: #000000 !important;
+  }
+
+  /* Sections cliniques : éviter qu'une section soit coupée en deux pages
+     si elle tient sur une page. */
+  .print-section,
+  .print-content section,
+  .print-content article {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Listes et paragraphes : éviter les veuves/orphelines. */
+  .print-content p,
+  .print-content li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Liens : ne pas afficher l'URL en exposant (préserve la lisibilité du
+     CR imprimé). On garde le texte du lien tel quel. */
+  .print-content a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+  .print-content a::after {
+    content: "" !important;
+  }
+
+  /* Letterhead (PrintHeader) : visible uniquement à l'impression. */
+  .print-letterhead {
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 1px solid #000000;
+    padding-bottom: 8mm;
+    margin-bottom: 8mm;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .print-letterhead-brand {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    font-size: 18pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #000000;
+  }
+
+  .print-letterhead-tagline {
+    font-size: 9pt;
+    color: #333333;
+    margin-top: 2mm;
+  }
+
+  .print-letterhead-meta {
+    font-size: 9pt;
+    color: #333333;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  /* Footer (PrintFooter) : date + signature placeholder. */
+  .print-footer {
+    display: block !important;
+    margin-top: 12mm;
+    padding-top: 6mm;
+    border-top: 1px solid #000000;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12mm;
+  }
+
+  .print-footer-date,
+  .print-footer-signature {
+    font-size: 9pt;
+    color: #000000;
+    flex: 1;
+  }
+
+  .print-footer-signature {
+    text-align: right;
+  }
+
+  .print-footer-signature-line {
+    border-bottom: 1px solid #000000;
+    height: 14mm;
+    margin-bottom: 2mm;
+  }
+
+  .print-footer-mentions {
+    margin-top: 6mm;
+    font-size: 8pt;
+    color: #555555;
+    text-align: center;
+    line-height: 1.4;
+  }
+}
