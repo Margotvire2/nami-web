@@ -13,7 +13,7 @@ import { expandPathwayLabel } from "@/lib/pathway-acronyms";
 import { toast } from "sonner";
 import {
   Route, CheckCircle2, Circle, ChevronDown, ChevronUp,
-  Users, CalendarClock, Loader2, Activity, AlertTriangle,
+  Users, CalendarClock, Loader2, Activity,
   Clock, Search, Plus, Stethoscope, FlaskConical, FileText,
   ClipboardList, Pill, BarChart3, Zap, Play,
   BookOpen, X, Timer, AlertCircle, PlusCircle, ListChecks,
@@ -84,7 +84,7 @@ const NODE_STATUS_CFG: Record<PathwayNodeStatus, { label: string; cls: string; i
   FUTURE:     { label: "À venir",    cls: "bg-neutral-50 text-neutral-400 border-neutral-200",  icon: <Circle size={13} className="text-neutral-300 shrink-0" /> },
   APPROACHING:{ label: "Bientôt",    cls: "bg-amber-50 text-amber-600 border-amber-200",         icon: <Clock size={13} className="text-amber-400 shrink-0" /> },
   IN_WINDOW:  { label: "En cours",   cls: "bg-blue-50 text-blue-600 border-blue-200",            icon: <div className="w-3 h-3 rounded-full bg-blue-400 ring-2 ring-blue-200 shrink-0" /> },
-  OVERDUE:    { label: "En retard",  cls: "bg-red-50 text-red-600 border-red-200",               icon: <AlertTriangle size={13} className="text-red-400 shrink-0" /> },
+  OVERDUE:    { label: "Retardé",    cls: "bg-amber-50 text-amber-700 border-amber-200",         icon: <Clock size={13} className="text-amber-500 shrink-0" /> },
   COMPLETED:  { label: "Réalisé",    cls: "bg-teal-50 text-teal-600 border-teal-100",            icon: <CheckCircle2 size={13} className="text-teal-500 shrink-0" /> },
   SKIPPED:    { label: "Ignoré",     cls: "bg-neutral-50 text-neutral-400 border-neutral-200",   icon: <Circle size={13} className="text-neutral-200 shrink-0" /> },
 };
@@ -229,16 +229,16 @@ function StepProtocolPanel({
 
         {/* Critères d'escalade */}
         {hasRedFlags && (
-          <div className="rounded-lg border border-red-100 bg-red-50/50 px-3 py-2.5">
+          <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2.5">
             <div className="flex items-center gap-1.5 mb-2">
-              <AlertCircle size={11} className="text-red-500" />
-              <p className="text-[10px] font-bold uppercase tracking-wider text-red-600">Critères d'escalade</p>
+              <AlertCircle size={11} className="text-amber-600" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Critères d'escalade</p>
             </div>
             <ul className="space-y-1">
               {protocol.redFlags!.map((flag, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-red-400 shrink-0 text-xs">›</span>
-                  <span className="text-xs text-red-700 leading-snug">{flag}</span>
+                  <span className="text-amber-500 shrink-0 text-xs">›</span>
+                  <span className="text-xs text-amber-800 leading-snug">{flag}</span>
                 </li>
               ))}
             </ul>
@@ -538,10 +538,10 @@ function PathwayHeader({
             <span className={cn(
               "text-xs font-medium px-2 py-0.5 rounded-full border",
               summary.overdue > 0
-                ? "bg-red-50 text-red-600 border-red-100"
+                ? "bg-amber-50 text-amber-700 border-amber-200"
                 : "bg-teal-50 text-teal-600 border-teal-100"
             )}>
-              {summary.overdue > 0 ? `${summary.overdue} en retard` : `${completionPercent}% accompli`}
+              {summary.overdue > 0 ? `${summary.overdue} retardé${summary.overdue > 1 ? "s" : ""}` : `${completionPercent}% accompli`}
             </span>
           )}
         </div>
@@ -563,7 +563,7 @@ function PathwayHeader({
           </div>
           <div className="flex items-center gap-3 mt-2 text-[10px] text-neutral-400">
             <span className="flex items-center gap-1"><CheckCircle2 size={10} className="text-teal-500" /> {summary.completed} réalisés</span>
-            {summary.overdue > 0 && <span className="flex items-center gap-1"><AlertTriangle size={10} className="text-red-400" /> {summary.overdue} en retard</span>}
+            {summary.overdue > 0 && <span className="flex items-center gap-1"><Clock size={10} className="text-amber-500" /> {summary.overdue} retardé{summary.overdue > 1 ? "s" : ""}</span>}
             {summary.inWindow > 0 && <span className="flex items-center gap-1"><Activity size={10} className="text-blue-400" /> {summary.inWindow} en cours</span>}
             <span>{summary.pending} à venir</span>
           </div>
@@ -589,18 +589,18 @@ function NextStepHero({
   markingDone: boolean;
 }) {
   const isOverdue = node.status === "OVERDUE";
-  const accentColor = isOverdue ? "#D94F4F" : "#5B4EC4";
+  const accentColor = isOverdue ? "#B45309" : "#5B4EC4";
 
   return (
     <div
       className="rounded-2xl p-5"
       style={{
-        border: `2px solid ${isOverdue ? "rgba(217,79,79,0.2)" : "rgba(91,78,196,0.15)"}`,
-        background: isOverdue ? "rgba(217,79,79,0.02)" : "rgba(91,78,196,0.015)",
+        border: `2px solid ${isOverdue ? "rgba(180,83,9,0.2)" : "rgba(91,78,196,0.15)"}`,
+        background: isOverdue ? "rgba(180,83,9,0.02)" : "rgba(91,78,196,0.015)",
       }}
     >
       <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: accentColor }}>
-        {isOverdue ? "⚠ Étape en retard" : "Votre prochaine étape"}
+        {isOverdue ? "Étape retardée" : "Votre prochaine étape"}
       </p>
       <p className="text-[16px] font-bold text-[#1A1A2E] leading-snug">{node.actLabel}</p>
       <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -612,7 +612,7 @@ function NextStepHero({
           </span>
         )}
         {isOverdue && node.daysOverdue !== null && (
-          <span className="text-[12px] font-semibold text-[#D94F4F]">· {node.daysOverdue}j de retard</span>
+          <span className="text-[12px] font-semibold text-[#B45309]">· {node.daysOverdue}j de retard</span>
         )}
       </div>
       <div className="flex gap-2 mt-4 flex-wrap">
@@ -750,7 +750,7 @@ function CIEPhaseGroup({
   const cfg = NODE_STATUS_CFG[phaseStatus];
 
   return (
-    <div className={`rounded-xl border ${overdue > 0 ? "border-red-100" : completed === nodes.length ? "border-teal-100" : "border-neutral-100"} bg-white overflow-hidden shadow-sm`}>
+    <div className={`rounded-xl border ${overdue > 0 ? "border-amber-200" : completed === nodes.length ? "border-teal-100" : "border-neutral-100"} bg-white overflow-hidden shadow-sm`}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-3 px-4 py-3 text-left"
@@ -762,7 +762,7 @@ function CIEPhaseGroup({
           </div>
           <p className="text-[10px] text-neutral-400 mt-0.5">
             {completed}/{stepCountLabel(nodes.length)}
-            {overdue > 0 && <span className="ml-2 text-red-500 font-medium">· {overdue} en retard</span>}
+            {overdue > 0 && <span className="ml-2 text-amber-700 font-medium">· {overdue} retardé{overdue > 1 ? "s" : ""}</span>}
           </p>
         </div>
         <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls} shrink-0`}>
@@ -838,7 +838,7 @@ function CIENodeRow({
   return (
     <div>
       <div className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg border ${
-        node.status === "OVERDUE" ? "bg-red-50/50 border-red-100"
+        node.status === "OVERDUE" ? "bg-amber-50/50 border-amber-200"
         : node.status === "COMPLETED" ? "bg-teal-50/30 border-teal-100"
         : node.status === "IN_WINDOW" ? "bg-blue-50/30 border-blue-100"
         : "bg-neutral-50 border-neutral-100"
@@ -848,7 +848,7 @@ function CIENodeRow({
           <div className="flex items-start justify-between gap-2">
             <p className={`text-xs font-medium leading-snug ${node.status === "SKIPPED" ? "line-through text-neutral-400" : "text-neutral-700"}`}>
               {node.actLabel}
-              {node.isRequired && <span className="ml-1 text-[9px] text-red-400">*</span>}
+              {node.isRequired && <span className="ml-1 text-[9px] text-neutral-400">*</span>}
             </p>
             <span className={`shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls}`}>
               {cfg.label}
@@ -860,7 +860,7 @@ function CIENodeRow({
               <span className="text-[10px] text-neutral-400">{labelSpecialty(node.specialty)}</span>
             )}
             {node.status === "OVERDUE" && node.daysOverdue !== null && (
-              <span className="text-[10px] font-medium text-red-500">{node.daysOverdue}j de retard</span>
+              <span className="text-[10px] font-medium text-amber-700">{node.daysOverdue}j de retard</span>
             )}
             {node.status === "COMPLETED" && node.realizedDate && (
               <span className="text-[10px] text-teal-600">{formatDate(node.realizedDate)}</span>
@@ -1005,7 +1005,7 @@ function RecurrenceGroupCard({
 
   return (
     <div className={`rounded-lg border px-3 py-2.5 ${
-      globalStatus === "OVERDUE" ? "bg-red-50/50 border-red-100" :
+      globalStatus === "OVERDUE" ? "bg-amber-50/50 border-amber-200" :
       globalStatus === "COMPLETED" ? "bg-teal-50/30 border-teal-100" :
       globalStatus === "IN_WINDOW" ? "bg-blue-50/30 border-blue-100" :
       "bg-neutral-50 border-neutral-100"
@@ -1021,7 +1021,7 @@ function RecurrenceGroupCard({
           </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[10px] font-semibold text-neutral-600">{stats.completed}/{stats.total} séances</span>
-            {stats.overdue > 0 && <span className="text-[10px] font-medium text-red-500">{stats.overdue} en retard</span>}
+            {stats.overdue > 0 && <span className="text-[10px] font-medium text-amber-700">{stats.overdue} retardé{stats.overdue > 1 ? "s" : ""}</span>}
             {stats.upcoming > 0 && <span className="text-[10px] text-neutral-400">· {stats.upcoming} à venir</span>}
             {stats.inProgress > 0 && <span className="text-[10px] text-blue-500">· {stats.inProgress} en cours</span>}
           </div>
@@ -1055,7 +1055,7 @@ function RecurrenceGroupCard({
                       <span className="text-neutral-400">Prévu {formatDate(occ.expectedDate)}</span>
                     )}
                     {occ.status === "OVERDUE" && occ.daysOverdue !== null && (
-                      <span className="text-red-500 font-medium">{occ.daysOverdue}j retard</span>
+                      <span className="text-amber-700 font-medium">{occ.daysOverdue}j retard</span>
                     )}
                   </div>
                 );

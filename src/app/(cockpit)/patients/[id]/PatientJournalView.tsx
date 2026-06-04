@@ -7,7 +7,7 @@ import { apiWithToken, type JournalEntry, type NutritionAnalysisResult, type Nut
 import { format, parseISO, subDays, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
-  Brain, Activity, Sparkles, AlertTriangle, TrendingUp, TrendingDown, Minus,
+  Brain, Activity, Sparkles, Bell, TrendingUp, TrendingDown, Minus,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SENSATION_COLORS, MACRO_COLORS, namiPalette } from "@/lib/namiColors"
@@ -386,7 +386,7 @@ function StatCard({ icon, title, value, sub, trend, alert, onClick }: {
       <p className={`text-2xl font-bold ${alert ? "text-amber-700" : "text-gray-900"}`}>{value}</p>
       <div className="flex items-center gap-1 mt-1">
         {sub && <span className="text-[10px] text-gray-400">{sub}</span>}
-        {trend && <TrendIcon size={12} className={trend === "up" ? "text-emerald-500" : trend === "down" ? "text-red-500" : "text-gray-400"} />}
+        {trend && <TrendIcon size={12} className={trend === "up" ? "text-emerald-500" : trend === "down" ? "text-amber-600" : "text-gray-400"} />}
       </div>
     </button>
   )
@@ -595,11 +595,11 @@ function DayNutritionSummary({ meals }: { meals: JournalEntry[] }) {
 
 // ─── DayColumn ───────────────────────────────────────────────────────────────
 
-function DayColumn({ slot, careCaseId, canSeeAiMacros, anorexiaSurveillance, canSeeCrisisDetail }: {
+function DayColumn({ slot, careCaseId, canSeeAiMacros, anorexiaPhaseActive, canSeeCrisisDetail }: {
   slot: DaySlot
   careCaseId: string
   canSeeAiMacros: boolean
-  anorexiaSurveillance: boolean
+  anorexiaPhaseActive: boolean
   canSeeCrisisDetail: boolean
 }) {
   const { dateKey, dayName, dayNumber, isToday, entries } = slot
@@ -692,7 +692,7 @@ function DayColumn({ slot, careCaseId, canSeeAiMacros, anorexiaSurveillance, can
             {totalMin > 0 && (
               <div
                 className="text-[10px] truncate"
-                style={{ color: anorexiaSurveillance && totalMin > 420 ? "#D97706" : namiPalette.slate[500] }}
+                style={{ color: anorexiaPhaseActive && totalMin > 420 ? "#D97706" : namiPalette.slate[500] }}
               >
                 🏃 {totalMin} min{actTypes.length > 0 ? ` · ${actTypes.join(", ")}` : ""}
               </div>
@@ -714,8 +714,8 @@ function DayColumn({ slot, careCaseId, canSeeAiMacros, anorexiaSurveillance, can
 
             {/* Crises */}
             {canSeeCrisisDetail && crises.length > 0 && (
-              <div className="text-[10px] font-semibold text-red-600">
-                🚨 {crises.length} crise{crises.length > 1 ? "s" : ""}
+              <div className="text-[10px] font-semibold text-amber-700">
+                {crises.length} crise{crises.length > 1 ? "s" : ""}
               </div>
             )}
           </div>
@@ -746,25 +746,25 @@ function DayColumn({ slot, careCaseId, canSeeAiMacros, anorexiaSurveillance, can
   )
 }
 
-// ─── Alert banner ─────────────────────────────────────────────────────────────
+// ─── Reminder banner ──────────────────────────────────────────────────────────
 
-function AlertBanner({ energyEntries, activities, anorexiaSurveillance, avgPleasure, totalActivityMin }: {
+function AlertBanner({ energyEntries, activities, anorexiaPhaseActive, avgPleasure, totalActivityMin }: {
   energyEntries: JournalEntry[]; activities: JournalEntry[]
-  anorexiaSurveillance: boolean; avgPleasure: number | null; totalActivityMin: number
+  anorexiaPhaseActive: boolean; avgPleasure: number | null; totalActivityMin: number
 }) {
-  const alerts: string[] = []
+  const reminders: string[] = []
   const lastEnergy = energyEntries.slice(0, 3)
   if (lastEnergy.length >= 3 && lastEnergy.every(e => Number((e.payload as Record<string, unknown>).energy) < 40)) {
-    alerts.push("Énergie en baisse — 3 derniers check-ins < 40%")
+    reminders.push("Énergie en baisse — 3 derniers check-ins < 40%")
   }
-  if (anorexiaSurveillance && totalActivityMin > 420) alerts.push("Activité physique élevée — à évaluer")
-  if (anorexiaSurveillance && avgPleasure === 0 && totalActivityMin > 60) alerts.push("Activité sans plaisir — à évaluer")
-  if (alerts.length === 0) return null
+  if (anorexiaPhaseActive && totalActivityMin > 420) reminders.push("Activité physique élevée — à compléter avec le patient")
+  if (anorexiaPhaseActive && avgPleasure === 0 && totalActivityMin > 60) reminders.push("Activité sans plaisir — à compléter avec le patient")
+  if (reminders.length === 0) return null
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
-      <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+      <Bell size={14} className="text-amber-600 shrink-0 mt-0.5" />
       <div className="space-y-0.5">
-        {alerts.map((a, i) => <p key={i} className="text-xs text-amber-700">{a}</p>)}
+        {reminders.map((a, i) => <p key={i} className="text-xs text-amber-700">{a}</p>)}
       </div>
     </div>
   )
@@ -777,10 +777,9 @@ function CrisisCard({ entry }: { entry: JournalEntry }) {
   const outcome = p.outcome as string | undefined
   const label = outcome === "resisted" ? "💪 A tenu" : outcome === "partial" ? "🤝 Limité" : "Crise complète"
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs space-y-1">
+    <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 text-xs space-y-1">
       <div className="flex items-center gap-2">
-        <span>🚨</span>
-        <Badge className="bg-red-100 text-red-700">{label}</Badge>
+        <Badge className="bg-amber-100 text-amber-800">{label}</Badge>
         {!!p.duration_minutes && <span className="text-gray-500">{String(p.duration_minutes)} min</span>}
         <span className="text-gray-400 ml-auto">{fmtDate(entry.occurredAt)}</span>
       </div>
@@ -810,7 +809,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
 
   const isAnorexia      = pathwayName?.toLowerCase().includes("anorex") ?? false
   const isRestrictedPhase = ["evaluation", "stabilization", "weight_recovery"].includes(currentPhase ?? "")
-  const anorexiaSurveillance = isAnorexia && isRestrictedPhase
+  const anorexiaPhaseActive = isAnorexia && isRestrictedPhase
 
   const filtered = useMemo(() => {
     if (!entries) return []
@@ -999,7 +998,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
               },
               {
                 key: "PHYSICAL_ACTIVITY",
-                node: !anorexiaSurveillance ? (
+                node: !anorexiaPhaseActive ? (
                   <StatCard
                     key="activity"
                     icon={<Activity size={14} style={{ color: T }} />}
@@ -1012,7 +1011,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
                   <StatCard
                     key="activity-watch"
                     icon={<Activity size={14} className="text-amber-500" />}
-                    title="Activité — À évaluer"
+                    title="Activité — À compléter"
                     value={`${totalActivityMin} min`}
                     sub={painCount > 0 ? `${painCount} douleurs` : "—"}
                     alert={totalActivityMin > 420 || (avgPleasure === 0 && totalActivityMin > 60)}
@@ -1043,15 +1042,15 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
           <AlertBanner
             energyEntries={energyEntries}
             activities={activities}
-            anorexiaSurveillance={anorexiaSurveillance}
+            anorexiaPhaseActive={anorexiaPhaseActive}
             avgPleasure={avgPleasure}
             totalActivityMin={totalActivityMin}
           />
 
           {/* ── Crises globales (si canSeeCrisisDetail) ── */}
           {crises.length > 0 && canSeeCrisisDetail && (
-            <div className="rounded-xl border border-red-200 bg-red-50/40 p-4">
-              <p className="text-[10px] font-bold text-red-700 uppercase tracking-wider mb-2">
+            <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-2">
                 Événements de crise ({crises.length})
               </p>
               <div className="space-y-2">
@@ -1087,7 +1086,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
               <div className="grid grid-cols-3 gap-3">
                 <OverviewMoodEnergy weekDays={overviewWeek} weekEntries={weekEntries} />
                 <OverviewEmotions weekEntries={weekEntries} />
-                <OverviewActivity weekDays={overviewWeek} weekEntries={weekEntries} anorexiaSurveillance={anorexiaSurveillance} />
+                <OverviewActivity weekDays={overviewWeek} weekEntries={weekEntries} anorexiaPhaseActive={anorexiaPhaseActive} />
               </div>
             </div>
           )}
@@ -1112,7 +1111,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
                     slot={slot}
                     careCaseId={careCaseId}
                     canSeeAiMacros={canSeeAiMacros}
-                    anorexiaSurveillance={anorexiaSurveillance}
+                    anorexiaPhaseActive={anorexiaPhaseActive}
                     canSeeCrisisDetail={canSeeCrisisDetail}
                   />
                 ))}
@@ -1126,7 +1125,7 @@ export function PatientJournalView({ careCaseId, pathwayName, currentPhase, perm
                     slot={slot}
                     careCaseId={careCaseId}
                     canSeeAiMacros={canSeeAiMacros}
-                    anorexiaSurveillance={anorexiaSurveillance}
+                    anorexiaPhaseActive={anorexiaPhaseActive}
                     canSeeCrisisDetail={canSeeCrisisDetail}
                   />
                 </div>
@@ -1339,8 +1338,8 @@ function OverviewEmotions({ weekEntries }: { weekEntries: JournalEntry[] }) {
   )
 }
 
-function OverviewActivity({ weekDays, weekEntries, anorexiaSurveillance }: {
-  weekDays: Date[]; weekEntries: JournalEntry[]; anorexiaSurveillance: boolean
+function OverviewActivity({ weekDays, weekEntries, anorexiaPhaseActive }: {
+  weekDays: Date[]; weekEntries: JournalEntry[]; anorexiaPhaseActive: boolean
 }) {
   const activities = weekEntries.filter(e => e.entryType === "PHYSICAL_ACTIVITY")
 
@@ -1366,7 +1365,7 @@ function OverviewActivity({ weekDays, weekEntries, anorexiaSurveillance }: {
     ? Math.round(allPleasures.reduce((a, b) => a + b, 0) / allPleasures.length * 10) / 10
     : null
 
-  const isWarning = anorexiaSurveillance &&
+  const isWarning = anorexiaPhaseActive &&
     (totalMin > 420 || (avgPleasure != null && avgPleasure < 3 && totalMin > 60))
 
   return (

@@ -6,10 +6,12 @@
  * Affiche les courbes de croissance poids/taille/IMC/périmètre crânien
  * avec percentiles OMS (P3, P10, P50, P90, P97) en référence.
  *
- * Données : z-scores et courbes calculés côté serveur (GET /patients/:id/growth/:metric)
- * Référence : OMS / AFPA-CRESS-INSERM-SFP 2018
+ * Données : z-scores et courbes calculés côté serveur (GET /patients/:id/growth/:metric).
+ * Référence : OMS / AFPA-CRESS-INSERM-SFP 2018.
  *
- * Wording MDR safe : "à documenter" — jamais "alerte clinique", "danger", "risque"
+ * Doctrine Nami : lecture factuelle des mesures + courbes de référence.
+ * Aucun pavé d'interprétation, aucune mise en évidence d'écart, aucun "à vérifier" —
+ * Nami est un canal de coordination, pas un outil d'aide à la décision clinique.
  */
 
 import { useState, useRef } from "react";
@@ -48,14 +50,6 @@ interface ReferenceCurve {
   P97: number;
 }
 
-interface GrowthAlert {
-  type: "PERCENTILE_LOW" | "PERCENTILE_HIGH";
-  message: string;
-  ageMonths: number;
-  value: number;
-  zScore: number;
-}
-
 interface GrowthCurveResult {
   patient: {
     id: string;
@@ -69,7 +63,6 @@ interface GrowthCurveResult {
   isMinor: boolean;
   points: GrowthPoint[];
   referenceCurves: ReferenceCurve[];
-  alerts: GrowthAlert[];
 }
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -486,7 +479,7 @@ function CarnetImportButton({
     return (
       <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
         <span>✓</span>
-        <span>{lastCount} mesure{lastCount > 1 ? "s" : ""} ajoutée{lastCount > 1 ? "s" : ""} — à vérifier</span>
+        <span>{lastCount} mesure{lastCount > 1 ? "s" : ""} ajoutée{lastCount > 1 ? "s" : ""}</span>
       </div>
     );
   }
@@ -662,12 +655,6 @@ export function GrowthCharts({ patientId, careCaseId: propCareCaseId, sex: _sex,
               />
               <span>P3 – P97</span>
             </div>
-            {data.alerts.length > 0 && (
-              <div className="flex items-center gap-1.5 ml-auto">
-                <div className="w-3 h-3 rounded-full" style={{ background: POINT_OUT_OF_RANGE }} />
-                <span className="text-amber-600">Valeur à documenter</span>
-              </div>
-            )}
           </div>
 
           {data.points.length === 0 ? (
@@ -683,24 +670,6 @@ export function GrowthCharts({ patientId, careCaseId: propCareCaseId, sex: _sex,
             unit={unit}
             ageMonths={ageMonths}
           />
-
-          {/* Indicateurs à documenter — wording MDR safe */}
-          {data.alerts.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              {data.alerts.map((alert, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-700"
-                >
-                  <span className="shrink-0 mt-0.5">◉</span>
-                  <span>{alert.message}</span>
-                </div>
-              ))}
-              <p className="text-[10px] text-gray-400 mt-1 italic">
-                Indicateurs de complétude du dossier — brouillon, à vérifier par le soignant
-              </p>
-            </div>
-          )}
 
           {/* Note source */}
           <p className="text-[10px] text-gray-400 mt-3 text-center">
