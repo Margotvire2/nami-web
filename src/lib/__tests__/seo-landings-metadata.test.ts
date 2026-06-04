@@ -14,7 +14,7 @@ import { describe, it, expect } from "vitest";
 import { metadata as homeMetadata } from "@/app/page";
 import { metadata as patientMetadata } from "@/app/patient/page";
 import { metadata as proMetadata } from "@/app/soignants-liberaux/page";
-import { metadata as faqMetadata } from "@/app/faq/page";
+import { metadata as faqMetadata } from "@/app/(public)/faq/page";
 import { metadata as contactMetadata } from "@/app/contact/page";
 import { metadata as commentMetadata } from "@/app/comment-ca-marche/page";
 import { metadata as tarifsMetadata } from "@/app/tarifs/page";
