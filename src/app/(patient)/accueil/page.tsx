@@ -86,7 +86,8 @@ export default function AccueilPage() {
   const nextAppt = upcomingAppts?.[0];
   const careCase = me?.careCases?.[0];
   const team = careCase?.members ?? [];
-  const recentDocs = docs?.slice(0, 3) ?? [];
+  // Exclure TRANSCRIPTION (alignement gap d'omission cross-espace audit PR #145 + PR #153 entity-hub)
+  const recentDocs = docs?.filter((d) => d.documentType !== "TRANSCRIPTION").slice(0, 3) ?? [];
 
   const DOC_TYPE: Record<string, { icon: string; color: string }> = {
     BILAN_BIO: { icon: "🩸", color: "#2563EB" },
