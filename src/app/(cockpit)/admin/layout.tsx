@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
-import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus, Megaphone, Target, TrendingUp, ClipboardList } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Users, Building2, Database, UserPlus, Megaphone, Target, TrendingUp, ClipboardList, BarChart3 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -14,6 +14,7 @@ const ADMIN_ROLES = new Set(["ADMIN", "PLATFORM_ADMIN"]);
 
 const TABS = [
   { href: "/admin",                          label: "Vue d'ensemble",     icon: LayoutDashboard },
+  { href: "/admin/dashboard",                label: "Tableau de bord",    icon: BarChart3 },
   { href: "/admin/traction",                 label: "Traction",           icon: TrendingUp },
   { href: "/admin/validations",              label: "Validations",        icon: ShieldCheck,    badge: true },
   { href: "/admin/organization-applications",label: "Demandes inscription", icon: ClipboardList },
