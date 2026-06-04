@@ -26,10 +26,24 @@ const authState = {
   logout: vi.fn(),
 };
 
-vi.mock("@/lib/store", () => ({
-  useAuthStore: (selector?: (s: typeof authState) => unknown) =>
-    selector ? selector(authState) : authState,
-}));
+vi.mock("@/lib/store", () => {
+  const useAuthStore: ((selector?: (s: typeof authState) => unknown) => unknown) & {
+    persist: {
+      hasHydrated: () => boolean;
+      onFinishHydration: (cb: () => void) => () => void;
+    };
+  } = Object.assign(
+    (selector?: (s: typeof authState) => unknown) =>
+      selector ? selector(authState) : authState,
+    {
+      persist: {
+        hasHydrated: () => true,
+        onFinishHydration: (_cb: () => void) => () => {},
+      },
+    },
+  );
+  return { useAuthStore };
+});
 
 // SecretaryNotificationBell is exercised by its own tests; here we only assert
 // that the layout mounts it. Stub it so the layout test stays focused.

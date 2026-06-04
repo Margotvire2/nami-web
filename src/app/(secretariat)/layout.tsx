@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
@@ -100,8 +100,24 @@ function SecretarySidebar() {
 export default function SecretariatLayout({ children }: { children: React.ReactNode }) {
   const { accessToken, user } = useAuthStore();
   const router = useRouter();
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  // Attend la fin de la rehydratation Zustand persist avant tout guard.
+  // Sans ce flag, au cold-load SSR/hard-reload accessToken=null (état initial du
+  // store, avant que persist ait lu localStorage) et router.replace('/login')
+  // tire à tort. Pattern aligné avec (cockpit)/layout.tsx, (patient)/layout.tsx
+  // et (structure)/layout.tsx — réf. INIT-207.
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+      return;
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHasHydrated(true));
+    return unsub;
+  }, []);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!accessToken) {
       router.replace("/login");
       return;
@@ -109,9 +125,9 @@ export default function SecretariatLayout({ children }: { children: React.ReactN
     if (user && user.roleType !== "SECRETARY" && user.roleType !== "ADMIN") {
       router.replace("/aujourd-hui");
     }
-  }, [accessToken, user, router]);
+  }, [hasHydrated, accessToken, user, router]);
 
-  if (!accessToken) return null;
+  if (!hasHydrated || !accessToken) return null;
 
   return (
     <div className="flex min-h-screen bg-[#FAFAF8]">
