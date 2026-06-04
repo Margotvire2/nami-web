@@ -9,12 +9,14 @@ import { StructureSwitcher } from "@/components/header/StructureSwitcher"
 
 // ─── Breadcrumb labels ────────────────────────────────────────────────────────
 
+// INIT-682 : règle des 4 surfaces (sidebar ↔ breadcrumb ↔ titre ↔ URL).
+// - "alertes" retiré : entrée sidebar « Rappels »→/alertes supprimée
+//   (la route redirigeait déjà 308 vers /taches → doublon retiré).
 const ROUTE_LABELS: Record<string, string> = {
   "aujourd-hui": "Aujourd'hui",
   agenda: "Agenda",
   facturation: "Facturation",
   patients: "Patients",
-  alertes: "Rappels",
   taches: "Tâches",
   protocoles: "Références",
   intelligence: "Base documentaire",

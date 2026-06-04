@@ -15,16 +15,10 @@ import {
  *
  * Section secrétariat : "Documents signés à transmettre".
  *
- * V1 shell gracieux :
  *  - Source de vérité : endpoint backend `GET /secretary/signed-documents`
- *    (à livrer côté backend — ticket dérivé
- *    `F-DOC-SIGNED-SECRETARY-SCOPE-BACKEND`).
- *  - Tant que ce endpoint n'est pas implémenté, le hook retourne []
- *    et la section affiche son état vide ("Aucune ordonnance signée
- *    à transmettre").
- *  - Le bouton "Marquer comme envoyé" est UI-only en V1 (state local).
- *    Aucune persistance backend. Sera connecté en V2 à une route
- *    POST /secretary/signed-documents/:id/mark-sent.
+ *    livré dans PR #185 (scope DOCUMENTS sur les SecretariatLink ACTIVE).
+ *  - Le bouton "Marquer comme envoyé" reste UI-only (state local).
+ *    Sera connecté en V2 à une route POST /secretary/signed-documents/:id/mark-sent.
  *
  * Wording légal : strictement organisationnel, aucun mot clinique
  *  (pas "alerte", pas "à signer", pas "à valider").

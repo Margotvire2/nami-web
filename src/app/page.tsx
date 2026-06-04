@@ -132,13 +132,15 @@ export default function HomePage() {
           50% { transform: translateY(10px); opacity: 0.15; }
         }
         .scroll-dot { animation: scrollBounce 2s ease-in-out infinite; }
+        /* INIT-689 point 9 — durations réduites <300ms + délais resserrés
+           pour supprimer l'effet "contenu pâle plusieurs secondes" à l'arrivée. */
         @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
-        .nav-enter { animation: fadeIn 0.6s var(--ease-expo) 0.1s both; }
-        .hero-eyebrow { animation: fadeIn 0.7s var(--ease-expo) 0.3s both; }
-        .hero-title { animation: fadeIn 0.9s var(--ease-expo) 0.5s both; }
-        .hero-sub { animation: fadeIn 0.8s var(--ease-expo) 0.8s both; }
-        .hero-cta { animation: fadeIn 0.8s var(--ease-expo) 1.0s both; }
-        .hero-scroll { animation: fadeIn 0.8s var(--ease-expo) 1.4s both; }
+        .nav-enter { animation: fadeIn 240ms var(--ease-expo) 0ms both; }
+        .hero-eyebrow { animation: fadeIn 240ms var(--ease-expo) 40ms both; }
+        .hero-title { animation: fadeIn 280ms var(--ease-expo) 80ms both; }
+        .hero-sub { animation: fadeIn 260ms var(--ease-expo) 140ms both; }
+        .hero-cta { animation: fadeIn 260ms var(--ease-expo) 180ms both; }
+        .hero-scroll { animation: fadeIn 240ms var(--ease-expo) 220ms both; }
 
         @media (max-width: 767px) {
           .landing-nav-links, .landing-nav-auth { display: none !important; }

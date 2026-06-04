@@ -118,3 +118,36 @@ export function formatProviderSpecialty(specialty: string | null | undefined): s
     .replace(/[_-]/g, " ")
     .replace(/^\w/, (c) => c.toUpperCase());
 }
+
+// ─── Libellés FR des domaines d'expertise / pathologies ──────────────────────
+// Source canonique : EXPERTISE_THEMES dans src/lib/data/specialties.ts.
+// Index aplati construit à l'import. Tout ajout de domaine se fait dans
+// specialties.ts uniquement — pas de doublon de mapping ici.
+// Fallback : retourne le code brut tel quel (pas de transformation cosmétique),
+// ce qui permet de repérer visuellement les codes non mappés à compléter.
+
+import { EXPERTISE_THEMES } from "./data/specialties";
+
+const EXPERTISE_DOMAIN_LABELS: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const theme of EXPERTISE_THEMES) {
+    for (const domain of theme.domains) {
+      map[domain.id] = domain.label;
+    }
+  }
+  return map;
+})();
+
+/**
+ * Retourne le libellé FR d'un domaine d'expertise / pathologie.
+ * Fallback intentionnel : code brut tel quel pour exposer les codes non mappés
+ * (à compléter dans EXPERTISE_THEMES après remontée Margot).
+ *
+ * @example formatExpertiseDomain("anorexie_mentale") → "Anorexie mentale"
+ * @example formatExpertiseDomain("mici")             → "MICI (Crohn, RCH)"
+ * @example formatExpertiseDomain("code_inconnu")     → "code_inconnu" (fallback)
+ */
+export function formatExpertiseDomain(code: string | null | undefined): string {
+  if (!code) return "";
+  return EXPERTISE_DOMAIN_LABELS[code] ?? code;
+}

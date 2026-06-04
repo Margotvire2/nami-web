@@ -45,7 +45,10 @@ export function SuiviHero({ indicatorsCount, latestMeasurementDate, period, onPe
         }}
       >
         {indicatorsCount} indicateur{indicatorsCount > 1 ? "s" : ""} suivi
-        {indicatorsCount > 1 ? "s" : ""} · Dernière mesure {formatLastMeasurement(latestMeasurementDate).toLowerCase()}
+        {indicatorsCount > 1 ? "s" : ""} ·{" "}
+        {latestMeasurementDate
+          ? `Dernière mesure ${formatLastMeasurement(latestMeasurementDate).toLowerCase()}`
+          : "Aucune mesure"}
       </p>
 
       {/* Tabs filter période */}

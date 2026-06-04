@@ -9,6 +9,17 @@ interface RdvDetailProviderProps {
   appointment: PatientAppointmentDetail;
 }
 
+// "À renseigner" est le placeholder seedé côté backend (onboarding/page.tsx)
+// pour les organisations créées sans adresse. On NE l'expose JAMAIS au patient :
+// il est traité comme une chaîne vide pour le rendu.
+function cleanPlaceholder(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.toLowerCase() === "à renseigner") return null;
+  return trimmed;
+}
+
 export function RdvDetailProvider({ appointment }: RdvDetailProviderProps) {
   const providerName = getProviderName(appointment);
   const providerId = appointment.provider?.id;
@@ -17,6 +28,11 @@ export function RdvDetailProvider({ appointment }: RdvDetailProviderProps) {
   const isVideo = appointment.locationType === "VIDEO" || appointment.locationType === "TELECONSULTATION";
   const isPhone = appointment.locationType === "PHONE";
   const loc = appointment.location;
+  // Masque les placeholders backend ("À renseigner") côté patient.
+  const locName = cleanPlaceholder(loc?.name);
+  const locAddress = cleanPlaceholder(loc?.address);
+  const locCity = cleanPlaceholder(loc?.city);
+  const hasAnyLocation = Boolean(locName || locAddress || locCity);
 
   return (
     <section
@@ -68,72 +84,68 @@ export function RdvDetailProvider({ appointment }: RdvDetailProviderProps) {
         </div>
       </div>
 
-      {/* Lieu */}
-      <div
-        className="pt-4"
-        style={{ borderTop: "1px solid rgba(26,26,46,0.06)" }}
-      >
-        {isVideo ? (
-          <div className="flex items-start gap-3">
-            <Video
-              size={18}
-              aria-hidden="true"
-              className="shrink-0 mt-0.5"
-              style={{ color: "#5B4EC4" }}
-            />
-            <div>
-              <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
-                Téléconsultation
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                Le lien de connexion vous sera communiqué avant le rendez-vous.
-              </p>
-            </div>
-          </div>
-        ) : isPhone ? (
-          <div className="flex items-start gap-3">
-            <Phone
-              size={18}
-              aria-hidden="true"
-              className="shrink-0 mt-0.5"
-              style={{ color: "#5B4EC4" }}
-            />
-            <div>
-              <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
-                Consultation téléphonique
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                Le soignant vous appellera à l&apos;heure indiquée.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-start gap-3">
-            <MapPin
-              size={18}
-              aria-hidden="true"
-              className="shrink-0 mt-0.5"
-              style={{ color: "#5B4EC4" }}
-            />
-            <div className="text-sm" style={{ color: "#1A1A2E" }}>
-              <p className="font-semibold">
-                {loc?.name?.trim() || "Cabinet"}
-              </p>
-              {loc?.address && (
-                <p style={{ color: "#374151" }}>{loc.address}</p>
-              )}
-              {loc?.city && (
-                <p style={{ color: "#6B7280" }}>{loc.city}</p>
-              )}
-              {!loc?.address && !loc?.city && (
-                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                  Adresse à confirmer.
+      {/* Lieu — masqué entièrement si aucune info utile côté patient
+          (le placeholder backend "À renseigner" est filtré en amont). */}
+      {(isVideo || isPhone || hasAnyLocation) && (
+        <div
+          className="pt-4"
+          style={{ borderTop: "1px solid rgba(26,26,46,0.06)" }}
+        >
+          {isVideo ? (
+            <div className="flex items-start gap-3">
+              <Video
+                size={18}
+                aria-hidden="true"
+                className="shrink-0 mt-0.5"
+                style={{ color: "#5B4EC4" }}
+              />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
+                  Téléconsultation
                 </p>
-              )}
+                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                  Le lien de connexion vous sera communiqué avant le rendez-vous.
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          ) : isPhone ? (
+            <div className="flex items-start gap-3">
+              <Phone
+                size={18}
+                aria-hidden="true"
+                className="shrink-0 mt-0.5"
+                style={{ color: "#5B4EC4" }}
+              />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
+                  Consultation téléphonique
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                  Le soignant vous appellera à l&apos;heure indiquée.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3">
+              <MapPin
+                size={18}
+                aria-hidden="true"
+                className="shrink-0 mt-0.5"
+                style={{ color: "#5B4EC4" }}
+              />
+              <div className="text-sm" style={{ color: "#1A1A2E" }}>
+                {locName && <p className="font-semibold">{locName}</p>}
+                {locAddress && (
+                  <p style={{ color: "#374151" }}>{locAddress}</p>
+                )}
+                {locCity && (
+                  <p style={{ color: "#6B7280" }}>{locCity}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Notes patient pré-saisies (read-only) */}
       {appointment.notes && (

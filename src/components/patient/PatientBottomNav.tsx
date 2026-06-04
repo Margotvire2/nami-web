@@ -31,7 +31,7 @@ const SECONDARY_IN_MORE_MENU = [
     href: "/trouver-un-soignant",
     icon: Search,
     label: "Trouver un soignant",
-    disabled: true,
+    disabled: false,
   },
   { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
