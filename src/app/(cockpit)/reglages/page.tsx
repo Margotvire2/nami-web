@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useAuthStore } from "@/lib/store"
-import { authApi, mfaApi } from "@/lib/api"
+import { authApi, mfaApi, refreshAwareRequest, ApiError } from "@/lib/api"
 import { EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
 import { ShimmerCard } from "@/components/ui/shimmer"
 import {
@@ -222,12 +222,46 @@ export default function ReglagesPage() {
 
   const load = useCallback(async () => {
     if (!accessToken) return
+    // Helper : 1 retry léger sur erreur réseau ou 5xx (backoff 500ms).
+    // Le 401 est déjà géré en interne par refreshAwareRequest (refresh + retry).
+    type ProviderMeResponse = {
+      totpEnabled?: boolean
+      person?: { firstName?: string; lastName?: string; email?: string; phone?: string | null }
+      rppsNumber?: string | null
+      adeliNumber?: string | null
+      specialties?: string[]
+      subSpecialties?: string[]
+      bio?: string | null
+      exerciseMode?: string | null
+      conventionSector?: string | null
+      acceptsCMU?: boolean
+      acceptsALD?: boolean
+      acceptsTele?: boolean
+      consultationModes?: string[]
+      acceptedPatientTypes?: string[]
+      acceptsNewPatients?: boolean
+      averageDelay?: string | null
+      profileVisibility?: string
+      addressingScope?: string | null
+      languages?: string[]
+      structures?: Structure[]
+      certifications?: Certification[]
+      specialtyView?: string | null
+    }
+    async function fetchProfileOnce(): Promise<ProviderMeResponse> {
+      return refreshAwareRequest<ProviderMeResponse>("/providers/me", {}, accessToken!)
+    }
     try {
-      const res = await fetch(`${API_URL}/providers/me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      let data: ProviderMeResponse
+      try {
+        data = await fetchProfileOnce()
+      } catch (e) {
+        const transient = !(e instanceof ApiError) || e.status >= 500
+        if (!transient) throw e
+        // Backoff léger puis 1 retry
+        await new Promise(r => setTimeout(r, 500))
+        data = await fetchProfileOnce()
+      }
       setTotpEnabled(data.totpEnabled ?? false)
       setProfile({
         firstName: data.person?.firstName ?? "",
