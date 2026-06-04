@@ -217,7 +217,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
         if (!v) reset();
       }}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] grid-rows-[auto_auto_minmax(0,1fr)_auto]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User size={16} className="text-primary" />
@@ -229,7 +229,7 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         {/* Stepper */}
-        <div className="flex items-center justify-center gap-2 py-2">
+        <div className="flex items-center justify-center gap-2 py-2 shrink-0">
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             const isDone = i < step;
@@ -264,6 +264,8 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
           })}
         </div>
 
+        {/* Body scrollable — contient les 3 steps */}
+        <div className="overflow-y-auto -mx-4 px-4 min-h-0">
         {/* Step 1 — Patient */}
         {step === 0 && (
           <div className="space-y-3">
@@ -602,6 +604,8 @@ export function CreatePatientModal({ open, onOpenChange }: Props) {
             )}
           </div>
         )}
+        </div>
+        {/* /Body scrollable */}
 
         {/* Footer */}
         <DialogFooter>
