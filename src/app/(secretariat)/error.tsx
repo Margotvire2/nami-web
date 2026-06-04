@@ -2,19 +2,21 @@
 
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { AlertTriangle, RotateCcw, LifeBuoy } from "lucide-react";
+import { AlertTriangle, RotateCcw, Home } from "lucide-react";
 import Link from "next/link";
 
 /**
  * F-WEB-PAGES-404-500-CUSTOM-ERROR-BOUNDARIES
  *
- * Error boundary global (root). Capture toute erreur React non rattrapée
- * par les boundaries enfants (cockpit, patient, secretariat, structure).
- * - Sentry.captureException avec tag `boundary=root`
- * - JAMAIS de stack trace en prod (RGPD + UX patient)
- * - Wording neutre (cf checklist MDR projet)
+ * Error boundary du groupe (secretariat). Intercepte les erreurs des
+ * pages secrétariat (/secretariat, /secretariat/patients,
+ * /secretariat/salle-attente, /secretariat/parametres) sans casser la
+ * sidebar du layout.
+ *
+ * - Sentry tag `boundary=secretariat`
+ * - JAMAIS de stack trace en prod
  */
-export default function RootError({
+export default function SecretariatError({
   error,
   reset,
 }: {
@@ -23,22 +25,19 @@ export default function RootError({
 }) {
   useEffect(() => {
     Sentry.withScope((scope) => {
-      scope.setTag("boundary", "root");
+      scope.setTag("boundary", "secretariat");
       scope.setTag("error.digest", error.digest ?? "unknown");
       Sentry.captureException(error);
     });
     if (process.env.NODE_ENV !== "production") {
-      console.error("[Nami] Root error:", error);
+      console.error("[Nami] Secretariat error:", error);
     }
   }, [error]);
 
   const isDev = process.env.NODE_ENV === "development";
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: "#FAFAF8" }}
-    >
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "#FAFAF8" }}>
       <div
         className="bg-white rounded-2xl p-10 max-w-md w-full text-center"
         style={{ border: "1px solid rgba(26,26,46,0.06)", boxShadow: "0 10px 40px rgba(26,26,46,0.06)" }}
@@ -56,8 +55,9 @@ export default function RootError({
         >
           Une erreur inattendue est survenue
         </h1>
-        <p className="text-sm mb-6 leading-relaxed" style={{ color: "#6B7280" }}>
-          Notre équipe a été notifiée. Vous pouvez réessayer ou revenir à l&apos;accueil.
+
+        <p className="text-sm mb-4 leading-relaxed" style={{ color: "#6B7280" }}>
+          Vous pouvez réessayer ou revenir à l&apos;agenda. Notre équipe a été notifiée.
           {error.digest && (
             <span className="block mt-2 text-xs font-mono" style={{ color: "#9CA3AF" }}>
               Réf : {error.digest}
@@ -84,11 +84,11 @@ export default function RootError({
             <RotateCcw size={14} /> Réessayer
           </button>
           <Link
-            href="/contact"
+            href="/secretariat"
             className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors inline-flex items-center justify-center gap-2"
             style={{ backgroundColor: "#EEEDFB", color: "#5B4EC4" }}
           >
-            <LifeBuoy size={14} /> Contact support
+            <Home size={14} /> Agenda
           </Link>
         </div>
       </div>
