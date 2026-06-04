@@ -18,6 +18,7 @@ import { apiWithToken, notificationsApi, type ConnectionRequest, type Appointmen
 import { toast } from "sonner";
 import { useConsultation } from "@/contexts/ConsultationContext";
 import CockpitDmBadgeCard from "./CockpitDmBadgeCard";
+import SecretariatLinkRequestsWidget from "./_components/SecretariatLinkRequestsWidget";
 
 const PENDING_REFERRAL_STATUSES = ["SENT", "RECEIVED", "UNDER_REVIEW"];
 
@@ -315,6 +316,9 @@ export default function DashboardPage() {
 
               {/* DEMANDES DE RDV */}
               <AppointmentRequestsSection />
+
+              {/* DEMANDES DE RATTACHEMENT SECRÉTARIAT — self-hide si pendingCount === 0 */}
+              <SecretariatLinkRequestsWidget />
 
               {/* MESSAGES PRIVÉS PATIENTS — synergie PR 13 frontend cockpit /messages */}
               <CockpitDmBadgeCard />
