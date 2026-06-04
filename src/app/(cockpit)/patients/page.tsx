@@ -33,8 +33,12 @@ const TABS = [
   { key: "active",   label: "Actifs",                filter: (c: CareCase) => c.status === "ACTIVE" },
   { key: "recent",   label: "Récents",                filter: (c: CareCase) => {
     if (c.status !== "ACTIVE") return false;
-    if (!c.lastActivityAt) return false;
-    const ageDays = Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / 86400000);
+    // BUG-07 [INIT-665] : « Récents » = dossiers ACTIFS récemment actifs OU récemment ouverts.
+    // Fallback startDate (toujours peuplé, cf. Prisma @default(now())) aligné sur le sort L92-94,
+    // sinon les dossiers sans touchpoint réel (note/appointment/message/meal/patientPortal)
+    // restent invisibles alors qu'ils viennent d'être créés/importés.
+    const refDate = c.lastActivityAt ?? c.startDate;
+    const ageDays = Math.floor((Date.now() - new Date(refDate).getTime()) / 86400000);
     return ageDays <= 7;
   } },
   { key: "paused",   label: "En pause",              filter: (c: CareCase) => c.status === "PAUSED" },
