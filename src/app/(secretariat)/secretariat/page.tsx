@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda } from "@/lib/api";
@@ -22,6 +22,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SecretariatSignedDocsSection } from "@/components/secretariat/SecretariatSignedDocsSection";
+import { N as DT } from "@/lib/design-tokens";
+
+// Couleur statut IN_PROGRESS sourcée depuis design-tokens (N.statusConfirmed)
+// pour alignement avec le cockpit agenda. [F-AGENDA-STATUS-COLOR]
+const IN_PROGRESS_STYLE: CSSProperties = {
+  backgroundColor: DT.primaryLight,
+  borderColor: DT.statusConfirmed,
+  color: DT.statusConfirmed,
+};
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -34,7 +43,7 @@ const STATUS_CONFIG = {
   PENDING:                { label: "En attente",       bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700"   },
   CONFIRMED:              { label: "Confirmé",         bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
   RESCHEDULED:            { label: "Reporté",          bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
-  IN_PROGRESS:            { label: "En cours",         bg: "bg-violet-50",  border: "border-violet-200",  text: "text-violet-700"  },
+  IN_PROGRESS:            { label: "En cours",         bg: "",              border: "",                   text: ""                 },
   PATIENT_ARRIVED:        { label: "Arrivé",           bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700"    },
   COMPLETED:              { label: "Terminé",          bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
   CANCELLED:              { label: "Annulé",           bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
@@ -290,7 +299,10 @@ function ApptDetailModal({
             <p className="text-[11px] font-semibold text-[#1A1A2E]">
               {format(start, "HH:mm")} – {format(end, "HH:mm")}
             </p>
-            <span className={cn("text-[9px] font-medium px-1.5 py-0.5 rounded", statusCfg.bg, statusCfg.text)}>
+            <span
+              className={cn("text-[9px] font-medium px-1.5 py-0.5 rounded", statusCfg.bg, statusCfg.text)}
+              style={appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : undefined}
+            >
               {statusCfg.label}
             </span>
           </div>
@@ -413,7 +425,11 @@ function AgendaColumn({
                   "absolute left-1 right-1 rounded-md border px-1.5 py-1 cursor-pointer hover:shadow-md transition-shadow",
                   cfg.bg, cfg.border
                 )}
-                style={{ top: top + 1, height: height - 2 }}
+                style={{
+                  top: top + 1,
+                  height: height - 2,
+                  ...(appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : null),
+                }}
               >
                 <p className={cn("text-[10px] font-semibold truncate", cfg.text)}>
                   {format(start, "HH:mm")} {appt.patient ? `· ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
@@ -425,6 +441,7 @@ function AgendaColumn({
                       "inline-block mt-0.5 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded",
                       cfg.bg, cfg.text, "border", cfg.border,
                     )}
+                    style={appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : undefined}
                   >
                     {cfg.label}
                   </span>

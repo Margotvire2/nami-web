@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken, type ConsultationLocation, type CareCase, type Appointment, type AppointmentCancelReason } from "@/lib/api"
 import { isCancelledLike } from "@/lib/appointment-status"
+import { N as DT } from "@/lib/design-tokens"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { useConsultation } from "@/contexts/ConsultationContext"
@@ -32,7 +33,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; ico
   CONFIRMED:               { label: "Confirmé",          color: N.success,  bg: N.successBg,  icon: "✓" },
   PENDING:                 { label: "En attente",        color: N.warning,  bg: N.warningBg,  icon: "⏳" },
   RESCHEDULED:             { label: "Reporté",           color: N.textSoft, bg: "#F2F2F4",    icon: "↻" },
-  IN_PROGRESS:             { label: "En cours",          color: "#5B4EC4",  bg: "#EEEBF8",    icon: "▶" },
+  IN_PROGRESS:             { label: "En cours",          color: DT.statusConfirmed, bg: DT.primaryLight, icon: "▶" },
   PATIENT_ARRIVED:         { label: "Patient arrivé",    color: "#2BA84A",  bg: "#EDF7F0",    icon: "🟢" },
   CANCELLED:               { label: "Annulé",            color: N.danger,   bg: N.dangerBg,   icon: "✕" },
   CANCELLED_BY_PATIENT:    { label: "Annulé (patient)",  color: N.danger,   bg: N.dangerBg,   icon: "✕" },
