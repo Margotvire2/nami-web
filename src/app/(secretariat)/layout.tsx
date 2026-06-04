@@ -12,10 +12,12 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ListChecks,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/secretariat",              label: "Agenda",          icon: CalendarDays },
+  { href: "/secretariat/taches",       label: "Tâches",          icon: ListChecks },
   { href: "/secretariat/patients",     label: "Patients",        icon: Users },
   { href: "/secretariat/salle-attente", label: "Salle d'attente", icon: Armchair },
   { href: "/secretariat/parametres",   label: "Paramètres",      icon: Settings },
