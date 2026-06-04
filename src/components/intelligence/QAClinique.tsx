@@ -39,7 +39,7 @@ export default function QAClinique() {
     setMessages(prev => [...prev, { role: "user", content: q }]);
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/intelligence/qa`, {
+      const res = await fetch(`${API_URL}/intelligence/clinical-qa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +47,11 @@ export default function QAClinique() {
         },
         body: JSON.stringify({ question: q }),
       });
-      if (!res.ok) throw new Error("Erreur API");
+      if (!res.ok) {
+        const body = await res.text();
+        console.error("[QAClinique] HTTP", res.status, body.slice(0, 300));
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json() as {
         answer: string;
         sources?: { title: string; slug: string }[];
@@ -59,7 +63,8 @@ export default function QAClinique() {
         sources: data.sources,
         confidence: data.confidence,
       }]);
-    } catch {
+    } catch (err) {
+      console.error("[QAClinique]", err);
       setMessages(prev => [...prev, {
         role: "assistant",
         content: "Désolé, une erreur s'est produite. Réessayez ou utilisez la Recherche documentaire.",
