@@ -3662,6 +3662,16 @@ export interface PatientNotificationFeed {
   unreadCount: number;
 }
 
+// Feed personnel de la secrétaire (F-SECRETARIAT-NOTIFICATIONS-BACKEND-V1).
+// Réutilise PatientNotification (modèle Prisma Notification partagé). Shape
+// distincte du feed patient : counts.{unread,total} au lieu d'unreadCount.
+// À ne pas confondre avec GET /secretary/notifications (fil organisationnel
+// provider-centric — pas un feed personnel).
+export interface SecretaryNotificationFeed {
+  items: PatientNotification[];
+  counts: { unread: number; total: number };
+}
+
 // ─── Préférences notifications patient (CC #90 backend + CC #93 wire) ────────
 // Matrice 5 catégories × 4 canaux. Absence côté backend = enabled=true (les
 // nouveaux patients reçoivent tout par défaut). Les canaux désactivés sont
@@ -4821,6 +4831,18 @@ export function secretaryApi(token: string) {
 
     getPatient: (id: string): Promise<{ patient: SecretaryPatientResult; appointments: SecretaryAppointment[] }> =>
       secretaryApiRequest(`/secretary/patients/${id}`, {}, token),
+
+    // ─── Feed personnel notifications (F-CROSS-GAP-Notification-SECRETARIAT) ──
+    // GET /secretary/notifications/feed?limit=N → SecretaryNotificationFeed.
+    // Backend : src/routes/secretary.ts (PR #173).
+    notifications: {
+      feed: (params?: { limit?: number }): Promise<SecretaryNotificationFeed> => {
+        const qs = new URLSearchParams();
+        if (params?.limit) qs.set("limit", String(params.limit));
+        const suffix = qs.size > 0 ? `?${qs.toString()}` : "";
+        return secretaryApiRequest(`/secretary/notifications/feed${suffix}`, {}, token);
+      },
+    },
   };
 }
 
