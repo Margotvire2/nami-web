@@ -171,6 +171,7 @@ export const authApi = {
 
   // F-UX-PATIENT-V1-LAUNCH-1 — signup scopé patient (namipourlavie.com).
   // Le serveur force roleType=PATIENT et ignore toute valeur fournie côté client.
+  // INIT-678 / M1 — acceptedRGPD obligatoire (case à cocher au signup).
   signupPatient: (data: {
     email: string;
     password: string;
@@ -179,6 +180,7 @@ export const authApi = {
     phone?: string;
     birthDate: string;
     sex: "M" | "F";
+    acceptedRGPD: true;
   }) =>
     request<{ accessToken: string; refreshToken: string }>("/auth/signup/patient", {
       method: "POST",

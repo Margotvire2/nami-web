@@ -47,6 +47,9 @@ function SignupForm() {
     rppsNumber: "",
     specialties: [] as string[],
     professionType: "" as string,
+    // INIT-678 / M1 — recueil consentement RGPD obligatoire pour PATIENT
+    // (RGPD Art. 7 preuve + Art. 9 données santé). Soumission bloquée si false.
+    acceptedRGPD: false,
   });
 
   // Wording adapté au contexte d'arrivée (patient vs soignant générique).
@@ -88,6 +91,11 @@ function SignupForm() {
         toast.error("Date de naissance invalide");
         return;
       }
+      // INIT-678 / M1 — bloque la soumission si le consentement RGPD n'est pas coché.
+      if (!form.acceptedRGPD) {
+        toast.error("Vous devez accepter le traitement de vos données personnelles pour créer votre compte");
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -103,6 +111,8 @@ function SignupForm() {
             phone: form.phone || undefined,
             birthDate: form.birthDate,
             sex: form.sex as "M" | "F",
+            // INIT-678 / M1 — garanti `true` ici (validé juste au-dessus dans le bloc PATIENT).
+            acceptedRGPD: true,
           })
         : await authApi.signup({
             email: form.email,
@@ -288,6 +298,38 @@ function SignupForm() {
                   Ces informations permettent à votre soignant·e de vous reconnaître si un dossier
                   existe déjà à votre nom (RGPD Art. 5.1.c — minimisation).
                 </p>
+
+                {/* INIT-678 / M1 — Consentement RGPD obligatoire (Art. 7 preuve + Art. 9 données santé).
+                    Bloque la soumission si décochée. Texte juridique en placeholder à valider par
+                    nami-juridique avant mise en prod — voir TODO ci-dessous. */}
+                <label
+                  htmlFor="acceptedRGPD"
+                  className="flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all"
+                  style={{
+                    background: form.acceptedRGPD ? "rgba(91,78,196,0.05)" : "#F5F3EF",
+                    border: `1px solid ${form.acceptedRGPD ? "#5B4EC4" : "rgba(26,26,46,0.1)"}`,
+                  }}
+                >
+                  <input
+                    id="acceptedRGPD"
+                    type="checkbox"
+                    checked={form.acceptedRGPD}
+                    onChange={(e) => setForm((f) => ({ ...f, acceptedRGPD: e.target.checked }))}
+                    required
+                    aria-required="true"
+                    className="mt-0.5 h-4 w-4 cursor-pointer"
+                    style={{ accentColor: "#5B4EC4" }}
+                  />
+                  <span className="text-xs" style={{ color: "#374151", lineHeight: 1.5 }}>
+                    {/* TODO INIT-678 — texte à valider par nami-juridique (Margot) avant mise en prod. */}
+                    <strong>&lt;TEXTE À VALIDER PAR MARGOT/nami-juridique&gt;</strong>
+                    {" "}J&apos;accepte que Nami collecte et traite mes données personnelles
+                    (identité, contact, données de santé) dans le seul but de coordonner mes
+                    soins avec l&apos;équipe soignante que j&apos;autoriserai. Je peux retirer mon
+                    consentement à tout moment depuis &laquo;&nbsp;Mon compte &gt; Mes consentements&nbsp;&raquo;.
+                    Conformément au RGPD (Art. 7 et 9) et à la politique de confidentialité de Nami.
+                  </span>
+                </label>
               </>
             )}
 
