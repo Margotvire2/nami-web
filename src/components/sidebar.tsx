@@ -31,7 +31,9 @@ const NAV_PATIENTS = [
   // déjà vers /taches — doublon avec l'entrée Tâches juste en dessous).
   // Conformité MDR : /alertes archivée (alertes auto = risque DM Class IIa).
   { href: "/taches",       label: "Tâches",             emoji: "✅" },
-  { href: "/protocoles",   label: "Références",         emoji: "📋" },
+  // INIT-649 : entrée « Références »→/protocoles retirée (page archivée volontairement
+  // via commit ba17970 « page obsolete — conservée hors router »). Cleanup final
+  // après PR #214 qui avait oublié cette ligne.
   { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
   { href: "/documents",    label: "Documents",          emoji: "📄" },
   { href: "/import",       label: "Importer l'historique", emoji: "📥" },
