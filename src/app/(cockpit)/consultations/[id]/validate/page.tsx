@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store";
 import { apiWithToken } from "@/lib/api";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { CRSection } from "./CRSection";
+import { BilanSection } from "./BilanSection";
 import { PrescriptionSection } from "./PrescriptionSection";
 import { ActionsSummarySection } from "./ActionsSummarySection";
 
@@ -93,6 +94,7 @@ export default function ValidateConsultationPage({
         {consultation && consultation.status === "COMPLETED" && (
           <div className="space-y-4">
             <CRSection consultation={consultation} careCaseId={careCaseId} />
+            <BilanSection consultation={consultation} careCaseId={careCaseId} />
             <PrescriptionSection
               careCaseId={careCaseId}
               clinicalNoteId={consultation.generatedNote?.id ?? null}
