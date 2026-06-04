@@ -14,8 +14,48 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal"
 
 export const metadata: Metadata = {
   title: "Nami — Pour les soignants libéraux",
-  description: "Nami supprime la charge administrative autour de la consultation. Dictée → dossier structuré, adressage sécurisé, réseau de confiance. Conçu par une soignante.",
-  robots: { index: true, follow: true },
+  description:
+    "Nami supprime la charge administrative autour de la consultation. Dictée structurée, adressage sécurisé, base documentaire, réseau de confiance. Conçu par une soignante.",
+  keywords: [
+    "soignants libéraux",
+    "coordination soins",
+    "dictée médicale",
+    "adressage sécurisé",
+    "dossier de coordination",
+    "pluridisciplinaire",
+    "base documentaire",
+    "réseau soignants",
+  ],
+  alternates: { canonical: "/soignants-liberaux" },
+  openGraph: {
+    title: "Nami — Pour les soignants libéraux",
+    description:
+      "Dictée structurée, adressage sécurisé, base documentaire, réseau de confiance. Conçu par une soignante.",
+    url: "https://namipourlavie.com/soignants-liberaux",
+    type: "website",
+    siteName: "Nami",
+    locale: "fr_FR",
+    images: [
+      {
+        url: "/og-image-pro.svg",
+        width: 1200,
+        height: 630,
+        alt: "Nami — Pour les soignants",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nami — Pour les soignants libéraux",
+    description:
+      "Dictée structurée, adressage sécurisé, base documentaire, réseau de confiance.",
+    images: ["/og-image-pro.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
 }
 
 export default function SoignantsLiberauxPage() {

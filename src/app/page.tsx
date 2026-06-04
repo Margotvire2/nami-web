@@ -7,12 +7,23 @@ import { Reveal } from "@/components/home/HomeReveal";
 export const metadata: Metadata = {
   title: "Le soin est fragmenté. Nami le coud.",
   description: "Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de 564 000+ professionnels en France.",
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Nami — Le soin est fragmenté. Nami le coud.",
     description: "Coordination pluridisciplinaire des parcours de soins complexes. Diét, psy, médecin, pédiatre — une équipe alignée.",
     url: "https://namipourlavie.com",
+    type: "website",
+    siteName: "Nami",
+    locale: "fr_FR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "Nami" }],
   },
-  alternates: { canonical: "/" },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nami — Le soin est fragmenté. Nami le coud.",
+    description: "Coordination pluridisciplinaire des parcours de soins complexes.",
+    images: ["/og-default.png"],
+  },
+  robots: { index: true, follow: true },
 };
 
 const FEATURES: { icon: string; title: string; desc: string }[] = [

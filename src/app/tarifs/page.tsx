@@ -17,8 +17,18 @@ export const metadata: Metadata = {
     title: "Tarifs — Nami",
     description:
       "Sans frais pour les patients. Formules pour soignants libéraux et structures de soin.",
-    url: "/tarifs",
+    url: "https://namipourlavie.com/tarifs",
     type: "website",
+    siteName: "Nami",
+    locale: "fr_FR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "Nami — Tarifs" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tarifs — Nami",
+    description:
+      "Sans frais pour les patients. Formules pour soignants libéraux et structures de soin.",
+    images: ["/og-default.png"],
   },
   robots: { index: true, follow: true },
 }
