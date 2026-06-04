@@ -1,7 +1,8 @@
 "use client";
 
 import { use, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type NoteAnalysis } from "@/lib/api";
@@ -10,10 +11,10 @@ import { useRecording } from "@/contexts/RecordingContext";
 import { useConsultation } from "@/contexts/ConsultationContext";
 import { useAudioConsentGate } from "@/hooks/useAudioConsentGate";
 import { PatientHeader } from "./views/PatientHeader";
-import { ViewGlobale } from "./views/ViewGlobale";
 import { ViewDossier } from "./views/ViewDossier";
 import { ViewCoordination } from "./views/ViewCoordination";
 import { ViewParcours } from "./views/ViewParcours";
+import { ViewOverview } from "./views/ViewOverview";
 import { SuiviTab } from "@/components/patient/SuiviTab";
 import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossier";
 import { ReferralModal } from "./referral-modal";
@@ -21,23 +22,64 @@ import { QuickTaskModal } from "./QuickTaskModal";
 import { ScheduleQuestionnaireModal } from "./ScheduleQuestionnaireModal";
 import { EditPatientModal } from "./EditPatientModal";
 import { ConsultationsList } from "./ConsultationsList";
+import { PatientSidebar, type PatientSidebarTab } from "./_components/PatientSidebar";
+import { QuickActionsBar } from "./_components/QuickActionsBar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, X, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
-import { AnimatedTabs } from "@/components/ui/AnimatedTabs"
+import {
+  Loader2,
+  X,
+  CheckCircle2,
+  AlertTriangle,
+  Sparkles,
+  LayoutDashboard,
+  GitBranch,
+  ClipboardCheck,
+  FlaskConical,
+  MessageSquare,
+  Mic,
+  Baby,
+  ChevronRight,
+} from "lucide-react";
 import { useCareSocket } from "@/hooks/useCareSocket"
 
-type Tab = "globale" | "suivi" | "parcours" | "dossier" | "coordination" | "consultations" | "pediatrique";
+type Tab =
+  | "overview"
+  | "parcours"
+  | "bilans"
+  | "observations"
+  | "messages"
+  | "consultations"
+  | "pediatrique"
+  // Anciens deep-links conservés pour rétro-compat
+  | "globale"
+  | "suivi"
+  | "dossier"
+  | "coordination";
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: "globale", label: "Vue globale" },
-  { key: "suivi", label: "Suivi" },
-  { key: "parcours", label: "Parcours" },
-  { key: "dossier", label: "Dossier" },
-  { key: "coordination", label: "Coordination" },
-  { key: "consultations", label: "Consultations" },
+const VALID_TABS: Tab[] = [
+  "overview",
+  "parcours",
+  "bilans",
+  "observations",
+  "messages",
+  "consultations",
+  "pediatrique",
+  "globale",
+  "suivi",
+  "dossier",
+  "coordination",
 ];
+
+// Mapping rétro-compat — les anciennes clés sont conservées comme alias des
+// nouvelles, pour préserver les bookmarks existants.
+const TAB_ALIAS: Partial<Record<Tab, Tab>> = {
+  globale: "overview",
+  suivi: "bilans",
+  dossier: "observations",
+  coordination: "messages",
+};
 
 // ─── NoteInline ───────────────────────────────────────────────────────────────
 
@@ -140,7 +182,7 @@ function NoteAnalysisBanner({
     return (
       <div className="border-b bg-slate-50 px-6 py-2 shrink-0 flex items-center gap-2 text-xs text-slate-500">
         <AlertTriangle size={12} className="shrink-0" />
-        <span>L'analyse n'a pas pu aboutir.</span>
+        <span>L&apos;analyse n&apos;a pas pu aboutir.</span>
         <button onClick={onDismiss} className="ml-auto text-slate-400 hover:text-slate-600">
           <X size={13} />
         </button>
@@ -188,9 +230,24 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const { startRecording } = useRecording();
   const { startConsultation } = useConsultation();
 
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialTab = (searchParams.get("tab") as Tab | null) ?? "globale";
-  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+  const rawTab = searchParams.get("tab") as Tab | null;
+  const normalizedTab: Tab = (() => {
+    if (!rawTab || !VALID_TABS.includes(rawTab)) return "overview";
+    return TAB_ALIAS[rawTab] ?? rawTab;
+  })();
+  const [activeTab, setActiveTabInternal] = useState<Tab>(normalizedTab);
+
+  const setActiveTab = useCallback(
+    (tab: Tab) => {
+      setActiveTabInternal(tab);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", tab);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
   const [noteOpen, setNoteOpen] = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -198,10 +255,13 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const [editPatientOpen, setEditPatientOpen] = useState(false);
   const [pendingUploadType, setPendingUploadType] = useState<string | null>(null);
 
-  const handleAddDocument = useCallback((type: string) => {
-    setPendingUploadType(type);
-    setActiveTab("dossier");
-  }, []);
+  const handleAddDocument = useCallback(
+    (type: string) => {
+      setPendingUploadType(type);
+      setActiveTab("observations");
+    },
+    [setActiveTab],
+  );
   const [analysisNote, setAnalysisNote] = useState<{ noteId: string; careCaseId: string } | null>(null);
   const [aiStreaming, setAiStreaming] = useState(false);
 
@@ -296,6 +356,46 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
     recentActivity: [],
   };
 
+  // Tabs disponibles — ne sont rendus que ceux dont la View existe.
+  // ViewParcours / ViewOverview existent toujours.
+  // bilans → SuiviTab, observations → ViewDossier, messages → ViewCoordination
+  // pediatrique → PediatricDossier uniquement si caseType === PEDIATRIC.
+  const sidebarTabs: PatientSidebarTab[] = [
+    { key: "overview", label: "Vue d'ensemble", icon: <LayoutDashboard size={14} /> },
+    { key: "parcours", label: "Parcours", icon: <GitBranch size={14} /> },
+    { key: "bilans", label: "Bilans & suivi", icon: <FlaskConical size={14} /> },
+    { key: "observations", label: "Observations", icon: <ClipboardCheck size={14} /> },
+    { key: "messages", label: "Coordination", icon: <MessageSquare size={14} /> },
+    { key: "consultations", label: "Consultations", icon: <Mic size={14} /> },
+    ...(careCase.caseType === "PEDIATRIC"
+      ? [{ key: "pediatrique", label: "Pédiatrie", icon: <Baby size={14} /> }]
+      : []),
+  ];
+
+  // Counts agrégés pour les badges sidebar
+  const sidebarCounts: Record<string, number> = {
+    bilans: dash.indicators.filter(
+      (i) => i.required && (i.timeStatus === "OVERDUE" || i.timeStatus === "DUE_SOON"),
+    ).length,
+    observations:
+      dash.actions.urgentTasks.length + (careCase._count?.notes ?? 0 > 0 ? 0 : 0),
+    messages:
+      dash.actions.pendingReferrals.length + dash.actions.suggestedReferrals.length,
+  };
+
+  // Tab effectif rendu — fallback ?tab=xyz → overview
+  const renderTab: Tab = sidebarTabs.some((t) => t.key === activeTab)
+    ? activeTab
+    : "overview";
+
+  const patientFullNameRender = `${careCase.patient.firstName} ${careCase.patient.lastName}`;
+  const ageRender = careCase.patient.birthDate
+    ? Math.floor(
+        (Date.now() - new Date(careCase.patient.birthDate).getTime()) /
+          (365.25 * 24 * 3600 * 1000),
+      )
+    : null;
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
@@ -347,62 +447,83 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         />
       )}
 
-      {/* Tab bar */}
-      <AnimatedTabs
-        tabs={[
-          ...TABS,
-          ...(careCase.caseType === "PEDIATRIC" ? [{ key: "pediatrique" as Tab, label: "Pédiatrie" }] : []),
-        ].map((t) => ({ id: t.key, label: t.label }))}
-        activeTab={activeTab}
-        onTabChange={(id) => setActiveTab(id as Tab)}
-        className="bg-card px-6 shrink-0"
-      />
+      {/* Breadcrumb + QuickActions */}
+      <div
+        data-testid="patient-360-breadcrumb"
+        className="flex items-center justify-between gap-4 px-6 py-2 border-b border-[#E8ECF4] bg-white shrink-0"
+      >
+        <nav aria-label="fil d'Ariane" className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+          <Link href="/patients" className="hover:text-[#4F46E5]">
+            Patients
+          </Link>
+          <ChevronRight size={12} aria-hidden="true" className="text-gray-300" />
+          <span className="text-gray-700 font-medium truncate">
+            {patientFullNameRender}
+            {ageRender !== null ? ` (${ageRender} ans)` : null}
+          </span>
+        </nav>
+        <QuickActionsBar
+          onScheduleAppointment={() => setActiveTab("parcours")}
+          onSendMessage={() => setActiveTab("messages")}
+          onAddDocument={() => handleAddDocument("OTHER")}
+        />
+      </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          {activeTab === "globale" && (
-            <ViewGlobale dashboard={dash} careCaseId={id} careCase={careCase} onAddDocument={handleAddDocument} />
-          )}
-          {activeTab === "suivi" && (
-            <SuiviTab
-              careCaseId={id}
-              pathwayKey={careCase.pathwayTemplateId ?? "default"}
-              personId={careCase.patient?.id}
-              patient={{
-                firstName: careCase.patient?.firstName ?? "",
-                lastName: careCase.patient?.lastName ?? "",
-                birthDate: careCase.patient?.birthDate ?? null,
-                sex: careCase.patient?.sex ?? undefined,
-              }}
-              height={careCase.height ?? null}
-              napValue={careCase.napValue ?? null}
-              napDescription={careCase.napDescription ?? null}
-            />
-          )}
-          {activeTab === "parcours" && <ViewParcours careCaseId={id} />}
-          {activeTab === "dossier" && (
-            <ViewDossier
-              careCaseId={id}
-              careCase={careCase}
-              pendingUploadType={pendingUploadType}
-              onPendingUploadConsumed={() => setPendingUploadType(null)}
-            />
-          )}
-          {activeTab === "coordination" && (
-            <ViewCoordination
-              dashboard={dash}
-              careCaseId={id}
-              patientFirstName={careCase.patient?.firstName ?? ""}
-              patientLastName={careCase.patient?.lastName ?? ""}
-            />
-          )}
-          {activeTab === "consultations" && (
-            <ConsultationsList careCaseId={id} />
-          )}
-          {activeTab === "pediatrique" && careCase.caseType === "PEDIATRIC" && (
-            <PediatricDossier careCaseId={id} />
-          )}
+      {/* Body: sidebar + main */}
+      <div className="flex-1 overflow-hidden flex">
+        <PatientSidebar
+          activeTab={renderTab}
+          tabs={sidebarTabs}
+          counts={sidebarCounts}
+        />
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {renderTab === "overview" && (
+              <ViewOverview
+                patient={careCase}
+                dashboard={dash}
+                onNavigateToTab={(tabKey) => setActiveTab(tabKey as Tab)}
+              />
+            )}
+            {renderTab === "parcours" && <ViewParcours careCaseId={id} />}
+            {renderTab === "bilans" && (
+              <SuiviTab
+                careCaseId={id}
+                pathwayKey={careCase.pathwayTemplateId ?? "default"}
+                personId={careCase.patient?.id}
+                patient={{
+                  firstName: careCase.patient?.firstName ?? "",
+                  lastName: careCase.patient?.lastName ?? "",
+                  birthDate: careCase.patient?.birthDate ?? null,
+                  sex: careCase.patient?.sex ?? undefined,
+                }}
+                height={careCase.height ?? null}
+                napValue={careCase.napValue ?? null}
+                napDescription={careCase.napDescription ?? null}
+              />
+            )}
+            {renderTab === "observations" && (
+              <ViewDossier
+                careCaseId={id}
+                careCase={careCase}
+                pendingUploadType={pendingUploadType}
+                onPendingUploadConsumed={() => setPendingUploadType(null)}
+              />
+            )}
+            {renderTab === "messages" && (
+              <ViewCoordination
+                dashboard={dash}
+                careCaseId={id}
+                patientFirstName={careCase.patient?.firstName ?? ""}
+                patientLastName={careCase.patient?.lastName ?? ""}
+              />
+            )}
+            {renderTab === "consultations" && <ConsultationsList careCaseId={id} />}
+            {renderTab === "pediatrique" && careCase.caseType === "PEDIATRIC" && (
+              <PediatricDossier careCaseId={id} />
+            )}
+          </div>
         </div>
       </div>
 
