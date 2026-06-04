@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { getCareType, getCareTypeLabel } from "@/lib/caseType";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
@@ -293,10 +294,29 @@ export default function PatientsPage() {
 }
 
 function PatientRow({ careCase: c }: { careCase: CareCase }) {
+  // INIT-689 point 7 — déduplication des 6 <Link> redondants par ligne.
+  // Aucune cellule ne porte d'action distincte (pas de menu kebab, pas de bouton
+  // supprimer, pas de badge cliquable séparé) : un seul Link sémantique sur le
+  // nom (clavier / ctrl-clic / sémantique a11y) + onClick au niveau de la ligne
+  // pour conserver "toute la ligne cliquable" en pointeur.
+  const router = useRouter();
+  const href = `/patients/${c.id}`;
+  const ct = getCareType(c.caseType);
+
+  function handleRowClick(e: React.MouseEvent<HTMLTableRowElement>) {
+    // Ignore le clic si la cible (ou un ancêtre) est déjà un lien/bouton —
+    // évite la double navigation et préserve ctrl/cmd + clic du Link.
+    if ((e.target as HTMLElement).closest("a, button")) return;
+    router.push(href);
+  }
+
   return (
-    <tr className="hover:bg-muted/30 transition-colors group cursor-pointer">
+    <tr
+      className="hover:bg-muted/30 transition-colors group cursor-pointer"
+      onClick={handleRowClick}
+    >
       <td className="px-6 py-3">
-        <Link href={`/patients/${c.id}`} className="flex items-center gap-2.5">
+        <Link href={href} className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-semibold text-primary shrink-0">
             {c.patient.firstName[0]}{c.patient.lastName[0]}
           </div>
@@ -309,36 +329,24 @@ function PatientRow({ careCase: c }: { careCase: CareCase }) {
         </Link>
       </td>
       <td className="px-4 py-3">
-        <Link href={`/patients/${c.id}`}>
-          {(() => { const ct = getCareType(c.caseType); return (
-            <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: ct.bg, color: ct.color }}>{ct.label}</span>
-          ); })()}
-        </Link>
+        <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 999, background: ct.bg, color: ct.color }}>{ct.label}</span>
       </td>
       <td className="px-4 py-3">
-        <Link href={`/patients/${c.id}`}>
-          <span className="text-xs">{STATUS_LABEL[c.status] ?? c.status}</span>
-        </Link>
+        <span className="text-xs">{STATUS_LABEL[c.status] ?? c.status}</span>
       </td>
       <td className="px-4 py-3">
-        <Link href={`/patients/${c.id}`}>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users size={11} />
-            {c._count.members}
-          </div>
-        </Link>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Users size={11} />
+          {c._count.members}
+        </div>
       </td>
       <td className="px-4 py-3">
-        <Link href={`/patients/${c.id}`}>
-          <span className="text-xs text-muted-foreground">
-            {c.lastActivityAt ? daysAgo(c.lastActivityAt) : "—"}
-          </span>
-        </Link>
+        <span className="text-xs text-muted-foreground">
+          {c.lastActivityAt ? daysAgo(c.lastActivityAt) : "—"}
+        </span>
       </td>
       <td className="px-4 py-3 text-right">
-        <Link href={`/patients/${c.id}`}>
-          <ChevronRight size={14} className="text-muted-foreground/0 group-hover:text-muted-foreground/50 ml-auto transition-colors" />
-        </Link>
+        <ChevronRight size={14} className="text-muted-foreground/0 group-hover:text-muted-foreground/50 ml-auto transition-colors" />
       </td>
     </tr>
   );

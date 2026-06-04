@@ -6,6 +6,7 @@ import {
   Building2, ArrowLeft, Users,
 } from "lucide-react"
 import BookingSection from "./booking-section"
+import { formatExpertiseDomain } from "@/lib/provider-display"
 
 export const revalidate = 3600
 
@@ -99,7 +100,7 @@ export default async function ProfilSoignantPage({
     ...(provider.teleconsultAvailable ? { availableService: { "@type": "MedicalTherapy", name: "Téléconsultation" } } : {}),
     ...(provider.badges.rppsVerified ? { identifier: { "@type": "PropertyValue", name: "RPPS", value: "Vérifié" } } : {}),
     memberOf: { "@type": "Organization", name: "Nami", url: "https://namipourlavie.com" },
-    knowsAbout: provider.publicSpecialties.map((ps: string) => ({ "@type": "MedicalCondition", name: ps })),
+    knowsAbout: provider.publicSpecialties.map((ps: string) => ({ "@type": "MedicalCondition", name: formatExpertiseDomain(ps) })),
   }
 
   return (
@@ -195,7 +196,7 @@ export default async function ProfilSoignantPage({
                     key={tag}
                     className="rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
                   >
-                    {tag}
+                    {formatExpertiseDomain(tag)}
                   </span>
                 ))}
               </div>

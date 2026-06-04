@@ -22,8 +22,7 @@ const NAV_ITEMS = [
     href: "/trouver-un-soignant",
     icon: Search,
     label: "Trouver un soignant",
-    disabled: true,
-    tooltip: "Bientôt disponible",
+    disabled: false,
   },
   { href: "/rendez-vous", icon: Calendar, label: "Mes rendez-vous", disabled: false },
   { href: "/notifications", icon: Bell, label: "Notifications", disabled: false },
@@ -63,7 +62,6 @@ export function PatientSidebar({ className = "" }: PatientSidebarProps) {
               icon={item.icon}
               label={item.label}
               disabled={item.disabled}
-              tooltip={"tooltip" in item ? item.tooltip : undefined}
               badge={item.href === "/notifications" ? unreadCount : undefined}
               variant="sidebar"
             />
