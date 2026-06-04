@@ -26,6 +26,7 @@ const FOOTER_COLS = [
       { l: "CGU", h: "/cgu" },
       { l: "Confidentialité", h: "/confidentialite" },
       { l: "Mentions légales", h: "/mentions-legales" },
+      { l: "Contact & support", h: "/contact" },
     ],
   },
 ];

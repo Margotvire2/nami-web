@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { ChevronDown, LifeBuoy, LogOut, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 
 interface PatientAvatarMenuProps {
@@ -101,6 +101,16 @@ export function PatientAvatarMenu({ firstName, lastName }: PatientAvatarMenuProp
           >
             <UserIcon size={16} strokeWidth={1.8} aria-hidden="true" />
             Mon compte
+          </Link>
+
+          <Link
+            href="/contact"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#374151] hover:bg-[rgba(91,78,196,0.06)] hover:text-[#5B4EC4] transition-colors focus-visible:outline-none focus-visible:bg-[rgba(91,78,196,0.08)] focus-visible:text-[#5B4EC4]"
+          >
+            <LifeBuoy size={16} strokeWidth={1.8} aria-hidden="true" />
+            Aide &amp; contact
           </Link>
 
           <div className="border-t border-[rgba(26,26,46,0.06)] my-1" role="separator" />
