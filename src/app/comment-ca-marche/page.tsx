@@ -20,14 +20,24 @@ export const metadata: Metadata = {
     "trouver soignant",
     "parcours patient",
   ],
+  alternates: { canonical: "/comment-ca-marche" },
   openGraph: {
     title: "Comment ça marche — Nami",
     description:
-      "Coordination de soins simple et sécurisée en 4 étapes : trouver, prendre RDV, préparer, suivre.",
+      "Coordination de soins simple et sécurisée en 4 étapes : trouver, prendre RDV, préparer, continuer.",
+    url: "https://namipourlavie.com/comment-ca-marche",
     type: "website",
+    siteName: "Nami",
     locale: "fr_FR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "Nami — Comment ça marche" }],
   },
-  alternates: { canonical: "/comment-ca-marche" },
+  twitter: {
+    card: "summary_large_image",
+    title: "Comment ça marche — Nami",
+    description:
+      "Coordination de soins simple et sécurisée en 4 étapes : trouver, prendre RDV, préparer, continuer.",
+    images: ["/og-default.png"],
+  },
   robots: { index: true, follow: true },
 };
 

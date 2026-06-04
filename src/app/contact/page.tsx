@@ -16,12 +16,25 @@ export const metadata: Metadata = {
     "partenariat santé",
     "coordination soins",
   ],
+  alternates: { canonical: "/contact" },
   openGraph: {
     title: "Contact — Nami",
     description:
       "Six canaux dédiés pour joindre l'équipe Nami : patient, soignant, DPO, presse, sécurité, partenariat.",
+    url: "https://namipourlavie.com/contact",
+    type: "website",
+    siteName: "Nami",
+    locale: "fr_FR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "Nami — Contact" }],
   },
-  alternates: { canonical: "/contact" },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact — Nami",
+    description:
+      "Six canaux dédiés pour joindre l'équipe Nami : patient, soignant, DPO, presse, sécurité, partenariat.",
+    images: ["/og-default.png"],
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function ContactPage() {

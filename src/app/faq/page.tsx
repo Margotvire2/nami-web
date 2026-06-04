@@ -17,14 +17,24 @@ export const metadata: Metadata = {
     "rgpd santé",
     "aidants",
   ],
+  alternates: { canonical: "/faq" },
   openGraph: {
     title: "FAQ — Nami",
     description:
       "Toutes les réponses sur Nami : coordination de soins, prix, données, aidants.",
+    url: "https://namipourlavie.com/faq",
     type: "website",
+    siteName: "Nami",
     locale: "fr_FR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "Nami — FAQ" }],
   },
-  alternates: { canonical: "/faq" },
+  twitter: {
+    card: "summary_large_image",
+    title: "FAQ — Nami",
+    description:
+      "Toutes les réponses sur Nami : coordination de soins, prix, données, aidants.",
+    images: ["/og-default.png"],
+  },
   robots: { index: true, follow: true },
 };
 

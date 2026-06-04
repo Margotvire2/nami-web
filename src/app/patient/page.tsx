@@ -17,25 +17,47 @@ import { PublicFooter } from "@/components/public/PublicFooter";
 export const metadata: Metadata = {
   title: "Espace patient — Coordonnez vos soins | Nami",
   description:
-    "Trouvez un soignant, prenez vos rendez-vous, suivez votre parcours et communiquez avec votre équipe soignante. L'espace patient Nami centralise votre santé.",
+    "Trouvez un soignant, prenez vos rendez-vous, organisez votre parcours et communiquez avec votre équipe soignante. L'espace patient Nami centralise votre santé.",
   keywords: [
     "espace patient",
     "coordination soins",
     "rendez-vous médical",
     "prendre rendez-vous médecin",
-    "suivi parcours soins",
+    "parcours soins",
     "messagerie soignant",
     "documents médicaux",
     "trouver soignant",
   ],
+  alternates: { canonical: "/patient" },
   openGraph: {
     title: "Espace patient Nami — Coordonnez vos soins en un seul endroit",
     description:
-      "Trouvez un soignant, prenez vos rendez-vous, suivez votre parcours. Nami centralise votre santé.",
+      "Trouvez un soignant, prenez vos rendez-vous, organisez votre parcours. Nami centralise votre santé.",
+    url: "https://namipourlavie.com/patient",
     type: "website",
+    siteName: "Nami",
+    locale: "fr_FR",
+    images: [
+      {
+        url: "/og-image-patient.svg",
+        width: 1200,
+        height: 630,
+        alt: "Nami — Espace patient",
+      },
+    ],
   },
-  alternates: { canonical: "/patient" },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: "summary_large_image",
+    title: "Espace patient Nami — Coordonnez vos soins en un seul endroit",
+    description:
+      "Trouvez un soignant, prenez vos rendez-vous, organisez votre parcours.",
+    images: ["/og-image-patient.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
 };
 
 const jsonLd = {

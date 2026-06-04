@@ -1,9 +1,45 @@
 # Nami — robots.txt
 # https://namipourlavie.com
+# Source de vérité : ce fichier + src/app/sitemap.ts
 
 User-agent: *
 
-# Cockpit soignant (authentifié)
+# ─── Landings publiques explicitement autorisées (SEO) ───────────────────────
+# Patient
+Allow: /patient
+Allow: /pour-les-proches
+Allow: /comment-ca-marche
+Allow: /faq
+# Pro
+Allow: /soignants-liberaux
+Allow: /pour-structures
+Allow: /soignants
+Allow: /fonctionnalites
+Allow: /tarifs
+# Annuaire + contenu
+Allow: /trouver-un-soignant
+Allow: /pathologies
+Allow: /blog
+Allow: /professions
+Allow: /annuaire-public
+# Légal
+Allow: /cgu
+Allow: /confidentialite
+Allow: /mentions-legales
+Allow: /securite-et-donnees
+Allow: /methodologie-editoriale
+# Marque
+Allow: /contact
+Allow: /presse
+Allow: /partenaires
+
+# ─── Assets indexables ───────────────────────────────────────────────────────
+Allow: /og-default.png
+Allow: /og-image-patient.svg
+Allow: /og-image-pro.svg
+Allow: /nami-mascot.png
+
+# ─── Cockpit soignant (authentifié) ──────────────────────────────────────────
 Disallow: /patients/
 Disallow: /agenda/
 Disallow: /aujourd-hui/
@@ -23,10 +59,10 @@ Disallow: /alertes/
 Disallow: /dashboard/
 Disallow: /import/
 
-# Admin (jamais indexable)
+# ─── Admin (jamais indexable) ────────────────────────────────────────────────
 Disallow: /admin/
 
-# Pages non indexables (pitch VC, démos internes, design)
+# ─── Pages internes (pitch VC, démos, design) ────────────────────────────────
 Disallow: /pitch
 Disallow: /pitch-tca
 Disallow: /pitch-reseau
@@ -38,7 +74,7 @@ Disallow: /design-system
 Disallow: /landing-page
 Disallow: /shared/
 
-# Flux d'authentification (pas de valeur SEO)
+# ─── Flux d'authentification (pas de valeur SEO) ─────────────────────────────
 Disallow: /login
 Disallow: /signup
 Disallow: /invite/
@@ -48,10 +84,10 @@ Disallow: /verify-email/
 Disallow: /welcome/
 Disallow: /upgrade/
 
-# API
+# ─── API ─────────────────────────────────────────────────────────────────────
 Disallow: /api/
 
-# LLMs — contexte IA disponible sur llms.txt
+# ─── LLMs — contexte IA disponible ───────────────────────────────────────────
 # https://namipourlavie.com/llms.txt
 # https://namipourlavie.com/llms-full.txt
 
