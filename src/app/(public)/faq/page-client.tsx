@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { FAQ_PUBLIC_CATEGORIES } from "./faq-public-data";
+import { FAQ_SECTIONS } from "@/data/faq-items";
+import { FAQSection } from "@/components/faq/FAQSection";
 import { FAQHero } from "./FAQHero";
 import { FAQSearchBar } from "./FAQSearchBar";
-import { FAQCategorySection } from "./FAQCategorySection";
 import { FAQFinalCTA } from "./FAQFinalCTA";
 
 export default function FAQPageClient() {
@@ -13,18 +13,18 @@ export default function FAQPageClient() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return FAQ_PUBLIC_CATEGORIES;
-    return FAQ_PUBLIC_CATEGORIES
-      .map((cat) => ({
-        ...cat,
-        items: cat.items.filter(
+    if (!q) return FAQ_SECTIONS;
+    return FAQ_SECTIONS
+      .map((section) => ({
+        ...section,
+        items: section.items.filter(
           (item) =>
             item.question.toLowerCase().includes(q) ||
             item.answerMarkdown.toLowerCase().includes(q) ||
             item.keywords.some((k) => k.toLowerCase().includes(q)),
         ),
       }))
-      .filter((cat) => cat.items.length > 0);
+      .filter((section) => section.items.length > 0);
   }, [query]);
 
   const total = filtered.reduce((acc, c) => acc + c.items.length, 0);
@@ -48,8 +48,8 @@ export default function FAQPageClient() {
         <EmptyState query={query} onClear={() => setQuery("")} />
       ) : (
         <div className="mt-2">
-          {filtered.map((cat) => (
-            <FAQCategorySection key={cat.id} category={cat} />
+          {filtered.map((section) => (
+            <FAQSection key={section.id} section={section} />
           ))}
         </div>
       )}
