@@ -7,25 +7,26 @@ import { apiWithToken, type Activity } from "@/lib/api"
 import { format, parseISO, isPast } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
-  Calendar, Send, CheckCircle2, AlertTriangle, Stethoscope,
+  Calendar, Send, CheckCircle2, Bell, Stethoscope,
   ClipboardList, ChevronDown,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
-type Filter = "all" | "appointments" | "referrals" | "alerts"
+type Filter = "all" | "appointments" | "referrals" | "reminders"
 
 const FILTERS: Array<{ key: Filter; label: string }> = [
   { key: "all", label: "Tout" },
   { key: "appointments", label: "RDV" },
   { key: "referrals", label: "Adressages" },
-  { key: "alerts", label: "Rappels" },
+  { key: "reminders", label: "Rappels" },
 ]
 
 const CLINICAL_TYPES = new Set([
   "APPOINTMENT_CREATED", "APPOINTMENT_COMPLETED", "APPOINTMENT_CANCELLED",
   "REFERRAL_CREATED", "REFERRAL_ACCEPTED", "REFERRAL_DECLINED",
+  "REMINDER_TRIGGERED", "REMINDER_RESOLVED",
   "ALERT_TRIGGERED", "ALERT_RESOLVED",
   "CARE_CASE_CREATED", "CARE_PLAN_UPDATED",
   "NOTE_ADDED", "TASK_COMPLETED",
@@ -51,8 +52,10 @@ const EVENT_CONFIG: Record<string, EventConfig> = {
   APPOINTMENT_CANCELLED: { icon: Calendar, color: "text-muted-foreground", bgColor: "bg-muted", label: "RDV annulé" },
   REFERRAL_CREATED: { icon: Send, color: "text-amber-600", bgColor: "bg-amber-100", label: "Adressage envoyé" },
   REFERRAL_ACCEPTED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Adressage accepté" },
-  REFERRAL_DECLINED: { icon: Send, color: "text-red-600", bgColor: "bg-red-100", label: "Adressage décliné" },
-  ALERT_TRIGGERED: { icon: AlertTriangle, color: "text-red-600", bgColor: "bg-red-100", label: "Rappel" },
+  REFERRAL_DECLINED: { icon: Send, color: "text-amber-700", bgColor: "bg-amber-100", label: "Adressage décliné" },
+  REMINDER_TRIGGERED: { icon: Bell, color: "text-amber-600", bgColor: "bg-amber-100", label: "Rappel" },
+  REMINDER_RESOLVED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Rappel traité" },
+  ALERT_TRIGGERED: { icon: Bell, color: "text-amber-600", bgColor: "bg-amber-100", label: "Rappel" },
   ALERT_RESOLVED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Rappel traité" },
   NOTE_ADDED: { icon: ClipboardList, color: "text-violet-600", bgColor: "bg-violet-100", label: "Note clinique" },
   TASK_COMPLETED: { icon: CheckCircle2, color: "text-emerald-600", bgColor: "bg-emerald-100", label: "Tâche complétée" },
@@ -93,7 +96,7 @@ export function ClinicalTimeline({ careCaseId, startDate }: Props) {
         // Filter
         if (filter === "appointments") return a.activityType.includes("APPOINTMENT")
         if (filter === "referrals") return a.activityType.includes("REFERRAL")
-        if (filter === "alerts") return a.activityType.includes("ALERT")
+        if (filter === "reminders") return a.activityType.includes("REMINDER") || a.activityType.includes("ALERT")
         return true
       })
       .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
