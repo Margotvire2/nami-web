@@ -146,6 +146,14 @@ function TrajectoryDeviationBanner({
     staleTime: 5 * 60_000,
   });
 
+  // 🚨 SECTION DÉSACTIVÉE — wording "Écarts de trajectoire" + régression linéaire
+  // constituent un risque de requalification MDR (dispositif médical de décision).
+  // Nami est un canal de coordination, pas un outil d'alerte clinique.
+  // Memory: feedback_mdr_produit_vs_contenu_source. À retirer du backend + cleanup
+  // composant V1.1. Pour l'instant : early return null pour cacher en prod 04/06.
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   const deviations = (data?.deviations ?? []).filter(
     (m) => !dismissed.includes(m.metricKey)
   );
