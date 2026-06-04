@@ -228,6 +228,33 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify({ email }),
     }),
+
+  // F-SECRETAIRE-SIGNUP-FLOW-V1 — signup secrétaire libérale V1.
+  // Rattachement à 1..20 soignants. Pas de structure (mode libéral V1).
+  // Scope V1 groupé par défaut : APPOINTMENTS + DOCUMENTS + MESSAGES.
+  signupSecretary: (data: {
+    email:                 string;
+    password:              string;
+    firstName:             string;
+    lastName:              string;
+    phone?:                string;
+    city?:                 string;
+    requestedProviderIds:  string[];
+    scope?:                Array<"APPOINTMENTS" | "DOCUMENTS" | "MESSAGES">;
+    requestMessage?:       string;
+    acceptedCGU:           true;
+    acceptedRGPD:          true;
+  }) =>
+    request<{
+      accessToken:        string;
+      refreshToken:       string;
+      personId:           string;
+      linkRequestsCount:  number;
+      invalidProviderIds: string[];
+    }>("/auth/signup/secretary", {
+      method: "POST",
+      body:   JSON.stringify(data),
+    }),
 };
 
 export const mfaApi = {
@@ -5012,4 +5039,86 @@ export const organizationMembersApi = {
       { method: "PATCH", body: JSON.stringify(data) },
       token
     ),
+};
+
+// ─── F-SECRETAIRE-SIGNUP-FLOW-V1 — Secretariat ────────────────────────────────
+
+export type SecretariatLinkStatus = "PENDING" | "ACTIVE" | "REJECTED" | "REVOKED";
+export type SecretariatLinkScope  = "APPOINTMENTS" | "DOCUMENTS" | "MESSAGES";
+
+export interface SecretariatLinkCounterpart {
+  id:        string;
+  firstName: string;
+  lastName:  string;
+  email:     string;
+  phone:     string | null;
+}
+
+export interface SecretariatLink {
+  id:                 string;
+  secretaryPersonId:  string;
+  providerPersonId:   string;
+  status:             SecretariatLinkStatus;
+  scope:              SecretariatLinkScope[];
+  requestedAt:        string;
+  acceptedAt:         string | null;
+  revokedAt:          string | null;
+  requestMessage:     string | null;
+  counterpart:        SecretariatLinkCounterpart;
+}
+
+export interface SecretariatLinksResponse {
+  asRole: "SECRETARY" | "PROVIDER";
+  links:  SecretariatLink[];
+}
+
+export interface ProviderSearchLightResult {
+  id:                  string;
+  firstName:           string;
+  lastName:            string;
+  profession:          string | null;
+  specialtyView:       string | null;
+  city:                string | null;
+  proIdentifierType:   string | null;
+  proIdentifierMasked: string | null;
+}
+
+export const secretariatApi = {
+  // GET /me/secretariat-links?status=PENDING|ACTIVE|REJECTED|REVOKED
+  // Le rôle (SECRETARY / PROVIDER) est déduit du JWT côté backend.
+  listMyLinks: (token: string, params?: { status?: SecretariatLinkStatus }) => {
+    const qs = params?.status ? `?status=${params.status}` : "";
+    return request<SecretariatLinksResponse>(`/me/secretariat-links${qs}`, {}, token);
+  },
+
+  // PATCH /secretariat-links/:id  body: { action: "ACCEPT" | "REJECT" } (PROVIDER only)
+  patchLink: (
+    token: string,
+    id: string,
+    action: "ACCEPT" | "REJECT",
+  ) =>
+    request<{ link: SecretariatLink }>(
+      `/secretariat-links/${id}`,
+      { method: "PATCH", body: JSON.stringify({ action }) },
+      token,
+    ),
+
+  // DELETE /secretariat-links/:id  (PROVIDER ou SECRETARY)
+  revokeLink: (token: string, id: string) =>
+    request<{ link: SecretariatLink }>(
+      `/secretariat-links/${id}`,
+      { method: "DELETE" },
+      token,
+    ),
+
+  // GET /providers/search-light?q=...&city=...  (no auth, rate-limited 30/min/IP)
+  searchProvidersLight: (params: { q?: string; city?: string; limit?: number }) => {
+    const qp = new URLSearchParams();
+    if (params.q)     qp.set("q",     params.q);
+    if (params.city)  qp.set("city",  params.city);
+    if (params.limit) qp.set("limit", String(params.limit));
+    return request<{ providers: ProviderSearchLightResult[] }>(
+      `/providers/search-light?${qp.toString()}`,
+    );
+  },
 };
