@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ListChecks,
 } from "lucide-react";
+import { SecretaryNotificationBell } from "@/components/notifications/SecretaryNotificationBell";
 
 const NAV_ITEMS = [
   { href: "/secretariat",              label: "Agenda",          icon: CalendarDays },
@@ -116,6 +117,14 @@ export default function SecretariatLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen bg-[#FAFAF8]">
       <SecretarySidebar />
       <main className="flex-1 ml-56 min-h-screen">
+        <header
+          className="sticky top-0 z-30 h-14 border-b border-[#E8ECF4] bg-white/85 backdrop-blur-md"
+          aria-label="En-tête secrétariat"
+        >
+          <div className="flex h-full items-center justify-end gap-2 px-6">
+            <SecretaryNotificationBell />
+          </div>
+        </header>
         {children}
       </main>
     </div>
