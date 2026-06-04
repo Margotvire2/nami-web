@@ -36,8 +36,68 @@ describe("aggregate (useMaSante)", () => {
     expect(result.latestEnergy).toBeNull();
     expect(result.averageEnergy7d).toBeNull();
     expect(result.energyPoints7d).toEqual([]);
+    expect(result.moodAvg7d).toBeNull();
+    expect(result.moodPoints7d).toEqual([]);
+    expect(result.latestSleepHours).toBeNull();
+    expect(result.sleepHours7d).toBeNull();
+    expect(result.sleepPoints7d).toEqual([]);
     expect(result.entriesCount7d).toBe(0);
     expect(result.entriesCountPrev7d).toBe(0);
+  });
+
+  it("calcule moodAvg7d (échelle 1-6) avec arrondi 1 décimale", () => {
+    const entries = [
+      entry(1, { mood: "sunny", energy: 80 }), // 6
+      entry(3, { mood: "cloudy", energy: 40 }), // 4
+      entry(5, { mood: "rainy", energy: 20 }), // 3
+    ];
+    const result = aggregate(entries, NOW);
+    // (6 + 4 + 3) / 3 = 4.333… → 4.3
+    expect(result.moodAvg7d).toBe(4.3);
+    expect(result.moodPoints7d).toEqual([3, 4, 6]); // tri chronologique
+  });
+
+  it("agrège les heures de sommeil depuis payload.sleepHours (7j courants)", () => {
+    const entries = [
+      entry(1, { mood: "sunny", energy: 70, sleepHours: 8 }),
+      entry(3, { mood: "cloudy", energy: 40, sleepHours: 6 }),
+      entry(5, { mood: "rainy", energy: 30, sleepHours: 7.5 }),
+    ];
+    const result = aggregate(entries, NOW);
+    expect(result.latestSleepHours).toBe(8);
+    expect(result.sleepPoints7d).toEqual([7.5, 6, 8]); // tri chronologique
+    // (8 + 6 + 7.5) / 3 = 7.166… → 7.2
+    expect(result.sleepHours7d).toBe(7.2);
+  });
+
+  it("supporte la clé alternative sleepMinutes (en minutes → heures)", () => {
+    const entries = [
+      entry(1, { mood: "sunny", energy: 70, sleepMinutes: 450 }), // 7.5 h
+    ];
+    const result = aggregate(entries, NOW);
+    expect(result.latestSleepHours).toBe(7.5);
+    expect(result.sleepHours7d).toBe(7.5);
+  });
+
+  it("retourne null pour sleepHours7d et moodAvg7d quand aucune donnée pertinente", () => {
+    const entries = [
+      entry(1, { energy: 50 }), // ni mood ni sommeil
+    ];
+    const result = aggregate(entries, NOW);
+    expect(result.moodAvg7d).toBeNull();
+    expect(result.moodPoints7d).toEqual([]);
+    expect(result.sleepHours7d).toBeNull();
+    expect(result.sleepPoints7d).toEqual([]);
+  });
+
+  it("ignore les heures de sommeil hors plage et borne 0-24 h", () => {
+    const entries = [
+      entry(1, { mood: "sunny", sleepHours: 30 }), // borné à 24
+      entry(3, { mood: "sunny", sleepHours: -2 }), // borné à 0
+    ];
+    const result = aggregate(entries, NOW);
+    expect(result.sleepPoints7d).toEqual([0, 24]);
+    expect(result.sleepHours7d).toBe(12);
   });
 
   it("agrège correctement quand toutes les entrées sont dans les 7j courants", () => {
