@@ -299,9 +299,7 @@ function SignupForm() {
                   existe déjà à votre nom (RGPD Art. 5.1.c — minimisation).
                 </p>
 
-                {/* INIT-678 / M1 — Consentement RGPD obligatoire (Art. 7 preuve + Art. 9 données santé).
-                    Bloque la soumission si décochée. Texte juridique en placeholder à valider par
-                    nami-juridique avant mise en prod — voir TODO ci-dessous. */}
+                {/* INIT-678 — consentement RGPD obligatoire (Art. 7 + Art. 9). Texte v1.0 validé. */}
                 <label
                   htmlFor="acceptedRGPD"
                   className="flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all"
@@ -321,13 +319,25 @@ function SignupForm() {
                     style={{ accentColor: "#5B4EC4" }}
                   />
                   <span className="text-xs" style={{ color: "#374151", lineHeight: 1.5 }}>
-                    {/* TODO INIT-678 — texte à valider par nami-juridique (Margot) avant mise en prod. */}
-                    <strong>&lt;TEXTE À VALIDER PAR MARGOT/nami-juridique&gt;</strong>
-                    {" "}J&apos;accepte que Nami collecte et traite mes données personnelles
-                    (identité, contact, données de santé) dans le seul but de coordonner mes
-                    soins avec l&apos;équipe soignante que j&apos;autoriserai. Je peux retirer mon
-                    consentement à tout moment depuis &laquo;&nbsp;Mon compte &gt; Mes consentements&nbsp;&raquo;.
-                    Conformément au RGPD (Art. 7 et 9) et à la politique de confidentialité de Nami.
+                    J&apos;accepte que Nami collecte et traite mes données personnelles, incluant
+                    mes données de santé (RGPD Art.&nbsp;9 §2.a), dans le seul but de coordonner
+                    mes soins avec l&apos;équipe soignante que j&apos;autoriserai expressément.
+                    Le traitement s&apos;appuie sur des sous-traitants identifiés dans la{" "}
+                    <Link
+                      href="/confidentialite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="underline underline-offset-2 hover:no-underline"
+                      style={{ color: "#5B4EC4" }}
+                    >
+                      Politique de confidentialité
+                    </Link>
+                    , notamment des services d&apos;IA hébergés en zones conformes RGPD. Je peux
+                    retirer mon consentement à tout moment depuis &laquo;&nbsp;Mon compte &gt;
+                    Mes consentements&nbsp;&raquo;, ce retrait n&apos;affecte pas la licéité du
+                    traitement effectué avant ce retrait.{" "}
+                    <em style={{ color: "#6B7280" }}>(version&nbsp;1.0)</em>
                   </span>
                 </label>
               </>
