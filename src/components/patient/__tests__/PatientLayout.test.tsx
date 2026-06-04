@@ -105,17 +105,16 @@ describe("PatientSidebar", () => {
   });
 
   // ═════════════════════════════════════════════════════════════════════════
-  // Test 2 — "Trouver un soignant" disabled (tooltip "Bientôt disponible")
+  // Test 2 — "Trouver un soignant" actif (route publique branchée, INIT-689)
   //          + "Mon parcours" disabled via PatientNavParcoursItem (branche 0)
   // ═════════════════════════════════════════════════════════════════════════
-  it("2. 'Trouver un soignant' disabled tooltip + 'Mon parcours' disabled (branche 0 CareCase)", () => {
+  it("2. 'Trouver un soignant' actif (Link) + 'Mon parcours' disabled (branche 0 CareCase)", () => {
     renderWithClient(<PatientSidebar />);
 
-    // Item "Trouver un soignant" → disabled NAV_ITEMS classique
-    const trouver = screen.getByText("Trouver un soignant").closest('[aria-disabled="true"]');
+    // Item "Trouver un soignant" → désormais Link actif vers la route publique
+    const trouver = screen.getByText("Trouver un soignant").closest("a");
     expect(trouver).not.toBeNull();
-    expect(trouver).toHaveAttribute("title", "Bientôt disponible");
-    expect(trouver?.tagName).toBe("DIV");
+    expect(trouver).toHaveAttribute("href", "/trouver-un-soignant");
 
     // Item "Mon parcours" via PatientNavParcoursItem (branche 0 CareCase)
     // → disabled avec tooltip dédié "Bientôt — démarrez avec un soignant"
@@ -127,6 +126,7 @@ describe("PatientSidebar", () => {
     // Les autres entries actives sont en <a> Link
     const activeLabels = [
       "Accueil",
+      "Trouver un soignant",
       "Mes rendez-vous",
       "Notifications",
       "Mon suivi",

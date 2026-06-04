@@ -353,7 +353,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[13px] text-[#475569]"><Phone size={13} className="text-[#94A3B8]" /> {selected.detail.phone}</div>
-                  <div className="flex items-center gap-2 text-[13px] text-[#475569]"><Mail size={13} className="text-[#94A3B8]" /> {selected.detail.email}</div>
+                  <div className="flex items-start gap-2 text-[13px] text-[#475569]">
+                    <Mail size={13} className="text-[#94A3B8] shrink-0 mt-0.5" />
+                    <span className="min-w-0 break-all">{selected.detail.email}</span>
+                  </div>
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-3" style={{ fontFamily: "var(--font-inter)" }}>CONSULTATION DU JOUR</p>

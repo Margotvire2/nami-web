@@ -4,6 +4,7 @@ import {
   Search, GraduationCap, MapPin, Video,
   Shield, BadgeCheck, ChevronRight, Users,
 } from "lucide-react"
+import { formatExpertiseDomain } from "@/lib/provider-display"
 
 export const metadata: Metadata = {
   title: "Soignants spécialisés — Nami",
@@ -121,7 +122,7 @@ function ProviderCard({ provider }: { provider: PublicProvider }) {
               key={tag}
               className="rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600"
             >
-              {tag}
+              {formatExpertiseDomain(tag)}
             </span>
           ))}
         </div>
