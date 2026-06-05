@@ -189,7 +189,7 @@ html, body {
   --secondary: #EEEDFB;
   --secondary-foreground: #5B4EC4;
   --muted: #F1F5F9;
-  --muted-foreground: #94A3B8;
+  --muted-foreground: #4B5563;
   --accent: #EEEDFB;
   --accent-foreground: #5B4EC4;
   --destructive: #DC2626;
@@ -254,7 +254,7 @@ html, body {
   --nami-primary-light: rgba(91, 78, 196, 0.08);
   --nami-secondary: #2BA89C;
   --nami-dark: #1A1A2E;
-  --nami-text-muted: #6B7280;
+  --nami-text-muted: #4B5563;
 
   /* Follow-up audit 25/05 — composants patient cassés silencieusement.
      - primary-hover : primary assombri ~10% (pattern Tailwind 700) — AppointmentCard hover
