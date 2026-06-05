@@ -28,15 +28,39 @@ const STATUS_LABEL: Record<string, string> = {
   ARCHIVED: "Archivé",
 };
 
+// BUG-07 — onglet « Récents » = fiches que CE soignant a récemment ouvertes,
+// tracé en localStorage côté front. Découplé de la dette backend lastActivityAt.
+const RECENT_KEY = "nami_recent_cases";
+const MAX_RECENTS = 20;
+
+function readRecentIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function pushRecentId(id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const prev = readRecentIds().filter((x) => x !== id);
+    const next = [id, ...prev].slice(0, MAX_RECENTS);
+    window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    // quota / storage désactivé : on ignore silencieusement
+  }
+}
+
 const TABS = [
   { key: "all",      label: "Tous",                 filter: (c: CareCase) => true },
   { key: "active",   label: "Actifs",                filter: (c: CareCase) => c.status === "ACTIVE" },
-  { key: "recent",   label: "Récents",                filter: (c: CareCase) => {
-    if (c.status !== "ACTIVE") return false;
-    if (!c.lastActivityAt) return false;
-    const ageDays = Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / 86400000);
-    return ageDays <= 7;
-  } },
+  // Filter "recent" : placeholder — le composant override pour utiliser recentIds.
+  { key: "recent",   label: "Récents",                filter: (_c: CareCase) => true },
   { key: "paused",   label: "En pause",              filter: (c: CareCase) => c.status === "PAUSED" },
   { key: "closed",   label: "Fermés",                filter: (c: CareCase) => c.status === "CLOSED" || c.status === "ARCHIVED" },
 ];
@@ -61,12 +85,30 @@ export default function PatientsPage() {
 
   const allCases = useMemo(() => cases ?? [], [cases]);
 
+  // BUG-07 — liste LRU des fiches récemment ouvertes (localStorage).
+  // Lue au mount ; mise à jour via trackOpen() au clic sur une ligne / card.
+  const [recentIds, setRecentIds] = useState<string[]>(readRecentIds);
+  const casesById = useMemo(() => {
+    const m = new Map<string, CareCase>();
+    for (const c of allCases) m.set(c.id, c);
+    return m;
+  }, [allCases]);
+  function trackOpen(id: string) {
+    pushRecentId(id);
+    setRecentIds(readRecentIds());
+  }
+
   const activeTab = TABS.find((t) => t.key === tab) ?? TABS[0];
+  const isRecentTab = tab === "recent";
+
+  // Base list : pour Récents on prend les IDs LRU mappés (ordre LRU préservé).
+  // Pour les autres onglets, on applique le predicate du tab.
+  const baseList: CareCase[] = isRecentTab
+    ? recentIds.map((id) => casesById.get(id)).filter((c): c is CareCase => !!c)
+    : allCases.filter(activeTab.filter);
 
   const now = Date.now();
-  const filtered = allCases
-    .filter(activeTab.filter)
-    .filter((c) => {
+  const filteredBase = baseList.filter((c) => {
       if (riskFilter && c.riskLevel !== riskFilter) return false;
       if (typeFilter && c.caseType !== typeFilter) return false;
       if (activityFilter) {
@@ -88,10 +130,14 @@ export default function PatientsPage() {
         c.caseTitle.toLowerCase().includes(q) ||
         getCareTypeLabel(c.caseType).toLowerCase().includes(q)
       );
-    })
-    .sort((a, b) =>
-      (b.lastActivityAt ?? b.startDate) > (a.lastActivityAt ?? a.startDate) ? 1 : -1
-    );
+    });
+
+  // Sort par lastActivityAt sauf pour Récents (qui préserve l'ordre LRU).
+  const filtered = isRecentTab
+    ? filteredBase
+    : [...filteredBase].sort((a, b) =>
+        (b.lastActivityAt ?? b.startDate) > (a.lastActivityAt ?? a.startDate) ? 1 : -1
+      );
 
   const types = [...new Set(allCases.map((c) => c.caseType))];
 
@@ -143,7 +189,9 @@ export default function PatientsPage() {
           {/* Onglets avec underline animé */}
           <div className="nami-tabs flex-1" style={{ borderBottom: "1px solid #E8ECF4" }}>
             {TABS.map((t) => {
-              const count = allCases.filter(t.filter).length;
+              const count = t.key === "recent"
+                ? recentIds.filter((id) => casesById.has(id)).length
+                : allCases.filter(t.filter).length;
               const isActive = tab === t.key;
               return (
                 <button
@@ -249,13 +297,17 @@ export default function PatientsPage() {
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Users size={24} className="text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground">Aucun dossier trouvé.</p>
+            <p className="text-sm text-muted-foreground">
+              {isRecentTab && recentIds.length === 0
+                ? "Ouvrez des fiches, elles apparaîtront ici."
+                : "Aucun dossier trouvé."}
+            </p>
           </div>
         ) : viewMode === "cards" ? (
           <div className="p-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map((c, idx) => (
               <div key={c.id} className="nami-stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
-                <PatientCard careCase={c} />
+                <PatientCard careCase={c} onOpen={trackOpen} />
               </div>
             ))}
           </div>
@@ -273,7 +325,7 @@ export default function PatientsPage() {
             </thead>
             <tbody className="divide-y divide-border/50">
               {filtered.map((c) => (
-                <PatientRow key={c.id} careCase={c} />
+                <PatientRow key={c.id} careCase={c} onOpen={trackOpen} />
               ))}
             </tbody>
           </table>
@@ -293,7 +345,7 @@ export default function PatientsPage() {
   );
 }
 
-function PatientRow({ careCase: c }: { careCase: CareCase }) {
+function PatientRow({ careCase: c, onOpen }: { careCase: CareCase; onOpen: (id: string) => void }) {
   // INIT-689 point 7 — déduplication des 6 <Link> redondants par ligne.
   // Aucune cellule ne porte d'action distincte (pas de menu kebab, pas de bouton
   // supprimer, pas de badge cliquable séparé) : un seul Link sémantique sur le
@@ -307,6 +359,7 @@ function PatientRow({ careCase: c }: { careCase: CareCase }) {
     // Ignore le clic si la cible (ou un ancêtre) est déjà un lien/bouton —
     // évite la double navigation et préserve ctrl/cmd + clic du Link.
     if ((e.target as HTMLElement).closest("a, button")) return;
+    onOpen(c.id);
     router.push(href);
   }
 
@@ -316,7 +369,7 @@ function PatientRow({ careCase: c }: { careCase: CareCase }) {
       onClick={handleRowClick}
     >
       <td className="px-6 py-3">
-        <Link href={href} className="flex items-center gap-2.5">
+        <Link href={href} onClick={() => onOpen(c.id)} className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-semibold text-primary shrink-0">
             {c.patient.firstName[0]}{c.patient.lastName[0]}
           </div>
@@ -372,7 +425,7 @@ function avatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-function PatientCard({ careCase: c }: { careCase: CareCase }) {
+function PatientCard({ careCase: c, onOpen }: { careCase: CareCase; onOpen: (id: string) => void }) {
   const { accessToken } = useAuthStore();
   const api = apiWithToken(accessToken!);
 
@@ -395,7 +448,7 @@ function PatientCard({ careCase: c }: { careCase: CareCase }) {
   const trendColor = delta === null ? "" : delta > 0.5 ? "text-orange-500" : delta < -0.5 ? "text-green-600" : "text-blue-500";
 
   return (
-    <Link href={`/patients/${c.id}`}>
+    <Link href={`/patients/${c.id}`} onClick={() => onOpen(c.id)}>
       <div className="glass-soft rounded-2xl p-4 cursor-pointer group">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-3">
