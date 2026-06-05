@@ -38,6 +38,7 @@ const PUBLIC_PATHS = [
   "/professions",
   "/fonctionnalites",
   "/clinique-pediatrique",
+  "/fiche-anorexie-mentale",
   "/api",
   "/sitemap.xml",
   "/robots.txt",
