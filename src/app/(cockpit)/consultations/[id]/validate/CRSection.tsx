@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiWithToken, type ConsultationDetail, type FinalizeConsultationResult } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { Sparkles, Loader2, CheckCircle2, Pencil, Send, X } from "lucide-react";
+import { NoteMarkdown } from "@/components/consultation-note/NoteMarkdown";
 
 type Props = {
   consultation: ConsultationDetail;
@@ -103,8 +104,8 @@ export function CRSection({ consultation, careCaseId }: Props) {
         </>
       ) : (
         <>
-          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-            {note.body}
+          <div className="text-sm text-gray-700 leading-relaxed">
+            <NoteMarkdown content={note.body} />
           </div>
           <div className="mt-4 flex gap-2 flex-wrap">
             <button

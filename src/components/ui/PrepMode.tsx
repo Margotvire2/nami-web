@@ -9,6 +9,7 @@ import { fr } from "date-fns/locale"
 import { X, Mic, ChevronRight, Clock } from "lucide-react"
 import { useConsultation } from "@/contexts/ConsultationContext"
 import { useRouter } from "next/navigation"
+import { NoteMarkdown } from "@/components/consultation-note/NoteMarkdown"
 
 // ─── Prep event type ──────────────────────────────────────────────────────────
 
@@ -283,12 +284,9 @@ export function PrepMode() {
                   {careCase?.clinicalSummary ? (
                     /* Résumé IA dossier disponible → l'afficher en priorité */
                     <div>
-                      <p style={{
-                        fontSize: 13, color: "#1A1A2E", lineHeight: 1.6,
-                        margin: 0, fontStyle: "italic",
-                      }}>
-                        &ldquo;{careCase.clinicalSummary.slice(0, 320)}{careCase.clinicalSummary.length > 320 ? "…" : ""}&rdquo;
-                      </p>
+                      <div style={{ color: "#1A1A2E", fontSize: 13, lineHeight: 1.6 }}>
+                        <NoteMarkdown content={careCase.clinicalSummary} compact />
+                      </div>
                       {/* Activité récente condensée sous le résumé */}
                       {eventsSince.length > 0 && (
                         <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #E8ECF4" }}>
@@ -314,14 +312,9 @@ export function PrepMode() {
                   ) : aiNote ? (
                     /* Dernier compte-rendu IA → afficher le contenu textuel */
                     <div>
-                      <p style={{
-                        fontSize: 13, color: "#1A1A2E", lineHeight: 1.6,
-                        margin: 0, fontStyle: "italic",
-                        display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      } as React.CSSProperties}>
-                        &ldquo;{aiNote.body}&rdquo;
-                      </p>
+                      <div style={{ color: "#1A1A2E", fontSize: 13, lineHeight: 1.6, maxHeight: 220, overflow: "hidden" }}>
+                        <NoteMarkdown content={aiNote.body} compact />
+                      </div>
                       <div style={{ marginTop: 8, fontSize: 10, color: "#6B7280" }}>
                         {aiNote.title ?? "Compte-rendu"} · {format(parseISO(aiNote.createdAt), "d MMM yyyy", { locale: fr })}
                         {aiNote.author && ` · ${aiNote.author.firstName} ${aiNote.author.lastName}`}

@@ -13,6 +13,7 @@ import {
   Receipt,
   X,
 } from "lucide-react";
+import { NoteMarkdown } from "@/components/consultation-note/NoteMarkdown";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -105,8 +106,8 @@ function GeneratedNoteBlock({ note }: { note: { id: string; body: string; create
           Brouillon IA — à vérifier
         </span>
       </div>
-      <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed prose-sm max-w-none">
-        {note.body}
+      <div className="text-sm text-gray-700 leading-relaxed prose-sm max-w-none">
+        <NoteMarkdown content={note.body} />
       </div>
       <p className="mt-3 text-xs text-gray-400">
         Généré le {new Date(note.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
@@ -129,7 +130,9 @@ function AiSummaryBlock({ summary }: { summary: string }) {
           Brouillon IA — à vérifier
         </span>
       </div>
-      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{summary}</p>
+      <div className="text-sm text-gray-700 leading-relaxed">
+        <NoteMarkdown content={summary} />
+      </div>
     </div>
   );
 }
