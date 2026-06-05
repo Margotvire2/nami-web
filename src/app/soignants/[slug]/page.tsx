@@ -52,15 +52,9 @@ export async function generateMetadata({
   const { slug } = await params
   const providers = await getProviders()
   const provider = providers.find((p) => p.slug === slug)
-  if (!provider) {
-    // Canonical autoréférent même en cas de soignant introuvable : évite que Google
-    // indexe ces URLs comme duplicate de la homepage via le metadataBase hérité.
-    return {
-      title: "Soignant introuvable — Nami",
-      robots: { index: false, follow: false },
-      alternates: { canonical: `/soignants/${slug}` },
-    }
-  }
+  // SEO C2 : appeler notFound() dans generateMetadata garantit un VRAI HTTP 404
+  // (sinon Next renvoie 200 avec la body 404 → Google indexe la page comme valide).
+  if (!provider) notFound()
   const specialty = provider.specialties[0] ?? "Soignant"
   const pathology = provider.publicSpecialties[0] ?? ""
   const title = `${provider.firstName} ${provider.lastName} — ${specialty}${pathology ? ` spécialisé(e) ${pathology}` : ""} | Nami`
