@@ -39,6 +39,7 @@ const PUBLIC_PATHS = [
   "/fonctionnalites",
   "/clinique-pediatrique",
   "/fiche-anorexie-mentale",
+  "/reperer-tca",
   "/api",
   "/sitemap.xml",
   "/robots.txt",
