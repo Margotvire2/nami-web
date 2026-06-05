@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiWithToken, type PrescriptionDraft } from "@/lib/api";
+import { apiWithToken, refreshAwareRequest, type PrescriptionDraft } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 import {
@@ -728,33 +728,34 @@ export function PrescriptionDraftEditor({ careCaseId }: Props) {
   const drafts       = data?.drafts ?? [];
   const activeDrafts = drafts.filter((d) => d.status !== "CANCELLED");
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
   async function handleScanFile(file: File) {
+    if (!accessToken) {
+      toast.error("Session expirée — reconnectez-vous");
+      return;
+    }
     setScanning(true);
     try {
       const form = new FormData();
       form.append("image", file);
-      const res = await fetch(`${API_URL}/care-cases/${careCaseId}/scan-prescription`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: form,
-      });
-      const json = await res.json() as { draft: unknown; scan: { medications: unknown[] }; warning?: string };
-      if (!res.ok) {
-        toast.error((json as any).error ?? "Erreur lors du scan");
-        return;
-      }
-      if (json.draft) {
-        const count = json.scan.medications.length;
-        toast.success(`${count} médicament${count > 1 ? "s" : ""} détecté${count > 1 ? "s" : ""} — brouillon créé`);
+      const result = await refreshAwareRequest<{
+        draft: PrescriptionDraft | null;
+        scan: { medications: unknown[] };
+        warning?: string;
+      }>(
+        `/care-cases/${careCaseId}/scan-prescription`,
+        { method: "POST", body: form },
+        accessToken,
+      );
+      if (result.draft) {
+        const count = result.scan.medications.length;
+        toast.success(`${count} médicament${count > 1 ? "s" : ""} détecté${count > 1 ? "s" : ""} — brouillon à valider`);
         qc.invalidateQueries({ queryKey: ["prescription-drafts", careCaseId] });
         refetch();
       } else {
-        toast.error(json.warning ?? "Aucun médicament détecté sur cette image");
+        toast.error(result.warning ?? "Aucun médicament détecté sur cette image");
       }
-    } catch {
-      toast.error("Erreur lors du scan");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors du scan");
     } finally {
       setScanning(false);
     }
@@ -766,8 +767,7 @@ export function PrescriptionDraftEditor({ careCaseId }: Props) {
       <input
         ref={scanInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
-        capture="environment"
+        accept="image/*"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
