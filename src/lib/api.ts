@@ -1029,7 +1029,49 @@ export interface ConsultationSummary {
 export interface ConsultationDetail extends ConsultationSummary {
   transcript: string | null;
   audioUrl: string | null;
-  generatedNote: { id: string; body: string; createdAt: string } | null;
+  generatedNote:
+    | {
+        id: string;
+        body: string;
+        createdAt: string;
+        templateProfession?: BilanProfession | null;
+        templateVersion?: number;
+        reviewedByProvider?: boolean;
+      }
+    | null;
+}
+
+// F-SOIGNANT-BILAN-VOXTRAL-TEMPLATES — bilan structuré par profession
+export type BilanProfession =
+  | "MEDECIN"
+  | "DIETICIEN"
+  | "KINE"
+  | "IDE"
+  | "SAGE_FEMME"
+  | "PSY"
+  | "OSTEO"
+  | "PHARMA"
+  | "ORTHOPHONISTE"
+  | "PEDICURE"
+  | "ERGO"
+  | "AIDE_SOIGNANT";
+
+export interface GenerateBilanResult {
+  noteId: string;
+  title: string;
+  markdown: string;
+  sections: { title: string; body: string }[];
+  templateProfession: BilanProfession | null;
+  templateVersion: number;
+  reviewedByProvider: boolean;
+}
+
+export interface ValidateBilanResult {
+  id: string;
+  body: string;
+  templateProfession: BilanProfession | null;
+  templateVersion: number;
+  reviewedByProvider: boolean;
 }
 
 export interface FinalizeConsultationResult {
@@ -4578,6 +4620,22 @@ export function apiWithToken(token: string) {
         request<FinalizeConsultationResult>(
           `/care-cases/${careCaseId}/consultations/${consultationId}/finalize`,
           { method: "POST", body: JSON.stringify({}) },
+          token,
+        ),
+      // F-SOIGNANT-BILAN-VOXTRAL-TEMPLATES
+      generateBilan: (careCaseId: string, consultationId: string) =>
+        request<GenerateBilanResult>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/generate-bilan`,
+          { method: "POST", body: JSON.stringify({}) },
+          token,
+        ),
+      validateBilan: (careCaseId: string, consultationId: string, body?: string) =>
+        request<ValidateBilanResult>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/bilan/validate`,
+          {
+            method: "POST",
+            body: JSON.stringify(typeof body === "string" ? { body } : {}),
+          },
           token,
         ),
     },
