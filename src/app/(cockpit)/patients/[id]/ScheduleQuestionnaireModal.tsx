@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, ClipboardList } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -117,6 +117,14 @@ export function ScheduleQuestionnaireModal({ careCaseId, patientFirstName, patie
   const effectiveSelected = selectedCode || availableQuestionnaires[0]?.code || "";
 
   const minDatetime = toLocalDatetimeValue(new Date(Date.now() + 5 * 60 * 1000));
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const mutation = useMutation({
     mutationFn: () =>
