@@ -57,6 +57,7 @@ export default function DemanderUneDemoPage() {
   });
   const [state, setState] = useState<FormState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showOptional, setShowOptional] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value, type } = e.target;
@@ -71,8 +72,6 @@ export default function DemanderUneDemoPage() {
     if (!form.firstName.trim() || !form.lastName.trim()) { setErrorMsg("Prénom et nom sont obligatoires."); return; }
     if (!form.email.includes("@")) { setErrorMsg("Veuillez renseigner un email valide."); return; }
     if (!form.specialty) { setErrorMsg("Veuillez sélectionner votre spécialité."); return; }
-    if (!form.patientVolume) { setErrorMsg("Veuillez indiquer votre volume de patients."); return; }
-    if (!form.source) { setErrorMsg("Veuillez indiquer comment vous avez connu Nami."); return; }
     if (!form.acceptTerms) { setErrorMsg("Veuillez accepter la politique de confidentialité."); return; }
     setState("submitting");
     setErrorMsg("");
@@ -159,7 +158,10 @@ export default function DemanderUneDemoPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1A1A2E", margin: "0 0 24px" }}>Vos informations</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1A1A2E", margin: "0 0 6px" }}>Vos informations</h2>
+                <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 22px", lineHeight: 1.55 }}>
+                  4 champs essentiels. 30 secondes.
+                </p>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <Field label="Prénom *" name="firstName" value={form.firstName} onChange={handleChange} required />
@@ -167,27 +169,44 @@ export default function DemanderUneDemoPage() {
                 </div>
 
                 <Field label="Email professionnel *" name="email" type="email" value={form.email} onChange={handleChange} required style={{ marginBottom: 14 }} />
-                <Field label="Téléphone" name="phone" type="tel" value={form.phone} onChange={handleChange} style={{ marginBottom: 14 }} />
 
-                <SelectField label="Spécialité *" name="specialty" value={form.specialty} onChange={handleChange} options={SPECIALTIES} required style={{ marginBottom: 14 }} />
-                <Field label="Structure / établissement" name="structure" value={form.structure} onChange={handleChange} style={{ marginBottom: 14 }} />
+                <SelectField label="Spécialité *" name="specialty" value={form.specialty} onChange={handleChange} options={SPECIALTIES} required style={{ marginBottom: 18 }} />
 
-                <SelectField label="Nb patients coordonnés *" name="patientVolume" value={form.patientVolume} onChange={handleChange} options={VOLUMES} required style={{ marginBottom: 14 }} />
-                <SelectField label="Comment avez-vous connu Nami ? *" name="source" value={form.source} onChange={handleChange} options={SOURCES} required style={{ marginBottom: 14 }} />
+                <button
+                  type="button"
+                  onClick={() => setShowOptional(v => !v)}
+                  style={{
+                    background: "none", border: "none", padding: "8px 0", marginBottom: showOptional ? 14 : 20,
+                    color: "#5B4EC4", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "inherit", textAlign: "left", display: "flex", alignItems: "center", gap: 6,
+                  }}
+                  aria-expanded={showOptional}
+                >
+                  <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showOptional ? "rotate(90deg)" : "rotate(0deg)" }}>▸</span>
+                  {showOptional ? "Masquer les détails facultatifs" : "Ajouter des détails (facultatif)"}
+                </button>
 
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    Message (optionnel)
-                  </label>
-                  <textarea
-                    name="message"
-                    value={form.message}
-                    onChange={handleChange}
-                    rows={3}
-                    placeholder="Décrivez votre cas d'usage ou vos questions..."
-                    style={{ width: "100%", padding: "10px 14px", border: "1.5px solid rgba(26,26,46,0.12)", borderRadius: 10, fontSize: 14, color: "#1A1A2E", background: "#FAFAF8", resize: "vertical", fontFamily: "inherit", boxSizing: "border-box" }}
-                  />
-                </div>
+                {showOptional && (
+                  <div style={{ marginBottom: 20, padding: "20px 18px", background: "#FAFAF8", borderRadius: 12, border: "1px dashed rgba(26,26,46,0.12)" }}>
+                    <Field label="Téléphone" name="phone" type="tel" value={form.phone} onChange={handleChange} style={{ marginBottom: 14 }} />
+                    <Field label="Structure / établissement" name="structure" value={form.structure} onChange={handleChange} style={{ marginBottom: 14 }} />
+                    <SelectField label="Nb patients coordonnés" name="patientVolume" value={form.patientVolume} onChange={handleChange} options={VOLUMES} style={{ marginBottom: 14 }} />
+                    <SelectField label="Comment avez-vous connu Nami ?" name="source" value={form.source} onChange={handleChange} options={SOURCES} style={{ marginBottom: 14 }} />
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Message
+                      </label>
+                      <textarea
+                        name="message"
+                        value={form.message}
+                        onChange={handleChange}
+                        rows={3}
+                        placeholder="Décrivez votre cas d'usage ou vos questions..."
+                        style={{ width: "100%", padding: "10px 14px", border: "1.5px solid rgba(26,26,46,0.12)", borderRadius: 10, fontSize: 14, color: "#1A1A2E", background: "#fff", resize: "vertical", fontFamily: "inherit", boxSizing: "border-box" }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, cursor: "pointer" }}>
                   <input type="checkbox" name="acceptTerms" checked={form.acceptTerms} onChange={handleChange}
