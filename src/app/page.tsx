@@ -193,7 +193,7 @@ export default function HomePage() {
               <span style={{ color: "#5B4EC4", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Coordination des parcours complexes</span>
             </div>
 
-            <h1 className="hero-title" style={{ fontSize: "clamp(2.8rem,7vw,5.5rem)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.06, color: "var(--nami-text)", marginBottom: 28 }}>
+            <h1 className="hero-title" style={{ fontSize: "clamp(2rem,7vw,5.5rem)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.06, color: "var(--nami-text)", marginBottom: 28, overflowWrap: "break-word", hyphens: "auto" }} lang="fr">
               Le soin est fragmenté.<br />
               <span className="nami-gradient-text">Nami le coud.</span>
             </h1>
