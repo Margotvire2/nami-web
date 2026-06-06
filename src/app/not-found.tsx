@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, LifeBuoy } from "lucide-react";
 
 export const metadata = {
   title: "Page introuvable",
@@ -63,14 +62,14 @@ export default function NotFound() {
             className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors inline-flex items-center justify-center gap-2"
             style={{ backgroundColor: "#5B4EC4", color: "#FFFFFF" }}
           >
-            <ArrowLeft size={14} /> Retour à mon accueil
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Retour à mon accueil
           </Link>
           <Link
             href="/contact"
             className="w-full sm:w-auto text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors inline-flex items-center justify-center gap-2"
             style={{ backgroundColor: "#EEEDFB", color: "#5B4EC4" }}
           >
-            <LifeBuoy size={14} /> Contact support
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg> Contact support
           </Link>
         </div>
       </div>
