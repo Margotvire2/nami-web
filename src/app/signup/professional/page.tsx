@@ -208,9 +208,18 @@ export default function ProfessionalSignupPage() {
                 Créez votre espace soignant.
               </h1>
               <p className="text-sm" style={{ color: "#6B7280" }}>
-                Quelques informations pour démarrer. Nous validons ensuite votre profil
-                manuellement sous 24 h.
+                Quelques informations pour démarrer.
               </p>
+
+              <div className="rounded-xl p-3.5 text-xs leading-relaxed flex gap-2.5 items-start" style={{ background: "#F4F3FB", border: "1px solid #E1DEF4", color: "#3F3675" }}>
+                <span aria-hidden style={{ fontSize: "0.95rem", lineHeight: 1 }}>⏱</span>
+                <span>
+                  <strong style={{ fontWeight: 600 }}>Validation sous 24 h ouvrées.</strong>{" "}
+                  Votre cockpit est accessible dès la création du compte. L&apos;annuaire
+                  public et la messagerie inter-soignants se déverrouillent après
+                  vérification de votre identifiant pro par notre équipe.
+                </span>
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
