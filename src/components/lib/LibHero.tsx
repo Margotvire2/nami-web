@@ -110,7 +110,7 @@ export function LibHero() {
           }}
         >
           <a
-            href="/signup"
+            href="mailto:contact@namipourlavie.com"
             className="lib-hero-cta-primary"
             style={{
               display: "inline-flex",

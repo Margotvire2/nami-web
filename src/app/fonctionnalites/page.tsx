@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { PROVIDERS_COUNT, PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 const C = {
   primary: "#5B4EC4", teal: "#2BA89C", bg: "#FAFAF8", bgAlt: "#F5F3EF",
@@ -204,7 +205,7 @@ export default function FeaturesPage() {
           <div style={{ maxWidth: 780, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 4, background: C.dark, borderRadius: 12, padding: "16px 12px" }}>
             {([
               [60000, "+", "Sources"], [10, "", "Référentiels"], [131, "", "Parcours"],
-              [2362, "", "Étapes"], [397, "K", "Soignants"], [425, "", "Pathologies"],
+              [2362, "", "Étapes"], [PROVIDERS_COUNT, "+", "Soignants"], [425, "", "Pathologies"],
             ] as [number, string, string][]).map(([n, s, l], i) => (
               <div key={i} style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "clamp(.9rem,2vw,1.3rem)", fontWeight: 800, background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
@@ -292,7 +293,7 @@ export default function FeaturesPage() {
               features={["Conformité HAS calculée auto", "Complétude parcours en un coup d'œil", "148 règles cliniques actives", "Détection anomalies (12 règles CAD)", "Trajectoires OLS (z-score)", "425 pathologies CIM-11 documentées", "Crosslinks inter-parcours"]} />
             <GlowCard icon="🔍" title="Adressage & réseau" delay={0.18}
               desc="Trouvez, adressez, suivez."
-              features={["Recherche par pathologie, zone et disponibilité", "Lettre d'adressage générée par IA", "Workflow Draft → Completed", "Annuaire 397K soignants (FHIR ANS)", "Hub réseau (CPTS, MSP)", "Adressage vers soignants hors Nami"]} />
+              features={["Recherche par pathologie, zone et disponibilité", "Lettre d'adressage générée par IA", "Workflow Draft → Completed", `Annuaire ${PROVIDERS_COUNT_LABEL} soignants (FHIR ANS)`, "Hub réseau (CPTS, MSP)", "Adressage vers soignants hors Nami"]} />
             <GlowCard icon="🩺" title="Spécialités" delay={0.24}
               desc="Nutrition, pédiatrie, prescriptions, questionnaires."
               features={["Journal alimentaire photos + analyse IA", "Courbes pédiatriques OMS/Fenton", "Carnet de santé numérique + OCR", "Milestones ESPGHAN", "BDPM 15M+ médicaments", "EDE-Q, PHQ-9, GAD-7, SCOFF", "RCP virtuelle + export PDF"]} />
@@ -311,7 +312,7 @@ export default function FeaturesPage() {
             ["🏥", "App soignant mobile", "Dossiers, notifications, messagerie entre deux consultations."],
             ["👨‍👩‍👧", "RCP virtuelle", "Brouillon IA pré-rempli, décisions collectives, export PDF."],
             ["🔒", "Sécurité RGPD", "MFA, anonymisation IA, audit trail, chiffrement, consentement explicite."],
-            ["🌐", "Annuaire 397K", "Base FHIR ANS. Spécialité × pathologie × zone. Hub réseau."],
+            ["🌐", `Annuaire ${PROVIDERS_COUNT_LABEL}`, "Base FHIR ANS. Spécialité × pathologie × zone. Hub réseau."],
           ] as [string, string, string][]).map(([icon, title, desc], i) => (
             <Fade key={i} delay={i * 0.05}>
               <div style={{ padding: "20px 18px", borderRadius: 12, background: "#fff", border: `1px solid ${C.border}`, height: "100%" }}>

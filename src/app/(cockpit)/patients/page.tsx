@@ -243,7 +243,6 @@ export default function PatientsPage() {
             >
               <option value="">Activité</option>
               <option value="recent">Active &lt; 7j</option>
-              <option value="inactive7">&gt; 7j sans activité</option>
               <option value="medium">7 à 30j sans activité</option>
               <option value="stale">&gt; 30j sans activité</option>
               <option value="never">Jamais d&apos;activité</option>
@@ -261,14 +260,9 @@ export default function PatientsPage() {
           </div>
           <div className="flex items-center gap-1 flex-1 min-w-0">
             {stalePatients.slice(0, 5).map((c) => (
-              <Link
-                key={c.id}
-                href={`/patients/${c.id}`}
-                onClick={() => trackOpen(c.id)}
-                className="text-[11px] text-amber-600 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-full truncate max-w-[120px] transition-colors"
-              >
+              <span key={c.id} className="text-[11px] text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full truncate max-w-[120px]">
                 {c.patient.firstName} {c.patient.lastName}
-              </Link>
+              </span>
             ))}
             {stalePatients.length > 5 && (
               <span className="text-[11px] text-amber-500">+{stalePatients.length - 5}</span>

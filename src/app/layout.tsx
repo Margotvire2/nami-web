@@ -7,6 +7,7 @@ import {
   buildMedicalOrganizationJsonLd,
   jsonLdScript,
 } from "@/lib/seo";
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -41,8 +42,7 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
   },
-  description:
-    "Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de 564 000+ professionnels en France.",
+  description: `Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de ${PROVIDERS_COUNT_LABEL} professionnels en France.`,
   keywords: [
     "coordination soins", "parcours de soins", "TCA", "anorexie", "boulimie",
     "obésité", "pédiatrie", "nutrition", "diététicien", "psychologue",

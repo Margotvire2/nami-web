@@ -19,6 +19,7 @@ import {
   Network,
 } from "lucide-react";
 import Link from "next/link";
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 // ─── Trigger messages ───────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ const TIERS = [
     icon: Zap,
     features: [
       "Agenda et prise de RDV",
-      "Référencement annuaire 582K professionnels",
+      `Référencement annuaire ${PROVIDERS_COUNT_LABEL} professionnels`,
       "Messagerie patients",
       "Messagerie soignants & téléexpertise",
       "3 patients actifs",

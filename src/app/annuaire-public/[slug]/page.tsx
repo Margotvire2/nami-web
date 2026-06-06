@@ -3,6 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Phone, MapPin, CreditCard, Shield, Building2, Users } from "lucide-react"
 import { formatProviderSpecialty } from "@/lib/provider-display"
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
 
 export const revalidate = 86400 // 24h
 
@@ -87,7 +88,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { specialty, city } = parseSlug(slug)
   const locationStr = city ? ` \u00e0 ${city.charAt(0) + city.slice(1).toLowerCase()}` : " en France"
   const title = `${specialty}${locationStr} — Annuaire des professionnels de sant\u00e9`
-  const description = `Trouvez un ${specialty.toLowerCase()}${locationStr}. Convention, secteur, t\u00e9l\u00e9phone, adresse. Annuaire de 564 000+ professionnels.`
+  const description = `Trouvez un ${specialty.toLowerCase()}${locationStr}. Convention, secteur, t\u00e9l\u00e9phone, adresse. Annuaire de ${PROVIDERS_COUNT_LABEL} professionnels.`
 
   return {
     title,

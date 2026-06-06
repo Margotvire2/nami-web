@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Calendar, User, Tag, ExternalLink, BookOpen } from "lucide-react"
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
 
 export const revalidate = 3600 // 1h
 
@@ -257,7 +258,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
         {/* CTA */}
         <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm text-center">
           <h2 className="text-base font-semibold text-gray-900">Coordonnez vos parcours de soins avec Nami</h2>
-          <p className="text-sm text-gray-500 mt-1">564 000+ professionnels dans l&apos;annuaire. Adressage, suivi, coordination.</p>
+          <p className="text-sm text-gray-500 mt-1">{PROVIDERS_COUNT_LABEL} professionnels dans l&apos;annuaire. Adressage, suivi, coordination.</p>
           <div className="flex justify-center gap-3 mt-4">
             <Link href="/signup" className="rounded-lg bg-[#4F46E5] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90">
               Cr&eacute;er un compte

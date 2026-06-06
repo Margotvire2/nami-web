@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/track";
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -427,7 +428,7 @@ function RPPSTab() {
       </div>
 
       <p className="text-[10px] text-muted-foreground mb-4">
-        564 000+ professionnels de santé en France — Source Ameli (data.gouv.fr)
+        {PROVIDERS_COUNT_LABEL} professionnels de santé en France — Source Ameli (data.gouv.fr)
       </p>
 
       {/* Results */}
