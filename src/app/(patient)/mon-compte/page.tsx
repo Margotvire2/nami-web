@@ -134,6 +134,19 @@ function normalizeSexForBackend(raw: string): SexEnum | undefined {
   return undefined;
 }
 
+// INIT-679 — Binding du <select> Sexe à l'ouverture de l'édition. Les options
+// rendues sont "" / MALE / FEMALE / OTHER ; toute autre valeur stockée (legacy
+// M/F/O, ou UNKNOWN) ne matche aucune option et le navigateur retombe sur la
+// première option ("Non précisé"), ce qui peut faire écraser silencieusement la
+// vraie valeur au save. On normalise donc vers la forme du select à l'init.
+function normalizeSexForForm(raw: string | null | undefined): "" | "MALE" | "FEMALE" | "OTHER" {
+  if (!raw) return "";
+  if (raw === "M" || raw === "MALE") return "MALE";
+  if (raw === "F" || raw === "FEMALE") return "FEMALE";
+  if (raw === "O" || raw === "OTHER") return "OTHER";
+  return ""; // UNKNOWN ou inconnu → "Non précisé"
+}
+
 // ─── Constantes D2.B — labels FR + scopes V1 ────────────────────────────────
 
 // Catalog scopes V1 par ConsentType (miroir frontend de CONSENT_SCOPES_V1
@@ -293,7 +306,7 @@ export default function MonComptePage() {
       birthDate: person?.birthDate
         ? format(parseISO(person.birthDate), "yyyy-MM-dd")
         : "",
-      sex: person?.sex ?? "",
+      sex: normalizeSexForForm(person?.sex),
       address: person?.address ?? "",
       city: person?.city ?? "",
       postalCode: person?.postalCode ?? "",
