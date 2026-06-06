@@ -101,16 +101,22 @@ export default function BookingPageClient({
     }
   }, [slots, selectedSlot]);
 
+  // Mode "demande libre" : aucun créneau public n'est proposé sur la fenêtre.
+  // Le backend accepte alors AppointmentRequest sans requestedDate (le soignant
+  // proposera une date à l'acceptation, cf. appointmentRequests.ts).
+  const isFreeRequest = slots.length === 0;
+
   // ─── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
-    if (!user || !selectedSlot) return;
+    if (!user) return;
+    if (!isFreeRequest && !selectedSlot) return;
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    // Combine date + startTime en ISO datetime
-    const requestedDate = new Date(
-      `${selectedSlot.date}T${selectedSlot.startTime}:00`,
-    ).toISOString();
+    // Combine date + startTime en ISO datetime (uniquement si créneau choisi)
+    const requestedDate = selectedSlot
+      ? new Date(`${selectedSlot.date}T${selectedSlot.startTime}:00`).toISOString()
+      : undefined;
 
     // Concatène motif + notes complémentaires dans le champ motif (limite 2000 backend)
     const fullMotif = [motif, notes ? `--- Notes\n${notes}` : ""]
@@ -163,7 +169,7 @@ export default function BookingPageClient({
     );
   }
 
-  const canSubmit = !!selectedSlot && !isSubmitting;
+  const canSubmit = (isFreeRequest || !!selectedSlot) && !isSubmitting;
 
   const onBehalfOf =
     picker.selectedProfile && !picker.selectedProfile.isSelf
@@ -261,9 +267,14 @@ export default function BookingPageClient({
           onSubmit={handleSubmit}
         />
 
-        {!selectedSlot && (
+        {!selectedSlot && !isFreeRequest && (
           <p className="text-xs text-[#6B7280] text-center">
             Sélectionnez un créneau pour activer l&apos;envoi.
+          </p>
+        )}
+        {isFreeRequest && (
+          <p className="text-xs text-[#6B7280] text-center">
+            Le soignant vous proposera une date après réception de votre demande.
           </p>
         )}
       </div>
