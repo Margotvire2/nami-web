@@ -58,7 +58,6 @@ const COCKPIT_PATHS = [
   "/adressages",
   "/facturation",
   "/intelligence",
-  "/protocoles",
   "/taches",
   "/reglages",
   "/admin",

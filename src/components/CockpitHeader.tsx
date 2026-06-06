@@ -18,7 +18,6 @@ const ROUTE_LABELS: Record<string, string> = {
   facturation: "Facturation",
   patients: "Patients",
   taches: "Tâches",
-  protocoles: "Références",
   intelligence: "Base documentaire",
   documents: "Documents",
   adressages: "Adressages",
