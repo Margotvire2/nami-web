@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useCallback } from "react";
+import { use, useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
@@ -228,46 +228,109 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+  // [BUG-06] Ref-tracked mount state — évite setState après unmount + permet
+  // d'annuler proprement le polling si l'utilisateur quitte la page.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const handleAiSummarize = useCallback(async () => {
     if (!accessToken) return;
+
+    // [BUG-06] Bascule immédiatement sur la Vue globale pour que le résultat
+    // soit visible dès que `clinicalSummary` est mis à jour (queryKey partagée).
+    setActiveTab("globale");
     setAiStreaming(true);
+
+    // [BUG-06] Reset garanti dans tous les paths (succès, erreur, timeout,
+    // 404 cache perdu, status inconnu) — fix du blocage en "Génération…".
+    const finish = (opts: { invalidate?: boolean; message?: { kind: "success" | "error" | "info"; text: string } } = {}) => {
+      if (!mountedRef.current) return;
+      setAiStreaming(false);
+      if (opts.invalidate) {
+        qc.invalidateQueries({ queryKey: ["care-case", id] });
+        qc.invalidateQueries({ queryKey: ["notes", id] });
+        qc.invalidateQueries({ queryKey: ["timeline", id] });
+        qc.invalidateQueries({ queryKey: ["dashboard"] });
+      }
+      if (opts.message) {
+        if (opts.message.kind === "success") toast.success(opts.message.text);
+        else if (opts.message.kind === "error") toast.error(opts.message.text);
+        else toast.info(opts.message.text);
+      }
+    };
+
     try {
       const res = await fetch(`${API_URL}/intelligence/summarize-job/${id}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      if (!res.ok) throw new Error("Erreur lors de la génération");
-      const { jobId } = await res.json() as { jobId: string };
+      if (!res.ok) {
+        finish({ message: { kind: "error", text: "Erreur lors de la génération" } });
+        return;
+      }
+      const { jobId } = (await res.json()) as { jobId?: string };
+      if (!jobId) {
+        finish({ invalidate: true, message: { kind: "info", text: "Synthèse actualisée" } });
+        return;
+      }
 
-      const deadline = Date.now() + 5 * 60 * 1000;
+      // [BUG-06] Deadline réduite à 90s (au-delà = backend coincé, on rafraîchit
+      // quand même au cas où la DB contient déjà le résultat — cache _summarizeCache
+      // in-memory côté Railway peut être perdu en cas de redémarrage).
+      const deadline = Date.now() + 90 * 1000;
+
       const poll = async (): Promise<void> => {
+        if (!mountedRef.current) return;
         if (Date.now() > deadline) {
-          setAiStreaming(false);
-          toast.error("La génération a pris trop de temps");
+          finish({
+            invalidate: true,
+            message: { kind: "info", text: "La génération prend plus de temps que prévu — résultat chargé si disponible." },
+          });
           return;
         }
-        const statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (!statusRes.ok) { setAiStreaming(false); return; }
-        const { status } = await statusRes.json() as { status: string };
-        if (status === "completed") {
-          setAiStreaming(false);
-          qc.invalidateQueries({ queryKey: ["care-case", id] });
-          qc.invalidateQueries({ queryKey: ["notes", id] });
-          qc.invalidateQueries({ queryKey: ["timeline", id] });
-          toast.success("Synthèse clinique générée");
-        } else if (status === "failed") {
-          setAiStreaming(false);
-          toast.error("Erreur lors de la génération de la synthèse");
-        } else {
-          setTimeout(poll, 3000);
+        let statusRes: Response;
+        try {
+          statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+        } catch {
+          // Réseau coupé / fetch reject → on tente quand même un rafraîchissement.
+          finish({ invalidate: true, message: { kind: "info", text: "Connexion interrompue — résultat chargé si disponible." } });
+          return;
         }
+        // 404 = jobId perdu côté backend (redémarrage Railway). La synthèse est
+        // peut-être déjà persistée en DB → invalidate pour rafraîchir l'UI.
+        if (statusRes.status === 404) {
+          finish({ invalidate: true, message: { kind: "info", text: "Synthèse actualisée" } });
+          return;
+        }
+        if (!statusRes.ok) {
+          finish({ invalidate: true, message: { kind: "error", text: "Erreur lors de la génération de la synthèse" } });
+          return;
+        }
+        const data = (await statusRes.json()) as { status?: string };
+        const status = String(data.status ?? "").toLowerCase();
+        if (status === "completed" || status === "done") {
+          finish({ invalidate: true, message: { kind: "success", text: "Synthèse clinique générée" } });
+          return;
+        }
+        if (status === "failed" || status === "error") {
+          finish({ message: { kind: "error", text: "Erreur lors de la génération de la synthèse" } });
+          return;
+        }
+        if (status === "pending" || status === "active") {
+          setTimeout(poll, 3000);
+          return;
+        }
+        // Status inconnu → on sort proprement et on rafraîchit (pas de boucle infinie).
+        finish({ invalidate: true, message: { kind: "info", text: "Synthèse actualisée" } });
       };
       setTimeout(poll, 3000);
     } catch {
-      setAiStreaming(false);
-      toast.error("Erreur de connexion à la synthèse clinique");
+      finish({ message: { kind: "error", text: "Erreur de connexion à la synthèse clinique" } });
     }
   }, [accessToken, id, qc, API_URL]);
 
