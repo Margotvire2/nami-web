@@ -14,7 +14,7 @@ import type { ReferralStatus, ReferralPriority } from "@/lib/api";
 // ─── 12 statuts distincts → label affiché ────────────────────────────────────
 
 export const STATUS_LABEL: Record<ReferralStatus, string> = {
-  DRAFT: "Brouillon",
+  DRAFT: "Brouillon — pas encore envoyé",
   SENT: "Envoyé",
   RECEIVED: "Reçu",
   UNDER_REVIEW: "En cours d'analyse",
