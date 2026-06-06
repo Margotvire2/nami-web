@@ -351,8 +351,8 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
                     className="flex items-center gap-1 text-[10px] font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50 transition-colors"
                   >
                     {letterLoading
-                      ? <><Loader2 size={10} className="animate-spin" /> Génération…</>
-                      : <><Sparkles size={10} /> Générer la lettre d'adressage</>
+                      ? <><Loader2 size={10} className="animate-spin" /> Rédaction du brouillon…</>
+                      : <><Sparkles size={10} /> Rédiger un brouillon à partir du motif</>
                     }
                   </button>
                 </div>
@@ -364,7 +364,7 @@ export function ReferralModal({ open, onClose, careCaseId, patientFirstName, sen
                 <Textarea
                   value={clinicalReason}
                   onChange={(e) => { setClinicalReason(e.target.value); setLetterDraft(null) }}
-                  placeholder="Décrivez le motif clinique, ou générez une lettre d'adressage complète via l'IA…"
+                  placeholder="Décrivez le motif clinique. L'IA pourra ensuite rédiger un brouillon de lettre d'adressage à partir de votre saisie."
                   rows={letterDraft ? 10 : 3}
                   className="font-mono text-xs"
                 />

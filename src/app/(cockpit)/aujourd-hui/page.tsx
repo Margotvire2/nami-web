@@ -137,7 +137,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-2 mt-3 flex-wrap">
             <Link href="/agenda" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[13px] font-medium hover:bg-indigo-100 transition-colors">
-              <Stethoscope size={14} /> {totalToday} consultation{totalToday !== 1 ? "s" : ""} aujourd&apos;hui
+              <Stethoscope size={14} /> {`${totalToday} consultation${totalToday !== 1 ? "s" : ""} aujourd'hui`}
             </Link>
             {pendingOutgoing.length > 0 && (
               <Link href="/adressages" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-[13px] font-medium hover:bg-amber-100 transition-colors">
