@@ -65,10 +65,10 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
       qc.invalidateQueries({ queryKey: ["tasks", careCaseId] })
       qc.invalidateQueries({ queryKey: ["timeline", careCaseId] })
       qc.invalidateQueries({ queryKey: ["care-case", careCaseId] })
-      toast.success("Tache creee")
+      toast.success("Tâche créée")
       onClose()
     },
-    onError: () => toast.error("Erreur lors de la creation"),
+    onError: () => toast.error("Erreur lors de la création"),
   })
 
   const canSave = title.trim().length > 0
@@ -79,7 +79,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
       <div style={{ position: "relative", width: 440, maxWidth: "94vw", maxHeight: "90vh", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 16px 48px rgba(0,0,0,0.12)", fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", padding: 24 }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: N.text }}>Nouvelle tache</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: N.text }}>Nouvelle tâche</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, color: N.textSoft, cursor: "pointer" }}>x</button>
         </div>
 
@@ -89,7 +89,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
           <div>
             <label style={labelSt}>Titre</label>
             <input style={inputSt} value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Ex: Recuperer bilan biologique" autoFocus />
+              placeholder="Ex : Récupérer bilan biologique" autoFocus />
           </div>
 
           <div>
@@ -105,7 +105,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
           </div>
 
           <div>
-            <label style={labelSt}>Priorite</label>
+            <label style={labelSt}>Priorité</label>
             <div style={{ display: "flex", gap: 6 }}>
               {PRIORITIES.map(p => (
                 <button key={p.id} onClick={() => setPriority(p.id)}
@@ -117,7 +117,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
           </div>
 
           <div>
-            <label style={labelSt}>Echeance (optionnel)</label>
+            <label style={labelSt}>Échéance (optionnel)</label>
             <input type="date" style={inputSt} value={dueDate} onChange={e => setDueDate(e.target.value)} />
           </div>
 
@@ -138,13 +138,13 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
             <label style={labelSt}>Description (optionnel)</label>
             <textarea style={{ ...inputSt, minHeight: 60, resize: "vertical" as const, fontFamily: "inherit" }}
               value={description} onChange={e => setDescription(e.target.value)}
-              placeholder="Details, instructions..." />
+              placeholder="Détails, instructions…" />
           </div>
 
           <button onClick={() => mutation.mutate()} disabled={!canSave || mutation.isPending}
             style={{ width: "100%", padding: 12, borderRadius: 10, border: "none", background: canSave ? N.primary : "#ddd", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: canSave ? "pointer" : "not-allowed", opacity: mutation.isPending ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
-            Creer la tache
+            Créer la tâche
           </button>
         </div>
       </div>
