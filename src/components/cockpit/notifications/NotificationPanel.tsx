@@ -8,7 +8,8 @@
  */
 
 import { useEffect } from "react";
-import { X } from "lucide-react";
+import Link from "next/link";
+import { X, ArrowRight } from "lucide-react";
 import { NotificationSection } from "./NotificationSection";
 import type { NotificationFeed } from "@/lib/api";
 
@@ -82,6 +83,21 @@ export function NotificationPanel({ isOpen, onClose, feed }: Props) {
             emptyMessage="Aucune activité récente."
           />
         </div>
+
+        <footer
+          className="shrink-0 border-t bg-white"
+          style={{ borderColor: "rgba(26,26,46,0.06)" }}
+        >
+          <Link
+            href="/centre-notifications"
+            onClick={onClose}
+            className="flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-[#5B4EC4] hover:bg-[rgba(91,78,196,0.04)] transition-colors"
+            style={{ fontFamily: "Plus Jakarta Sans" }}
+          >
+            <span>Voir toutes les notifications</span>
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
+        </footer>
       </aside>
     </>
   );
