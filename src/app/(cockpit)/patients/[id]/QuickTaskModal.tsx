@@ -86,11 +86,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
       toast.success("Tâche créée")
       onClose()
     },
-<<<<<<< HEAD
-    onError: () => toast.error("Erreur lors de la création"),
-=======
-    onError: (err: Error) => toast.error(err?.message || "Erreur lors de la creation"),
->>>>>>> origin/main
+    onError: (err: Error) => toast.error(err?.message || "Erreur lors de la création"),
   })
 
   const canSave = title.trim().length > 0
