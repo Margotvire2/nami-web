@@ -4889,6 +4889,9 @@ export function secretaryApi(token: string) {
     searchPatients: (q: string): Promise<SecretaryPatientResult[]> =>
       secretaryApiRequest(`/secretary/patients/search?q=${encodeURIComponent(q)}`, {}, token),
 
+    consultationTypes: (providerId: string): Promise<ConsultationTypeDTO[]> =>
+      secretaryApiRequest(`/appointments/consultation-types?providerId=${encodeURIComponent(providerId)}`, {}, token),
+
     getPatient: (id: string): Promise<{ patient: SecretaryPatientResult; appointments: SecretaryAppointment[] }> =>
       secretaryApiRequest(`/secretary/patients/${id}`, {}, token),
 

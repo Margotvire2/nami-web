@@ -2,7 +2,7 @@
 
 import { useState, useEffect, type CSSProperties } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda } from "@/lib/api";
+import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda, type ConsultationTypeDTO } from "@/lib/api";
 import { isActiveStatus, isCancelledLike } from "@/lib/appointment-status";
 import { format, parseISO, set } from "date-fns";
 import { toast } from "sonner";
@@ -104,6 +104,13 @@ export function CreateApptModal({
   const [duration, setDuration] = useState(30);
   const [notes, setNotes] = useState("");
   const [searching, setSearching] = useState(false);
+  const [consultationTypeId, setConsultationTypeId] = useState<string | null>(null);
+
+  const { data: consultationTypes = [] } = useQuery<ConsultationTypeDTO[]>({
+    queryKey: ["secretary-consultation-types", providerId],
+    queryFn: () => api.consultationTypes(providerId),
+    staleTime: 5 * 60_000,
+  });
 
   useEffect(() => {
     if (patientSearch.length < 2) { setPatientResults([]); return; }
@@ -116,6 +123,11 @@ export function CreateApptModal({
     return () => clearTimeout(t);
   }, [patientSearch, api]);
 
+  function selectConsultationType(ct: ConsultationTypeDTO) {
+    setConsultationTypeId(ct.id);
+    setDuration(ct.durationMinutes);
+  }
+
   const mutation = useMutation({
     mutationFn: () => {
       const startAt = set(date, { hours: hour, minutes: minute, seconds: 0 });
@@ -126,6 +138,7 @@ export function CreateApptModal({
         patientId: selectedPatient.id,
         startAt: startAt.toISOString(),
         endAt: endAt.toISOString(),
+        consultationTypeId: consultationTypeId ?? undefined,
         notes: notes.trim() || undefined,
       });
     },
@@ -182,6 +195,33 @@ export function CreateApptModal({
               </div>
             )}
           </div>
+
+          {/* Type de consultation */}
+          {consultationTypes.length > 0 && (
+            <div>
+              <label className="text-[11px] font-medium text-[#374151] mb-1 block">Type de consultation</label>
+              <div className="flex gap-1.5 flex-wrap">
+                {consultationTypes.map((ct) => {
+                  const active = consultationTypeId === ct.id;
+                  return (
+                    <button
+                      key={ct.id}
+                      type="button"
+                      onClick={() => selectConsultationType(ct)}
+                      className={cn(
+                        "text-[11px] px-2.5 py-1.5 rounded-lg border transition-colors",
+                        active
+                          ? "bg-[#5B4EC4] text-white border-[#5B4EC4]"
+                          : "bg-white text-[#374151] border-[#E8ECF4] hover:bg-[#F5F3EF]"
+                      )}
+                    >
+                      {ct.name} <span className={active ? "text-white/80" : "text-[#6B7280]"}>· {ct.durationMinutes} min</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Heure */}
           <div className="grid grid-cols-3 gap-3">
