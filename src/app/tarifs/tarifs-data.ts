@@ -2,6 +2,8 @@
 // Verbatim, aucune invention. Mise à jour : 2026-05-26.
 // Ne pas modifier sans relecture juridique (page haut risque DGCCRF / L113-3).
 
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
+
 export const PRICING_REFERENCE_DATE = "26 mai 2026"
 
 export interface PricingFeature {
@@ -52,7 +54,7 @@ export const SOIGNANT_TIERS: PricingTier[] = [
     description: "Pour démarrer et structurer son activité quotidienne.",
     features: [
       "Agenda et prise de rendez-vous",
-      "Référencement dans l'annuaire (582 000 soignants)",
+      `Référencement dans l'annuaire (${PROVIDERS_COUNT_LABEL} soignants)`,
       "Messagerie avec les patients",
       "Messagerie avec les autres soignants",
       "Téléexpertise",

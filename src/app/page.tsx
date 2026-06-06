@@ -3,10 +3,11 @@ import Link from "next/link";
 import { HomeNav } from "@/components/home/HomeNav";
 import { HomeSticky } from "@/components/home/HomeSticky";
 import { Reveal } from "@/components/home/HomeReveal";
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 export const metadata: Metadata = {
   title: "Le soin est fragmenté. Nami le coud.",
-  description: "Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de 564 000+ professionnels en France.",
+  description: `Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de ${PROVIDERS_COUNT_LABEL} professionnels en France.`,
   alternates: { canonical: "/" },
   openGraph: {
     title: "Nami — Le soin est fragmenté. Nami le coud.",

@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
 
 const DOCTOLIB_FEATURES = [
   "Agenda + prise de RDV",
@@ -15,7 +16,7 @@ const DOCTOLIB_FEATURES = [
 const NAMI_FREE_FEATURES = [
   "Agenda + prise de RDV",
   "Messagerie patients",
-  "Référencement 582 000 soignants",
+  `Référencement ${PROVIDERS_COUNT_LABEL} soignants`,
   "Messagerie soignants",
   "Téléexpertise",
   "Réseau",
@@ -27,7 +28,7 @@ const TIERS = [
     price: "0€",
     period: "/mois",
     badge: null,
-    features: ["Agenda, RDV, référencement 582K", "Messagerie patients & soignants", "Téléexpertise", "Réseau soignants"],
+    features: [`Agenda, RDV, référencement ${PROVIDERS_COUNT_LABEL}`, "Messagerie patients & soignants", "Téléexpertise", "Réseau soignants"],
     color: "#5B4EC4",
     highlight: false,
   },

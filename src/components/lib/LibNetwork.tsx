@@ -1,11 +1,12 @@
 "use client"
 
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
 
 const FEATURES = [
   {
     title: "Un réseau de confiance",
-    body: "582 000 professionnels de santé référencés. Filtrez par spécialité, localisation, disponibilité. Lisez leurs spécialisations, leurs formations, leurs réseaux. Vous choisissez avec qui vous travaillez.",
+    body: `${PROVIDERS_COUNT_LABEL} professionnels de santé référencés. Filtrez par spécialité, localisation, disponibilité. Lisez leurs spécialisations, leurs formations, leurs réseaux. Vous choisissez avec qui vous travaillez.`,
     color: "#5B4EC4",
     icon: "🤝",
   },

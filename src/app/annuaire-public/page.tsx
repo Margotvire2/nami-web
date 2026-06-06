@@ -1,18 +1,18 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Search, MapPin, Users } from "lucide-react"
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
 
 export const metadata: Metadata = {
-  title: "Annuaire des professionnels de santé en France — 564 000+ praticiens",
-  description:
-    "Trouvez un médecin, pédiatre, diététicien, psychologue, kinésithérapeute, orthophoniste parmi 564 000+ professionnels de santé en France. Convention, secteur, téléphone, adresse.",
+  title: `Annuaire des professionnels de santé en France — ${PROVIDERS_COUNT_LABEL} praticiens`,
+  description: `Trouvez un médecin, pédiatre, diététicien, psychologue, kinésithérapeute, orthophoniste parmi ${PROVIDERS_COUNT_LABEL} professionnels de santé en France. Convention, secteur, téléphone, adresse.`,
   keywords: [
     "annuaire médecin", "trouver médecin", "pédiatre", "diététicien",
     "psychologue", "orthophoniste", "kinésithérapeute", "professionnel de santé",
     "secteur 1", "secteur 2", "annuaire santé", "ameli",
   ],
   openGraph: {
-    title: "Annuaire Santé France — 564 000+ professionnels | Nami",
+    title: `Annuaire Santé France — ${PROVIDERS_COUNT_LABEL} professionnels | Nami`,
     description: "Recherchez n'importe quel professionnel de santé en France. Convention, adresse, téléphone.",
   },
   alternates: { canonical: "/annuaire-public" },
@@ -46,7 +46,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebPage",
   name: "Annuaire des professionnels de santé en France",
-  description: "564 000+ professionnels de santé. Médecins, paramédicaux, centres de santé.",
+  description: `${PROVIDERS_COUNT_LABEL} professionnels de santé. Médecins, paramédicaux, centres de santé.`,
   url: "https://namipourlavie.com/annuaire-public",
   isPartOf: { "@type": "WebSite", name: "Nami", url: "https://namipourlavie.com" },
   about: { "@type": "MedicalBusiness", name: "Professionnels de santé en France" },
@@ -92,7 +92,7 @@ export default function AnnuairePublicPage() {
             Annuaire des professionnels de sant&eacute; en France
           </h1>
           <p className="mt-3 text-gray-500 max-w-2xl mx-auto">
-            564 000+ m&eacute;decins, param&eacute;dicaux et centres de sant&eacute;.
+            {PROVIDERS_COUNT_LABEL} m&eacute;decins, param&eacute;dicaux et centres de sant&eacute;.
             Trouvez un praticien par sp&eacute;cialit&eacute; et par ville.
           </p>
           <p className="text-xs text-gray-400 mt-2">

@@ -1,11 +1,12 @@
 "use client"
 
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats"
 
 const FEATURES = [
   { label: "Agenda & prise de RDV en ligne", tier: "Gratuit", color: "#059669" },
   { label: "Messagerie patients sécurisée", tier: "Gratuit", color: "#059669" },
-  { label: "Référencement annuaire 582 000 soignants", tier: "Gratuit", color: "#059669" },
+  { label: `Référencement annuaire ${PROVIDERS_COUNT_LABEL} soignants`, tier: "Gratuit", color: "#059669" },
   { label: "Messagerie soignants & téléexpertise", tier: "Gratuit", color: "#059669" },
   { label: "Réseau pluridisciplinaire", tier: "Gratuit", color: "#059669" },
   { label: "Facturation & téléconsultation (0% commission)", tier: "Essentiel · 19€", color: "#2BA89C" },

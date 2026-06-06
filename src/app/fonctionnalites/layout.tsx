@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { buildPageMetadata, buildServiceJsonLd, jsonLdScript, SITE_URL } from "@/lib/seo";
+import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Fonctionnalités — Coordination des parcours de soins | Nami",
-  description:
-    "Découvrez les fonctionnalités Nami : dossier de coordination pluridisciplinaire, adressage, brouillon IA sourcé, annuaire 564 000+ professionnels. Gratuit pour les soignants.",
+  description: `Découvrez les fonctionnalités Nami : dossier de coordination pluridisciplinaire, adressage, brouillon IA sourcé, annuaire ${PROVIDERS_COUNT_LABEL} professionnels. Gratuit pour les soignants.`,
   path: "/fonctionnalites",
   keywords: [
     "coordination soins",

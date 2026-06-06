@@ -24,6 +24,7 @@ import {
   Search, Phone, MapPin, CreditCard, Building2, User,
   ChevronLeft, ChevronRight, Filter, X, UserPlus, Check, Loader2,
 } from "lucide-react"
+import { PROVIDERS_COUNT_LABEL, PROVIDERS_COUNT_SOURCE } from "@/lib/marketing-stats"
 
 const SPECIALTIES = [
   "Médecin généraliste", "Pédiatre", "Cardiologue", "Psychiatre", "Psychologue",
@@ -82,7 +83,7 @@ export default function AnnuairePage() {
       <div className="mb-6">
         <h1 className="text-xl font-bold">Annuaire Santé</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          564 000+ professionnels de sant&eacute; en France — Source : Ameli (data.gouv.fr)
+          {PROVIDERS_COUNT_LABEL} professionnels de sant&eacute; en France — {PROVIDERS_COUNT_SOURCE}
         </p>
       </div>
 
@@ -228,7 +229,7 @@ export default function AnnuairePage() {
           <p className="text-sm font-semibold">Recherchez un professionnel de sant&eacute;</p>
           <p className="text-xs text-muted-foreground mt-1.5 max-w-md leading-relaxed">
             Trouvez n&apos;importe quel m&eacute;decin, param&eacute;dical ou centre de sant&eacute; en France
-            parmi 564 000+ professionnels r&eacute;f&eacute;renc&eacute;s.
+            parmi {PROVIDERS_COUNT_LABEL} professionnels r&eacute;f&eacute;renc&eacute;s.
           </p>
         </div>
       )}
