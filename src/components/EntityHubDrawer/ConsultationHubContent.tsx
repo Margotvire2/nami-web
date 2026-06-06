@@ -18,6 +18,7 @@ import {
   locationLabel,
 } from "./_shared";
 import { UploadToConsultationDialog } from "./UploadToConsultationDialog";
+import { NoteMarkdown } from "@/components/consultation-note/NoteMarkdown";
 
 interface Props {
   data: EntityHubConsultation;
@@ -127,9 +128,9 @@ export function ConsultationHubContent({ data, careCaseId }: Props) {
           </HubCard>
         ) : (
           <HubCard>
-            <p className="text-sm text-[#374151] whitespace-pre-wrap m-0">
-              {clinicalNote.body}
-            </p>
+            <div className="text-sm text-[#374151]">
+              <NoteMarkdown content={clinicalNote.body} />
+            </div>
             <div className="text-[10px] text-[#9CA3AF] mt-3">
               Rédigé le {formatDate(clinicalNote.createdAt)}
             </div>
