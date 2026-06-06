@@ -146,6 +146,10 @@ export default function TachesPage() {
 
   const groups = useMemo(() => groupTasksByPeriod(sorted), [sorted]);
 
+  const activeCount =
+    groups.overdue.length + groups.today.length + groups.upcoming.length;
+  const hasOnlyCompleted = activeCount === 0 && groups.completed.length > 0;
+
   /* ── Counts par filtre (pour le compteur des chips) ──────────────────── */
 
   const counts = useMemo(() => {
@@ -240,6 +244,22 @@ export default function TachesPage() {
         {/* Sections */}
         {!isLoading && (
           <>
+            {hasOnlyCompleted && !search.trim() && (
+              <div className="glass-soft rounded-2xl p-8 text-center mb-6">
+                <p className="text-2xl mb-2" aria-hidden>
+                  🎉
+                </p>
+                <p className="text-sm font-medium text-[#1A1A2E]">
+                  Aucune tâche en attente
+                </p>
+                <p className="text-xs text-[#8A8A96] mt-1">
+                  {groups.completed.length > 1
+                    ? `Vos ${groups.completed.length} tâches terminées sont listées ci-dessous.`
+                    : "Votre tâche terminée est listée ci-dessous."}
+                </p>
+              </div>
+            )}
+
             <OverdueSection count={groups.overdue.length}>
               {groups.overdue.map((task) => (
                 <TaskCard
@@ -279,7 +299,7 @@ export default function TachesPage() {
             <TaskPeriodSection
               title="Terminées"
               count={groups.completed.length}
-              defaultCollapsed
+              defaultCollapsed={!hasOnlyCompleted}
             >
               {groups.completed.map((task) => (
                 <TaskCard
