@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Search } from "lucide-react"
 import { useCockpitHeader } from "@/contexts/CockpitHeaderContext"
 import { cn } from "@/lib/utils"
 import { StructureSwitcher } from "@/components/header/StructureSwitcher"
@@ -94,18 +94,19 @@ export function CockpitHeader() {
         {/* Switcher multi-casquette — masqué automatiquement si pas pertinent */}
         <StructureSwitcher />
 
-        {/* ⌘K hint */}
+        {/* ⌘K — barre de recherche visible (déclenche CommandPalette via keydown synthétique) */}
         <button
           onClick={() => {
             const e = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
             window.dispatchEvent(e)
           }}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[#6B7280] text-xs hover:border-[#5B4EC4] hover:text-[#5B4EC4] transition-colors"
+          className="hidden sm:flex items-center gap-2 w-[240px] px-3 py-2 rounded-lg bg-[#F5F3FF] border border-[#E8ECF4] text-[#5B4EC4] text-sm hover:bg-[#EEEBFA] hover:border-[#5B4EC4] transition-colors"
+          aria-label="Ouvrir la recherche rapide (⌘K)"
           title="Recherche rapide (⌘K)"
         >
-          <span className="text-xs">🔍</span>
-          <span className="font-medium" style={{ fontFamily: "var(--font-jakarta)" }}>Recherche</span>
-          <kbd className="text-[9px] bg-[#F1F5F9] border border-[#E2E8F0] rounded px-1 font-mono">⌘K</kbd>
+          <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <span className="flex-1 text-left font-medium text-[#5B4EC4]" style={{ fontFamily: "var(--font-jakarta)" }}>Rechercher</span>
+          <kbd className="text-[10px] bg-white border border-[#E2E8F0] text-[#5B4EC4] rounded px-1.5 py-0.5 font-mono shrink-0">⌘K</kbd>
         </button>
       </div>
 
