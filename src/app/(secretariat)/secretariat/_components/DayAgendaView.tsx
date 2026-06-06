@@ -17,7 +17,19 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SecretariatSignedDocsSection } from "@/components/secretariat/SecretariatSignedDocsSection";
+import { ProviderInfoModal, type ProviderContactInfo } from "./ProviderInfoModal";
 import { N as DT } from "@/lib/design-tokens";
+
+// INIT-628 — Les endpoints /secretary/agendas + /secretary/waiting-room
+// exposent désormais providerPhone/providerEmail/providerPhotoUrl (commit
+// 8ba1a34e backend). Les types SDK (SecretaryAgenda, SecretaryWaitingEntry)
+// n'ont pas encore été étendus : on type localement le surplus pour rester
+// strict sans toucher src/lib/api.ts.
+type ProviderContactExtras = {
+  providerPhone?: string | null;
+  providerEmail?: string | null;
+  providerPhotoUrl?: string | null;
+};
 
 // ─── Constantes partagées (jour + semaine) ────────────────────────────────────
 
@@ -398,11 +410,13 @@ function AgendaColumn({
   date,
   api,
   onRefresh,
+  onProviderClick,
 }: {
   agenda: SecretaryAgenda;
   date: Date;
   api: ReturnType<typeof secretaryApi>;
   onRefresh: () => void;
+  onProviderClick: (provider: ProviderContactInfo) => void;
 }) {
   const [createSlot, setCreateSlot] = useState<number | null>(null);
   const [selectedAppt, setSelectedAppt] = useState<SecretaryAppointment | null>(null);
@@ -421,8 +435,25 @@ function AgendaColumn({
       <div className="flex-1 min-w-[180px] border-r border-[#E8ECF4] last:border-r-0 relative">
         {/* Header soignant */}
         <div className="sticky top-0 z-10 bg-white border-b border-[#E8ECF4] px-3 py-2">
-          <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{agenda.providerName}</p>
-          <p className="text-[9px] text-[#6B7280] truncate">{agenda.specialties[0] ?? ""}</p>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              const extras = agenda as SecretaryAgenda & ProviderContactExtras;
+              onProviderClick({
+                providerName: agenda.providerName,
+                specialties: agenda.specialties,
+                providerPhone: extras.providerPhone ?? null,
+                providerEmail: extras.providerEmail ?? null,
+                providerPhotoUrl: extras.providerPhotoUrl ?? null,
+              });
+            }}
+            className="block w-full text-left rounded hover:bg-[#F5F3EF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 -mx-1 px-1 transition-colors"
+            aria-label={`Infos ${agenda.providerName}`}
+          >
+            <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{agenda.providerName}</p>
+            <p className="text-[9px] text-[#6B7280] truncate">{agenda.specialties[0] ?? ""}</p>
+          </button>
         </div>
 
         {/* Grille horaire */}
@@ -562,6 +593,9 @@ export function DayAgendaView({ date, api, accessToken, userId, onRefresh }: Day
   const agendas = agendasQuery.data?.agendas ?? [];
   const waiting = waitingQuery.data ?? [];
 
+  // INIT-628 — modal info soignant partagé (header colonne + card salle d'attente)
+  const [selectedProvider, setSelectedProvider] = useState<ProviderContactInfo | null>(null);
+
   const totalRows = DAY_END - DAY_START;
 
   return (
@@ -600,6 +634,7 @@ export function DayAgendaView({ date, api, accessToken, userId, onRefresh }: Day
               date={date}
               api={api}
               onRefresh={onRefresh}
+              onProviderClick={setSelectedProvider}
             />
           ))
         )}
@@ -616,15 +651,32 @@ export function DayAgendaView({ date, api, accessToken, userId, onRefresh }: Day
               </p>
             </div>
             <div className="p-2 space-y-2">
-              {waiting.map((entry) => (
-                <div key={entry.appointmentId} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                  <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{entry.patientName}</p>
-                  <p className="text-[9px] text-[#6B7280] truncate">{entry.providerName}</p>
-                  <p className="text-[9px] text-blue-600 mt-0.5">
-                    {entry.waitingMinutes > 0 ? `Attend depuis ${entry.waitingMinutes} min` : "Vient d'arriver"}
-                  </p>
-                </div>
-              ))}
+              {waiting.map((entry) => {
+                const extras = entry as typeof entry & ProviderContactExtras;
+                return (
+                  <div key={entry.appointmentId} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{entry.patientName}</p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedProvider({
+                          providerName: entry.providerName,
+                          providerPhone: extras.providerPhone ?? null,
+                          providerEmail: extras.providerEmail ?? null,
+                          providerPhotoUrl: extras.providerPhotoUrl ?? null,
+                        })
+                      }
+                      className="block w-full text-left text-[9px] text-[#6B7280] truncate rounded hover:bg-blue-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 -mx-0.5 px-0.5 transition-colors"
+                      aria-label={`Infos ${entry.providerName}`}
+                    >
+                      {entry.providerName}
+                    </button>
+                    <p className="text-[9px] text-blue-600 mt-0.5">
+                      {entry.waitingMinutes > 0 ? `Attend depuis ${entry.waitingMinutes} min` : "Vient d'arriver"}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
@@ -637,6 +689,14 @@ export function DayAgendaView({ date, api, accessToken, userId, onRefresh }: Day
           />
         </div>
       </div>
+
+      {/* INIT-628 — Modal info soignant (clic sur providerName) */}
+      {selectedProvider && (
+        <ProviderInfoModal
+          provider={selectedProvider}
+          onClose={() => setSelectedProvider(null)}
+        />
+      )}
     </div>
   );
 }
