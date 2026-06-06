@@ -107,12 +107,16 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host");
 
-  // Sous-domaine app. — rewrites vers contenu soignant existant.
+  // Sous-domaine app. — point d'entrée PRODUIT (pas marketing).
+  // INIT-645 : la racine route vers /login (anon) ou /aujourd-hui (session),
+  // pas vers la landing soignant. /signup reste rewrite vers /signup/professional.
   // /login et /forgot-password restent communs : la page détecte le host
   // côté client pour appeler le bon endpoint backend.
   if (isProviderHost(host)) {
     if (pathname === "/" || pathname === "") {
-      return NextResponse.rewrite(new URL("/soignants-liberaux", request.url));
+      const token = request.cookies.get("nami-access-token")?.value;
+      const dest = token ? "/aujourd-hui" : "/login";
+      return NextResponse.redirect(new URL(dest, request.url));
     }
     if (pathname === "/signup" || pathname === "/signup/") {
       return NextResponse.rewrite(new URL("/signup/professional", request.url));
