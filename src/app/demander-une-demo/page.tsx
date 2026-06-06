@@ -130,12 +130,17 @@ export default function DemanderUneDemoPage() {
               ))}
             </div>
 
-            {/* Social proof */}
+            {/* Scénario illustratif — pas un témoignage vérifié [INIT-636] */}
             <div style={{ padding: "24px", background: "rgba(91,78,196,0.04)", border: "1px solid rgba(91,78,196,0.1)", borderRadius: 14 }}>
-              <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.7, margin: "0 0 14px", fontStyle: "italic" }}>
-                &ldquo;On perdait 4 mois entre les soignants sur chaque dossier complexe. Avec Nami, toute l&apos;équipe voit l&apos;avancement du parcours en temps réel.&rdquo;
+              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9B7AC4", margin: "0 0 12px" }}>
+                Exemple — scénario illustratif
               </p>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#5B4EC4", margin: 0 }}>Pr A. Hanachi — Médecin interniste, Hôpital Paul Brousse</p>
+              <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.7, margin: "0 0 12px" }}>
+                Situation typique en coordination de parcours complexe : 4 mois perdus entre les soignants sur un dossier pluridisciplinaire. Avec Nami, l&apos;équipe voit l&apos;avancement du parcours en temps réel.
+              </p>
+              <p style={{ fontSize: 11, color: "#6B7280", margin: 0, fontStyle: "italic" }}>
+                Représentation des cas que Nami est conçu pour résoudre — pas une déclaration attribuée à un praticien identifié.
+              </p>
             </div>
           </div>
 
