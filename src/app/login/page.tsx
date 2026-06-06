@@ -66,10 +66,21 @@ export default function LoginPage() {
   const [totpCode, setTotpCode] = useState("");
   const totpInputRef = useRef<HTMLInputElement>(null);
 
-  // Adapte le copy si l'utilisateur arrive depuis un CTA patient (?role=patient).
-  // Symétrie avec /signup?role=patient (PR #42) + CTA HomeNav (CC #50 PR #80).
-  // Aucune incidence sur la logique auth/MFA/redirect (universelle).
-  const isPatientContext = searchParams.get("role") === "patient";
+  // INIT-646 — Accueil différencié patient/soignant.
+  // Initial state SSR-safe via query (?role=patient ou ?surface=patient).
+  // Re-évalué côté client si host = namipourlavie.com — symétrie avec
+  // detectSurface() qui pilote déjà l'auth (loginPatient vs loginProvider).
+  const queryIsPatient =
+    searchParams.get("role") === "patient" || searchParams.get("surface") === "patient";
+  const [isPatientContext, setIsPatientContext] = useState(queryIsPatient);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const host = window.location.hostname;
+    const hostIsPatient = host === "namipourlavie.com" || host === "www.namipourlavie.com";
+    if (hostIsPatient || queryIsPatient) setIsPatientContext(true);
+    else setIsPatientContext(false);
+  }, [queryIsPatient]);
+
   const heroTitle = "Bon retour";
   const heroSubtitle = isPatientContext
     ? "Retrouvez votre espace et vos soignant·es"
@@ -391,27 +402,53 @@ export default function LoginPage() {
           <ConnectionSVG />
 
           <div className="mt-8 space-y-2">
-            <p
-              className="text-xl font-bold leading-snug"
-              style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)" }}
-            >
-              5 soignants. 1 dossier.<br />
-              <span style={{ background: "linear-gradient(90deg, #5B4EC4, #2BA89C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                0 information perdue.
-              </span>
-            </p>
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(238,236,234,0.45)" }}>
-              L&apos;orchestration du parcours,<br />au bout des doigts du soignant.
-            </p>
+            {isPatientContext ? (
+              <>
+                <p
+                  className="text-xl font-bold leading-snug"
+                  style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)" }}
+                >
+                  Votre parcours. Toute votre équipe.<br />
+                  <span style={{ background: "linear-gradient(90deg, #5B4EC4, #2BA89C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                    Au même endroit.
+                  </span>
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(238,236,234,0.45)" }}>
+                  Le journal, les rendez-vous et vos soignants,<br />à portée de main.
+                </p>
+              </>
+            ) : (
+              <>
+                <p
+                  className="text-xl font-bold leading-snug"
+                  style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)" }}
+                >
+                  5 soignants. 1 dossier.<br />
+                  <span style={{ background: "linear-gradient(90deg, #5B4EC4, #2BA89C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                    0 information perdue.
+                  </span>
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(238,236,234,0.45)" }}>
+                  L&apos;orchestration du parcours,<br />au bout des doigts du soignant.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Stats row */}
           <div className="mt-10 flex items-center gap-6">
-            {[
-              { value: "60k+", label: "sources" },
-              { value: "131", label: "parcours" },
-              { value: "2 362", label: "étapes sourcées" },
-            ].map((s) => (
+            {(isPatientContext
+              ? [
+                  { value: "1", label: "espace" },
+                  { value: "Toute", label: "votre équipe" },
+                  { value: "0", label: "papier perdu" },
+                ]
+              : [
+                  { value: "60k+", label: "sources" },
+                  { value: "131", label: "parcours" },
+                  { value: "2 362", label: "étapes sourcées" },
+                ]
+            ).map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-lg font-extrabold" style={{ color: "#EEECEA", fontFamily: "var(--font-jakarta)" }}>{s.value}</p>
                 <p className="text-[11px]" style={{ color: "rgba(238,236,234,0.4)" }}>{s.label}</p>
