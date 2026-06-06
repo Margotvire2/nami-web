@@ -339,7 +339,7 @@ export function ViewParcours({ careCaseId }: { careCaseId: string }) {
       ) : (
         <TemplateStepsSection
           steps={templateData?.steps ?? []}
-          loading={templateLoading}
+          loading={templateLoading || templateData === undefined}
           careCaseId={careCaseId}
         />
       )}
@@ -1089,8 +1089,14 @@ function TemplateStepsSection({
 
   if (steps.length === 0) {
     return (
-      <div className="bg-neutral-50 rounded-2xl border border-neutral-100 p-6 text-center">
-        <p className="text-sm text-neutral-500">Aucune étape définie pour ce parcours.</p>
+      <div className="bg-neutral-50 rounded-2xl border border-neutral-100 p-6 text-center space-y-2">
+        <div className="w-10 h-10 rounded-xl bg-neutral-200 flex items-center justify-center mx-auto">
+          <Route size={18} className="text-neutral-400" />
+        </div>
+        <p className="text-sm font-medium text-neutral-600">Ce parcours n&apos;a pas encore d&apos;étapes configurées.</p>
+        <p className="text-xs text-neutral-400">
+          Assignez un parcours différent via le bouton <strong>Modifier</strong> ci-dessus.
+        </p>
       </div>
     );
   }
