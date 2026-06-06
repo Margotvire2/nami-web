@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 
 export function LibHero() {
   const [visible, setVisible] = useState(false)
@@ -109,8 +110,8 @@ export function LibHero() {
             transition: "opacity 0.6s ease 760ms, transform 0.6s ease 760ms",
           }}
         >
-          <a
-            href="/signup"
+          <Link
+            href="/signup/professional"
             className="lib-hero-cta-primary"
             style={{
               display: "inline-flex",
@@ -128,7 +129,7 @@ export function LibHero() {
             }}
           >
             Essayer gratuitement →
-          </a>
+          </Link>
           <a
             href="#comment-ca-marche"
             style={{
