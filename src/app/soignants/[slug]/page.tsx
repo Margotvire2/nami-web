@@ -1,12 +1,13 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import {
   BadgeCheck, GraduationCap, MapPin, Video,
   Building2, ArrowLeft, Users,
 } from "lucide-react"
 import BookingSection from "./booking-section"
 import { formatExpertiseDomain } from "@/lib/provider-display"
+import { buildLegacyProviderSlug } from "@/lib/providerSlug"
 
 export const revalidate = 3600
 
@@ -52,15 +53,9 @@ export async function generateMetadata({
   const { slug } = await params
   const providers = await getProviders()
   const provider = providers.find((p) => p.slug === slug)
-  if (!provider) {
-    // Canonical autoréférent même en cas de soignant introuvable : évite que Google
-    // indexe ces URLs comme duplicate de la homepage via le metadataBase hérité.
-    return {
-      title: "Soignant introuvable — Nami",
-      robots: { index: false, follow: false },
-      alternates: { canonical: `/soignants/${slug}` },
-    }
-  }
+  // SEO C2 : appeler notFound() dans generateMetadata garantit un VRAI HTTP 404
+  // (sinon Next renvoie 200 avec la body 404 → Google indexe la page comme valide).
+  if (!provider) notFound()
   const specialty = provider.specialties[0] ?? "Soignant"
   const pathology = provider.publicSpecialties[0] ?? ""
   const title = `${provider.firstName} ${provider.lastName} — ${specialty}${pathology ? ` spécialisé(e) ${pathology}` : ""} | Nami`
@@ -82,7 +77,17 @@ export default async function ProfilSoignantPage({
   const providers = await getProviders()
   const provider = providers.find((p) => p.slug === slug)
 
-  if (!provider) notFound()
+  if (!provider) {
+    // INIT-672 — slug legacy (ancien algo `id.slice(-6)`) ? Redirect 308 vers
+    // le slug canonique servi par l'API. Sinon 404 classique.
+    const legacyMatch = providers.find(
+      (p) => buildLegacyProviderSlug(p.firstName, p.lastName, p.id) === slug,
+    )
+    if (legacyMatch) {
+      permanentRedirect(`/soignants/${legacyMatch.slug}`)
+    }
+    notFound()
+  }
 
   const initials = `${provider.firstName[0] ?? ""}${provider.lastName[0] ?? ""}`.toUpperCase()
   const specialty = provider.specialties[0] ?? "Professionnel de santé"

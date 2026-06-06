@@ -124,43 +124,95 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
     setStreamText("");
     setRating(null);
 
+    // [BUG-06] Reset garanti dans tous les paths — fix du blocage "Génération…".
+    // Sur succès, on déplie automatiquement le résumé pour qu'il soit visible immédiatement.
+    const finish = (opts: { invalidate?: boolean; reveal?: boolean; message?: { kind: "success" | "error" | "info"; text: string } } = {}) => {
+      setIsStreaming(false);
+      if (opts.invalidate) {
+        qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
+        qc.invalidateQueries({ queryKey: ["dashboard"] });
+      }
+      if (opts.reveal) {
+        setCollapsed(false);
+        setShowFull(true);
+      }
+      if (opts.message) {
+        if (opts.message.kind === "success") toast.success(opts.message.text);
+        else if (opts.message.kind === "error") toast.error(opts.message.text);
+        else toast.info(opts.message.text);
+      }
+    };
+
     try {
       const res = await fetch(`${API_URL}/intelligence/summarize-job/${careCaseId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Erreur lors de la génération");
-      const { jobId } = await res.json() as { jobId: string };
+      if (!res.ok) {
+        finish({ message: { kind: "error", text: "Erreur lors de la génération" } });
+        return;
+      }
+      const { jobId } = (await res.json()) as { jobId?: string };
+      if (!jobId) {
+        finish({ invalidate: true, reveal: true, message: { kind: "info", text: "Synthèse actualisée" } });
+        return;
+      }
 
-      const deadline = Date.now() + 5 * 60 * 1000;
+      // [BUG-06] Deadline réduite à 90s (au-delà = backend coincé, on rafraîchit
+      // au cas où la synthèse est déjà persistée en DB — _summarizeCache in-memory
+      // peut être perdu lors d'un redémarrage Railway).
+      const deadline = Date.now() + 90 * 1000;
+
       const poll = async (): Promise<void> => {
-        if (Date.now() > deadline) { setIsStreaming(false); toast.error("La génération a pris trop de temps"); return; }
-        const statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!statusRes.ok) { setIsStreaming(false); return; }
-        const { status } = await statusRes.json() as { status: string };
-        if (status === "completed") {
-          setIsStreaming(false);
-          // L'invalidate ["care-case", id] refetch automatiquement le useQuery
-          // partagé ; le useEffect réactif re-set sections + lastUpdated avec
-          // la nouvelle data. Plus besoin de api.get redondant.
-          qc.invalidateQueries({ queryKey: ["care-case", careCaseId] });
-          qc.invalidateQueries({ queryKey: ["notes", careCaseId] });
-          qc.invalidateQueries({ queryKey: ["timeline", careCaseId] });
-          qc.invalidateQueries({ queryKey: ["dashboard"] });
-          toast.success("Synthèse clinique générée");
-        } else if (status === "failed") {
-          setIsStreaming(false);
-          toast.error("Erreur lors de la génération de la synthèse");
-        } else {
-          setTimeout(poll, 3000);
+        if (Date.now() > deadline) {
+          finish({
+            invalidate: true,
+            reveal: true,
+            message: { kind: "info", text: "La génération prend plus de temps que prévu — résultat chargé si disponible." },
+          });
+          return;
         }
+        let statusRes: Response;
+        try {
+          statusRes = await fetch(`${API_URL}/intelligence/summarize-job/${jobId}/status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch {
+          finish({ invalidate: true, reveal: true, message: { kind: "info", text: "Connexion interrompue — résultat chargé si disponible." } });
+          return;
+        }
+        if (statusRes.status === 404) {
+          finish({ invalidate: true, reveal: true, message: { kind: "info", text: "Synthèse actualisée" } });
+          return;
+        }
+        if (!statusRes.ok) {
+          finish({ invalidate: true, message: { kind: "error", text: "Erreur lors de la génération de la synthèse" } });
+          return;
+        }
+        const data = (await statusRes.json()) as { status?: string };
+        const status = String(data.status ?? "").toLowerCase();
+        if (status === "completed" || status === "done") {
+          // L'invalidate ["care-case", id] refetch le useQuery partagé ; le
+          // useEffect réactif re-set sections + lastUpdated avec la nouvelle data.
+          finish({ invalidate: true, reveal: true, message: { kind: "success", text: "Synthèse clinique générée" } });
+          return;
+        }
+        if (status === "failed" || status === "error") {
+          finish({ message: { kind: "error", text: "Erreur lors de la génération de la synthèse" } });
+          return;
+        }
+        if (status === "pending" || status === "active") {
+          setTimeout(poll, 3000);
+          return;
+        }
+        // Status inconnu → sortie propre + rafraîchissement (évite la boucle infinie).
+        finish({ invalidate: true, reveal: true, message: { kind: "info", text: "Synthèse actualisée" } });
       };
       setTimeout(poll, 3000);
     } catch {
-      setIsStreaming(false);
-      toast.error("Erreur de connexion à la synthèse clinique");
+      finish({ message: { kind: "error", text: "Erreur de connexion à la synthèse clinique" } });
     }
   }, [careCaseId, qc, API_URL]);
 

@@ -1,11 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken } from "@/lib/api"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+
+/**
+ * Convertit une valeur d'<input type="date"> (format "YYYY-MM-DD") en ISO
+ * datetime complet UTC ("YYYY-MM-DDT00:00:00.000Z") attendu par le schéma
+ * Zod backend (`z.string().datetime()`). Sans ça → HTTP 400 systématique
+ * dès qu'une échéance est posée (INIT-677).
+ */
+function dateInputToIsoDatetime(value: string): string | undefined {
+  if (!value) return undefined
+  // value === "YYYY-MM-DD" → Date locale midi pour éviter dérive J-1 par fuseau
+  const d = new Date(`${value}T12:00:00.000Z`)
+  if (Number.isNaN(d.getTime())) return undefined
+  return d.toISOString()
+}
 
 const N = {
   primary: "#5B4EC4", primaryLight: "#EDE9FC", text: "#2D2B3D",
@@ -36,7 +50,11 @@ interface QuickTaskModalProps {
 
 export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskModalProps) {
   const { accessToken } = useAuthStore()
-  const api = apiWithToken(accessToken!)
+  // Mémoïse l'instance api : sans ça, `apiWithToken` recrée un nouvel objet
+  // à chaque render → invalide les références passées à useQuery/useMutation
+  // et a causé des cycles de réconciliation (React #185 observé sur le champ
+  // date lors de la saisie d'une échéance, INIT-677).
+  const api = useMemo(() => apiWithToken(accessToken!), [accessToken])
   const qc = useQueryClient()
 
   const [title, setTitle] = useState("")
@@ -58,7 +76,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
       taskType,
       priority,
       description: description || undefined,
-      dueDate: dueDate || undefined,
+      dueDate: dateInputToIsoDatetime(dueDate),
       assignedToPersonId: assignedTo || undefined,
     }),
     onSuccess: () => {
@@ -68,7 +86,11 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
       toast.success("Tâche créée")
       onClose()
     },
+<<<<<<< HEAD
     onError: () => toast.error("Erreur lors de la création"),
+=======
+    onError: (err: Error) => toast.error(err?.message || "Erreur lors de la creation"),
+>>>>>>> origin/main
   })
 
   const canSave = title.trim().length > 0

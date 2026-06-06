@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, Menu } from "lucide-react";
+import { useAuthStore } from "@/lib/store";
+import type { User } from "@/lib/api";
 
 const NAV_LINKS = [
   { label: "Fonctionnalités", href: "/fonctionnalites" },
@@ -12,10 +14,37 @@ const NAV_LINKS = [
   { label: "Blog", href: "/blog" },
 ];
 
+// "Mon espace" route per role. Aligné avec resolvePostLoginRedirect()
+// dans login/page.tsx ; pour PLATFORM_ADMIN/ORG_ADMIN purs, le middleware
+// fait la redirection vers /structure/[id]/admin si nami-admin-org-ids présent.
+function homeForRole(user: User | null): string {
+  if (!user) return "/accueil";
+  if (user.roleType === "PATIENT") return "/accueil";
+  if (user.roleType === "SECRETARY") return "/secretariat";
+  return "/aujourd-hui";
+}
+
 export function PublicNavbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+
+  // INIT-688 — Header session-aware. Attendre hasHydrated avant de basculer
+  // l'UI vers l'état connecté pour éviter le flash "Se connecter" (qui
+  // matche le SSR) puis bascule. Pattern INIT-207.
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
+  const [hasHydrated, setHasHydrated] = useState(false);
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+      return;
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHasHydrated(true));
+    return unsub;
+  }, []);
+  const isAuthenticated = hasHydrated && Boolean(accessToken);
+  const espaceHref = homeForRole(user);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 24);
@@ -141,9 +170,17 @@ export function PublicNavbar() {
             })}
           </div>
 
-          {/* Desktop auth — CTAs contextuels patient vs soignant/corporate */}
+          {/* Desktop auth — CTAs contextuels patient vs soignant/corporate.
+              INIT-688 : si session active, on remplace les deux CTAs par
+              « Mon espace » qui pointe vers le home du rôle. */}
           <div className="nav-desktop-auth" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {isPatientContext ? (
+            {isAuthenticated ? (
+              <Link href={espaceHref}
+                style={{ background: "#5B4EC4", color: "#fff", fontSize: 14, fontWeight: 600, padding: "9px 20px", borderRadius: 100, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#4A3EA6"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(91,78,196,0.35)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "#5B4EC4"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(91,78,196,0.25)"; }}
+              >Mon espace</Link>
+            ) : isPatientContext ? (
               <>
                 <Link href="/login?role=patient"
                   style={{ color: "#374151", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 16px", borderRadius: 100, transition: "all 0.2s" }}
@@ -267,8 +304,30 @@ export function PublicNavbar() {
 
           <div style={{ height: 1, background: "rgba(26,26,46,0.07)", margin: "8px 0" }} />
 
-          {/* CTAs mobile contextuels — miroir du desktop */}
-          {isPatientContext ? (
+          {/* CTAs mobile contextuels — miroir du desktop.
+              INIT-688 : « Mon espace » si session active. */}
+          {isAuthenticated ? (
+            <Link
+              href={espaceHref}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "14px 16px",
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#fff",
+                background: "#5B4EC4",
+                textDecoration: "none",
+                boxShadow: "0 4px 16px rgba(91,78,196,0.30)",
+                minHeight: 44,
+              }}
+            >
+              Mon espace →
+            </Link>
+          ) : isPatientContext ? (
             <>
               <Link
                 href="/login?role=patient"
