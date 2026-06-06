@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type NoteAnalysis } from "@/lib/api";
 import { usePatientDashboard } from "@/hooks/usePatientDashboard";
-import { useRecording } from "@/contexts/RecordingContext";
 import { useConsultation } from "@/contexts/ConsultationContext";
 import { useAudioConsentGate } from "@/hooks/useAudioConsentGate";
 import { PatientHeader } from "./views/PatientHeader";
@@ -185,7 +184,6 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
   const { accessToken } = useAuthStore();
   const qc = useQueryClient();
   const api = apiWithToken(accessToken!);
-  const { startRecording } = useRecording();
   const { startConsultation } = useConsultation();
 
   const searchParams = useSearchParams();
@@ -370,11 +368,6 @@ export default function PatientV2Page({ params }: { params: Promise<{ id: string
         onReferral={() => setReferralOpen(true)}
         onTask={() => setTaskModalOpen(true)}
         onQuestionnaire={() => setQuestionnaireModalOpen(true)}
-        onRecord={() =>
-          gateAudioConsent(() =>
-            startRecording(id, `${careCase.patient.firstName} ${careCase.patient.lastName}`),
-          )
-        }
         onStartConsultation={async () => {
           try {
             await startConsultation({

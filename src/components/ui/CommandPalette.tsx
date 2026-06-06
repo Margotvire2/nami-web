@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuthStore } from "@/lib/store"
 import { apiWithToken } from "@/lib/api"
 import { useQuery } from "@tanstack/react-query"
 import { getCareTypeLabel } from "@/lib/caseType"
+import { useConsultation } from "@/contexts/ConsultationContext"
+import { toast } from "sonner"
 import {
   Search, X, User, Calendar, CheckSquare,
   MessageSquare, FileText, Settings, Mic,
@@ -21,6 +23,8 @@ type PaletteItem = {
   sublabel?: string
   icon: React.ReactNode
   onSelect: () => void
+  disabled?: boolean
+  disabledReason?: string
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -28,6 +32,8 @@ type PaletteItem = {
 export function CommandPalette() {
   const { accessToken } = useAuthStore()
   const router = useRouter()
+  const pathname = usePathname()
+  const { startConsultation } = useConsultation()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [activeIdx, setActiveIdx] = useState(0)
@@ -99,14 +105,43 @@ export function CommandPalette() {
       onSelect: () => go(`/patients/${c.id}`),
     }))
 
+  // ⌘K « Dicter » est scopé au dossier patient actuellement ouvert.
+  // Hors d'une fiche → item visible mais désactivé (pas de no-op silencieux).
+  const patientMatch = pathname?.match(/^\/patients\/([^/?#]+)/) ?? null
+  const currentCareCaseId = patientMatch?.[1] ?? null
+  const currentCareCase = currentCareCaseId
+    ? (cases ?? []).find((c) => c.id === currentCareCaseId) ?? null
+    : null
+  const dictateDisabledReason = !currentCareCaseId
+    ? "Ouvrez un dossier patient d'abord"
+    : !currentCareCase
+      ? "Chargement du dossier…"
+      : null
+  const dictateDisabled = dictateDisabledReason !== null
+
   const ACTIONS: PaletteItem[] = [
     {
       id: "dictate",
       type: "action",
       label: "Dicter une consultation",
-      sublabel: "Ouvrir l'enregistrement vocal",
+      sublabel: dictateDisabled
+        ? (dictateDisabledReason ?? "")
+        : `Démarrer pour ${currentCareCase!.patient.firstName} ${currentCareCase!.patient.lastName}`,
       icon: <Mic size={14} style={{ color: "#5B4EC4" }} />,
-      onSelect: close,
+      disabled: dictateDisabled,
+      disabledReason: dictateDisabledReason ?? undefined,
+      onSelect: async () => {
+        if (!currentCareCase) return
+        close()
+        try {
+          await startConsultation({
+            careCaseId: currentCareCase.id,
+            patientName: `${currentCareCase.patient.firstName} ${currentCareCase.patient.lastName}`,
+          })
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Impossible de démarrer la consultation")
+        }
+      },
     },
     {
       id: "new-patient",
@@ -168,7 +203,8 @@ export function CommandPalette() {
       setActiveIdx((i) => Math.max(i - 1, 0))
     } else if (e.key === "Enter") {
       e.preventDefault()
-      allItems[activeIdx]?.onSelect()
+      const item = allItems[activeIdx]
+      if (item && !item.disabled) item.onSelect()
     }
   }
 
@@ -262,14 +298,19 @@ export function CommandPalette() {
                     return (
                       <button
                         key={item.id}
-                        onClick={item.onSelect}
+                        onClick={item.disabled ? undefined : item.onSelect}
                         onMouseEnter={() => setActiveIdx(idx)}
+                        disabled={item.disabled}
+                        title={item.disabled ? item.disabledReason : undefined}
+                        aria-disabled={item.disabled || undefined}
                         style={{
                           width: "100%", textAlign: "left", border: "none",
                           padding: "9px 20px",
                           display: "flex", alignItems: "center", gap: 12,
-                          cursor: "pointer", fontFamily: "inherit",
-                          background: isActive ? "rgba(91,78,196,0.06)" : "transparent",
+                          cursor: item.disabled ? "not-allowed" : "pointer",
+                          fontFamily: "inherit",
+                          background: isActive && !item.disabled ? "rgba(91,78,196,0.06)" : "transparent",
+                          opacity: item.disabled ? 0.5 : 1,
                           transition: "background 80ms",
                           animation: `cmdItem 160ms ${Math.min(idx * 25, 160)}ms both`,
                         }}
@@ -287,7 +328,7 @@ export function CommandPalette() {
                             </span>
                           )}
                         </span>
-                        {isActive && (
+                        {isActive && !item.disabled && (
                           <ChevronRight size={13} style={{ color: "#5B4EC4", flexShrink: 0 }} />
                         )}
                       </button>

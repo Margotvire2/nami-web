@@ -24,7 +24,6 @@ interface Props {
   onAddNote: () => void;
   onReferral: () => void;
   onTask: () => void;
-  onRecord: () => void;
   onStartConsultation?: () => void;
   onAiSummarize: () => void;
   onQuestionnaire?: () => void;
