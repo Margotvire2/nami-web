@@ -270,10 +270,16 @@ function DayView({
 
   if (todayAppts.length === 0) {
     return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, padding: 24 }}>
         <div style={{ fontSize: 40, opacity: 0.15 }}>📅</div>
-        <div style={{ fontSize: 14, fontWeight: 500, color: N.textSoft }}>Aucun rendez-vous aujourd&apos;hui</div>
-        <button onClick={onCreateNow} style={{ fontSize: 13, fontWeight: 600, padding: "9px 20px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>+ Créer un rendez-vous</button>
+        <div style={{ fontSize: 14, fontWeight: 500, color: N.text }}>Aucun rendez-vous aujourd&apos;hui</div>
+        <div style={{ fontSize: 12, color: N.textSoft, textAlign: "center", maxWidth: 320, lineHeight: 1.5 }}>
+          Créez un rendez-vous à la volée ou configurez vos créneaux d&apos;ouverture pour permettre la prise de RDV.
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+          <button onClick={onCreateNow} style={{ fontSize: 13, fontWeight: 600, padding: "9px 18px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>+ Créer un rendez-vous</button>
+          <Link href="/agenda/parametrage" style={{ fontSize: 13, fontWeight: 600, padding: "9px 18px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, color: N.text, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>⚙️ Configurer mes créneaux</Link>
+        </div>
       </div>
     )
   }
@@ -1064,10 +1070,13 @@ export default function AgendaPage() {
 
       {/* Empty state — semaine only */}
       {view === "semaine" && !agenda.isLoading && agenda.appointments.length === 0 && (
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", maxWidth: 360 }}>
           <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.2 }}>📅</div>
-          <div style={{ fontSize: 14, fontWeight: 500, color: N.textSoft }}>Aucun rendez-vous cette semaine</div>
-          <div style={{ fontSize: 12, color: N.textSoft, opacity: 0.6, marginTop: 4 }}>Les rendez-vous planifiés apparaîtront ici.</div>
+          <div style={{ fontSize: 14, fontWeight: 500, color: N.text }}>Aucun rendez-vous cette semaine</div>
+          <div style={{ fontSize: 12, color: N.textSoft, marginTop: 6, lineHeight: 1.5 }}>
+            Configurez vos créneaux d&apos;ouverture pour permettre la prise de rendez-vous, ou créez-en un manuellement depuis la vue jour.
+          </div>
+          <Link href="/agenda/parametrage" style={{ display: "inline-flex", alignItems: "center", marginTop: 14, fontSize: 13, fontWeight: 600, padding: "9px 18px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit", textDecoration: "none" }}>⚙️ Configurer mes créneaux</Link>
         </div>
       )}
 

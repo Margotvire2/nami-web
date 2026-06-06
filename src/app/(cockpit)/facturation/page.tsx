@@ -128,9 +128,25 @@ export default function FacturationPage() {
             </div>
           )}
           {!isLoading && invoices.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-center px-6 gap-2">
-              <FileText size={28} className="text-muted-foreground/40" />
-              <p className="text-xs text-muted-foreground">Aucune FSE. Créez votre première feuille de soins.</p>
+            <div className="flex flex-col items-center justify-center min-h-[260px] text-center px-6 py-8 gap-3">
+              <div className="w-12 h-12 rounded-xl bg-[#EEEDFB] flex items-center justify-center">
+                <FileText size={22} className="text-[#5B4EC4]" />
+              </div>
+              <p className="text-sm font-semibold text-[#0F172A]">Aucune feuille de soins</p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-[240px]">
+                Émettez vos FSE depuis cet écran (professions conventionnées). Configurez d&apos;abord vos tarifs et votre identité de facturation.
+              </p>
+              <div className="flex flex-col gap-2 w-full mt-1">
+                <Button size="sm" className="h-8 text-xs gap-1" onClick={() => { setShowNew(true); setSelected(null); }}>
+                  <Plus size={13} /> Nouvelle FSE
+                </Button>
+                <button
+                  onClick={() => setTab("config")}
+                  className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium border border-[#E8ECF4] text-[#0F172A] hover:bg-[#F8FAFF] transition-colors"
+                >
+                  <Settings size={13} /> Configurer ma facturation
+                </button>
+              </div>
             </div>
           )}
           {invoices.map((inv) => (
