@@ -6,7 +6,7 @@ import { Reveal } from "@/components/home/HomeReveal";
 import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 export const metadata: Metadata = {
-  title: "Le soin est fragmenté. Nami le coud.",
+  title: "Coordination des soins entre soignants | Nami",
   description: `Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de ${PROVIDERS_COUNT_LABEL} professionnels en France.`,
   alternates: { canonical: "/" },
   openGraph: {
