@@ -80,7 +80,7 @@ export function PatientHeader({
         {/* Name + demographics */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-base font-semibold text-gray-900 truncate">
+            <h1 className="text-base font-semibold text-gray-900">
               {c.patient.firstName} {c.patient.lastName}
             </h1>
             {onEdit && (
@@ -92,7 +92,7 @@ export function PatientHeader({
                 <Pencil size={13} />
               </button>
             )}
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
               {age && <span>{age} ans</span>}
               {sexLabel && <><span>·</span><span>{sexLabel}</span></>}
               {taille?.value && <><span>·</span><span>{taille.value} cm</span></>}
