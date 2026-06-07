@@ -17,6 +17,14 @@ export const ORG_TYPE_LABEL: Record<OrgType, string> = {
   ACCELERATEUR:        "Accélérateur",
 };
 
+export function formatOrgType(type: string): string {
+  if (type in ORG_TYPE_LABEL) return ORG_TYPE_LABEL[type as OrgType];
+  return type
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export const TIER_LABEL: Record<OrganizationTier, string> = {
   COORDINATION: "Coordination",
   INTELLIGENCE: "Intelligence",

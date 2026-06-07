@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/store";
 import { Building2, Users } from "lucide-react";
+import { formatOrgType } from "@/components/admin/applications/orgTypeLabels";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -63,7 +64,7 @@ export default function AdminOrganisationsPage() {
               </div>
               <p style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E", marginBottom: 4 }}>{org.name}</p>
               {org.type && (
-                <p style={{ fontSize: 12, color: "#6B7280", marginBottom: 10 }}>{org.type}</p>
+                <p style={{ fontSize: 12, color: "#6B7280", marginBottom: 10 }}>{formatOrgType(org.type)}</p>
               )}
               <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
                 <Users size={12} style={{ color: "#6B7280" }} />

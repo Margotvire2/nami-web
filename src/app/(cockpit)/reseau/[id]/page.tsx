@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, MessageCircle, Loader2, Lock, UserPlus, Newspaper, Calendar, Search, BookOpen, Settings, ChevronRight } from "lucide-react";
 import { formatProviderSpecialty } from "@/lib/provider-display";
+import { formatOrgType } from "@/components/admin/applications/orgTypeLabels";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -26,10 +27,6 @@ interface OrgDetail {
   conversations?: Array<{ id: string; name: string; _count: { messages: number }; messages?: Array<{ content: string; createdAt: string }> }>;
 }
 
-const ORG_TYPE_LABELS: Record<string, string> = {
-  NETWORK: "Réseau", HOSPITAL: "Hôpital", HOSPITAL_SERVICE: "Service hospitalier",
-  MSP: "MSP", CPTS: "CPTS", ASSOCIATION: "Association", PROFESSIONAL_GROUP: "Groupe pro",
-};
 const ORG_TYPE_COLORS: Record<string, string> = {
   NETWORK: "#5B4EC4", HOSPITAL: "#2BA89C", HOSPITAL_SERVICE: "#2BA89C",
   MSP: "#4F8FEC", CPTS: "#10B981", ASSOCIATION: "#F59E0B", PROFESSIONAL_GROUP: "#6B7280",
@@ -239,7 +236,7 @@ export default function OrgDetailPage() {
                 <h1 className="text-[20px] font-bold text-[#1A1A2E] leading-tight" style={{ fontFamily: "var(--font-jakarta)" }}>{org.name}</h1>
                 <div className="flex items-center gap-2 mt-1.5">
                   <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: `${color}18`, color }}>
-                    {ORG_TYPE_ICONS[org.type]} {ORG_TYPE_LABELS[org.type] ?? org.type}
+                    {ORG_TYPE_ICONS[org.type]} {formatOrgType(org.type)}
                   </span>
                   <span className="text-[12px] text-[#94A3B8]">{org.memberCount} membres{org.city ? ` · ${org.city}` : ""}</span>
                 </div>
