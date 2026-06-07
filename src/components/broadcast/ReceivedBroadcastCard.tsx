@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Building2, Calendar, MailX, Circle } from "lucide-react";
+import { formatOrgType } from "@/components/admin/applications/orgTypeLabels";
 import type { ReceivedBroadcastItem } from "@/hooks/useMyReceivedBroadcasts";
 
 interface ReceivedBroadcastCardProps {
@@ -21,14 +22,7 @@ function formatDate(iso: string | null): string {
 }
 
 function OrgTypeLabel({ type }: { type: string }) {
-  const map: Record<string, string> = {
-    CPTS: "CPTS",
-    MSP: "MSP",
-    HOSPITAL: "Hôpital",
-    PRIVATE_PRACTICE: "Cabinet",
-    NETWORK: "Réseau",
-  };
-  return <>{map[type] ?? type}</>;
+  return <>{formatOrgType(type)}</>;
 }
 
 export function ReceivedBroadcastCard({

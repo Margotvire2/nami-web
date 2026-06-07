@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { networkApi, type NetworkPatient } from "@/lib/api";
 import { formatProviderSpecialty } from "@/lib/provider-display";
+import { ORG_TYPE_LABEL, formatOrgType } from "@/components/admin/applications/orgTypeLabels";
 import Link from "next/link";
 import {
   Users, CheckSquare, CalendarDays, Bell, Search, Filter,
@@ -31,18 +32,6 @@ interface OrgCard {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const ORG_TYPE_LABELS: Record<string, string> = {
-  NETWORK: "Réseau",
-  HOSPITAL: "Hôpital",
-  HOSPITAL_SERVICE: "Service hospitalier",
-  MSP: "MSP",
-  CPTS: "CPTS",
-  ASSOCIATION: "Association",
-  PROFESSIONAL_GROUP: "Groupe pro",
-  CLINIC: "Clinique",
-  HEALTH_CENTER: "Centre de santé",
-  PRIVATE_PRACTICE: "Cabinet",
-};
 
 const ORG_TYPE_COLORS: Record<string, string> = {
   NETWORK: "#5B4EC4",
@@ -103,7 +92,7 @@ async function joinOrg(token: string, orgId: string, message?: string) {
 
 function OrgTypeBadge({ type }: { type: string }) {
   const color = ORG_TYPE_COLORS[type] ?? "#6B7280";
-  const label = ORG_TYPE_LABELS[type] ?? type;
+  const label = formatOrgType(type);
   const icon = ORG_TYPE_ICONS[type] ?? "🏢";
   return (
     <span style={{
@@ -537,7 +526,7 @@ export default function ReseauPage() {
                       fontWeight: filterType === t ? 600 : 400,
                     }}
                   >
-                    {t === "ALL" ? "Tous" : ORG_TYPE_LABELS[t] ?? t}
+                    {t === "ALL" ? "Tous" : formatOrgType(t)}
                   </button>
                 ))}
               </div>
