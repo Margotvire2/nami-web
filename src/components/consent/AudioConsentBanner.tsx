@@ -11,7 +11,7 @@ type ApiErrorLike = { status?: number; body?: { error?: string } };
 function describeError(err: unknown): string {
   const e = err as ApiErrorLike;
   if (e?.status === 403) {
-    return "Le patient doit donner son accord depuis son propre espace « Mon compte › Confidentialité ». Vous pouvez recueillir un accord verbal dans la consultation, mais l'enregistrement ne peut être démarré qu'une fois le consentement consigné par le patient.";
+    return "Impossible d'enregistrer le consentement. Vérifiez que votre compte est bien configuré et réessayez.";
   }
   if (err instanceof Error) return err.message;
   return "Impossible d'enregistrer la décision.";
@@ -58,7 +58,10 @@ export function AudioConsentBanner({
   async function handleAccept() {
     setErrorMessage(null);
     try {
-      await grant.mutateAsync({ source: "WEB" });
+      await grant.mutateAsync({
+        source: "VERBAL",
+        notes: "Consentement oral recueilli en consultation",
+      });
       onAccepted();
     } catch (err) {
       setErrorMessage(describeError(err));
@@ -158,7 +161,7 @@ export function AudioConsentBanner({
         <ul style={{ margin: "0 0 16px", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
           {[
             "Aucune décision médicale n'est prise par l'IA — le brouillon est relu et validé par le soignant.",
-            "Vous pouvez retirer votre accord à tout moment depuis « Mon compte › Confidentialité ».",
+            "Le consentement est consigné dans le dossier et peut être révoqué à tout moment par le patient.",
             "Refuser n'a aucune incidence sur la prise en charge — la consultation se poursuit normalement.",
           ].map((line, i) => (
             <li
