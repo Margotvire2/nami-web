@@ -36,7 +36,6 @@ const NAV_PATIENTS = [
   // après PR #214 qui avait oublié cette ligne.
   { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
   { href: "/documents",    label: "Documents",          emoji: "📄" },
-  { href: "/import",       label: "Importer l'historique", emoji: "📥" },
 ];
 
 const NAV_NETWORK_BASE = [

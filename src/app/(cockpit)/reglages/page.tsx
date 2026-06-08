@@ -9,7 +9,7 @@ import { authApi, mfaApi, refreshAwareRequest, ApiError } from "@/lib/api"
 import { EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
 import { ShimmerCard } from "@/components/ui/shimmer"
 import {
-  Loader2, Save, Plus, Trash2, LogOut, Download, Shield,
+  Loader2, Save, Plus, Trash2, LogOut, Download, Shield, Upload, ExternalLink,
 } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
@@ -201,6 +201,11 @@ export default function ReglagesPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeSection, setActiveSection] = useState("identite")
+
+  // Import Doctolib
+  const [doctolibPatientsFile, setDoctolibPatientsFile] = useState<File | null>(null)
+  const [doctolibImporting, setDoctolibImporting] = useState(false)
+  const [doctolibResult, setDoctolibResult] = useState<{ created: number; matched: number; errors: number } | null>(null)
 
   // Structures
   const [structureModal, setStructureModal] = useState<{ open: boolean; editing: Structure | null }>({ open: false, editing: null })
@@ -491,6 +496,7 @@ export default function ReglagesPage() {
     { id: "structures",  icon: "🏥", label: "Structures d'exercice" },
     { id: "visibilite",  icon: "🌐", label: "Réseau & Visibilité" },
     { id: "formations",  icon: "🎓", label: "Formations" },
+    { id: "import",      icon: "📥", label: "Importer des bases de données" },
     { id: "sep1", sep: true },
     { id: "securite",    icon: "🔒", label: "Sécurité" },
     { id: "compte",      icon: "⚙️", label: "Compte" },
@@ -912,6 +918,99 @@ export default function ReglagesPage() {
                   >
                     <LogOut size={14} /> Se déconnecter
                   </button>
+                </>}
+
+                {/* ── Import ── */}
+                {activeSection === "import" && <>
+
+                  {/* Doctolib — Patients */}
+                  <div style={{ padding: "16px 18px", borderRadius: 8, border: `1px solid ${BORDER}`, background: CARD }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: DARK, marginBottom: 4 }}>Doctolib — Import patients</div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>
+                      Importez votre liste de patients depuis l&apos;export CSV Doctolib (<span style={{ fontFamily: "monospace", fontSize: 12 }}>Agenda → Patients → Exporter</span>). Les patients déjà présents sont automatiquement reconnus et dédoublonnés.
+                    </div>
+                    <label style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: CARD, fontSize: 13, fontWeight: 600, color: P, cursor: "pointer" }}>
+                      <Upload size={14} />
+                      {doctolibPatientsFile ? doctolibPatientsFile.name : "Choisir le fichier CSV"}
+                      <input
+                        type="file"
+                        accept=".csv,text/csv"
+                        style={{ display: "none" }}
+                        onChange={e => {
+                          setDoctolibPatientsFile(e.target.files?.[0] ?? null)
+                          setDoctolibResult(null)
+                        }}
+                      />
+                    </label>
+                    {doctolibPatientsFile && (
+                      <button
+                        disabled={doctolibImporting}
+                        onClick={async () => {
+                          if (!accessToken || !doctolibPatientsFile) return
+                          setDoctolibImporting(true)
+                          setDoctolibResult(null)
+                          try {
+                            const form = new FormData()
+                            form.append("file", doctolibPatientsFile)
+                            const res = await fetch(`${API_URL}/imports/doctolib/patients`, {
+                              method: "POST",
+                              headers: { Authorization: `Bearer ${accessToken}` },
+                              body: form,
+                            })
+                            if (!res.ok) throw new Error("Erreur import")
+                            const data = await res.json()
+                            setDoctolibResult({ created: data.created ?? 0, matched: data.matched ?? 0, errors: data.errors ?? 0 })
+                            toast.success(`Import terminé : ${data.created ?? 0} patients créés`)
+                          } catch {
+                            toast.error("Erreur lors de l’import Doctolib")
+                          } finally {
+                            setDoctolibImporting(false)
+                          }
+                        }}
+                        style={{ marginLeft: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 8, background: P, border: "none", fontSize: 13, fontWeight: 600, color: "#fff", cursor: doctolibImporting ? "not-allowed" : "pointer", opacity: doctolibImporting ? 0.7 : 1 }}
+                      >
+                        {doctolibImporting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : null}
+                        {doctolibImporting ? "Import en cours…" : "Importer"}
+                      </button>
+                    )}
+                    {doctolibResult && (
+                      <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 8, background: "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.2)", fontSize: 13, color: "#065F46" }}>
+                        ✓ {doctolibResult.created} créés · {doctolibResult.matched} déjà présents · {doctolibResult.errors} erreurs
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Doctolib — Agenda (bientôt) */}
+                  <div style={{ padding: "16px 18px", borderRadius: 8, border: `1px solid ${BORDER}`, background: "#FAFAF8", opacity: 0.7 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>Doctolib — Import agenda</div>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: "rgba(91,78,196,0.1)", color: P }}>Bientôt</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>
+                      L&apos;import de l&apos;historique des rendez-vous Doctolib (fichier ICS) sera disponible prochainement.
+                    </div>
+                  </div>
+
+                  {/* Import historique consultations */}
+                  <div style={{ padding: "16px 18px", borderRadius: 8, border: `1px solid ${BORDER}`, background: CARD }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: DARK, marginBottom: 4 }}>Import historique consultations</div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>
+                      Importez des consultations passées pour un patient existant. Une note structurée est générée automatiquement en brouillon IA.
+                    </div>
+                    <Link
+                      href="/import"
+                      style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 8, border: `1px solid ${BORDERMED}`, background: CARD, fontSize: 13, fontWeight: 600, color: P, textDecoration: "none" }}
+                    >
+                      <ExternalLink size={13} /> Ouvrir l&apos;import consultations
+                    </Link>
+                  </div>
+
+                  {/* Futurs imports */}
+                  <div style={{ padding: "14px 16px", borderRadius: 8, background: "#FAFAF8", border: `1px solid ${BORDER}`, opacity: 0.6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: MID, marginBottom: 4 }}>Bientôt disponibles</div>
+                    <div style={{ fontSize: 12, color: LIGHT }}>Maiia · Doctolib autres exports · CSV générique</div>
+                  </div>
+
                 </>}
 
                 {/* ── RGPD ── */}
