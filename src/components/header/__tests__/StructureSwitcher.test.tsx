@@ -102,18 +102,46 @@ describe("StructureSwitcher", () => {
     expect(JSON.parse(stored!)).toEqual({ kind: "structure", orgId: "org-rtf" });
   });
 
-  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire. Le switcher se base sur
-  // providerProfile, pas sur roleType ; on couvre néanmoins les deux libellés pour
-  // documenter que le composant reste null peu importe la valeur retournée par
-  // l'API pendant la phase de migration (V2 J+30 retirera "ORG_ADMIN").
+  // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire.
+  // Admin pur (!providerProfile) voit le switcher MAIS sans l'item "Cockpit soignant".
   it.each([
     ["PLATFORM_ADMIN"],
     ["ORG_ADMIN"],
-  ])("User sans providerProfile (%s pur) → composant null (pas besoin du switcher)", (role) => {
+  ])("User sans providerProfile (%s pur) → switcher visible, pas d'item Cockpit soignant", (role) => {
     mockMemberships([{ id: "org-rtf", name: "Réseau TCA Francilien", type: "NETWORK" }]);
     mockUser.providerProfile = undefined;
     mockUser.roleType = role;
-    const { container } = render(<StructureSwitcher />);
-    expect(container.firstChild).toBeNull();
+    render(<StructureSwitcher />);
+
+    // Le bouton trigger doit être rendu (affiche le nom de l'org, pas "Cockpit soignant").
+    const trigger = screen.getByRole("button", { name: /Réseau TCA Francilien/i });
+    expect(trigger).toBeTruthy();
+
+    // Ouvrir le dropdown → pas d'item "Cockpit soignant".
+    fireEvent.click(trigger);
+    const menu = screen.getByRole("menu");
+    expect(menu.textContent).not.toMatch(/Cockpit soignant/);
+    expect(menu.textContent).toMatch(/Réseau TCA Francilien/);
+  });
+
+  it("Admin pur multi-org → dropdown liste toutes les orgs, pas de Cockpit soignant", () => {
+    mockMemberships([
+      { id: "org-rtf", name: "Réseau TCA Francilien", type: "NETWORK" },
+      { id: "org-cpts", name: "CPTS Paris 13", type: "CPTS" },
+    ]);
+    mockUser.providerProfile = undefined;
+    mockUser.roleType = "PLATFORM_ADMIN";
+    render(<StructureSwitcher />);
+
+    // Trigger affiche la 1ère org (choix "cockpit" par défaut → fallback admin pur).
+    expect(screen.getByRole("button", { name: /Réseau TCA Francilien/i })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Réseau TCA Francilien/i }));
+    const menu = screen.getByRole("menu");
+    const items = menu.querySelectorAll("[role='menuitem']");
+    expect(items.length).toBe(2);
+    expect(menu.textContent).not.toMatch(/Cockpit soignant/);
+    expect(menu.textContent).toMatch(/Réseau TCA Francilien/);
+    expect(menu.textContent).toMatch(/CPTS Paris 13/);
   });
 });
