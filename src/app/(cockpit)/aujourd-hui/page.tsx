@@ -325,6 +325,17 @@ export default function DashboardPage() {
 
               {/* MESSAGES */}
               <ProMessagesSection />
+
+              {/* ACTUALITÉS — publications des réseaux rejoints */}
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.3 }}>
+                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E8ECF4" }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94A3B8] mb-4" style={{ fontFamily: "var(--font-inter)" }}>ACTUALITÉS</p>
+                  <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+                    <span className="text-2xl">📰</span>
+                    <p className="text-[13px] text-[#94A3B8]">Aucune actualité de vos réseaux pour le moment</p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
 

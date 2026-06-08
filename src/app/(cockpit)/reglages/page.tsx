@@ -492,6 +492,7 @@ export default function ReglagesPage() {
     { id: "visibilite",  icon: "🌐", label: "Réseau & Visibilité" },
     { id: "formations",  icon: "🎓", label: "Formations" },
     { id: "sep1", sep: true },
+    { id: "mes-donnees", icon: "📥", label: "Mes données" },
     { id: "securite",    icon: "🔒", label: "Sécurité" },
     { id: "compte",      icon: "⚙️", label: "Compte" },
     { id: "rgpd",        icon: "🛡️", label: "Confidentialité & RGPD" },
@@ -783,6 +784,24 @@ export default function ReglagesPage() {
                   >
                     + Ajouter une formation
                   </button>
+                </>}
+
+                {/* ── Mes données ── */}
+                {activeSection === "mes-donnees" && <>
+                  <div style={{ fontSize: 13, color: LIGHT, lineHeight: 1.6 }}>Importez l&apos;historique de vos patients depuis un autre logiciel ou un export Doctolib.</div>
+                  <Link
+                    href="/import"
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 8,
+                      padding: "12px 20px", borderRadius: 8,
+                      border: `1px solid ${BORDERMED}`, background: CARD,
+                      fontSize: 14, fontWeight: 600, color: P,
+                      textDecoration: "none", transition: "background 0.15s",
+                    }}
+                  >
+                    <span style={{ fontSize: 16 }}>📥</span>
+                    Importer l&apos;historique
+                  </Link>
                 </>}
 
                 {/* ── Sécurité ── */}
