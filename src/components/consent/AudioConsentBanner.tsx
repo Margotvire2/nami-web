@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Mic, X, Loader2, ExternalLink } from "lucide-react";
 import { N } from "@/lib/design-tokens";
@@ -11,7 +11,7 @@ type ApiErrorLike = { status?: number; body?: { error?: string } };
 function describeError(err: unknown): string {
   const e = err as ApiErrorLike;
   if (e?.status === 403) {
-    return "Le patient doit donner son accord depuis son propre espace « Mon compte › Confidentialité ». Vous pouvez recueillir un accord verbal dans la consultation, mais l'enregistrement ne peut être démarré qu'une fois le consentement consigné par le patient.";
+    return "Impossible d'enregistrer le consentement. Vérifiez que votre compte est bien configuré et réessayez.";
   }
   if (err instanceof Error) return err.message;
   return "Impossible d'enregistrer la décision.";
@@ -50,6 +50,14 @@ export function AudioConsentBanner({
 }: AudioConsentBannerProps) {
   const { grant, refuse } = useAudioConsent(patientPersonId);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [attested, setAttested] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setAttested(false);
+      setErrorMessage(null);
+    }
+  }, [open]);
 
   const isBusy = grant.isPending || refuse.isPending;
 
@@ -58,7 +66,10 @@ export function AudioConsentBanner({
   async function handleAccept() {
     setErrorMessage(null);
     try {
-      await grant.mutateAsync({ source: "WEB" });
+      await grant.mutateAsync({
+        source: "VERBAL",
+        notes: "Accord oral recueilli en consultation",
+      });
       onAccepted();
     } catch (err) {
       setErrorMessage(describeError(err));
@@ -158,7 +169,7 @@ export function AudioConsentBanner({
         <ul style={{ margin: "0 0 16px", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
           {[
             "Aucune décision médicale n'est prise par l'IA — le brouillon est relu et validé par le soignant.",
-            "Vous pouvez retirer votre accord à tout moment depuis « Mon compte › Confidentialité ».",
+            "Le consentement est consigné dans le dossier et peut être révoqué à tout moment par le patient.",
             "Refuser n'a aucune incidence sur la prise en charge — la consultation se poursuit normalement.",
           ].map((line, i) => (
             <li
@@ -219,6 +230,27 @@ export function AudioConsentBanner({
           </p>
         )}
 
+        <label
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 10,
+            marginBottom: 18,
+            cursor: isBusy ? "not-allowed" : "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={attested}
+            onChange={(e) => setAttested(e.target.checked)}
+            disabled={isBusy}
+            style={{ marginTop: 2, accentColor: "#5B4EC4", flexShrink: 0 }}
+          />
+          <span style={{ fontSize: 13, color: N.dark, lineHeight: 1.5 }}>
+            J&apos;atteste avoir recueilli l&apos;accord oral du patient pour cet enregistrement.
+          </span>
+        </label>
+
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button
             type="button"
@@ -244,7 +276,7 @@ export function AudioConsentBanner({
           <button
             type="button"
             onClick={handleAccept}
-            disabled={isBusy}
+            disabled={isBusy || !attested}
             style={{
               padding: "9px 18px",
               borderRadius: 10,
@@ -253,15 +285,15 @@ export function AudioConsentBanner({
               color: "#fff",
               fontSize: 13,
               fontWeight: 600,
-              cursor: isBusy ? "not-allowed" : "pointer",
+              cursor: isBusy || !attested ? "not-allowed" : "pointer",
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              opacity: isBusy ? 0.7 : 1,
+              opacity: isBusy || !attested ? 0.5 : 1,
             }}
           >
             {grant.isPending && <Loader2 size={14} className="animate-spin" aria-hidden />}
-            Accepter
+            Démarrer l&apos;enregistrement
           </button>
         </div>
       </div>
