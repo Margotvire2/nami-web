@@ -3,12 +3,11 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { networkApi, type NetworkPatient } from "@/lib/api";
+import { networkApi, type NetworkProvider } from "@/lib/api";
 import { formatProviderSpecialty } from "@/lib/provider-display";
 import Link from "next/link";
 import {
-  Users, CheckSquare, CalendarDays, Bell, Search, Filter,
-  Clock, ArrowRight, Loader2, Building2, Lock, UserPlus,
+  Users, Search, Loader2, Building2, Lock, UserPlus,
   Globe, ChevronRight, MessageCircle, Network,
 } from "lucide-react";
 
@@ -301,64 +300,70 @@ function JoinModal({ org, onClose, onJoin }: { org: OrgCard; onClose: () => void
   );
 }
 
-// ── Legacy coordinator view (kept as tab) ────────────────────────────────────
+// ── Réseau de soignants ───────────────────────────────────────────────────────
 
-const CASE_TYPE_LABELS: Record<string, string> = { TCA: "TCA", OBESITY: "Obésité", METABOLIC: "Métabolique", MENTAL_HEALTH: "Santé mentale", PEDIATRIC: "Pédiatrie", CHRONIC_PAIN: "Douleur chronique", OTHER: "Autre" };
-const CASE_TYPE_COLORS: Record<string, string> = { TCA: "#7C3AED", OBESITY: "#2563EB", METABOLIC: "#0891B2", MENTAL_HEALTH: "#7C3AED", PEDIATRIC: "#059669", CHRONIC_PAIN: "#D97706", OTHER: "#64748B" };
-const STATUS_LABELS: Record<string, string> = { ACTIVE: "Actif", ON_HOLD: "En pause", CLOSED: "Clôturé", ARCHIVED: "Archivé" };
-const STATUS_DOT_COLORS: Record<string, string> = { ACTIVE: "#059669", ON_HOLD: "#D97706", CLOSED: "#94A3B8", ARCHIVED: "#CBD5E1" };
+const PROFESSION_LABELS: Record<string, string> = {
+  MEDECIN: "Médecin",
+  DIETICIEN: "Diététicien·ne",
+  KINE: "Masseur-kinésithérapeute",
+  IDE: "Infirmier·ère",
+  SAGE_FEMME: "Sage-femme",
+  PSY: "Psychologue",
+  OSTEO: "Ostéopathe",
+  PHARMA: "Pharmacien·ne",
+  ORTHOPHONISTE: "Orthophoniste",
+  PEDICURE: "Pédicure-podologue",
+  ERGO: "Ergothérapeute",
+  AIDE_SOIGNANT: "Aide-soignant·e",
+};
 
-function getAge(birthDate: string | null): string {
-  if (!birthDate) return "—";
-  const years = Math.floor((Date.now() - new Date(birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  return `${years} ans`;
-}
-function formatDate(iso: string): string { return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }); }
-function formatTime(iso: string): string { return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); }
-function isToday(iso: string): boolean { const d = new Date(iso); const n = new Date(); return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); }
+function ProviderCard({ p }: { p: NetworkProvider }) {
+  const initials = `${p.person.firstName?.[0] ?? ""}${p.person.lastName?.[0] ?? ""}`.toUpperCase() || "?";
+  const profLabel = PROFESSION_LABELS[p.provider?.profession ?? ""] ?? p.provider?.profession ?? "Professionnel";
+  const primarySpec = p.provider?.specialties?.[0];
+  const city = p.provider?.consultationCity;
 
-function PatientRow({ p }: { p: NetworkPatient }) {
-  const typeColor = CASE_TYPE_COLORS[p.caseType] ?? "#64748B";
-  const dotColor = STATUS_DOT_COLORS[p.status] ?? "#94A3B8";
-  const hasOverdue = p.overdueTasksCount > 0;
-  const hasAlerts = p.openAlertsCount > 0;
-  const todayAppt = p.nextAppointment && isToday(p.nextAppointment.startAt);
   return (
-    <Link href={`/patients/${p.careCaseId}`} className="group flex items-center gap-4 px-4 py-3.5 border-b border-[#F1F5F9] hover:bg-[rgba(91,78,196,0.03)] transition-colors">
+    <div
+      className="bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-4 flex items-start gap-3 hover:border-[rgba(91,78,196,0.2)] hover:shadow-[0_4px_16px_rgba(91,78,196,0.08)] transition-all duration-200"
+      style={{ boxShadow: "0 1px 3px rgba(26,26,46,0.04)" }}
+    >
       <div
-        className="w-9 h-9 rounded-[10px] flex items-center justify-center text-[12px] font-bold text-white shrink-0"
-        style={{ background: `linear-gradient(135deg, ${typeColor}CC, ${typeColor}88)` }}
+        className="w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0"
+        style={{ background: "linear-gradient(135deg, #5B4EC4CC, #5B4EC488)" }}
       >
-        {p.patient.firstName?.[0] ?? "?"}{p.patient.lastName?.[0] ?? ""}
+        {initials}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-[13px] font-semibold truncate" style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}>{p.patient.firstName} {p.patient.lastName}</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0" style={{ background: `${typeColor}15`, color: typeColor }}>{CASE_TYPE_LABELS[p.caseType] ?? p.caseType}</span>
+        <div className="text-[14px] font-semibold text-[#1A1A2E]" style={{ fontFamily: "var(--font-jakarta)" }}>
+          {p.person.firstName} {p.person.lastName}
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="inline-flex items-center gap-1 text-[11px]" style={{ color: "#64748B" }}>
-            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
-            {STATUS_LABELS[p.status] ?? p.status}
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ background: "#5B4EC415", color: "#5B4EC4" }}>
+            {profLabel}
           </span>
-          {p.patient.birthDate && <span className="text-[11px] text-[#94A3B8]">· {getAge(p.patient.birthDate)}</span>}
-          {p.careStage && <span className="text-[11px] text-[#94A3B8] truncate">· {p.careStage}</span>}
+          {primarySpec && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#64748B] font-medium">
+              {formatProviderSpecialty(primarySpec)}
+            </span>
+          )}
+          {city && <span className="text-[11px] text-[#94A3B8]">· {city}</span>}
         </div>
+        {p.organizations.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            {p.organizations.map((org) => (
+              <span
+                key={org.id}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium"
+                style={{ background: `${ORG_TYPE_COLORS[org.type] ?? "#6B7280"}12`, color: ORG_TYPE_COLORS[org.type] ?? "#64748B" }}
+              >
+                {ORG_TYPE_ICONS[org.type] ?? "🏢"} {org.name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="flex items-center gap-1.5 text-[12px]" style={{ color: hasOverdue ? "#D97706" : "#94A3B8" }}>
-          <CheckSquare size={13} strokeWidth={1.75} /><span>{p.pendingTasksCount}</span>
-          {hasOverdue && <span className="text-[10px] font-semibold" style={{ color: "#D97706" }}>({p.overdueTasksCount} en retard)</span>}
-        </div>
-        {hasAlerts && <div className="flex items-center gap-1 text-[12px]" style={{ color: "#DC2626" }}><Bell size={12} strokeWidth={1.75} /><span>{p.openAlertsCount}</span></div>}
-        <div className="flex items-center gap-1.5 text-[12px] min-w-[100px] justify-end" style={{ color: todayAppt ? "#5B4EC4" : "#94A3B8" }}>
-          <CalendarDays size={13} strokeWidth={1.75} />
-          {p.nextAppointment ? <span>{todayAppt ? <span style={{ color: "#5B4EC4", fontWeight: 600 }}>Auj. {formatTime(p.nextAppointment.startAt)}</span> : formatDate(p.nextAppointment.startAt)}</span> : <span className="text-[11px]">—</span>}
-        </div>
-        <div className="flex items-center gap-1 text-[12px] text-[#94A3B8] min-w-[48px] justify-end"><Users size={12} strokeWidth={1.75} /><span>{p.teamSize}</span></div>
-        <ArrowRight size={14} className="text-[#CBD5E1] group-hover:text-[#5B4EC4] transition-colors shrink-0" strokeWidth={1.75} />
-      </div>
-    </Link>
+    </div>
   );
 }
 
@@ -370,9 +375,7 @@ export default function ReseauPage() {
   const [tab, setTab] = useState<"mine" | "explore" | "soignants">("mine");
   const [filterType, setFilterType] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [searchCoord, setSearchCoord] = useState("");
-  const [filterTypeCoord, setFilterTypeCoord] = useState("ALL");
-  const [filterStatusCoord, setFilterStatusCoord] = useState("ACTIVE");
+  const [searchProviders, setSearchProviders] = useState("");
   const [joinTarget, setJoinTarget] = useState<OrgCard | null>(null);
 
   // Queries
@@ -388,11 +391,10 @@ export default function ReseauPage() {
     enabled: !!accessToken && tab === "explore",
   });
 
-  const networkQuery = useQuery({
-    queryKey: ["network-overview"],
-    queryFn: () => networkApi.overview(accessToken!),
+  const networkProvidersQuery = useQuery({
+    queryKey: ["network-providers"],
+    queryFn: () => networkApi.providers(accessToken!),
     enabled: !!accessToken && tab === "soignants",
-    refetchInterval: 60_000,
   });
 
   // Join mutation
@@ -414,16 +416,17 @@ export default function ReseauPage() {
     }
   }, [joinMutation]);
 
-  // Filtered coordinator patients
-  const filteredPatients = useMemo(() => {
-    if (!networkQuery.data?.patients) return [];
-    return networkQuery.data.patients.filter((p) => {
-      const matchSearch = !searchCoord || `${p.patient.firstName} ${p.patient.lastName}`.toLowerCase().includes(searchCoord.toLowerCase());
-      const matchType = filterTypeCoord === "ALL" || p.caseType === filterTypeCoord;
-      const matchStatus = filterStatusCoord === "ALL" || p.status === filterStatusCoord;
-      return matchSearch && matchType && matchStatus;
-    });
-  }, [networkQuery.data, searchCoord, filterTypeCoord, filterStatusCoord]);
+  // Filtered providers
+  const filteredProviders = useMemo(() => {
+    if (!networkProvidersQuery.data) return [];
+    if (!searchProviders.trim()) return networkProvidersQuery.data;
+    const q = searchProviders.toLowerCase();
+    return networkProvidersQuery.data.filter((p) =>
+      `${p.person.firstName ?? ""} ${p.person.lastName ?? ""}`.toLowerCase().includes(q) ||
+      (p.provider?.profession && (PROFESSION_LABELS[p.provider.profession] ?? "").toLowerCase().includes(q)) ||
+      p.organizations.some((o) => o.name.toLowerCase().includes(q))
+    );
+  }, [networkProvidersQuery.data, searchProviders]);
 
   const ORG_TYPES_LIST = ["ALL", "NETWORK", "HOSPITAL", "HOSPITAL_SERVICE", "MSP", "CPTS", "ASSOCIATION", "PROFESSIONAL_GROUP"];
 
@@ -566,70 +569,64 @@ export default function ReseauPage() {
           </div>
         )}
 
-        {/* ── SOIGNANTS (legacy coordinator view) ── */}
+        {/* ── SOIGNANTS ── */}
         {tab === "soignants" && (
-          <div className="-mx-8 -mt-6">
-            {/* Filters */}
-            <div className="px-8 pt-4 pb-4">
-              {networkQuery.data?.stats && (
-                <div className="grid grid-cols-4 gap-3 mb-4">
-                  {[
-                    { icon: Users, label: "Patients actifs", value: networkQuery.data.stats.totalActive, color: "#5B4EC4" },
-                    { icon: CheckSquare, label: "Tâches en retard", value: networkQuery.data.stats.tasksOverdue, color: networkQuery.data.stats.tasksOverdue > 0 ? "#D97706" : "#059669" },
-                    { icon: CalendarDays, label: "RDV aujourd'hui", value: networkQuery.data.stats.appointmentsToday, color: "#2BA89C" },
-                    { icon: Bell, label: "Rappels ouverts", value: networkQuery.data.stats.openAlerts, color: networkQuery.data.stats.openAlerts > 0 ? "#DC2626" : "#059669" },
-                  ].map(({ icon: Icon, label, value, color }) => (
-                    <div key={label} className="bg-white rounded-xl border border-[rgba(26,26,46,0.06)] px-5 py-4 flex items-center gap-4" style={{ boxShadow: "0 1px 4px rgba(26,26,46,0.04)" }}>
-                      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-                        <Icon size={18} style={{ color }} strokeWidth={1.75} />
-                      </div>
-                      <div><p className="text-[22px] font-bold leading-none" style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}>{value}</p><p className="text-[12px] text-[#64748B] mt-0.5">{label}</p></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="relative flex-1 min-w-[200px] max-w-[320px]">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.75} />
-                  <input type="text" placeholder="Rechercher un patient..." value={searchCoord} onChange={(e) => setSearchCoord(e.target.value)} className="w-full pl-8 pr-3 h-9 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 transition-colors" />
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Filter size={13} className="text-[#94A3B8]" strokeWidth={1.75} />
-                  <select value={filterTypeCoord} onChange={(e) => setFilterTypeCoord(e.target.value)} className="h-9 px-3 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 cursor-pointer">
-                    <option value="ALL">Tous les parcours</option>
-                    {Object.entries(CASE_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
-                </div>
-                <select value={filterStatusCoord} onChange={(e) => setFilterStatusCoord(e.target.value)} className="h-9 px-3 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 cursor-pointer">
-                  <option value="ALL">Tous les statuts</option>
-                  <option value="ACTIVE">Actifs</option>
-                  <option value="ON_HOLD">En pause</option>
-                  <option value="CLOSED">Clôturés</option>
-                </select>
+          <div>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="relative flex-1 min-w-[200px] max-w-[320px]">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" strokeWidth={1.75} />
+                <input
+                  type="text"
+                  placeholder="Rechercher un soignant..."
+                  value={searchProviders}
+                  onChange={(e) => setSearchProviders(e.target.value)}
+                  className="w-full pl-8 pr-3 h-9 rounded-[8px] bg-white border border-[rgba(26,26,46,0.08)] text-[13px] text-[#1A1A2E] placeholder:text-[#94A3B8] outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 transition-colors"
+                />
               </div>
             </div>
 
-            <div className="mx-8 mb-6 bg-white rounded-xl border border-[rgba(26,26,46,0.06)] overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(26,26,46,0.04)" }}>
-              <div className="flex items-center gap-4 px-4 py-2.5 bg-[#F8F9FC] border-b border-[#F1F5F9]">
-                <div className="w-9 shrink-0" /><div className="flex-1 text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide">Patient</div>
-                <div className="flex items-center gap-3 shrink-0 text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide">
-                  <span className="w-[80px]">Tâches</span><span className="w-[40px]">Rappels</span><span className="w-[100px] text-right">Prochain RDV</span><span className="w-[48px] text-right">Équipe</span><span className="w-[14px]" />
-                </div>
+            {networkProvidersQuery.isLoading && (
+              <div className="flex items-center justify-center py-16 gap-3 text-[#94A3B8]">
+                <Loader2 size={20} className="animate-spin" />
+                <span className="text-[13px]">Chargement des soignants…</span>
               </div>
-              <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 440px)" }}>
-                {networkQuery.isLoading && <div className="flex items-center justify-center py-16 gap-3 text-[#94A3B8]"><Loader2 size={20} className="animate-spin" /><span className="text-[13px]">Chargement du réseau…</span></div>}
-                {!networkQuery.isLoading && filteredPatients.map((p) => <PatientRow key={p.careCaseId} p={p} />)}
-                {!networkQuery.isLoading && filteredPatients.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-16"><Users size={32} className="text-[#CBD5E1]" strokeWidth={1.25} /><p className="text-[13px] text-[#64748B] mt-1">Aucun patient dans votre réseau</p></div>
-                )}
+            )}
+
+            {networkProvidersQuery.isError && (
+              <div className="flex flex-col items-center justify-center py-16 gap-2">
+                <p className="text-[13px] text-[#94A3B8]">Impossible de charger les soignants.</p>
+                <button onClick={() => networkProvidersQuery.refetch()} className="text-[12px] text-[#5B4EC4] hover:underline">Réessayer</button>
               </div>
-              {networkQuery.data && filteredPatients.length > 0 && (
-                <div className="px-4 py-2.5 border-t border-[#F1F5F9] bg-[#F8F9FC] flex items-center gap-2">
-                  <Clock size={11} className="text-[#CBD5E1]" strokeWidth={1.75} />
-                  <span className="text-[11px] text-[#CBD5E1]">Actualisé automatiquement · Indicateurs non cliniques destinés à l&apos;organisation du dossier</span>
+            )}
+
+            {!networkProvidersQuery.isLoading && networkProvidersQuery.data && (
+              filteredProviders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <Users size={40} className="text-[#CBD5E1]" strokeWidth={1.25} />
+                  {networkProvidersQuery.data.length === 0 ? (
+                    <>
+                      <p className="text-[14px] text-[#64748B] font-medium">Aucun soignant dans vos réseaux</p>
+                      <p className="text-[12px] text-[#94A3B8]">Rejoignez des réseaux pour retrouver vos confrères ici</p>
+                      <button
+                        onClick={() => setTab("explore")}
+                        className="mt-2 px-4 py-2 rounded-[10px] text-[13px] font-semibold text-white transition-colors"
+                        style={{ background: "#5B4EC4" }}
+                      >
+                        Explorer les réseaux →
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-[13px] text-[#64748B]">Aucun résultat pour « {searchProviders} »</p>
+                  )}
                 </div>
-              )}
-            </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl">
+                  {filteredProviders.map((p) => (
+                    <ProviderCard key={p.personId} p={p} />
+                  ))}
+                </div>
+              )
+            )}
           </div>
         )}
       </div>

@@ -1828,7 +1828,16 @@ export interface NetworkOverview {
 export const networkApi = {
   overview: (token: string) =>
     request<NetworkOverview>("/provider/network-overview", {}, token),
+  providers: (token: string) =>
+    request<NetworkProvider[]>("/providers/network", {}, token),
 };
+
+export interface NetworkProvider {
+  personId: string;
+  person: { id: string; firstName: string | null; lastName: string | null; photoUrl: string | null; email: string };
+  provider: { id: string; profession: string | null; specialties: string[]; rppsNumber: string | null; consultationCity: string | null } | null;
+  organizations: { id: string; name: string; type: string }[];
+}
 
 // ─── Documents ───────────────────────────────────────────────────────────────
 
