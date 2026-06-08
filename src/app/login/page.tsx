@@ -130,18 +130,16 @@ export default function LoginPage() {
       }
     }
 
-    // PLATFORM_ADMIN/ORG_ADMIN pur (sans ProviderProfile) → console d'animation.
-    // F-SEC-RENAME-PLATFORM-ADMIN — accepte BOTH le nouveau nom et le legacy.
-    if (
-      (user.roleType === "PLATFORM_ADMIN" || user.roleType === "ORG_ADMIN") &&
-      !user.providerProfile &&
-      adminOrgIds.length > 0
-    ) {
-      return `/structure/${adminOrgIds[0]}/admin`;
-    }
+    // 1. PROVIDER (avec ou sans adhésion admin) → cockpit soignant.
+    if (user.providerProfile) return "/aujourd-hui";
 
-    // Multi-casquette (PROVIDER + ADMIN membership) ou PROVIDER simple → cockpit
-    return "/aujourd-hui";
+    // Admin pur (!providerProfile) — hiérarchie stricte, jamais de fallback silencieux.
+    // F-SEC-RENAME-PLATFORM-ADMIN — coexistence PLATFORM_ADMIN / ORG_ADMIN (legacy).
+    if (adminOrgIds.length > 1) return "/structure/select";
+    if (adminOrgIds.length === 1) return `/structure/${adminOrgIds[0]}/admin`;
+    if (user.roleType === "PLATFORM_ADMIN") return "/admin/organization-applications";
+    // ORG_ADMIN sans org active (org dissoute) ou rôle inconnu → refus explicite.
+    return "/login?error=no_access";
   }
 
   // F-UX-PATIENT-V1-LAUNCH-1 — Détection surface (host ou query).

@@ -63,10 +63,11 @@ export function StructureSwitcher() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  // Pas de switcher si : pas connecté, pas de provider profile, ou aucune
-  // adhésion admin. Reste invisible pendant le loading initial pour éviter
-  // le flash.
-  if (!user || !user.providerProfile || isLoading || !hasAny) return null;
+  // Pas de switcher si : pas connecté, aucune adhésion admin, ou loading initial.
+  // Visible pour PROVIDER+admin ET admin pur (!providerProfile) — mode différent.
+  if (!user || isLoading || !hasAny) return null;
+
+  const isAdminPur = !user.providerProfile;
 
   function selectCockpit() {
     const next: Choice = { kind: "cockpit" };
@@ -84,9 +85,12 @@ export function StructureSwitcher() {
     router.push(`/structure/${m.id}/admin`);
   }
 
+  // Admin pur : le choix "cockpit" n'a pas de sens — on affiche la 1ère org.
   const currentLabel =
     choice.kind === "cockpit"
-      ? "Cockpit soignant"
+      ? isAdminPur
+        ? memberships[0]?.name ?? "Console d'animation"
+        : "Cockpit soignant"
       : memberships.find((m) => m.id === choice.orgId)?.name ?? "Console d'animation";
 
   return (
@@ -99,7 +103,7 @@ export function StructureSwitcher() {
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[#374151] text-xs font-medium hover:border-[#5B4EC4] hover:text-[#5B4EC4] transition-colors shrink-0"
         style={{ fontFamily: "var(--font-jakarta)" }}
       >
-        {choice.kind === "cockpit" ? (
+        {choice.kind === "cockpit" && !isAdminPur ? (
           <Stethoscope size={14} className="shrink-0" />
         ) : (
           <Building2 size={14} className="shrink-0" />
@@ -113,20 +117,22 @@ export function StructureSwitcher() {
           role="menu"
           className="absolute right-0 top-full mt-1.5 w-[280px] rounded-xl border border-[#E8ECF4] bg-white shadow-lg z-50 py-1.5"
         >
-          <button
-            role="menuitem"
-            type="button"
-            onClick={selectCockpit}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#F8F9FA] text-left"
-          >
-            <Stethoscope size={15} className="shrink-0 text-[#5B4EC4]" />
-            <span className="flex-1 truncate" style={{ fontFamily: "var(--font-jakarta)" }}>
-              Cockpit soignant
-            </span>
-            {choice.kind === "cockpit" && <Check size={14} className="text-[#5B4EC4]" />}
-          </button>
+          {!isAdminPur && (
+            <button
+              role="menuitem"
+              type="button"
+              onClick={selectCockpit}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[#F8F9FA] text-left"
+            >
+              <Stethoscope size={15} className="shrink-0 text-[#5B4EC4]" />
+              <span className="flex-1 truncate" style={{ fontFamily: "var(--font-jakarta)" }}>
+                Cockpit soignant
+              </span>
+              {choice.kind === "cockpit" && <Check size={14} className="text-[#5B4EC4]" />}
+            </button>
+          )}
 
-          <div className="my-1 border-t border-[#F1F5F9]" />
+          {!isAdminPur && <div className="my-1 border-t border-[#F1F5F9]" />}
           <p className="px-3 py-1 text-[10px] uppercase tracking-wider text-[#94A3B8] font-semibold">
             Console d&apos;animation
           </p>

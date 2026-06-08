@@ -146,13 +146,20 @@ export function middleware(request: NextRequest) {
   // F-SEC-RENAME-PLATFORM-ADMIN — coexistence transitoire (V2 J+30 : retirer "ORG_ADMIN").
   // Le cookie nami-user-role peut porter "PLATFORM_ADMIN" (nouveau) OU "ORG_ADMIN" (legacy)
   // pendant la migration ; on accepte les deux.
-  // Les layouts (cockpit) finiront le routage côté client si la première org
-  // n'est pas connue (fallback gracieux).
   if ((role === "PLATFORM_ADMIN" || role === "ORG_ADMIN") && !hasProvider && isCockpitPath(pathname)) {
-    const adminOrgId = request.cookies.get("nami-admin-org-ids")?.value?.split(",")[0];
-    if (adminOrgId) {
-      return NextResponse.redirect(new URL(`/structure/${adminOrgId}/admin`, request.url));
+    // PLATFORM_ADMIN pur a accès direct aux routes /admin/* (console plateforme).
+    // Sans cette exception, /admin/organization-applications déclencherait une boucle.
+    if (role === "PLATFORM_ADMIN" && pathname.startsWith("/admin")) {
+      return NextResponse.next();
     }
+
+    // Hiérarchie stricte miroir de resolvePostLoginRedirect (login/page.tsx).
+    const rawIds = request.cookies.get("nami-admin-org-ids")?.value ?? "";
+    const adminOrgIds = rawIds ? rawIds.split(",").filter(Boolean) : [];
+    if (adminOrgIds.length > 1) return NextResponse.redirect(new URL("/structure/select", request.url));
+    if (adminOrgIds.length === 1) return NextResponse.redirect(new URL(`/structure/${adminOrgIds[0]}/admin`, request.url));
+    if (role === "PLATFORM_ADMIN") return NextResponse.redirect(new URL("/admin/organization-applications", request.url));
+    return NextResponse.redirect(new URL("/login?error=no_access", request.url));
   }
 
   return NextResponse.next();
