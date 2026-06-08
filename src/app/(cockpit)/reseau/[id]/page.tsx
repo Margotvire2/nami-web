@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, MessageCircle, Loader2, Lock, UserPlus, Newspaper, Calendar, Search, BookOpen, Settings, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import { formatProviderSpecialty } from "@/lib/provider-display";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -22,6 +23,7 @@ interface OrgDetail {
   requiresApproval: boolean;
   memberCount: number;
   myMembership?: { status: string; memberRole: string } | null;
+  myPendingRequest?: { id: string; status: string } | null;
   members?: Array<{ personId: string; firstName: string; lastName: string; photoUrl?: string; memberRole: string; providerProfile?: { specialty?: string } }>;
   conversations?: Array<{ id: string; name: string; _count: { messages: number }; messages?: Array<{ content: string; createdAt: string }> }>;
 }
@@ -197,7 +199,19 @@ export default function OrgDetailPage() {
       });
       return r.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["org", id] }),
+    onSuccess: (data) => {
+      if (data?.status === "ACTIVE" && data?.message === "Déjà membre") {
+        toast.info("Vous êtes déjà membre de cette organisation.");
+      } else if (data?.status === "PENDING" && data?.message) {
+        toast.info("Demande déjà envoyée — en attente d'approbation.");
+      } else if (data?.status === "PENDING") {
+        toast.success("Demande envoyée. En attente d'approbation de l'administrateur.");
+      } else if (data?.status === "ACTIVE") {
+        toast.success("Vous avez rejoint l'organisation.");
+      }
+      qc.invalidateQueries({ queryKey: ["org", id] });
+    },
+    onError: () => toast.error("Impossible d'envoyer la demande, réessayez."),
   });
 
   if (isLoading) return (
@@ -208,8 +222,8 @@ export default function OrgDetailPage() {
 
   if (!org) return <div className="p-8 text-[#64748B]">Organisation introuvable</div>;
 
-  const isMember = org.myMembership?.status === "ACCEPTED";
-  const isPending = org.myMembership?.status === "PENDING";
+  const isMember = org.myMembership?.status === "ACTIVE";
+  const isPending = !isMember && !!org.myPendingRequest;
   const isAdmin = isMember && (org.myMembership?.memberRole === "ADMIN" || org.myMembership?.memberRole === "OWNER");
   const color = ORG_TYPE_COLORS[org.type] ?? "#5B4EC4";
 

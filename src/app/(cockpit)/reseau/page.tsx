@@ -10,6 +10,7 @@ import {
   Users, Search, Loader2, Building2, Lock, UserPlus,
   Globe, ChevronRight, MessageCircle, Network,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -25,6 +26,7 @@ interface OrgCard {
   requiresApproval: boolean;
   memberCount: number;
   myMembership?: { status: string; memberRole: string } | null;
+  myPendingRequest?: { id: string; status: string } | null;
   conversations?: { id: string; name: string; _count: { messages: number } }[];
 }
 
@@ -163,10 +165,11 @@ function MyOrgCard({ org }: { org: OrgCard }) {
 
 function CatalogCard({ org, onJoin }: { org: OrgCard; onJoin: (org: OrgCard) => void }) {
   const color = ORG_TYPE_COLORS[org.type] ?? "#6B7280";
-  const status = org.myMembership?.status;
+  const isAccepted = org.myMembership?.status === "ACTIVE";
+  const isPending = !isAccepted && !!org.myPendingRequest;
 
   const renderButton = () => {
-    if (status === "ACCEPTED") {
+    if (isAccepted) {
       return (
         <Link href={`/reseau/${org.id}`}>
           <button
@@ -178,7 +181,7 @@ function CatalogCard({ org, onJoin }: { org: OrgCard; onJoin: (org: OrgCard) => 
         </Link>
       );
     }
-    if (status === "PENDING") {
+    if (isPending) {
       return (
         <div className="w-full py-2 rounded-[8px] text-[12px] font-medium text-center" style={{ background: "#F1F5F9", color: "#64748B" }}>
           ⏳ Demande en attente
@@ -401,11 +404,21 @@ export default function ReseauPage() {
   const joinMutation = useMutation({
     mutationFn: ({ orgId, message }: { orgId: string; message?: string }) =>
       joinOrg(accessToken!, orgId, message),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data?.status === "ACTIVE" && data?.message === "Déjà membre") {
+        toast.info("Vous êtes déjà membre de cette organisation.");
+      } else if (data?.status === "PENDING" && data?.message) {
+        toast.info("Demande déjà envoyée — en attente d'approbation.");
+      } else if (data?.status === "PENDING") {
+        toast.success("Demande envoyée. En attente d'approbation de l'administrateur.");
+      } else if (data?.status === "ACTIVE") {
+        toast.success("Vous avez rejoint l'organisation.");
+      }
       qc.invalidateQueries({ queryKey: ["orgs-catalog"] });
       qc.invalidateQueries({ queryKey: ["my-orgs"] });
       setJoinTarget(null);
     },
+    onError: () => toast.error("Impossible d'envoyer la demande, réessayez."),
   });
 
   const handleJoin = useCallback((org: OrgCard) => {

@@ -41,6 +41,7 @@ const baseOrg = {
   requiresApproval: true,
   memberCount: 12,
   myMembership: null,
+  myPendingRequest: null,
   members: [
     { personId: "p1", firstName: "Alice", lastName: "Durand", memberRole: "MEMBER" },
     { personId: "p2", firstName: "Bob", lastName: "Martin", memberRole: "MEMBER" },
@@ -109,10 +110,10 @@ describe("OrgDetailPage — F-STRUCT-V1-PAGE-PUBLIQUE", () => {
     expect(screen.queryByTestId("admin-console-link")).toBeNull();
   });
 
-  it("Membre (MEMBER ACCEPTED) → toutes les sections placeholder visibles + badge ✓ Membre, pas de console", async () => {
+  it("Membre (MEMBER ACTIVE) → toutes les sections placeholder visibles + badge ✓ Membre, pas de console", async () => {
     mockFetch({
       ...baseOrg,
-      myMembership: { id: "mm-1", status: "ACCEPTED", memberRole: "MEMBER" },
+      myMembership: { id: "mm-1", status: "ACTIVE", memberRole: "MEMBER" },
     });
     renderWithClient(<OrgDetailPage />);
 
@@ -133,10 +134,10 @@ describe("OrgDetailPage — F-STRUCT-V1-PAGE-PUBLIQUE", () => {
     expect(screen.queryByTestId("admin-console-link")).toBeNull();
   });
 
-  it("Admin (ADMIN ACCEPTED) → bouton Console d'animation visible avec lien /structure/:id/admin, pas de badge", async () => {
+  it("Admin (ADMIN ACTIVE) → bouton Console d'animation visible avec lien /structure/:id/admin, pas de badge", async () => {
     mockFetch({
       ...baseOrg,
-      myMembership: { id: "mm-1", status: "ACCEPTED", memberRole: "ADMIN" },
+      myMembership: { id: "mm-1", status: "ACTIVE", memberRole: "ADMIN" },
     });
     renderWithClient(<OrgDetailPage />);
 
@@ -155,10 +156,10 @@ describe("OrgDetailPage — F-STRUCT-V1-PAGE-PUBLIQUE", () => {
     expect(screen.getByRole("heading", { name: /Événements à venir/i })).toBeTruthy();
   });
 
-  it("Owner (OWNER ACCEPTED) → traité comme admin, bouton Console d'animation visible", async () => {
+  it("Owner (OWNER ACTIVE) → traité comme admin, bouton Console d'animation visible", async () => {
     mockFetch({
       ...baseOrg,
-      myMembership: { id: "mm-1", status: "ACCEPTED", memberRole: "OWNER" },
+      myMembership: { id: "mm-1", status: "ACTIVE", memberRole: "OWNER" },
     });
     renderWithClient(<OrgDetailPage />);
 
