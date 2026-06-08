@@ -312,8 +312,10 @@ export const careCasesApi = {
   pathwayGraph: (token: string, id: string) =>
     request<PathwayGraphResponse>(`/care-cases/${id}/pathway/graph`, {}, token),
 
-  pathwayTemplateSteps: (token: string, id: string) =>
-    request<PathwayTemplateStepsResponse>(`/care-cases/${id}/pathway/template-steps`, {}, token),
+  pathwayTemplateSteps: (token: string, id: string, forceTemplateKey?: string) => {
+    const qs = forceTemplateKey ? `?templateKey=${encodeURIComponent(forceTemplateKey)}` : "";
+    return request<PathwayTemplateStepsResponse>(`/care-cases/${id}/pathway/template-steps${qs}`, {}, token);
+  },
 
   instantiatePathway: (token: string, id: string) =>
     request<{ success: boolean; nodesCreated: number; edgesCreated: number }>(
@@ -341,13 +343,36 @@ export type PathwayNodeStatus =
   | "FUTURE" | "APPROACHING" | "IN_WINDOW" | "OVERDUE" | "COMPLETED" | "SKIPPED";
 
 export interface ProtocolContent {
-  checklist: { category: string; items: string[] }[];
+  // Legacy (préservé pour les templates non migrés)
+  checklist?: { category: string; items: string[] }[];
   toPrescribe?: string[];
   toOrder?: string[];
   toCreateInNami?: { type: string; description: string }[];
   redFlags?: string[];
   duration?: string;
   sources: string[];
+
+  // Extension v2 (additif, lock 7 juin 2026)
+  cardType?: "EVALUATION" | "SUIVI" | "RCP";
+
+  // Slots EVALUATION (7)
+  whenToThink?: string;
+  questions?: string[];
+  questionsHint?: string;
+  examSigns?: string[];
+  bilans?: string;
+  conduct?: string[];
+  orientation?: string[];
+
+  // Slots SUIVI (4) — duration partagé avec legacy
+  objectif?: string;
+  protocol?: string[];
+  reevaluation?: string;
+
+  // Slots RCP (3)
+  whenToTrigger?: string;
+  whoToGather?: string[];
+  decisions?: string;
 }
 
 export interface PathwayNode {
@@ -3819,7 +3844,7 @@ export function apiWithToken(token: string) {
       update: (id: string, data: Partial<CareCaseDetail>) => careCasesApi.update(token, id, data),
       assignPathway: (id: string, pathwayTemplateId: string | null) => careCasesApi.assignPathway(token, id, pathwayTemplateId),
       pathwayGraph: (id: string) => careCasesApi.pathwayGraph(token, id),
-      pathwayTemplateSteps: (id: string) => careCasesApi.pathwayTemplateSteps(token, id),
+      pathwayTemplateSteps: (id: string, forceTemplateKey?: string) => careCasesApi.pathwayTemplateSteps(token, id, forceTemplateKey),
       instantiatePathway: (id: string) => careCasesApi.instantiatePathway(token, id),
       patchNode: (careCaseId: string, nodeId: string, data: { status?: string; realizedDate?: string | null; assignedProviderId?: string | null }) =>
         careCasesApi.patchNode(token, careCaseId, nodeId, data),
