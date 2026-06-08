@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useCockpitProConversations";
 import { getSpaceConfig, proInitials, proTimeAgo } from "./proSpaceConfig";
 import { CreateSpaceModal } from "./CreateSpaceModal";
+import { NewDmModal } from "./NewDmModal";
 import { CockpitProConversationView } from "./CockpitProConversationView";
 
 function getConvName(conv: ProConversation, userId?: string): string {
@@ -31,6 +32,7 @@ export function CockpitProConversationsTab({
 }) {
   const { user } = useAuthStore();
   const [createOpen, setCreateOpen] = useState(false);
+  const [newDmOpen, setNewDmOpen] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState("");
 
   const { data: conversations, isLoading: loadingConvs } =
@@ -110,8 +112,12 @@ export function CockpitProConversationsTab({
               <EmptyState
                 icon={Users}
                 title="Pas encore de réseau"
-                description="Invitez des confrères pour collaborer sur vos dossiers patients."
+                description="Envoyez un message direct ou créez un espace de coordination."
                 action={{
+                  label: "Nouveau message",
+                  onClick: () => setNewDmOpen(true),
+                }}
+                secondaryAction={{
                   label: "Créer un espace",
                   onClick: () => setCreateOpen(true),
                 }}
@@ -145,7 +151,7 @@ export function CockpitProConversationsTab({
 
               <SidebarSection
                 title="Messages directs"
-                onAdd={() => setCreateOpen(true)}
+                onAdd={() => setNewDmOpen(true)}
               >
                 {filteredDirects.map((c) => {
                   const other = c.members.find((m) => m.id !== user?.id);
@@ -201,6 +207,11 @@ export function CockpitProConversationsTab({
       <CreateSpaceModal
         open={createOpen}
         onOpenChange={setCreateOpen}
+        onCreated={(id) => onSelectConv(id)}
+      />
+      <NewDmModal
+        open={newDmOpen}
+        onOpenChange={setNewDmOpen}
         onCreated={(id) => onSelectConv(id)}
       />
     </div>
