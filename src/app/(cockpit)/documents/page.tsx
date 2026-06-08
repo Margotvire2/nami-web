@@ -358,6 +358,28 @@ export default function DocumentsPage() {
   const api = apiWithToken(accessToken!);
   const [search, setSearch] = useState("");
   const [extractDoc, setExtractDoc] = useState<(Document & { _caseId: string }) | null>(null);
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
+  async function openDocument(doc: Document & { _caseId: string }) {
+    if (loadingDocId === doc.id) return;
+    setLoadingDocId(doc.id);
+    try {
+      const { url } = await api.documents.download(doc._caseId, doc.id);
+      if (!url) {
+        toast.error("Document introuvable");
+        return;
+      }
+      window.open(url, "_blank");
+    } catch (err: any) {
+      if (err?.status === 404 || err?.error === "Document introuvable") {
+        toast.error("Document introuvable");
+      } else {
+        toast.error("Impossible d'ouvrir le document");
+      }
+    } finally {
+      setLoadingDocId(null);
+    }
+  }
 
   const { data: cases, isLoading: loadingCases } = useQuery({
     queryKey: ["care-cases", "all"],
@@ -580,17 +602,16 @@ export default function DocumentsPage() {
                         </button>
                       )}
                       <button
-                        className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                        className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
                         title="Voir le document"
-                        onClick={() => {
-                          if (doc.fileUrl) {
-                            window.open(doc.fileUrl, "_blank");
-                          } else {
-                            toast.info("Document non téléchargé");
-                          }
-                        }}
+                        disabled={loadingDocId === doc.id}
+                        onClick={() => openDocument(doc)}
                       >
-                        <Eye size={14} />
+                        {loadingDocId === doc.id ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Eye size={14} />
+                        )}
                       </button>
                       <button
                         className="p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
