@@ -1,3 +1,5 @@
+@import url("../styles/nami-design-v2/colors_and_type.css");
+@import url("../styles/nami-design-v2/components.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

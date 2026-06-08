@@ -1,0 +1,129 @@
+/* ============================================================
+   NAMI — Design tokens v2 (colors_and_type.css)
+   Source unique de vérité. Importer en tête de chaque surface.
+   Web : <link rel="stylesheet" href="colors_and_type.css">
+   Tailwind v4 CSS-first : coller dans @theme / globals.css.
+   RN : voir le mapping en bas (thème JS équivalent).
+   ============================================================ */
+
+/* -- Webfonts (Google Fonts) -- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  /* ---------- SURFACES (neutres chauds) ---------- */
+  --paper:#FAF8F4;        /* fond app par défaut, chaud */
+  --paper-2:#F4F1EA;      /* fond alterné / input au repos */
+  --surface:#FFFFFF;      /* cartes */
+  --surface-2:#FCFBF8;    /* carte légèrement teintée */
+  --dark:#1F1E26;         /* ponctuation sombre (jamais le défaut) */
+
+  /* ---------- ENCRE / TEXTE ---------- */
+  --ink:#211F28;          /* texte principal (AAA sur --paper) */
+  --ink-2:#56525E;        /* texte secondaire */
+  --ink-3:#8A8590;        /* texte tertiaire / labels */
+  --ink-faint:#AEA9B1;    /* texte ténu / placeholders */
+
+  /* ---------- LIGNES ---------- */
+  --line:#EAE5DB;         /* bordures de cartes */
+  --line-2:#DED8CC;       /* bordures plus marquées / contrôles */
+  --hair:#F0ECE3;         /* filets internes très légers */
+
+  /* ---------- PRIMAIRE — violet (unifiée web↔mobile) ---------- */
+  --violet:#5B4EC4;
+  --violet-h:#4A3FB5;     /* hover */
+  --violet-tint:#EFEDFB;  /* fond teinté */
+  --violet-soft:#F6F4FD;  /* fond très léger */
+
+  /* ---------- ACCENT — teal (valeur canonique unique) ---------- */
+  --teal:#3DC5B7;
+  --teal-deep:#1F9F92;    /* texte teal lisible (AA) */
+  --teal-tint:#E6F7F4;
+
+  /* ---------- SÉVÉRITÉ (désaturée, usage rare, jamais criard) ----------
+     MDR : ne jamais utiliser pour "alerter/scorer le patient".
+     Réservé à l'état système (échec d'envoi, hors-plage labo factuel…). */
+  --critical:#DC2626;
+  --warning:#C77A12;
+  --info:#2563EB;
+  --success:#1F9F72;
+  --warning-tint:#FBF1E2;
+
+  /* ---------- LE FIL — signature (dégradé réservé) ----------
+     N'utiliser le dégradé violet→teal QUE pour le fil et le mot pivot.
+     Hors de là, il banalise. */
+  --fil:linear-gradient(120deg, var(--violet), var(--teal));
+  --fil-v:linear-gradient(180deg, var(--violet), var(--teal));
+
+  /* ---------- TYPOGRAPHIE ---------- */
+  --font-sans:"Plus Jakarta Sans", system-ui, sans-serif;  /* UI + titres */
+  --font-ui:"Inter", system-ui, sans-serif;                /* labels, corps dense */
+  --font-mono:"JetBrains Mono", ui-monospace, monospace;   /* heures, chiffres cliniques */
+  --font-display:"Plus Jakarta Sans", system-ui, sans-serif;
+  /* Playfair Display : réservé éditorial/citations CÔTÉ PATIENT uniquement. */
+
+  /* échelle de taille (clamp pour le public, fixe pour l'app) */
+  --t-display:clamp(28px,4vw,46px);
+  --t-h1:26px;  --t-h2:20px;  --t-h3:16px;
+  --t-body:14px; --t-small:12.5px; --t-label:11px;
+  --lh-tight:1.2; --lh-body:1.55;
+  --ls-tight:-0.03em;  /* titres géants */
+  --ls-snug:-0.01em;
+
+  /* ---------- ESPACEMENT (échelle modulaire 4) ---------- */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-8:48px;
+  /* cockpit : sidebar 220/64 · header 56 · padding contenu 24 */
+
+  /* ---------- RAYONS ---------- */
+  --r-xs:6px; --r-sm:9px; --r:13px; --r-lg:18px; --r-xl:24px; --r-pill:100px;
+
+  /* ---------- OMBRES (chaudes, basses, jamais "glassy") ---------- */
+  --sh-1:0 1px 2px rgba(60,50,40,.05);
+  --sh-2:0 1px 2px rgba(60,50,40,.05), 0 6px 18px rgba(60,50,40,.06);
+  --sh-3:0 2px 4px rgba(60,50,40,.06), 0 16px 40px rgba(60,50,40,.12);
+
+  /* ---------- MOTION ---------- */
+  --ease:cubic-bezier(.16, 1, .3, 1);          /* expo-out, ~90% des anims */
+  --ease-spring:cubic-bezier(.34, 1.56, .64, 1);
+  --ease-breathe:cubic-bezier(.4, 0, .6, 1);
+  --dur-page:220ms; --dur-card:350ms; --dur-tab:260ms; --dur-panel:400ms;
+
+  /* ---------- MATIÈRE TISSÉE (au lieu du glass) ----------
+     Fond papier subtilement tramé. Le fil reste la seule "lumière". */
+  --weft:repeating-linear-gradient(90deg, rgba(120,105,80,.022) 0 1px, transparent 1px 7px),
+         repeating-linear-gradient(0deg,  rgba(120,105,80,.016) 0 1px, transparent 1px 7px);
+
+  /* ---------- SÉMANTIQUE (mappe les rôles) ---------- */
+  --bg:var(--paper);
+  --bg-elevated:var(--surface);
+  --text:var(--ink);
+  --text-muted:var(--ink-2);
+  --border:var(--line);
+  --accent:var(--violet);
+  --accent-2:var(--teal);
+  --focus-ring:var(--violet);
+}
+
+/* ---------- Styles sémantiques prêts à l'emploi ---------- */
+.h1{font-family:var(--font-sans);font-size:var(--t-h1);font-weight:800;letter-spacing:var(--ls-tight);color:var(--ink)}
+.h2{font-family:var(--font-sans);font-size:var(--t-h2);font-weight:800;letter-spacing:var(--ls-snug);color:var(--ink)}
+.h3{font-family:var(--font-sans);font-size:var(--t-h3);font-weight:700;letter-spacing:var(--ls-snug);color:var(--ink)}
+.body{font-family:var(--font-ui);font-size:var(--t-body);line-height:var(--lh-body);color:var(--ink)}
+.small{font-family:var(--font-ui);font-size:var(--t-small);color:var(--ink-2)}
+.label{font-family:var(--font-sans);font-size:var(--t-label);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+/* mot pivot : seul endroit, avec le fil, où le dégradé teinte le texte */
+.pivot{background:var(--fil);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+
+:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important}}
+
+/* ============================================================
+   ÉQUIVALENT REACT NATIVE (theme/tokens.ts) — à recopier :
+   export const color = { paper:'#FAF8F4', surface:'#FFFFFF', ink:'#211F28',
+     ink2:'#56525E', line:'#EAE5DB', violet:'#5B4EC4', teal:'#3DC5B7',
+     tealDeep:'#1F9F92', warning:'#C77A12' };
+   export const radius = { sm:9, md:13, lg:18, pill:100 };
+   export const space  = [4,8,12,16,24,32,48];
+   export const font   = { sans:'PlusJakartaSans', ui:'Inter', mono:'JetBrainsMono' };
+   easing : Easing.bezier(0.16,1,0.3,1)
+   ============================================================ */

@@ -1,0 +1,89 @@
+/* ============================================================
+   NAMI — Composants atomiques (components.css)
+   Dépend de colors_and_type.css. Classes réutilisables, re-skin
+   de la base shadcn base-nova. Importer après les tokens.
+   ============================================================ */
+
+/* ---------- Boutons ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;
+  font-family:var(--font-sans);font-weight:700;font-size:13px;border-radius:var(--r);
+  padding:9px 14px;border:1px solid transparent;transition:.16s var(--ease)}
+.btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--violet);color:#fff;box-shadow:0 2px 8px rgba(91,78,196,.30)}
+.btn-primary:hover{background:var(--violet-h);transform:translateY(-1px);box-shadow:0 4px 14px rgba(91,78,196,.38)}
+.btn-ghost{background:var(--surface);border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{background:var(--paper-2)}
+.btn-mini{padding:6px 11px;font-size:12.5px}
+
+/* ---------- Carte ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:18px;box-shadow:var(--sh-1)}
+.card-raised{box-shadow:var(--sh-2)}
+.card:hover.is-interactive{box-shadow:var(--sh-3);transform:translateY(-1px);transition:.22s var(--ease)}
+
+/* ---------- Champs ---------- */
+.input{width:100%;height:40px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface-2);padding:0 12px;font-family:var(--font-ui);font-size:13.5px;color:var(--ink)}
+.input::placeholder{color:var(--ink-faint)}
+.input:focus{outline:2px solid var(--violet);outline-offset:1px;background:var(--surface)}
+
+/* ---------- Chips / Tags ---------- */
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-ui);font-size:12px;font-weight:600;
+  border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-pill);padding:5px 11px;color:var(--ink-2);cursor:pointer}
+.chip.is-on{background:var(--violet);color:#fff;border-color:var(--violet)}
+.tag{font-size:11.5px;font-weight:700;border-radius:var(--r-pill);padding:3px 10px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-2)}
+.tag--tca{background:var(--violet-tint);color:var(--violet-h);border-color:var(--violet-tint)}
+.tag--obesite{background:var(--teal-tint);color:var(--teal-deep);border-color:var(--teal-tint)}
+.tag--premier{background:var(--warning-tint);color:var(--warning);border-color:var(--warning-tint)}
+
+/* ---------- Badge IA (omniprésent sur tout output IA) ---------- */
+.badge-ia{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  color:var(--violet-h);background:var(--violet-tint);border-radius:var(--r-pill);padding:3px 9px}
+.badge-ia::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--violet)}
+/* texte recommandé : "Brouillon IA — à vérifier" */
+
+/* ---------- Footer légal (toujours présent) ---------- */
+.legal{font-size:11px;color:var(--ink-faint);line-height:1.6}
+/* "Outil de coordination · Non dispositif médical · Conforme RGPD" */
+
+/* ---------- LE FIL — signature visuelle ----------
+   Tracé continu qui coud les éléments. Vertical (timeline / care team)
+   ou tracé SVG calculé entre nœuds. C'est la grammaire centrale. */
+.fil-line{width:2.5px;border-radius:3px;background:var(--fil-v)}            /* trait vertical */
+.fil-knot{width:13px;height:13px;border-radius:50%;background:var(--surface);
+  border:3px solid var(--violet);box-sizing:border-box}                    /* nœud "consultation" plein dispo via fill */
+.fil-knot--task{width:9px;height:9px;border:2.5px dashed var(--line-2)}    /* nœud "tâche" creux */
+/* CareTeamThread : avatars reliés par .fil-line ; PathwayEdge : <path stroke="url(#fil)"> */
+
+/* ---------- Indicateur de complétude → RETIRÉ ----------
+   (Décision produit : la complétude du dossier n'est plus affichée.
+   Ne pas réintroduire de jauge "score patient".) */
+
+/* ---------- Valeur de labo (MDR-safe) ----------
+   On affiche la valeur + la plage de RÉFÉRENCE DU LABO (sourcée).
+   Repère neutre "hors plage", jamais "critique/alerte". */
+.lab{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;
+  padding:9px 12px;background:var(--surface-2);border-left:3px solid var(--line-2)}
+.lab.is-out{border-left-color:var(--warning);background:var(--warning-tint)}
+.lab .lab-name{font-size:12.5px;font-weight:600;color:var(--ink-2);flex:1}
+.lab .lab-val{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink)}
+.lab .lab-flag{font-size:10px;font-weight:700;color:var(--warning);background:#fff;border-radius:var(--r-pill);padding:2px 7px}
+
+/* ---------- Bandeau délégation (ActingAsBanner) ---------- */
+.acting{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:700;
+  color:#fff;background:var(--violet);border-radius:var(--r-pill);padding:6px 13px;box-shadow:var(--sh-1)}
+.acting::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff}
+/* "Vous agissez pour le compte de … " / "Vous planifiez pour le cabinet" */
+
+/* ---------- Onglets ---------- */
+.tabbar{display:flex;gap:2px;border-bottom:1px solid var(--line)}
+.tabbar button{font-family:var(--font-sans);font-size:13.5px;font-weight:700;color:var(--ink-3);
+  background:none;border:none;padding:14px 14px;cursor:pointer;position:relative}
+.tabbar button.is-on{color:var(--ink)}
+.tabbar button.is-on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px;background:var(--fil)}
+
+/* ---------- Empty-state (grammaire chaleureuse) ----------
+   La prod est vide au lancement. Jamais culpabilisant ; orienté action. */
+.empty{text-align:center;padding:64px 20px;color:var(--ink-faint)}
+.empty h4{font-family:var(--font-sans);font-size:16px;font-weight:800;color:var(--ink-2);margin:0 0 6px}
+.empty p{font-size:13px;max-width:380px;margin:0 auto;line-height:1.5}
