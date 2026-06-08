@@ -4860,6 +4860,26 @@ export interface SecretaryPatientResult {
   sex: string | null;
 }
 
+export interface PatientAdmin extends SecretaryPatientResult {
+  addressLine1?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+}
+
+export interface CreatePatientInput {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  birthDate?: string;
+  sex?: "MALE" | "FEMALE" | "OTHER" | "UNKNOWN";
+  addressLine1?: string;
+  postalCode?: string;
+  city?: string;
+}
+
+export type UpdatePatientInput = Partial<CreatePatientInput>;
+
 async function secretaryApiRequest<T>(path: string, options: RequestInit = {}, token: string): Promise<T> {
   return request<T>(path, options, token);
 }
@@ -4903,6 +4923,12 @@ export function secretaryApi(token: string) {
 
     getPatient: (id: string): Promise<{ patient: SecretaryPatientResult; appointments: SecretaryAppointment[] }> =>
       secretaryApiRequest(`/secretary/patients/${id}`, {}, token),
+
+    createPatient: (input: CreatePatientInput): Promise<PatientAdmin> =>
+      secretaryApiRequest("/secretary/patients", { method: "POST", body: JSON.stringify(input) }, token),
+
+    updatePatient: (id: string, input: UpdatePatientInput): Promise<PatientAdmin> =>
+      secretaryApiRequest(`/secretary/patients/${id}`, { method: "PATCH", body: JSON.stringify(input) }, token),
 
     // ─── Feed personnel notifications (F-CROSS-GAP-Notification-SECRETARIAT) ──
     // GET /secretary/notifications/feed?limit=N → SecretaryNotificationFeed.

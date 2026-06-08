@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { secretaryApi, type SecretaryPatientResult } from "@/lib/api";
+import { CreatePatientAdminModal } from "./_components/CreatePatientAdminModal";
 
 // INIT-626 — Page patients secrétariat (lecture seule).
 // Scope RGPD SECRETARY : coordonnées + RDV uniquement (cf. /secretary/patients/*).
@@ -50,7 +52,10 @@ function ageFromBirth(date: string | null): number | null {
 export default function SecretariatPatientsPage() {
   const { accessToken } = useAuthStore();
   const api = useMemo(() => secretaryApi(accessToken ?? ""), [accessToken]);
+  const router = useRouter();
+  const qc = useQueryClient();
 
+  const [createOpen, setCreateOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -90,19 +95,13 @@ export default function SecretariatPatientsPage() {
           </div>
         </div>
 
-        {/* Création désactivée — backend secrétaire pas dispo (INIT-626-bis) */}
         <button
           type="button"
-          disabled
-          title="Bientôt — la création de patient depuis le secrétariat arrive prochainement"
-          aria-disabled="true"
-          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[12px] font-medium bg-[#EEEDFB] text-[#5B4EC4] opacity-50 cursor-not-allowed"
+          onClick={() => setCreateOpen(true)}
+          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[12px] font-medium bg-[#EEEDFB] text-[#5B4EC4] hover:bg-[#DDD9F7] transition"
         >
           <UserPlus size={14} />
           Créer un patient
-          <span className="text-[10px] font-semibold uppercase tracking-wide ml-1 bg-white/70 px-1.5 py-0.5 rounded">
-            Bientôt
-          </span>
         </button>
       </header>
 
@@ -227,6 +226,15 @@ export default function SecretariatPatientsPage() {
           cliniques ne sont accessibles qu&apos;aux soignants.
         </p>
       </div>
+
+      <CreatePatientAdminModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(p) => {
+          qc.invalidateQueries({ queryKey: ["secretary-patients-search"] });
+          router.push(`/secretariat/patients/${p.id}`);
+        }}
+      />
     </div>
   );
 }
