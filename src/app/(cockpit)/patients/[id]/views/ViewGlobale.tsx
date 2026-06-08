@@ -110,6 +110,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
 
   useEffect(() => {
     if (careCase?.clinicalSummary) {
+      // eslint-disable-next-line react-hooks/immutability -- TODO: hoist parseSummary above useEffect (dette F-DETTE-VIEW-GLOBALE-HOIST)
       setSections(parseSummary(careCase.clinicalSummary));
       setLastUpdated(careCase.updatedAt || null);
     }
