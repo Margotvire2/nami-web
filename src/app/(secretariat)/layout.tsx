@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
@@ -141,7 +141,9 @@ export default function SecretariatLayout({ children }: { children: React.ReactN
             <SecretaryNotificationBell />
           </div>
         </header>
-        {children}
+        <Suspense fallback={null}>
+          {children}
+        </Suspense>
       </main>
     </div>
   );

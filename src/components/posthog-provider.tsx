@@ -6,9 +6,28 @@ import { initPostHog, posthog } from "@/lib/posthog";
 import { useAuthStore } from "@/lib/store";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+// Must be rendered inside its own <Suspense fallback={null}> in providers.tsx,
+// NOT wrapping children — otherwise useSearchParams triggers
+// BAILOUT_TO_CLIENT_SIDE_RENDERING on every page (kills SSR/indexation).
+export function PostHogPageviewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { consent, hasHydrated } = useCookieConsent();
+
+  // Pageview à chaque changement de route — uniquement si consent.
+  useEffect(() => {
+    if (!pathname) return;
+    if (!hasHydrated || !consent.analytics) return;
+    if (!posthog.__loaded) return;
+    posthog.capture("$pageview", {
+      $current_url: window.location.href,
+    });
+  }, [pathname, searchParams, hasHydrated, consent.analytics]);
+
+  return null;
+}
+
+export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const { consent, hasHydrated } = useCookieConsent();
   const identified = useRef(false);
@@ -42,16 +61,6 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     });
     identified.current = true;
   }, [user, hasHydrated, consent.analytics]);
-
-  // Pageview à chaque changement de route — uniquement si consent.
-  useEffect(() => {
-    if (!pathname) return;
-    if (!hasHydrated || !consent.analytics) return;
-    if (!posthog.__loaded) return;
-    posthog.capture("$pageview", {
-      $current_url: window.location.href,
-    });
-  }, [pathname, searchParams, hasHydrated, consent.analytics]);
 
   return <>{children}</>;
 }

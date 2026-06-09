@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { PatientHeader } from "@/components/patient/PatientHeader";
@@ -55,7 +55,9 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
         <div className="flex">
           <PatientSidebar className="hidden md:flex" />
           <main className="flex-1 pb-24 md:pb-12 px-4 md:px-8 max-w-screen-xl mx-auto w-full">
-            {children}
+            <Suspense fallback={null}>
+              {children}
+            </Suspense>
             <PatientLegalFooter />
           </main>
         </div>

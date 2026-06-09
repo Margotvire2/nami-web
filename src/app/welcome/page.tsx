@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2, Users, FileText, Sparkles } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
@@ -41,7 +41,7 @@ const SLIDES = [
 
 // ─── Page ───────────────────────────────────────────────────────────────────
 
-export default function WelcomePage() {
+function WelcomePageInner() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const { accessToken } = useAuthStore();
@@ -201,5 +201,13 @@ export default function WelcomePage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function WelcomePage() {
+  return (
+    <Suspense fallback={null}>
+      <WelcomePageInner />
+    </Suspense>
   );
 }
