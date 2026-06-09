@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { onboardingApi } from "@/lib/api";
@@ -108,7 +108,9 @@ export default function CockpitLayout({ children }: { children: React.ReactNode 
             <div className="flex flex-col flex-1 min-w-0">
               <CockpitHeader />
               <main className="flex-1 overflow-y-auto nami-page-enter">
-                {children}
+                <Suspense fallback={null}>
+                  {children}
+                </Suspense>
               </main>
               <Footer />
             </div>
