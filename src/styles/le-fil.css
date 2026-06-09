@@ -1,0 +1,231 @@
+/* ============================================================
+   NAMI — Le Fil du jour (layout classes)
+   Dépend de colors_and_type.css + components.css.
+   Classes spécifiques au cockpit home "Le Fil".
+   ============================================================ */
+
+/* ── Sections ─────────────────────────────────────────────── */
+.seclbl {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 14px;
+  padding-left: 60px;
+  position: relative;
+  z-index: 3;
+}
+.seclbl:not(:first-of-type) { margin-top: 28px; }
+
+/* ── Event cards (base) ───────────────────────────────────── */
+.event {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 15px 17px;
+  margin-bottom: 13px;
+  box-shadow: var(--sh-1);
+  transition: .22s var(--ease);
+  cursor: pointer;
+  transform-origin: left center;
+}
+.event:hover { box-shadow: var(--sh-3); border-color: var(--line-2); transform: translateX(2px); }
+.event.attn {
+  background: linear-gradient(115deg, var(--violet-soft) 0%, var(--surface) 60%);
+  border-color: var(--violet-tint);
+}
+
+/* ── Consultation card ────────────────────────────────────── */
+.event.consult {
+  display: grid;
+  grid-template-columns: 4px 82px 1fr;
+  padding: 0;
+  overflow: hidden;
+}
+.event.consult .accent {
+  background: var(--accent, var(--violet));
+}
+.event.consult .timecol {
+  padding: 15px 12px 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-right: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2), transparent);
+}
+.timecol .hr {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  line-height: 1;
+}
+.timecol .dur {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.timecol .loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-top: 5px;
+}
+.event.consult .cbody { padding: 14px 16px; }
+.event.consult .ev-title { font-size: 16px; }
+
+/* ── Task card ────────────────────────────────────────────── */
+.event.task {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  background: var(--surface-2);
+  padding: 13px 15px;
+  box-shadow: none;
+  border-style: dashed;
+  border-color: var(--line-2);
+}
+.event.task:hover {
+  background: var(--surface);
+  box-shadow: var(--sh-2);
+  border-style: solid;
+  transform: translateX(2px);
+}
+.event.task .check {
+  width: 21px;
+  height: 21px;
+  border-radius: 7px;
+  border: 2px solid var(--line-2);
+  flex-shrink: 0;
+  margin-top: 2px;
+  background: var(--surface);
+  transition: .15s var(--ease);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.event.task:hover .check { border-color: var(--violet); box-shadow: 0 0 0 4px var(--violet-tint); }
+.event.task .tbody { flex: 1; min-width: 0; }
+.event.task .ev-title { font-size: 14.5px; }
+.event.task .ev-sub   { font-size: 12.5px; }
+
+/* ── Event internals ──────────────────────────────────────── */
+.ev-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 8px;
+}
+.ev-title {
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.28;
+  flex: 1 1 auto;
+}
+.ev-sub {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 0;
+  line-height: 1.5;
+}
+.ev-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 13px;
+}
+.act2 { display: flex; gap: 8px; margin-left: auto; }
+
+/* ── Task type labels ─────────────────────────────────────── */
+.ttype {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ttype.coord { color: var(--violet); }
+.ttype.cr    { color: var(--teal-deep); }
+.ttype.adr   { color: var(--warning); }
+
+/* ── Detail Rail cards ────────────────────────────────────── */
+.railcard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  margin-top: 18px;
+  box-shadow: var(--sh-1);
+}
+.rc-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+.rc-h .t {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.rc-h .n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.hint {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* ── Rail Care Team ───────────────────────────────────────── */
+.team { position: relative; padding-left: 6px; }
+.team .vfil {
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  bottom: 18px;
+  width: 2.5px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--violet), var(--teal));
+}
+.tmember {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  position: relative;
+}
+.tmember .ta {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2.5px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--line-2);
+  background-size: cover;
+  z-index: 1;
+  position: relative;
+}
+.tmember.me .ta { box-shadow: 0 0 0 2px var(--violet); }
+.tmember .ti { min-width: 0; }
+.tmember .ti b { display: block; font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tmember .ti span { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.tmember .role { margin-left: auto; flex-shrink: 0; font-size: 10px; font-weight: 600; color: var(--ink-3); background: var(--paper-2); border-radius: 100px; padding: 2px 8px; white-space: nowrap; }
+
+/* ── Spin keyframe (loading) ──────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
