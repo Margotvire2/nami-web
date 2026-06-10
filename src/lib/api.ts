@@ -4891,10 +4891,36 @@ export interface PatientAdmin extends SecretaryPatientResult {
   city?: string | null;
 }
 
+export interface SecretaryMeProvider {
+  id: string;
+  personId: string;
+  specialties: string[];
+  person: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    photoUrl: string | null;
+  };
+}
+
+export interface SecretaryMeManagedProvider {
+  id: string;
+  providerId: string;
+  provider: SecretaryMeProvider;
+}
+
+export interface SecretaryMeResponse {
+  personId: string;
+  canCreatePatient: boolean;
+  managedProviders: SecretaryMeManagedProvider[];
+}
+
 export interface CreatePatientInput {
   firstName: string;
   lastName: string;
-  email?: string;
+  email: string;
+  providerPersonId: string;
+  nir?: string;
   phone?: string;
   birthDate?: string;
   sex?: "MALE" | "FEMALE" | "OTHER" | "UNKNOWN";
@@ -4911,6 +4937,9 @@ async function secretaryApiRequest<T>(path: string, options: RequestInit = {}, t
 
 export function secretaryApi(token: string) {
   return {
+    getMe: (): Promise<SecretaryMeResponse> =>
+      secretaryApiRequest("/secretary/me", {}, token),
+
     getAgendas: (date?: string): Promise<SecretaryAgendasResponse> =>
       secretaryApiRequest(`/secretary/agendas${date ? `?date=${date}` : ""}`, {}, token),
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
-import { secretaryApi, type PatientAdmin, type CreatePatientInput } from "@/lib/api";
+import { secretaryApi, type PatientAdmin, type CreatePatientInput, type SecretaryMeManagedProvider } from "@/lib/api";
 import { toast } from "sonner";
 import { ChevronDown, Loader2, X } from "lucide-react";
 
@@ -32,7 +32,17 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
 
+  const [providerPersonId, setProviderPersonId] = useState("");
+  const [nir, setNir] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { data: meData } = useQuery({
+    queryKey: ["secretary", "me"],
+    queryFn: () => api.getMe(),
+    enabled: !!accessToken,
+    staleTime: 5 * 60 * 1000,
+  });
+  const providers: SecretaryMeManagedProvider[] = meData?.managedProviders ?? [];
 
   const firstInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -76,11 +86,11 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
       onClose();
     },
     onError: (err: unknown) => {
-      const status = (err as { status?: number }).status;
-      if (status === 403) {
-        toast.error("Vous n'avez pas l'autorisation de créer un patient (canCreatePatient désactivé)");
-      } else if (status === 400) {
-        toast.error("Données invalides — vérifiez les champs requis");
+      const apiErr = err as { status?: number; message?: string };
+      if (apiErr.status === 403) {
+        toast.error(apiErr.message ?? "Vous n'avez pas l'autorisation de créer un patient");
+      } else if (apiErr.status === 400) {
+        toast.error(apiErr.message ?? "Données invalides — vérifiez les champs");
       } else {
         toast.error("Erreur serveur, réessayez");
       }
@@ -91,15 +101,21 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
     const errs: Record<string, string> = {};
     if (!firstName.trim()) errs.firstName = "Prénom requis";
     if (!lastName.trim()) errs.lastName = "Nom requis";
-    if (email && !isValidEmail(email)) errs.email = "Format d'email invalide";
+    if (!email.trim()) errs.email = "Email requis";
+    else if (!isValidEmail(email)) errs.email = "Format d'email invalide";
+    if (!providerPersonId) errs.providerPersonId = "Soignant référent requis";
+    const nirDigits = nir.replace(/\s/g, "");
+    if (nirDigits && !/^[12]\d{14}$/.test(nirDigits)) errs.nir = "NIR invalide (ex : 1 85 02 75 116 001 23)";
     setErrors(errs);
     if (Object.keys(errs).length > 0) return null;
 
     const input: CreatePatientInput = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      email: email.trim(),
+      providerPersonId,
     };
-    if (email) input.email = email.trim();
+    if (nirDigits) input.nir = nirDigits;
     if (phone) input.phone = phone.trim();
     if (birthDate) input.birthDate = new Date(birthDate + "T12:00:00.000Z").toISOString();
     if (sex) input.sex = sex;
@@ -148,6 +164,27 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
 
         {/* Body */}
         <div className="px-6 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
+          {/* Soignant référent */}
+          <section>
+            <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mb-3">
+              Soignant référent <span className="text-[#DC2626]">*</span>
+            </p>
+            <select
+              value={providerPersonId}
+              onChange={(e) => { setProviderPersonId(e.target.value); setErrors((p) => ({ ...p, providerPersonId: "" })); }}
+              className={`w-full h-9 px-3 rounded-xl border text-[13px] text-[#1A1A2E] bg-white focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4] transition ${errors.providerPersonId ? "border-[#DC2626]" : "border-[#E8ECF4]"}`}
+            >
+              <option value="">— Choisir un soignant —</option>
+              {providers.map((mp) => (
+                <option key={mp.provider.personId} value={mp.provider.personId}>
+                  {mp.provider.person.firstName} {mp.provider.person.lastName}
+                  {mp.provider.specialties.length > 0 ? ` — ${mp.provider.specialties[0]}` : ""}
+                </option>
+              ))}
+            </select>
+            {errors.providerPersonId && <p className="mt-1 text-[11px] text-[#DC2626]">{errors.providerPersonId}</p>}
+          </section>
+
           {/* Identité */}
           <section>
             <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mb-3">
@@ -221,7 +258,7 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] font-medium text-[#374151] mb-1">
-                  Email
+                  Email <span className="text-[#DC2626]">*</span>
                 </label>
                 <input
                   type="email"
@@ -243,6 +280,21 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
                   placeholder="06 00 00 00 00"
                   className="w-full h-9 px-3 rounded-xl border border-[#E8ECF4] text-[13px] text-[#1A1A2E] placeholder:text-[#D1D5DB] focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4] transition"
                 />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-[#374151] mb-1">
+                  NIR (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={nir}
+                  onChange={(e) => { setNir(e.target.value); setErrors((p) => ({ ...p, nir: "" })); }}
+                  placeholder="1 85 02 75 116 001 23"
+                  maxLength={21}
+                  className={`w-full h-9 px-3 rounded-xl border text-[13px] text-[#1A1A2E] placeholder:text-[#D1D5DB] focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4] transition ${errors.nir ? "border-[#DC2626]" : "border-[#E8ECF4]"}`}
+                />
+                {errors.nir && <p className="mt-1 text-[11px] text-[#DC2626]">{errors.nir}</p>}
+                <p className="mt-1 text-[10px] text-[#9CA3AF]">Chiffré côté serveur, jamais affiché en clair</p>
               </div>
             </div>
           </section>
@@ -326,7 +378,7 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || !providerPersonId || !email.trim()}
             className="h-9 px-5 rounded-xl text-[13px] font-medium bg-[#5B4EC4] text-white hover:bg-[#4A3DB3] transition disabled:opacity-60 flex items-center gap-2"
             style={{ transition: "all 200ms cubic-bezier(0.16,1,0.3,1)" }}
           >
