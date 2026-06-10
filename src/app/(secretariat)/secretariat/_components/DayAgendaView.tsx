@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda, type ConsultationTypeDTO } from "@/lib/api";
+import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda, type ConsultationTypeDTO, type PatientAdmin, type UpdatePatientInput } from "@/lib/api";
 import { isActiveStatus, isCancelledLike } from "@/lib/appointment-status";
 import { format, parseISO, set } from "date-fns";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import {
   X,
   CheckCircle2,
   Armchair,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SecretariatSignedDocsSection } from "@/components/secretariat/SecretariatSignedDocsSection";
@@ -82,7 +83,7 @@ function minutesToY(totalMinutes: number): number {
   return ((totalMinutes - DAY_START * 60) / 60) * SLOT_HEIGHT;
 }
 
-function apptToStyle(appt: SecretaryAppointment) {
+export function apptToStyle(appt: SecretaryAppointment) {
   const start = parseISO(appt.startAt);
   const end = parseISO(appt.endAt);
   const startMin = start.getHours() * 60 + start.getMinutes();
@@ -306,6 +307,9 @@ export function CreateApptModal({
 
 // ─── Modal détail RDV ─────────────────────────────────────────────────────────
 
+const FIELD_CLASS =
+  "w-full text-[12px] border border-[#E8ECF4] rounded-lg px-2.5 py-1.5 outline-none focus:border-[#5B4EC4] focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 transition-colors";
+
 export function ApptDetailModal({
   appt,
   onClose,
@@ -317,10 +321,96 @@ export function ApptDetailModal({
   onRefresh: () => void;
   api: ReturnType<typeof secretaryApi>;
 }) {
+  const queryClient = useQueryClient();
+  const [editMode, setEditMode] = useState(false);
+
   const statusCfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.PENDING;
   const statusSty = getStatusStyle(appt.status);
-  const start = parseISO(appt.startAt);
-  const end = parseISO(appt.endAt);
+  const startParsed = parseISO(appt.startAt);
+  const endParsed = parseISO(appt.endAt);
+  const originalDurationMin = Math.round((endParsed.getTime() - startParsed.getTime()) / 60_000);
+
+  // Edit state — initialised from current appointment data
+  const [editDate, setEditDate] = useState(format(startParsed, "yyyy-MM-dd"));
+  const [editHour, setEditHour] = useState(startParsed.getHours());
+  const [editMinute, setEditMinute] = useState(startParsed.getMinutes());
+  const [editDuration, setEditDuration] = useState(originalDurationMin);
+  const [editPhone, setEditPhone] = useState(appt.patient?.phone ?? "");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editPostal, setEditPostal] = useState("");
+  const [editCity, setEditCity] = useState("");
+
+  // Fetch full patient data (email, address) when edit mode opens
+  const patientQuery = useQuery({
+    queryKey: ["secretary-patient", appt.patient?.id],
+    queryFn: () => api.getPatient(appt.patient!.id),
+    enabled: editMode && !!appt.patient?.id,
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    const p = patientQuery.data?.patient as PatientAdmin | undefined;
+    if (!p) return;
+    setEditEmail(p.email ?? "");
+    setEditPhone(p.phone ?? "");
+    setEditAddress(p.addressLine1 ?? "");
+    setEditPostal(p.postalCode ?? "");
+    setEditCity(p.city ?? "");
+  }, [patientQuery.data]);
+
+  const updateApptMut = useMutation({
+    mutationFn: ({ startAt, endAt }: { startAt: string; endAt: string }) =>
+      api.updateAppointment(appt.id, { startAt, endAt }),
+    onError: () => toast.error("Erreur modification RDV"),
+  });
+
+  const updatePatientMut = useMutation({
+    mutationFn: (input: UpdatePatientInput) => api.updatePatient(appt.patient!.id, input),
+    onError: () => toast.error("Erreur modification patient"),
+  });
+
+  const isPending = updateApptMut.isPending || updatePatientMut.isPending;
+
+  async function handleSave() {
+    const tasks: Array<Promise<unknown>> = [];
+
+    // Appointment time
+    const [y, mo, d] = editDate.split("-").map(Number);
+    const newStart = new Date(y, mo - 1, d, editHour, editMinute, 0, 0);
+    const newEnd = new Date(newStart.getTime() + editDuration * 60_000);
+    if (
+      newStart.toISOString() !== startParsed.toISOString() ||
+      newEnd.toISOString() !== endParsed.toISOString()
+    ) {
+      tasks.push(updateApptMut.mutateAsync({ startAt: newStart.toISOString(), endAt: newEnd.toISOString() }));
+    }
+
+    // Patient info — only fields that actually changed
+    if (appt.patient) {
+      const p = patientQuery.data?.patient as PatientAdmin | undefined;
+      const patch: UpdatePatientInput = {};
+      if (editPhone !== (p?.phone ?? appt.patient.phone ?? "")) patch.phone = editPhone || undefined;
+      if (editEmail && editEmail !== (p?.email ?? "")) patch.email = editEmail;
+      if (editAddress !== (p?.addressLine1 ?? "")) patch.addressLine1 = editAddress || undefined;
+      if (editPostal !== (p?.postalCode ?? "")) patch.postalCode = editPostal || undefined;
+      if (editCity !== (p?.city ?? "")) patch.city = editCity || undefined;
+      if (Object.keys(patch).length > 0) tasks.push(updatePatientMut.mutateAsync(patch));
+    }
+
+    if (tasks.length === 0) { setEditMode(false); return; }
+
+    try {
+      await Promise.all(tasks);
+      toast.success("Modifications enregistrées");
+      queryClient.invalidateQueries({ queryKey: ["secretary-agendas"] });
+      queryClient.invalidateQueries({ queryKey: ["secretary-patient", appt.patient?.id] });
+      onRefresh();
+      onClose();
+    } catch {
+      // errors shown by individual onError handlers
+    }
+  }
 
   const cancelMut = useMutation({
     mutationFn: () => api.cancelAppointment(appt.id),
@@ -336,11 +426,15 @@ export function ApptDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8ECF4]">
           <div>
             <p className="text-[11px] font-semibold text-[#1A1A2E]">
-              {format(start, "HH:mm")} – {format(end, "HH:mm")}
+              {format(startParsed, "HH:mm")} – {format(endParsed, "HH:mm")}
             </p>
             <span
               className="text-[9px] font-medium px-1.5 py-0.5 rounded"
@@ -349,55 +443,227 @@ export function ApptDetailModal({
               {statusCfg.label}
             </span>
           </div>
-          <button onClick={onClose} className="text-[#6B7280] hover:text-[#1A1A2E]"><X size={16} /></button>
+          <div className="flex items-center gap-1">
+            {!editMode && !isCancelledLike(appt.status) && appt.status !== "COMPLETED" && (
+              <button
+                onClick={() => setEditMode(true)}
+                className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#6B7280] transition-colors"
+                aria-label="Modifier le rendez-vous"
+              >
+                <Pencil size={13} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-[#F5F3EF] text-[#6B7280] transition-colors"
+              aria-label="Fermer"
+            >
+              <X size={14} />
+            </button>
+          </div>
         </div>
-        <div className="px-5 py-4 space-y-3">
-          {appt.patient && (
-            <div className="flex items-start gap-2">
-              <User size={14} className="text-[#5B4EC4] mt-0.5 shrink-0" />
-              <div>
-                <p className="text-[12px] font-semibold text-[#1A1A2E]">
-                  {appt.patient.firstName} {appt.patient.lastName}
-                </p>
-                {appt.patient.phone && (
-                  <a href={`tel:${appt.patient.phone}`} className="flex items-center gap-1 text-[11px] text-[#5B4EC4] mt-0.5">
-                    <Phone size={11} /> {appt.patient.phone}
-                  </a>
-                )}
+
+        {/* Body */}
+        {editMode ? (
+          <div className="px-5 py-4 space-y-4 max-h-[65vh] overflow-y-auto">
+            {/* Section RDV */}
+            <div>
+              <p className="text-[9px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2.5">
+                Rendez-vous
+              </p>
+              <div className="space-y-2.5">
+                <div>
+                  <label className="text-[10px] font-medium text-[#374151] block mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    className={FIELD_CLASS}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] font-medium text-[#374151] block mb-1">Heure</label>
+                    <select
+                      value={editHour}
+                      onChange={(e) => setEditHour(Number(e.target.value))}
+                      className={FIELD_CLASS}
+                    >
+                      {Array.from({ length: 14 }, (_, i) => i + 7).map((h) => (
+                        <option key={h} value={h}>{String(h).padStart(2, "0")}h</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium text-[#374151] block mb-1">Min.</label>
+                    <select
+                      value={editMinute}
+                      onChange={(e) => setEditMinute(Number(e.target.value))}
+                      className={FIELD_CLASS}
+                    >
+                      {[0, 15, 30, 45].map((m) => (
+                        <option key={m} value={m}>:{String(m).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium text-[#374151] block mb-1">Durée</label>
+                    <select
+                      value={editDuration}
+                      onChange={(e) => setEditDuration(Number(e.target.value))}
+                      className={FIELD_CLASS}
+                    >
+                      {[15, 20, 30, 45, 60, 90].map((d) => (
+                        <option key={d} value={d}>{d} min</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-          {appt.consultationType && (
-            <div className="flex items-center gap-2 text-[11px] text-[#374151]">
-              <Clock size={13} className="text-[#6B7280]" />
-              {appt.consultationType.name} — {appt.consultationType.durationMinutes} min
-            </div>
-          )}
-          {appt.notes && (
-            <p className="text-[11px] text-[#374151] italic bg-[#F5F3EF] rounded-lg px-3 py-2">
-              {appt.notes}
-            </p>
-          )}
-        </div>
-        <div className="flex gap-2 px-5 pb-4">
-          {isActiveStatus(appt.status) && appt.status !== "PATIENT_ARRIVED" && (
-            <button
-              onClick={() => arrivedMut.mutate()}
-              disabled={arrivedMut.isPending}
-              className="flex-1 flex items-center justify-center gap-1.5 text-[11px] py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-            >
-              <CheckCircle2 size={13} />
-              Patient arrivé
-            </button>
-          )}
-          {!isCancelledLike(appt.status) && appt.status !== "COMPLETED" && (
-            <button
-              onClick={() => cancelMut.mutate()}
-              disabled={cancelMut.isPending}
-              className="flex-1 text-[11px] py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
-            >
-              Annuler
-            </button>
+
+            {appt.patient && <div className="border-t border-[#E8ECF4]" />}
+
+            {/* Section Patient */}
+            {appt.patient && (
+              <div>
+                <p className="text-[9px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2.5">
+                  {appt.patient.firstName} {appt.patient.lastName}
+                </p>
+                {patientQuery.isLoading ? (
+                  <p className="text-[11px] text-[#6B7280] italic py-1">Chargement…</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-medium text-[#374151] block mb-1">Téléphone</label>
+                        <input
+                          type="tel"
+                          value={editPhone}
+                          onChange={(e) => setEditPhone(e.target.value)}
+                          placeholder="+33 6…"
+                          className={FIELD_CLASS}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-[#374151] block mb-1">Email</label>
+                        <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          placeholder="email@…"
+                          className={FIELD_CLASS}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-medium text-[#374151] block mb-1">Adresse</label>
+                      <input
+                        type="text"
+                        value={editAddress}
+                        onChange={(e) => setEditAddress(e.target.value)}
+                        placeholder="1 rue de la Paix"
+                        className={FIELD_CLASS}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-medium text-[#374151] block mb-1">Code postal</label>
+                        <input
+                          type="text"
+                          value={editPostal}
+                          onChange={(e) => setEditPostal(e.target.value)}
+                          placeholder="75001"
+                          className={FIELD_CLASS}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-[#374151] block mb-1">Ville</label>
+                        <input
+                          type="text"
+                          value={editCity}
+                          onChange={(e) => setEditCity(e.target.value)}
+                          placeholder="Paris"
+                          className={FIELD_CLASS}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="px-5 py-4 space-y-3">
+            {appt.patient && (
+              <div className="flex items-start gap-2">
+                <User size={14} className="text-[#5B4EC4] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[12px] font-semibold text-[#1A1A2E]">
+                    {appt.patient.firstName} {appt.patient.lastName}
+                  </p>
+                  {appt.patient.phone && (
+                    <a href={`tel:${appt.patient.phone}`} className="flex items-center gap-1 text-[11px] text-[#5B4EC4] mt-0.5">
+                      <Phone size={11} /> {appt.patient.phone}
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+            {appt.consultationType && (
+              <div className="flex items-center gap-2 text-[11px] text-[#374151]">
+                <Clock size={13} className="text-[#6B7280]" />
+                {appt.consultationType.name} — {appt.consultationType.durationMinutes} min
+              </div>
+            )}
+            {appt.notes && (
+              <p className="text-[11px] text-[#374151] italic bg-[#F5F3EF] rounded-lg px-3 py-2">
+                {appt.notes}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex gap-2 px-5 pb-4 pt-1">
+          {editMode ? (
+            <>
+              <button
+                onClick={() => setEditMode(false)}
+                className="flex-1 text-[11px] py-2 rounded-lg border border-[#E8ECF4] text-[#374151] hover:bg-[#F5F3EF] active:scale-[0.97] transition-transform"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isPending}
+                className="flex-1 text-[11px] py-2 rounded-lg bg-[#5B4EC4] text-white hover:bg-[#4A3EB0] disabled:opacity-60 active:scale-[0.97] transition-transform"
+              >
+                {isPending ? "Enregistrement…" : "Enregistrer"}
+              </button>
+            </>
+          ) : (
+            <>
+              {isActiveStatus(appt.status) && appt.status !== "PATIENT_ARRIVED" && (
+                <button
+                  onClick={() => arrivedMut.mutate()}
+                  disabled={arrivedMut.isPending}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-[11px] py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 active:scale-[0.97] transition-transform"
+                >
+                  <CheckCircle2 size={13} />
+                  Patient arrivé
+                </button>
+              )}
+              {!isCancelledLike(appt.status) && appt.status !== "COMPLETED" && (
+                <button
+                  onClick={() => cancelMut.mutate()}
+                  disabled={cancelMut.isPending}
+                  className="flex-1 text-[11px] py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 active:scale-[0.97] transition-transform"
+                >
+                  Annuler le RDV
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -473,7 +739,7 @@ function AgendaColumn({
     },
     onSuccess: () => {
       toast.success("RDV déplacé");
-      onRefresh();
+      queryClient.invalidateQueries({ queryKey: ["secretary-agendas"] });
     },
   });
 
@@ -502,6 +768,7 @@ function AgendaColumn({
   }
 
   function handleApptMouseDown(e: React.MouseEvent, appt: SecretaryAppointment) {
+    if (rescheduleMut.isPending) return;
     e.stopPropagation();
     e.preventDefault();
     const { top, height } = apptToStyle(appt);

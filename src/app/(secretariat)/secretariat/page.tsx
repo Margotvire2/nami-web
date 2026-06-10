@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DayAgendaView } from "./_components/DayAgendaView";
 import { WeekAgendaView } from "./_components/WeekAgendaView";
+import { MiniCalendar } from "./_components/MiniCalendar";
 
 type AgendaView = "day" | "week";
 
@@ -232,23 +233,52 @@ export default function SecretariatPage() {
         </div>
       </div>
 
-      {/* Corps : Jour ou Semaine */}
-      {view === "day" ? (
-        <DayAgendaView
-          date={date}
-          api={api}
-          accessToken={accessToken}
-          userId={user?.id ?? null}
-          onRefresh={refresh}
-        />
-      ) : (
-        <WeekAgendaView
-          weekStart={weekStart}
-          api={api}
-          accessToken={accessToken}
-          onRefresh={refresh}
-        />
-      )}
+      {/* Corps : sidebar mini-calendrier + vue agenda */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar gauche */}
+        <aside className="w-[200px] shrink-0 border-r border-[#E8ECF4] bg-white overflow-y-auto flex flex-col">
+          <MiniCalendar date={date} onChange={setDate} />
+          <div className="mt-1 px-3 pb-3">
+            <div className="border-t border-[#E8ECF4] pt-3">
+              <p className="text-[9px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2">
+                Vue rapide
+              </p>
+              <button
+                onClick={() => { setDate(new Date()); setView("day"); }}
+                className="w-full text-left text-[10px] text-[#374151] px-2 py-1.5 rounded-lg hover:bg-[#F5F3EF] transition-colors"
+              >
+                Aujourd'hui
+              </button>
+              <button
+                onClick={() => { setDate(new Date()); setView("week"); }}
+                className="w-full text-left text-[10px] text-[#374151] px-2 py-1.5 rounded-lg hover:bg-[#F5F3EF] transition-colors"
+              >
+                Cette semaine
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Vue principale */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {view === "day" ? (
+            <DayAgendaView
+              date={date}
+              api={api}
+              accessToken={accessToken}
+              userId={user?.id ?? null}
+              onRefresh={refresh}
+            />
+          ) : (
+            <WeekAgendaView
+              weekStart={weekStart}
+              api={api}
+              accessToken={accessToken}
+              onRefresh={refresh}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
