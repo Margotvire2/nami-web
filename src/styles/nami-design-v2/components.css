@@ -1,89 +1,185 @@
 /* ============================================================
-   NAMI — Composants atomiques (components.css)
-   Dépend de colors_and_type.css. Classes réutilisables, re-skin
-   de la base shadcn base-nova. Importer après les tokens.
+   NAMI — Composants atomiques v3 (components.css)
+   Dépend de colors_and_type.css. Direction : gradient · arrondi · ombres profondes.
    ============================================================ */
 
 /* ---------- Boutons ---------- */
-.btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;
-  font-family:var(--font-sans);font-weight:700;font-size:13px;border-radius:var(--r);
-  padding:9px 14px;border:1px solid transparent;transition:.16s var(--ease)}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;
+  font-family:var(--font-sans);font-weight:700;font-size:13px;
+  border-radius:var(--r);padding:10px 16px;
+  border:1px solid transparent;transition:.18s var(--ease);
+  position:relative;
+}
 .btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.btn-primary{background:var(--violet);color:#fff;box-shadow:0 2px 8px rgba(91,78,196,.30)}
-.btn-primary:hover{background:var(--violet-h);transform:translateY(-1px);box-shadow:0 4px 14px rgba(91,78,196,.38)}
-.btn-ghost{background:var(--surface);border-color:var(--line-2);color:var(--ink)}
-.btn-ghost:hover{background:var(--paper-2)}
-.btn-mini{padding:6px 11px;font-size:12.5px}
+
+/* Primaire — gradient Nami */
+.btn-primary{
+  background:var(--gradient-primary);
+  color:#fff;
+  box-shadow:0 4px 16px rgba(91,78,196,0.32);
+  border-color:transparent;
+}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(91,78,196,0.42);
+  filter:brightness(1.05);
+}
+.btn-primary:active{ transform:translateY(0); box-shadow:0 2px 8px rgba(91,78,196,0.28); }
+
+/* Ghost */
+.btn-ghost{
+  background:var(--surface);
+  border-color:var(--line-2);
+  color:var(--ink);
+  box-shadow:var(--sh-1);
+}
+.btn-ghost:hover{
+  background:var(--violet-tint);
+  border-color:rgba(91,78,196,0.25);
+  color:var(--violet);
+  transform:translateY(-1px);
+  box-shadow:var(--sh-2);
+}
+
+/* Mini */
+.btn-mini{padding:6px 12px;font-size:12px;border-radius:var(--r-sm)}
 
 /* ---------- Carte ---------- */
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
-  padding:18px;box-shadow:var(--sh-1)}
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r-xl);
+  padding:20px;
+  box-shadow:var(--sh-1);
+}
 .card-raised{box-shadow:var(--sh-2)}
-.card:hover.is-interactive{box-shadow:var(--sh-3);transform:translateY(-1px);transition:.22s var(--ease)}
+.card.is-interactive{transition:.22s var(--ease)}
+.card.is-interactive:hover{
+  box-shadow:var(--sh-3);
+  transform:translateY(-2px);
+  border-color:rgba(91,78,196,0.15);
+}
 
-/* ---------- Champs ---------- */
-.input{width:100%;height:40px;border:1px solid var(--line);border-radius:var(--r-sm);
-  background:var(--surface-2);padding:0 12px;font-family:var(--font-ui);font-size:13.5px;color:var(--ink)}
+/* ---------- Inputs ---------- */
+.input{
+  width:100%;height:42px;
+  border:1px solid var(--line-2);
+  border-radius:var(--r-sm);
+  background:var(--surface);
+  padding:0 14px;
+  font-family:var(--font-ui);font-size:13.5px;color:var(--ink);
+  transition:.15s var(--ease);
+  box-shadow:var(--sh-1);
+}
 .input::placeholder{color:var(--ink-faint)}
-.input:focus{outline:2px solid var(--violet);outline-offset:1px;background:var(--surface)}
+.input:focus{
+  outline:none;
+  border-color:var(--violet);
+  box-shadow:0 0 0 3px rgba(91,78,196,0.12),var(--sh-1);
+  background:var(--surface);
+}
 
 /* ---------- Chips / Tags ---------- */
-.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-ui);font-size:12px;font-weight:600;
-  border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r-pill);padding:5px 11px;color:var(--ink-2);cursor:pointer}
-.chip.is-on{background:var(--violet);color:#fff;border-color:var(--violet)}
-.tag{font-size:11.5px;font-weight:700;border-radius:var(--r-pill);padding:3px 10px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-2)}
-.tag--tca{background:var(--violet-tint);color:var(--violet-h);border-color:var(--violet-tint)}
-.tag--obesite{background:var(--teal-tint);color:var(--teal-deep);border-color:var(--teal-tint)}
-.tag--premier{background:var(--warning-tint);color:var(--warning);border-color:var(--warning-tint)}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-ui);font-size:12px;font-weight:600;
+  border:1px solid var(--line-2);background:var(--surface);
+  border-radius:var(--r-pill);padding:5px 12px;color:var(--ink-2);cursor:pointer;
+  transition:.15s var(--ease);
+}
+.chip:hover{border-color:rgba(91,78,196,0.3);color:var(--violet)}
+.chip.is-on{background:var(--gradient-primary);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(91,78,196,0.28)}
 
-/* ---------- Badge IA (omniprésent sur tout output IA) ---------- */
-.badge-ia{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
-  color:var(--violet-h);background:var(--violet-tint);border-radius:var(--r-pill);padding:3px 9px}
-.badge-ia::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--violet)}
-/* texte recommandé : "Brouillon IA — à vérifier" */
+.tag{
+  font-size:11px;font-weight:700;
+  border-radius:var(--r-pill);
+  padding:3px 10px;
+  background:var(--surface-2);
+  border:1px solid var(--line-2);
+  color:var(--ink-2);
+}
+.tag.path{
+  background:var(--violet-tint);
+  color:var(--violet);
+  border-color:rgba(91,78,196,0.18);
+}
+.tag--tca{background:var(--violet-tint);color:var(--violet-h);border-color:rgba(91,78,196,0.18)}
+.tag--obesite{background:var(--teal-tint);color:var(--teal-deep);border-color:rgba(43,168,156,0.2)}
+.tag--premier{background:var(--warning-tint);color:var(--warning);border-color:rgba(212,120,10,0.2)}
 
-/* ---------- Footer légal (toujours présent) ---------- */
+/* ---------- Badge IA ---------- */
+.badge-ia{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;
+  color:var(--violet-h);
+  background:var(--violet-tint);
+  border-radius:var(--r-pill);
+  padding:3px 10px;
+  border:1px solid rgba(91,78,196,0.18);
+}
+.badge-ia::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gradient-primary)}
+
+/* ---------- Footer légal ---------- */
 .legal{font-size:11px;color:var(--ink-faint);line-height:1.6}
-/* "Outil de coordination · Non dispositif médical · Conforme RGPD" */
 
-/* ---------- LE FIL — signature visuelle ----------
-   Tracé continu qui coud les éléments. Vertical (timeline / care team)
-   ou tracé SVG calculé entre nœuds. C'est la grammaire centrale. */
-.fil-line{width:2.5px;border-radius:3px;background:var(--fil-v)}            /* trait vertical */
-.fil-knot{width:13px;height:13px;border-radius:50%;background:var(--surface);
-  border:3px solid var(--violet);box-sizing:border-box}                    /* nœud "consultation" plein dispo via fill */
-.fil-knot--task{width:9px;height:9px;border:2.5px dashed var(--line-2)}    /* nœud "tâche" creux */
-/* CareTeamThread : avatars reliés par .fil-line ; PathwayEdge : <path stroke="url(#fil)"> */
+/* ---------- Le Fil — signature ---------- */
+.fil-line{width:2.5px;border-radius:3px;background:var(--fil-v)}
+.fil-knot{
+  width:13px;height:13px;border-radius:50%;
+  background:var(--surface);
+  border:3px solid var(--violet);
+  box-sizing:border-box;
+}
+.fil-knot--task{width:9px;height:9px;border:2.5px dashed var(--line-2)}
 
-/* ---------- Indicateur de complétude → RETIRÉ ----------
-   (Décision produit : la complétude du dossier n'est plus affichée.
-   Ne pas réintroduire de jauge "score patient".) */
-
-/* ---------- Valeur de labo (MDR-safe) ----------
-   On affiche la valeur + la plage de RÉFÉRENCE DU LABO (sourcée).
-   Repère neutre "hors plage", jamais "critique/alerte". */
-.lab{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;
-  padding:9px 12px;background:var(--surface-2);border-left:3px solid var(--line-2)}
+/* ---------- Valeur de labo ---------- */
+.lab{
+  display:flex;align-items:center;gap:10px;
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:10px 13px;background:var(--surface);
+  border-left:3px solid var(--line-2);
+  box-shadow:var(--sh-1);
+}
 .lab.is-out{border-left-color:var(--warning);background:var(--warning-tint)}
 .lab .lab-name{font-size:12.5px;font-weight:600;color:var(--ink-2);flex:1}
 .lab .lab-val{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink)}
-.lab .lab-flag{font-size:10px;font-weight:700;color:var(--warning);background:#fff;border-radius:var(--r-pill);padding:2px 7px}
+.lab .lab-flag{font-size:10px;font-weight:700;color:var(--warning);background:var(--surface);border-radius:var(--r-pill);padding:2px 7px}
 
-/* ---------- Bandeau délégation (ActingAsBanner) ---------- */
-.acting{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:700;
-  color:#fff;background:var(--violet);border-radius:var(--r-pill);padding:6px 13px;box-shadow:var(--sh-1)}
+/* ---------- Bandeau délégation ---------- */
+.acting{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-sans);font-size:12px;font-weight:700;
+  color:#fff;
+  background:var(--gradient-primary);
+  border-radius:var(--r-pill);padding:6px 14px;
+  box-shadow:0 4px 14px rgba(91,78,196,0.30);
+}
 .acting::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff}
-/* "Vous agissez pour le compte de … " / "Vous planifiez pour le cabinet" */
 
 /* ---------- Onglets ---------- */
 .tabbar{display:flex;gap:2px;border-bottom:1px solid var(--line)}
-.tabbar button{font-family:var(--font-sans);font-size:13.5px;font-weight:700;color:var(--ink-3);
-  background:none;border:none;padding:14px 14px;cursor:pointer;position:relative}
-.tabbar button.is-on{color:var(--ink)}
-.tabbar button.is-on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px;background:var(--fil)}
+.tabbar button{
+  font-family:var(--font-sans);font-size:13.5px;font-weight:700;
+  color:var(--ink-3);background:none;border:none;
+  padding:14px 16px;cursor:pointer;position:relative;
+  transition:.15s var(--ease);
+}
+.tabbar button:hover{color:var(--ink-2)}
+.tabbar button.is-on{color:var(--violet)}
+.tabbar button.is-on::after{
+  content:"";position:absolute;left:10px;right:10px;bottom:-1px;
+  height:3px;border-radius:3px;
+  background:var(--gradient-primary);
+}
 
-/* ---------- Empty-state (grammaire chaleureuse) ----------
-   La prod est vide au lancement. Jamais culpabilisant ; orienté action. */
+/* ---------- Empty state ---------- */
 .empty{text-align:center;padding:64px 20px;color:var(--ink-faint)}
 .empty h4{font-family:var(--font-sans);font-size:16px;font-weight:800;color:var(--ink-2);margin:0 0 6px}
 .empty p{font-size:13px;max-width:380px;margin:0 auto;line-height:1.5}
+
+/* ---------- Section label helper ---------- */
+.sl{
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+  color:var(--ink-3);margin-bottom:12px;
+}
