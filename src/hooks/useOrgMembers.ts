@@ -9,9 +9,7 @@ import type {
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// Shape backend GET /organizations/:id/members?status=X (PR #135).
-// Limitation V1 : `id` = person.id (pas la ligne OrganizationMember).
-// Pour wire les actions PATCH (V1.1) il faudra `membershipId` côté backend.
+// Shape backend GET /organizations/:id/members?status=X (PR #143).
 export interface OrgMemberRow {
   personId: string;
   memberRole: OrganizationMemberRole | string;
@@ -21,6 +19,11 @@ export interface OrgMemberRow {
   lastName: string;
   photoUrl: string | null;
   providerProfile: { specialtyView: string | null } | null;
+  membershipId: string;
+  status: OrganizationMemberStatus;
+  exitedAt: string | null;
+  lastActivityAt: string | null;
+  memberStatusReason: string | null;
 }
 
 export type MembersStatusFilter = OrganizationMemberStatus | "all";

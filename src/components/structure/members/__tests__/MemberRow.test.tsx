@@ -14,6 +14,14 @@ vi.mock("next/image", () => ({
   ),
 }));
 
+vi.mock("@/lib/store", () => ({
+  useAuthStore: () => null,
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+}));
+
 function makeMember(overrides: Partial<OrgMemberRow> = {}): OrgMemberRow {
   return {
     personId: "p1",
@@ -24,25 +32,30 @@ function makeMember(overrides: Partial<OrgMemberRow> = {}): OrgMemberRow {
     lastName: "Curie",
     photoUrl: null,
     providerProfile: { specialtyView: "Pédiatrie" },
+    membershipId: "m1",
+    status: "ACTIVE",
+    exitedAt: null,
+    lastActivityAt: null,
+    memberStatusReason: null,
     ...overrides,
   };
 }
 
 describe("MemberRow", () => {
   it("affiche prénom + nom + spécialité + rôle traduit", () => {
-    render(<MemberRow member={makeMember()} />);
+    render(<MemberRow member={makeMember()} orgId="org1" />);
     expect(screen.getByText(/marie curie/i)).toBeInTheDocument();
     expect(screen.getByText(/pédiatrie/i)).toBeInTheDocument();
     expect(screen.getByText(/soignant/i)).toBeInTheDocument();
   });
 
   it("traduit les rôles connus en label FR", () => {
-    render(<MemberRow member={makeMember({ memberRole: "ADMIN" })} />);
+    render(<MemberRow member={makeMember({ memberRole: "ADMIN" })} orgId="org1" />);
     expect(screen.getByText(/admin/i)).toBeInTheDocument();
   });
 
   it("affiche la date d'adhésion formatée FR", () => {
-    render(<MemberRow member={makeMember()} />);
+    render(<MemberRow member={makeMember()} orgId="org1" />);
     expect(screen.getByText(/15 janv\. 2026/i)).toBeInTheDocument();
   });
 
@@ -53,6 +66,7 @@ describe("MemberRow", () => {
           providerProfile: null,
           memberRole: "PROVIDER",
         })}
+        orgId="org1"
       />
     );
     expect(screen.queryByText(/pédiatrie/i)).not.toBeInTheDocument();
@@ -63,6 +77,7 @@ describe("MemberRow", () => {
     const { container } = render(
       <MemberRow
         member={makeMember({ photoUrl: "https://example.com/photo.jpg" })}
+        orgId="org1"
       />
     );
     const img = container.querySelector("img");
