@@ -3,6 +3,7 @@ import Link from "next/link";
 import { HomeNav } from "@/components/home/HomeNav";
 import { HomeSticky } from "@/components/home/HomeSticky";
 import { Reveal } from "@/components/home/HomeReveal";
+import { AudiencePicker } from "@/components/AudiencePicker";
 import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 export const metadata: Metadata = {
@@ -225,6 +226,9 @@ export default function HomePage() {
 
         {/* STICKY — client component */}
         <HomeSticky />
+
+        {/* ═══ AUDIENCE PICKER ════════════════════════════════════════════ */}
+        <AudiencePicker />
 
         {/* ═══ FEATURES BENTO ═════════════════════════════════════════════ */}
         {/* ═══ LA CHARGE INVISIBLE ════════════════════════════════════════ */}
