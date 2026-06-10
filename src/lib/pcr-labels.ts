@@ -35,12 +35,12 @@ export const PHASE_SUBTITLES: Record<string, string> = {
  *    Ne jamais ajouter de clé en MAJUSCULES — ce serait un doublon mort.
  * 2. Valeurs = titre du PROFESSIONNEL, pas la discipline.
  *    ✅ "Psychiatre", "Psychologue", "Médecin généraliste"
- *    ❌ "Psychiatrie", "Psychologie", "Médecine générale"  ← régression connue, déjà remontée 3×
+ *    ❌ "Psychiatrie", "Psychologie", "Médecin généraliste"  ← régression connue, déjà remontée 3×
  */
 export const SPECIALTY_LABELS_NODES: Record<string, string> = {
-  "médecine générale":       "Médecine générale",
-  "medecine_generale":       "Médecine générale",
-  "medecine generale":       "Médecine générale",
+  "médecine générale":       "Médecin généraliste",
+  "medecine_generale":       "Médecin généraliste",
+  "medecine generale":       "Médecin généraliste",
   "dietetique":              "Diététique",
   "diététique":              "Diététique",
   "psychologie":             "Psychologue",
