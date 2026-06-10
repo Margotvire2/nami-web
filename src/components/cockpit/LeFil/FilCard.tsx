@@ -4,10 +4,10 @@ import type { TaskWithContext, Referral, ConnectionRequest } from "@/lib/api";
 
 // ── FilCardConsult ──────────────────────────────────────────────────────────
 
-const ACCENT: Record<string, string> = {
-  premiere: "var(--warning)",
-  teleconsult: "var(--teal-deep)",
-  suivi: "var(--violet)",
+const TYPE_BADGE: Record<string, { bg: string; color: string; border: string }> = {
+  premiere: { bg: "rgba(199,122,18,0.08)", color: "var(--warning)", border: "rgba(199,122,18,0.2)" },
+  teleconsult: { bg: "rgba(31,159,146,0.08)", color: "var(--teal-deep)", border: "rgba(31,159,146,0.2)" },
+  suivi: { bg: "rgba(91,78,196,0.08)", color: "var(--violet)", border: "rgba(91,78,196,0.15)" },
 };
 
 export function FilCardConsult({
@@ -23,87 +23,85 @@ export function FilCardConsult({
   onStart: () => void;
   onPrep: () => void;
 }) {
-  const accent = ACCENT[c.type] ?? "var(--violet)";
   const isTele = c.type === "teleconsult";
   const isFirst = c.type === "premiere";
   const isPast = c.status === "past";
+  const badge = TYPE_BADGE[c.type] ?? TYPE_BADGE.suivi;
 
   return (
     <article
       data-fil-item="consult"
       className={`event consult${selected ? " attn" : ""}${isPast ? " opacity-50" : ""}`}
-      style={{ "--accent": accent, cursor: "pointer" } as React.CSSProperties}
+      style={{ cursor: "pointer" }}
       onClick={onSelect}
     >
-      <span className="accent" />
-      <div className="cbody">
-        {/* Header row: time chip + type badge */}
-        <div className="chead">
-          <div className="time-chip">
-            <span className="hr">{c.time}</span>
-            <span className="dur">{c.duration}</span>
-            <span className="loc">
-              {isTele ? (
-                <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="7" width="12" height="10" rx="2" /><path d="M15 10l5-3v10l-5-3z" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 11l8-6 8 6" /><path d="M6 10v9h12v-9" />
-                </svg>
-              )}
-              {isTele ? "Téléconsult." : "Cabinet"}
-            </span>
-          </div>
-          {isFirst ? (
-            <span className="tag" style={{ borderColor: "var(--warning-tint)", color: "var(--warning)", background: "var(--warning-tint)" }}>
-              Premier contact
-            </span>
-          ) : (
-            <span className="tag path">{c.typeLabel}</span>
-          )}
-        </div>
-
-        {/* Patient name */}
-        <h3 className="ev-title">
-          {isFirst ? "Première consultation · nouvelle personne" : c.patient}
-        </h3>
-
-        {/* Sub */}
-        <p className="ev-sub" style={{ marginTop: 5 }}>
-          {isFirst
-            ? "Adressée par votre réseau · parcours à ouvrir. Un guide vous accompagnera pour structurer le dossier."
-            : `${c.detail.age > 0 ? `${c.detail.age} ans · ` : ""}${c.mode}`}
-        </p>
-
-        {/* Actions */}
-        <div className="ev-foot">
-          <div className="act2">
-            {c.careCaseId && (
-              <button
-                className="btn btn-ghost btn-mini"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPrep();
-                }}
-              >
-                Préparer
-              </button>
-            )}
-            <button
-              className="btn btn-primary btn-mini"
-              onClick={(e) => {
-                e.stopPropagation();
-                onStart();
-              }}
-            >
-              <svg viewBox="0 0 24 24" style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none" />
+      {/* Header row: time chip + type badge */}
+      <div className="chead">
+        <div className="time-chip">
+          <span className="hr">{c.time}</span>
+          <span className="dur">{c.duration}</span>
+          <span className="loc">
+            {isTele ? (
+              <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="7" width="12" height="10" rx="2" /><path d="M15 10l5-3v10l-5-3z" />
               </svg>
-              Démarrer
+            ) : (
+              <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 11l8-6 8 6" /><path d="M6 10v9h12v-9" />
+              </svg>
+            )}
+            {isTele ? "Téléconsult." : "Cabinet"}
+          </span>
+        </div>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "3px 10px",
+            borderRadius: 100,
+            background: badge.bg,
+            color: badge.color,
+            border: `1px solid ${badge.border}`,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {isFirst ? "Premier contact" : c.typeLabel}
+        </span>
+      </div>
+
+      {/* Patient name */}
+      <h3 className="ev-title">
+        {isFirst ? "Première consultation · nouvelle personne" : c.patient}
+      </h3>
+
+      {/* Sub */}
+      <p className="ev-sub" style={{ marginTop: 4 }}>
+        {isFirst
+          ? "Adressée par votre réseau · parcours à ouvrir."
+          : `${c.detail.age > 0 ? `${c.detail.age} ans · ` : ""}${c.mode}`}
+      </p>
+
+      {/* Actions */}
+      <div className="ev-foot">
+        <div className="act2">
+          {c.careCaseId && (
+            <button
+              className="btn btn-ghost btn-mini"
+              onClick={(e) => { e.stopPropagation(); onPrep(); }}
+            >
+              Préparer
             </button>
-          </div>
+          )}
+          <button
+            className="btn btn-primary btn-mini"
+            onClick={(e) => { e.stopPropagation(); onStart(); }}
+          >
+            <svg viewBox="0 0 24 24" style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none" />
+            </svg>
+            Démarrer
+          </button>
         </div>
       </div>
     </article>
@@ -145,11 +143,7 @@ export function FilCardTask({
         <span className={`ttype ${cls}`}>{label}</span>
         <div className="ev-top">
           <h3 className="ev-title">{task.title}</h3>
-          {isOverdue && (
-            <span className="tag" style={{ borderColor: "var(--critical)", color: "var(--critical)", background: "var(--surface-2)" }}>
-              En retard
-            </span>
-          )}
+          {isOverdue && <span className="tag-late">En retard</span>}
         </div>
         {patient && (
           <p className="ev-sub">
@@ -174,7 +168,6 @@ export function FilCardTask({
 }
 
 // ── FilCardReferral ──────────────────────────────────────────────────────────
-// Simplified inline accept/decline — full detail at /adressages.
 
 export function FilCardReferral({
   referral,
@@ -197,7 +190,20 @@ export function FilCardReferral({
           <h3 className="ev-title">
             {sender.firstName} {sender.lastName} vous adresse {caseTitle}
           </h3>
-          <span className="tag">Réseau</span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              padding: "2px 8px",
+              borderRadius: 100,
+              background: "var(--violet-tint)",
+              color: "var(--violet)",
+              border: "1px solid rgba(91,78,196,0.15)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Réseau
+          </span>
         </div>
         <p className="ev-sub">{referral.clinicalReason}</p>
         <div className="ev-foot">
@@ -212,7 +218,6 @@ export function FilCardReferral({
 }
 
 // ── FilCardRequest ────────────────────────────────────────────────────────────
-// Patient connection request (demande de suivi).
 
 export function FilCardRequest({
   request,

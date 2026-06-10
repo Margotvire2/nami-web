@@ -148,7 +148,7 @@ export default function DashboardPage() {
 
   // ── Résumé ──
   const selected = consultations.find((c: DashboardConsultation) => c.id === selectedId) ?? null;
-  const railConsult = selected ?? nextConsult ?? null;
+  const railConsult = selected; // shows only when user clicks a consult
 
   const pendingCoordCount = pendingReferrals.length + pendingConnReqs.length;
   const totalFilItems =
@@ -221,7 +221,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div style={{ marginLeft: "auto" }}>
-            <KnowledgeSearch className="w-72 hidden sm:block" />
+            <KnowledgeSearch className="w-72 hidden sm:block" inline={false} modal />
           </div>
         </div>
 
@@ -338,17 +338,16 @@ export default function DashboardPage() {
           <p
             style={{
               fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: ".1em",
-              textTransform: "uppercase",
-              color: "var(--ink-faint)",
+              fontWeight: 700,
+              letterSpacing: ".03em",
+              color: "var(--ink-3)",
               margin: "0 0 14px",
               paddingLeft: 60,
               position: "relative",
               zIndex: 3,
             }}
           >
-            Consultations · aujourd&apos;hui
+            Consultations du jour
           </p>
 
           <div style={{ paddingLeft: 60, position: "relative", zIndex: 3 }}>
@@ -414,17 +413,16 @@ export default function DashboardPage() {
               <p
                 style={{
                   fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: ".1em",
-                  textTransform: "uppercase",
-                  color: "var(--ink-faint)",
+                  fontWeight: 700,
+                  letterSpacing: ".03em",
+                  color: "var(--ink-3)",
                   margin: "28px 0 14px",
                   paddingLeft: 60,
                   position: "relative",
                   zIndex: 3,
                 }}
               >
-                Tâches &amp; demandes · à traiter
+                Tâches &amp; demandes
               </p>
 
               <div style={{ paddingLeft: 60, position: "relative", zIndex: 3 }}>

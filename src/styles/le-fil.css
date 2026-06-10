@@ -7,10 +7,9 @@
 /* ── Sections ─────────────────────────────────────────────── */
 .seclbl {
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-3);
   margin: 0 0 14px;
   padding-left: 60px;
   position: relative;
@@ -22,9 +21,9 @@
 .event {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 15px 17px;
-  margin-bottom: 13px;
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  margin-bottom: 12px;
   box-shadow: var(--sh-1);
   transition: .22s var(--ease);
   cursor: pointer;
@@ -44,15 +43,10 @@
 
 /* ── Consultation card ────────────────────────────────────── */
 .event.consult {
-  display: grid;
-  grid-template-columns: 5px 1fr;
-  padding: 0;
+  display: block;
+  padding: 18px 20px;
   overflow: hidden;
 }
-.event.consult .accent {
-  background: var(--accent, var(--violet));
-}
-.event.consult .cbody { padding: 15px 18px; }
 .event.consult .ev-title { font-size: 18px; }
 
 /* ── Consultation header row (time chip + badge) ─────────── */
@@ -61,28 +55,28 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 }
 .time-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 4px 10px 4px 10px;
-  overflow: hidden;
+  border-radius: 10px;
+  padding: 4px 11px;
+  gap: 0;
 }
 .time-chip .hr {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 700;
   color: var(--ink);
   line-height: 1;
 }
 .time-chip .dur {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--ink-3);
   padding-left: 8px;
   margin-left: 8px;
@@ -93,8 +87,8 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--ink-2);
   padding-left: 8px;
   margin-left: 8px;
@@ -106,16 +100,14 @@
   display: flex;
   gap: 13px;
   align-items: flex-start;
-  background: var(--surface-2);
-  padding: 13px 15px;
-  box-shadow: none;
-  border-style: dashed;
-  border-color: var(--line-2);
+  background: var(--surface);
+  padding: 15px 18px;
+  border-color: var(--line);
 }
 .event.task:hover {
   background: var(--surface);
-  box-shadow: var(--sh-2);
-  border-style: solid;
+  box-shadow: var(--sh-3);
+  border-color: var(--line-2);
   transform: translateY(-2px);
 }
 .event.task .check {
@@ -124,7 +116,7 @@
   border-radius: 7px;
   border: 2px solid var(--line-2);
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
   background: var(--surface);
   transition: .15s var(--ease);
   appearance: none;
@@ -141,7 +133,7 @@
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .ev-title {
   font-family: var(--font-sans);
@@ -171,14 +163,26 @@
 .ttype {
   display: inline-block;
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .06em;
+  font-weight: 700;
+  letter-spacing: .05em;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 .ttype.coord { color: var(--violet); }
 .ttype.cr    { color: var(--teal-deep); }
 .ttype.adr   { color: var(--warning); }
+
+/* ── Tag overrides (soften "En retard") ─────────────────── */
+.tag-late {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--warning-tint);
+  color: var(--warning);
+  border: 1px solid rgba(199,122,18,0.2);
+  white-space: nowrap;
+}
 
 /* ── Detail Rail cards ────────────────────────────────────── */
 .railcard {
