@@ -7,12 +7,8 @@ import { MemberStatusTabs, type MemberTab } from "@/components/structure/members
 import { MemberRow } from "@/components/structure/members/MemberRow";
 import { useOrgMembers } from "@/hooks/useOrgMembers";
 
-// Console d'animation — page Membres (F-STRUCT-V3-B-1).
+// Console d'animation — page Membres (F-STRUCT-V3-B-1 / INIT-759).
 // Onglets par status : Actifs / En sommeil (V1.1) / Suspendus / Sortis.
-//
-// V1 read-only : actions Suspendre/Exclure/Réactiver attendent l'extension
-// du payload backend (membershipId + status + lastActivityAt + exitedAt
-// + memberStatusReason) — cf. ticket V3-B-1-EXTEND-MEMBERS-PAYLOAD.
 export default function MembresPage({
   params,
 }: {
@@ -74,17 +70,13 @@ export default function MembresPage({
         ) : (
           <ul className="space-y-2">
             {members.map((m) => (
-              <MemberRow key={m.personId} member={m} />
+              <MemberRow key={m.personId} member={m} orgId={orgId} />
             ))}
           </ul>
         )}
       </section>
 
-      <p className="text-[11px] text-[#6B7280] italic">
-        V1 lecture seule. Les actions Suspendre / Exclure / Réactiver
-        seront disponibles après l&apos;extension du payload backend
-        (ticket V3-B-1-EXTEND-MEMBERS-PAYLOAD).
-      </p>
+
     </div>
   );
 }
