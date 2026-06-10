@@ -58,12 +58,107 @@ export const metadata: Metadata = {
   },
 }
 
+const SPECIALITES = [
+  "Diététicien·ne",
+  "Médecin généraliste",
+  "Psychologue",
+  "Psychiatre",
+  "Infirmier·ère",
+  "Médecin nutritionniste",
+  "Pédiatre",
+  "Sage-femme",
+  "Kinésithérapeute",
+  "Orthophoniste",
+  "Ergothérapeute",
+  "Endocrinologue",
+  "Gastro-entérologue",
+  "Chirurgien bariatrique",
+  "Allergologue",
+  "Rhumatologue",
+  "Neurologue",
+  "Cardiologue",
+]
+
 export default function PourLesSoignantsPage() {
   return (
     <div style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}>
 
       <LibHero />
+
+      {/* Validation notice — annoncé dès l'arrivée, pas à l'étape 7 du wizard */}
+      <div style={{
+        background: "#F2F0FB",
+        borderTop: "1px solid rgba(91,78,196,0.10)",
+        borderBottom: "1px solid rgba(91,78,196,0.10)",
+        padding: "10px 24px",
+        textAlign: "center",
+      }}>
+        <p style={{ margin: 0, fontSize: 13, color: "#5B4EC4", fontWeight: 500 }}>
+          Inscription gratuite · Validation manuelle par l&apos;équipe Nami sous 24 à 48h · Accès dès validation
+        </p>
+      </div>
+
       <LibProblem />
+
+      {/* Spécialités accueillies */}
+      <section style={{
+        background: "#FAFAF8",
+        padding: "64px clamp(24px, 5vw, 80px)",
+        borderBottom: "1px solid rgba(26,26,46,0.05)",
+      }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <ScrollReveal variant="fade-up" duration={0.6}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5B4EC4", marginBottom: 12 }}>
+              SPÉCIALITÉS ACCUEILLIES
+            </div>
+            <h2 style={{
+              fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "#1A1A2E",
+              margin: "0 0 10px",
+              fontFamily: "var(--font-jakarta)",
+            }}>
+              Conçu pour tous les soignants du parcours
+            </h2>
+            <p style={{ fontSize: 15, color: "#6B7280", marginBottom: 32, maxWidth: 540 }}>
+              Libéral ou salarié, médical ou paramédical — Nami s&apos;adapte à votre pratique.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {SPECIALITES.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    display: "inline-block",
+                    padding: "7px 16px",
+                    borderRadius: 999,
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(91,78,196,0.15)",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "#374151",
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+              <span style={{
+                display: "inline-block",
+                padding: "7px 16px",
+                borderRadius: 999,
+                background: "rgba(91,78,196,0.06)",
+                border: "1px solid rgba(91,78,196,0.15)",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#5B4EC4",
+              }}>
+                + d&apos;autres spécialités
+              </span>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
       <LibAI />
 
       {/* Base de connaissances */}
