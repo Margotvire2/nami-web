@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       // INIT-644 : /register est une URL attendue mais n'existe pas → rediriger vers /signup, query params préservés natively.
       { source: "/register", destination: "/signup", permanent: true },
       { source: "/register/:path*", destination: "/signup/:path*", permanent: true },
+      // F-PUBLIC-ARCHI-3-AUDIENCES : anciennes URLs → nouveaux slugs canoniques par audience.
+      { source: "/soignants-liberaux", destination: "/pour-les-soignants", permanent: true },
+      { source: "/patient", destination: "/pour-les-patients", permanent: true },
+      { source: "/pour-structures", destination: "/pour-les-structures", permanent: true },
     ];
   },
 };

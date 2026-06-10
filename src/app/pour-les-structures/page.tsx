@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     title: "Nami pour les structures de santé",
     description:
       "Pilotez la coordination de vos équipes et structurez les parcours de soins de votre établissement ou réseau. Validation manuelle par l'équipe en 24-48h.",
-    url: "https://nami.care/pour-les-structures",
+    url: "https://namipourlavie.com/pour-les-structures",
     type: "website",
     siteName: "Nami",
     locale: "fr_FR",

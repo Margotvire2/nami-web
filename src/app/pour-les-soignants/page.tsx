@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Nami — Pour les soignants",
     description:
       "Coordonnez votre équipe de soins, centralisez la communication et accédez aux recommandations HAS.",
-    url: "https://nami.care/pour-les-soignants",
+    url: "https://namipourlavie.com/pour-les-soignants",
     type: "website",
     siteName: "Nami",
     locale: "fr_FR",

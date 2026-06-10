@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     title: "Nami pour les patients — Coordonnez vos soins en un seul endroit",
     description:
       "Retrouvez votre équipe de soins réunie, suivez votre parcours et restez coordonné avec vos soignants.",
-    url: "https://nami.care/pour-les-patients",
+    url: "https://namipourlavie.com/pour-les-patients",
     type: "website",
     siteName: "Nami",
     locale: "fr_FR",
@@ -65,11 +65,11 @@ const jsonLd = {
   name: "Nami pour les patients",
   description:
     "Coordonnez vos soins de santé : retrouvez votre équipe réunie, prenez rendez-vous, communiquez avec vos soignants.",
-  url: "https://nami.care/pour-les-patients",
+  url: "https://namipourlavie.com/pour-les-patients",
   isPartOf: {
     "@type": "WebSite",
     name: "Nami",
-    url: "https://nami.care",
+    url: "https://namipourlavie.com",
   },
 };
 
