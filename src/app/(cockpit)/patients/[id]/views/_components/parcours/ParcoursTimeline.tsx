@@ -28,9 +28,11 @@ interface ParcoursTimelineProps {
   meta: CareCasePathwayMeta;
   templateSteps: PathwayTemplateStep[];
   nodes: PathwayNode[];
+  selectedStepId?: string | null;
+  onSelectStep?: (id: string) => void;
 }
 
-export function ParcoursTimeline({ meta, templateSteps, nodes }: ParcoursTimelineProps) {
+export function ParcoursTimeline({ meta, templateSteps, nodes, selectedStepId, onSelectStep }: ParcoursTimelineProps) {
   const isBlueprint = !meta.startedAt || nodes.length === 0;
   const unifiedSteps = buildUnifiedSteps(templateSteps, nodes);
   const phases = groupStepsByPhase(unifiedSteps);
@@ -75,6 +77,8 @@ export function ParcoursTimeline({ meta, templateSteps, nodes }: ParcoursTimelin
               group={group}
               phaseIndex={idx}
               defaultOpen={idx === 0}
+              selectedStepId={selectedStepId}
+              onSelectStep={onSelectStep}
             />
           ))
         )}

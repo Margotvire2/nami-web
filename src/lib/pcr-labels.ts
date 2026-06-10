@@ -29,14 +29,22 @@ export const PHASE_SUBTITLES: Record<string, string> = {
   TRANSVERSAL:      "Mobilisable à tout moment du parcours",
 };
 
+/**
+ * INVARIANT — deux règles à ne jamais casser :
+ * 1. Clés en minuscules uniquement (labelSpecialty normalise via .toLowerCase() avant lookup).
+ *    Ne jamais ajouter de clé en MAJUSCULES — ce serait un doublon mort.
+ * 2. Valeurs = titre du PROFESSIONNEL, pas la discipline.
+ *    ✅ "Psychiatre", "Psychologue", "Médecin généraliste"
+ *    ❌ "Psychiatrie", "Psychologie", "Médecin généraliste"  ← régression connue, déjà remontée 3×
+ */
 export const SPECIALTY_LABELS_NODES: Record<string, string> = {
-  "médecine générale":       "Médecine générale",
-  "medecine_generale":       "Médecine générale",
-  "medecine generale":       "Médecine générale",
+  "médecine générale":       "Médecin généraliste",
+  "medecine_generale":       "Médecin généraliste",
+  "medecine generale":       "Médecin généraliste",
   "dietetique":              "Diététique",
   "diététique":              "Diététique",
-  "psychologie":             "Psychologie",
-  "psychiatrie":             "Psychiatrie",
+  "psychologie":             "Psychologue",
+  "psychiatrie":             "Psychiatre",
   "endocrinologie":          "Endocrinologie",
   "activite_physique":       "Activité physique adaptée",
   "kinesitherapie":          "Kinésithérapie",
@@ -51,6 +59,10 @@ export const SPECIALTY_LABELS_NODES: Record<string, string> = {
   "gastroenterologie":       "Gastro-entérologie",
   "pediatrie":               "Pédiatrie",
   "coordination":            "Coordination",
+  "nutrition":               "Diététicienne",
+  "dentaire":                "Chirurgien-dentiste",
+  "radiologie":              "Radiologie",
+  "pluridisciplinaire":      "Pluridisciplinaire",
 };
 
 export const ACT_TYPE_LABELS_FR: Record<string, string> = {
@@ -70,10 +82,22 @@ export function labelPhase(code: string | null | undefined): string {
   return PHASE_LABELS_PCR[code] ?? code;
 }
 
-/** Retourne le label FR d'une spécialité node-level avec fallback */
+function safeLabelFallback(normalized: string): string {
+  return normalized
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Retourne le label FR d'une spécialité node-level — insensible à la casse, jamais d'enum brut */
 export function labelSpecialty(code: string | null | undefined): string {
   if (!code) return "—";
-  return SPECIALTY_LABELS_NODES[code] ?? code;
+  const normalized = code.toLowerCase();
+  return SPECIALTY_LABELS_NODES[normalized] ?? safeLabelFallback(normalized);
+}
+
+/** Retire les séparateurs cadratin/demi du titre affiché en liste (la source DATA n'est pas modifiée) */
+export function cleanTitle(label: string): string {
+  return label.split(/\s*[—–]\s*/)[0].trim();
 }
 
 /** Retourne le label FR d'un type d'acte avec fallback */
