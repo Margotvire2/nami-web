@@ -28,56 +28,78 @@
   box-shadow: var(--sh-1);
   transition: .22s var(--ease);
   cursor: pointer;
-  transform-origin: left center;
+  transform-origin: center;
 }
-.event:hover { box-shadow: var(--sh-3); border-color: var(--line-2); transform: translateX(2px); }
+.event:hover {
+  box-shadow: var(--sh-3);
+  border-color: var(--line-2);
+  transform: translateY(-3px);
+}
 .event.attn {
-  background: linear-gradient(115deg, var(--violet-soft) 0%, var(--surface) 60%);
-  border-color: var(--violet-tint);
+  background: linear-gradient(135deg, var(--violet-soft) 0%, var(--surface) 55%);
+  border-color: var(--violet);
+  box-shadow: 0 0 0 1px var(--violet), 0 8px 24px rgba(91,78,196,0.14), var(--sh-1);
+  transform: translateY(-2px);
 }
 
 /* ── Consultation card ────────────────────────────────────── */
 .event.consult {
   display: grid;
-  grid-template-columns: 4px 82px 1fr;
+  grid-template-columns: 5px 1fr;
   padding: 0;
   overflow: hidden;
 }
 .event.consult .accent {
   background: var(--accent, var(--violet));
 }
-.event.consult .timecol {
-  padding: 15px 12px 15px 16px;
+.event.consult .cbody { padding: 15px 18px; }
+.event.consult .ev-title { font-size: 18px; }
+
+/* ── Consultation header row (time chip + badge) ─────────── */
+.chead {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  border-right: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--surface-2), transparent);
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
 }
-.timecol .hr {
-  font-family: var(--font-sans);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -.02em;
+.time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 4px 10px 4px 10px;
+  overflow: hidden;
+}
+.time-chip .hr {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink);
   line-height: 1;
 }
-.timecol .dur {
+.time-chip .dur {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-3);
+  padding-left: 8px;
+  margin-left: 8px;
+  border-left: 1px solid var(--line);
+  line-height: 1;
 }
-.timecol .loc {
+.time-chip .loc {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   font-size: 10.5px;
   font-weight: 600;
   color: var(--ink-2);
-  margin-top: 5px;
+  padding-left: 8px;
+  margin-left: 8px;
+  border-left: 1px solid var(--line);
 }
-.event.consult .cbody { padding: 14px 16px; }
-.event.consult .ev-title { font-size: 16px; }
 
 /* ── Task card ────────────────────────────────────────────── */
 .event.task {
@@ -94,7 +116,7 @@
   background: var(--surface);
   box-shadow: var(--sh-2);
   border-style: solid;
-  transform: translateX(2px);
+  transform: translateY(-2px);
 }
 .event.task .check {
   width: 21px;

@@ -36,38 +36,47 @@ export function FilCardConsult({
       onClick={onSelect}
     >
       <span className="accent" />
-      <div className="timecol">
-        <span className="hr">{c.time}</span>
-        <span className="dur">{c.duration}</span>
-        <span className="loc">
-          {isTele ? (
-            <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: "var(--ink-3)", strokeWidth: 1.7, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" }}>
-              <rect x="3" y="7" width="12" height="10" rx="2" /><path d="M15 10l5-3v10l-5-3z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: "var(--ink-3)", strokeWidth: 1.7, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" }}>
-              <path d="M4 11l8-6 8 6" /><path d="M6 10v9h12v-9" />
-            </svg>
-          )}
-          {isTele ? "Téléconsult." : "Cabinet"}
-        </span>
-      </div>
       <div className="cbody">
-        <div className="ev-top">
-          <h3 className="ev-title">
-            {isFirst ? "Première consultation · nouvelle personne" : c.patient}
-          </h3>
+        {/* Header row: time chip + type badge */}
+        <div className="chead">
+          <div className="time-chip">
+            <span className="hr">{c.time}</span>
+            <span className="dur">{c.duration}</span>
+            <span className="loc">
+              {isTele ? (
+                <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="7" width="12" height="10" rx="2" /><path d="M15 10l5-3v10l-5-3z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 11l8-6 8 6" /><path d="M6 10v9h12v-9" />
+                </svg>
+              )}
+              {isTele ? "Téléconsult." : "Cabinet"}
+            </span>
+          </div>
           {isFirst ? (
-            <span className="tag" style={{ borderColor: "var(--warning-tint)", color: "var(--warning)", background: "var(--warning-tint)" }}>Premier contact</span>
+            <span className="tag" style={{ borderColor: "var(--warning-tint)", color: "var(--warning)", background: "var(--warning-tint)" }}>
+              Premier contact
+            </span>
           ) : (
             <span className="tag path">{c.typeLabel}</span>
           )}
         </div>
-        <p className="ev-sub">
+
+        {/* Patient name */}
+        <h3 className="ev-title">
+          {isFirst ? "Première consultation · nouvelle personne" : c.patient}
+        </h3>
+
+        {/* Sub */}
+        <p className="ev-sub" style={{ marginTop: 5 }}>
           {isFirst
             ? "Adressée par votre réseau · parcours à ouvrir. Un guide vous accompagnera pour structurer le dossier."
             : `${c.detail.age > 0 ? `${c.detail.age} ans · ` : ""}${c.mode}`}
         </p>
+
+        {/* Actions */}
         <div className="ev-foot">
           <div className="act2">
             {c.careCaseId && (

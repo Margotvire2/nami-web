@@ -194,21 +194,30 @@ export default function DashboardPage() {
             <h1
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 27,
+                fontSize: 32,
                 fontWeight: 800,
-                letterSpacing: "-.03em",
-                margin: "0 0 4px",
+                letterSpacing: "-.04em",
+                margin: "0 0 5px",
                 color: "var(--ink)",
+                lineHeight: 1.1,
               }}
             >
-              Bonjour{user ? `, ${user.firstName}` : ""}
+              Bonjour{user ? `, ${user.firstName}` : ""} 👋
             </h1>
-            <p style={{ margin: 0, fontSize: "13.5px", color: "var(--ink-2)" }}>
-              {dateLabelCap} ·{" "}
-              <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-3)" }}>
-                {totalFilItems} point{totalFilItems !== 1 ? "s" : ""}
-              </span>{" "}
-              cousus pour aujourd&apos;hui
+            <p style={{ margin: 0, fontSize: "13px", color: "var(--ink-2)" }}>
+              {dateLabelCap}
+              {totalFilItems > 0 && (
+                <>
+                  {" · "}
+                  <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--violet)" }}>
+                    {totalFilItems}
+                  </span>
+                  {" "}
+                  <span style={{ color: "var(--ink-3)" }}>
+                    point{totalFilItems !== 1 ? "s" : ""} au programme
+                  </span>
+                </>
+              )}
             </p>
           </div>
           <div style={{ marginLeft: "auto" }}>
@@ -256,9 +265,9 @@ export default function DashboardPage() {
                 gap: 9,
                 padding: "9px 14px 9px 11px",
                 borderRadius: 13,
-                background: "var(--surface)",
-                border: "1px solid var(--line)",
-                boxShadow: "var(--sh-1)",
+                background: "var(--violet-tint)",
+                border: "1px solid var(--violet)",
+                boxShadow: "0 2px 10px rgba(91,78,196,0.15)",
               }}
             >
               <span
@@ -273,7 +282,7 @@ export default function DashboardPage() {
               >
                 {pendingCoordCount}
               </span>
-              <span style={{ fontSize: 12, color: "var(--ink-2)", fontWeight: 500, lineHeight: 1.15 }}>
+              <span style={{ fontSize: 12, color: "var(--violet-h)", fontWeight: 600, lineHeight: 1.15 }}>
                 demande{pendingCoordCount !== 1 ? "s" : ""} de
                 <br />
                 coordination
