@@ -7,12 +7,15 @@ User-agent: *
 # ─── Landings publiques explicitement autorisées (SEO) ───────────────────────
 # Patient
 Allow: /patient
+Allow: /pour-les-patients
 Allow: /pour-les-proches
 Allow: /comment-ca-marche
 Allow: /faq
 # Pro
 Allow: /soignants-liberaux
+Allow: /pour-les-soignants
 Allow: /pour-structures
+Allow: /pour-les-structures
 Allow: /soignants
 Allow: /fonctionnalites
 Allow: /tarifs

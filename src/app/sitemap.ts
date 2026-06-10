@@ -9,10 +9,10 @@ const LAST = {
   pathologies:"2026-04-24",
   blog:       "2026-04-21",
   annuaire:   "2026-04-14",
-  soignants:  "2026-04-21",
+  soignants:  "2026-06-10",
   professions:"2026-04-21",
   legal:      "2026-04-24",
-  patient:    "2026-05-26",
+  patient:    "2026-06-10",
 }
 
 const PROFESSION_SLUGS = [
@@ -46,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // contradictoire. Pages auth = pas de valeur SEO.
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE,                                    lastModified: LAST.home,        changeFrequency: "weekly",  priority: 1.0 },
-    { url: `${BASE}/patient`,                       lastModified: LAST.patient,     changeFrequency: "weekly",  priority: 0.9 },
+    { url: `${BASE}/pour-les-patients`,              lastModified: LAST.patient,     changeFrequency: "weekly",  priority: 0.9 },
     { url: `${BASE}/trouver-un-soignant`,           lastModified: now,              changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE}/pathologies`,                   lastModified: LAST.pathologies, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/blog`,                          lastModified: now,              changeFrequency: "daily",   priority: 0.85 },
@@ -54,8 +54,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/annuaire-public`,               lastModified: now,              changeFrequency: "weekly",  priority: 0.8 },
     { url: `${BASE}/soignants`,                     lastModified: LAST.soignants,   changeFrequency: "weekly",  priority: 0.8 },
     { url: `${BASE}/fonctionnalites`,               lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/pour-structures`,               lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/soignants-liberaux`,            lastModified: LAST.soignants,   changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE}/pour-les-structures`,            lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/pour-les-soignants`,            lastModified: LAST.soignants,   changeFrequency: "weekly",  priority: 0.85 },
     { url: `${BASE}/faq`,                           lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/comment-ca-marche`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/demander-une-demo`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
