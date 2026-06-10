@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, type CSSProperties } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { secretaryApi, type SecretaryAppointment, type SecretaryAgenda, type ConsultationTypeDTO } from "@/lib/api";
 import { isActiveStatus, isCancelledLike } from "@/lib/appointment-status";
 import { format, parseISO, set } from "date-fns";
@@ -407,6 +407,14 @@ export function ApptDetailModal({
 
 // ─── Colonne agenda d'un soignant ─────────────────────────────────────────────
 
+type DragState = {
+  apptId: string;
+  durationMin: number;
+  ghostTop: number;
+  startClientY: number;
+  moved: boolean;
+};
+
 function AgendaColumn({
   agenda,
   date,
@@ -422,15 +430,156 @@ function AgendaColumn({
 }) {
   const [createSlot, setCreateSlot] = useState<number | null>(null);
   const [selectedAppt, setSelectedAppt] = useState<SecretaryAppointment | null>(null);
+  const [drag, setDrag] = useState<DragState | null>(null);
+
+  const queryClient = useQueryClient();
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Stable refs to avoid stale closures in useEffect
+  const dragRef = useRef<DragState | null>(null);
+  const appointmentsRef = useRef(agenda.appointments);
+  const rescheduleRef = useRef<((apptId: string, ghostTop: number, durationMin: number) => void) | null>(null);
+
+  // Keep refs in sync on every render
+  dragRef.current = drag;
+  appointmentsRef.current = agenda.appointments;
+
+  const rescheduleMut = useMutation({
+    mutationFn: ({ id, startAt, endAt }: { id: string; startAt: string; endAt: string }) =>
+      api.updateAppointment(id, { startAt, endAt }),
+    onMutate: async ({ id, startAt, endAt }) => {
+      const key = ["secretary-agendas", format(date, "yyyy-MM-dd")];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData(key);
+      queryClient.setQueryData(key, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          agendas: old.agendas.map((ag: SecretaryAgenda) => ({
+            ...ag,
+            appointments: ag.appointments.map((a: SecretaryAppointment) =>
+              a.id === id ? { ...a, startAt, endAt } : a
+            ),
+          })),
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, ctx: any) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["secretary-agendas", format(date, "yyyy-MM-dd")], ctx.previous);
+      }
+      toast.error("Erreur lors du déplacement du RDV");
+    },
+    onSuccess: () => {
+      toast.success("RDV déplacé");
+      onRefresh();
+    },
+  });
+
+  // Expose reschedule logic via ref so the effect handler can call it without stale closures
+  rescheduleRef.current = (apptId: string, ghostTop: number, durationMin: number) => {
+    const snappedMin = Math.round(((ghostTop / SLOT_HEIGHT) * 60 + DAY_START * 60) / 15) * 15;
+    const newHour = Math.floor(snappedMin / 60);
+    const newMinute = snappedMin % 60;
+    const newStart = set(date, { hours: newHour, minutes: newMinute, seconds: 0, milliseconds: 0 });
+    const newEnd = new Date(newStart.getTime() + durationMin * 60_000);
+    rescheduleMut.mutate({
+      id: apptId,
+      startAt: newStart.toISOString(),
+      endAt: newEnd.toISOString(),
+    });
+  };
 
   const totalRows = DAY_END - DAY_START;
 
   function handleColumnClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (drag) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const hour = Math.floor(y / SLOT_HEIGHT) + DAY_START;
     if (hour >= DAY_START && hour < DAY_END) setCreateSlot(hour);
   }
+
+  function handleApptMouseDown(e: React.MouseEvent, appt: SecretaryAppointment) {
+    e.stopPropagation();
+    e.preventDefault();
+    const { top, height } = apptToStyle(appt);
+    const startMin = parseISO(appt.startAt).getHours() * 60 + parseISO(appt.startAt).getMinutes();
+    const endMin = parseISO(appt.endAt).getHours() * 60 + parseISO(appt.endAt).getMinutes();
+    const durationMin = endMin - startMin;
+    const newDrag: DragState = {
+      apptId: appt.id,
+      durationMin,
+      ghostTop: top,
+      startClientY: e.clientY,
+      moved: false,
+    };
+    setDrag(newDrag);
+  }
+
+  // Add/remove window listeners only when drag starts/stops (dep: [!!drag])
+  useEffect(() => {
+    if (!drag) return;
+
+    document.body.style.cursor = "grabbing";
+    document.body.style.userSelect = "none";
+
+    function onMouseMove(e: MouseEvent) {
+      const current = dragRef.current;
+      if (!current) return;
+      const gridEl = gridRef.current;
+      if (!gridEl) return;
+
+      const rect = gridEl.getBoundingClientRect();
+      const rawY = e.clientY - rect.top;
+
+      // Snap to 15-minute increments
+      const rawMin = (rawY / SLOT_HEIGHT) * 60 + DAY_START * 60;
+      const snappedMin = Math.round(rawMin / 15) * 15;
+      const clampedMin = Math.max(DAY_START * 60, Math.min((DAY_END * 60) - current.durationMin, snappedMin));
+      const newGhostTop = ((clampedMin - DAY_START * 60) / 60) * SLOT_HEIGHT;
+
+      const moved = Math.abs(e.clientY - current.startClientY) > 5;
+
+      const updated: DragState = { ...current, ghostTop: newGhostTop, moved };
+      dragRef.current = updated;
+      setDrag(updated);
+    }
+
+    function onMouseUp() {
+      const current = dragRef.current;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      if (!current) {
+        setDrag(null);
+        return;
+      }
+
+      if (!current.moved) {
+        // Treat as click — open detail modal
+        const appt = appointmentsRef.current.find((a) => a.id === current.apptId);
+        if (appt) setSelectedAppt(appt);
+      } else {
+        // Reschedule
+        rescheduleRef.current?.(current.apptId, current.ghostTop, current.durationMin);
+      }
+
+      setDrag(null);
+    }
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!drag]);
 
   return (
     <>
@@ -460,6 +609,7 @@ function AgendaColumn({
 
         {/* Grille horaire */}
         <div
+          ref={gridRef}
           className="relative cursor-pointer"
           style={{ height: totalRows * SLOT_HEIGHT }}
           onClick={handleColumnClick}
@@ -479,17 +629,22 @@ function AgendaColumn({
             const cfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.PENDING;
             const sStyle = getStatusStyle(appt.status);
             const start = parseISO(appt.startAt);
+            const isDragging = drag?.apptId === appt.id;
 
             return (
               <div
                 key={appt.id}
-                onClick={(e) => { e.stopPropagation(); setSelectedAppt(appt); }}
-                className="absolute left-1 right-1 rounded-md border px-1.5 py-1 cursor-pointer hover:shadow-md transition-shadow"
+                onMouseDown={(e) => handleApptMouseDown(e, appt)}
+                className={cn(
+                  "absolute left-1 right-1 rounded-md border px-1.5 py-1 transition-shadow",
+                  isDragging ? "cursor-grabbing" : "cursor-grab hover:shadow-md",
+                )}
                 style={{
                   top: top + 1,
                   height: height - 2,
                   backgroundColor: sStyle.bg,
                   borderColor: appt.status === "IN_PROGRESS" ? DT.statusConfirmed : sStyle.border,
+                  opacity: isDragging ? 0.3 : 1,
                 }}
               >
                 <p className="text-[10px] font-semibold truncate" style={{ color: sStyle.color }}>
@@ -515,32 +670,62 @@ function AgendaColumn({
             );
           })}
 
+          {/* Ghost card during drag */}
+          {drag?.moved && (() => {
+            const appt = agenda.appointments.find(a => a.id === drag.apptId);
+            if (!appt) return null;
+            const sStyle = getStatusStyle(appt.status);
+            const { height } = apptToStyle(appt);
+            const ghostMin = Math.round(((drag.ghostTop / SLOT_HEIGHT) * 60 + DAY_START * 60) / 15) * 15;
+            return (
+              <div
+                className="absolute left-1 right-1 rounded-md border px-1.5 py-1 pointer-events-none z-20"
+                style={{
+                  top: drag.ghostTop + 1,
+                  height: height - 2,
+                  backgroundColor: sStyle.bg,
+                  borderColor: DT.statusConfirmed,
+                  boxShadow: DT.shadowAccent,
+                  opacity: 0.95,
+                  transform: "scale(1.01)",
+                }}
+              >
+                <p className="text-[10px] font-semibold truncate" style={{ color: DT.statusConfirmed }}>
+                  {`${String(Math.floor(ghostMin / 60)).padStart(2, "0")}:${String(ghostMin % 60).padStart(2, "0")}`}
+                  {appt.patient ? ` · ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
+                </p>
+              </div>
+            );
+          })()}
+
           {/* Bouton + sur créneau libre */}
-          <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: totalRows * 2 }, (_, i) => {
-              const hour = Math.floor(i / 2) + DAY_START;
-              const mins = (i % 2) * 30;
-              const top = (i * SLOT_HEIGHT) / 2;
-              const hasAppt = agenda.appointments.some((a) => {
-                const s = parseISO(a.startAt);
-                return s.getHours() === hour && Math.abs(s.getMinutes() - mins) < 20;
-              });
-              if (hasAppt) return null;
-              return (
-                <div
-                  key={i}
-                  className="absolute left-0 right-0 flex items-center pointer-events-auto opacity-0 hover:opacity-100 transition-opacity"
-                  style={{ top, height: SLOT_HEIGHT / 2 }}
-                  onClick={(e) => { e.stopPropagation(); setCreateSlot(hour); }}
-                >
-                  <div className="mx-1 flex items-center gap-1 text-[9px] text-[#5B4EC4] font-medium">
-                    <Plus size={10} />
-                    <span>{String(hour).padStart(2, "0")}:{String(mins).padStart(2, "0")}</span>
+          {!drag && (
+            <div className="absolute inset-0 pointer-events-none">
+              {Array.from({ length: totalRows * 2 }, (_, i) => {
+                const hour = Math.floor(i / 2) + DAY_START;
+                const mins = (i % 2) * 30;
+                const top = (i * SLOT_HEIGHT) / 2;
+                const hasAppt = agenda.appointments.some((a) => {
+                  const s = parseISO(a.startAt);
+                  return s.getHours() === hour && Math.abs(s.getMinutes() - mins) < 20;
+                });
+                if (hasAppt) return null;
+                return (
+                  <div
+                    key={i}
+                    className="absolute left-0 right-0 flex items-center pointer-events-auto opacity-0 hover:opacity-100 transition-opacity"
+                    style={{ top, height: SLOT_HEIGHT / 2 }}
+                    onClick={(e) => { e.stopPropagation(); setCreateSlot(hour); }}
+                  >
+                    <div className="mx-1 flex items-center gap-1 text-[9px] text-[#5B4EC4] font-medium">
+                      <Plus size={10} />
+                      <span>{String(hour).padStart(2, "0")}:{String(mins).padStart(2, "0")}</span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

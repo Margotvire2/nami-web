@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient, useMutation } from "@tanstack/react-query";
 import { secretaryApi, type SecretaryAppointment, type SecretaryAgendasResponse } from "@/lib/api";
-import { addDays, format, parseISO, isToday, isSameDay } from "date-fns";
+import { addDays, format, parseISO, isToday, isSameDay, set } from "date-fns";
+import { toast } from "sonner";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import {
@@ -35,8 +36,18 @@ function providerInitials(name: string): string {
     .join("");
 }
 
+type DragData = {
+  apptId: string;
+  startAt: string;
+  endAt: string;
+  sourceDayIdx: number;
+};
+
 export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekAgendaViewProps) {
   const [selectedAppt, setSelectedAppt] = useState<SecretaryAppointment | null>(null);
+  const [dragOverDayIdx, setDragOverDayIdx] = useState<number | null>(null);
+
+  const queryClient = useQueryClient();
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -54,6 +65,51 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
 
   const isLoading = queries.some((q) => q.isLoading);
   const hasError = queries.some((q) => q.isError);
+
+  const rescheduleMut = useMutation({
+    mutationFn: ({ id, startAt, endAt }: { id: string; startAt: string; endAt: string }) =>
+      api.updateAppointment(id, { startAt, endAt }),
+    onSuccess: () => {
+      toast.success("RDV déplacé");
+      // Invalidate all 7 day queries
+      days.forEach((day) => {
+        queryClient.invalidateQueries({ queryKey: ["secretary-agendas", format(day, "yyyy-MM-dd")] });
+      });
+      onRefresh();
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erreur lors du déplacement du RDV"),
+  });
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>, targetDayIdx: number) {
+    e.preventDefault();
+    setDragOverDayIdx(null);
+    try {
+      const data: DragData = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.sourceDayIdx === targetDayIdx) return;
+      const targetDay = days[targetDayIdx];
+      const originalStart = parseISO(data.startAt);
+      const originalEnd = parseISO(data.endAt);
+      const newStart = set(targetDay, {
+        hours: originalStart.getHours(),
+        minutes: originalStart.getMinutes(),
+        seconds: 0,
+        milliseconds: 0,
+      });
+      const newEnd = set(targetDay, {
+        hours: originalEnd.getHours(),
+        minutes: originalEnd.getMinutes(),
+        seconds: 0,
+        milliseconds: 0,
+      });
+      rescheduleMut.mutate({
+        id: data.apptId,
+        startAt: newStart.toISOString(),
+        endAt: newEnd.toISOString(),
+      });
+    } catch {
+      // ignore malformed drag data
+    }
+  }
 
   // Agrégation par jour : tous les RDV de tous les soignants triés par heure
   const apptsByDay: AggregatedAppt[][] = days.map((_day, idx) => {
@@ -79,8 +135,16 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
         {days.map((day, idx) => {
           const dayAppts = apptsByDay[idx];
           const today = isToday(day);
+          const isDragOver = dragOverDayIdx === idx;
           return (
-            <div key={day.toISOString()} className="bg-white min-h-[400px] flex flex-col">
+            <div
+              key={day.toISOString()}
+              className="bg-white min-h-[400px] flex flex-col"
+              style={isDragOver ? { outline: "2px solid var(--nami-primary)", outlineOffset: "-2px" } : undefined}
+              onDragOver={(e) => { e.preventDefault(); setDragOverDayIdx(idx); }}
+              onDragLeave={() => setDragOverDayIdx(null)}
+              onDrop={(e) => handleDrop(e, idx)}
+            >
               {/* Header jour */}
               <div
                 className={cn(
@@ -121,15 +185,27 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
                     Aucun RDV
                   </p>
                 ) : (
-                  dayAppts.map(({ appt, providerInitials }) => {
+                  dayAppts.map(({ appt, providerInitials: initials }) => {
                     const cfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.PENDING;
                     const sStyle = getStatusStyle(appt.status);
                     const start = parseISO(appt.startAt);
                     return (
                       <button
                         key={appt.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData(
+                            "application/json",
+                            JSON.stringify({
+                              apptId: appt.id,
+                              startAt: appt.startAt,
+                              endAt: appt.endAt,
+                              sourceDayIdx: idx,
+                            } satisfies DragData),
+                          );
+                        }}
                         onClick={() => setSelectedAppt(appt)}
-                        className="w-full text-left rounded-md border px-2 py-1.5 cursor-pointer hover:shadow-md transition-shadow"
+                        className="w-full text-left rounded-md border px-2 py-1.5 cursor-grab hover:shadow-md transition-shadow"
                         style={{
                           backgroundColor: sStyle.bg,
                           borderColor: appt.status === "IN_PROGRESS" ? "var(--nami-primary)" : sStyle.border,
@@ -142,9 +218,9 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
                           <span
                             className="text-[8px] font-semibold rounded px-1 py-px"
                             style={{ backgroundColor: "var(--nami-primary-light)", color: "var(--nami-primary)" }}
-                            title={providerInitials}
+                            title={initials}
                           >
-                            {providerInitials}
+                            {initials}
                           </span>
                         </div>
                         {appt.patient && (
