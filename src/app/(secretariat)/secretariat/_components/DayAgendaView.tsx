@@ -18,7 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SecretariatSignedDocsSection } from "@/components/secretariat/SecretariatSignedDocsSection";
 import { ProviderInfoModal, type ProviderContactInfo } from "./ProviderInfoModal";
-import { N as DT } from "@/lib/design-tokens";
+import { N as DT, getStatusStyle } from "@/lib/design-tokens";
 
 // INIT-628 — Les endpoints /secretary/agendas + /secretary/waiting-room
 // exposent désormais providerPhone/providerEmail/providerPhotoUrl (commit
@@ -44,19 +44,20 @@ export const IN_PROGRESS_STYLE: CSSProperties = {
   color: DT.statusConfirmed,
 };
 
+// Labels uniquement — couleurs via getStatusStyle() depuis design-tokens
 export const STATUS_CONFIG = {
-  PENDING:                { label: "En attente",       bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700"   },
-  CONFIRMED:              { label: "Confirmé",         bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
-  RESCHEDULED:            { label: "Reporté",          bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
-  IN_PROGRESS:            { label: "En cours",         bg: "",              border: "",                   text: ""                 },
-  PATIENT_ARRIVED:        { label: "Arrivé",           bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700"    },
-  COMPLETED:              { label: "Terminé",          bg: "bg-gray-50",    border: "border-gray-200",    text: "text-gray-500"    },
-  CANCELLED:              { label: "Annulé",           bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
-  CANCELLED_BY_PATIENT:   { label: "Annulé (patient)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
-  CANCELLED_BY_PROVIDER:  { label: "Annulé (soignant)",bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
-  CANCELLED_BY_SECRETARY: { label: "Annulé (secrét.)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
-  CANCELLED_BY_SYSTEM:    { label: "Annulé (système)", bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
-  NO_SHOW:                { label: "Non présenté",     bg: "bg-red-50",     border: "border-red-200",     text: "text-red-500"     },
+  PENDING:                { label: "En attente"        },
+  CONFIRMED:              { label: "Confirmé"          },
+  RESCHEDULED:            { label: "Reporté"           },
+  IN_PROGRESS:            { label: "En cours"          },
+  PATIENT_ARRIVED:        { label: "Arrivé"            },
+  COMPLETED:              { label: "Terminé"           },
+  CANCELLED:              { label: "Annulé"            },
+  CANCELLED_BY_PATIENT:   { label: "Annulé (patient)"  },
+  CANCELLED_BY_PROVIDER:  { label: "Annulé (soignant)" },
+  CANCELLED_BY_SECRETARY: { label: "Annulé (secrét.)"  },
+  CANCELLED_BY_SYSTEM:    { label: "Annulé (système)"  },
+  NO_SHOW:                { label: "Non présenté"      },
 } as const;
 
 // Statuts du cycle de vie consultation à signaler visuellement sur la card RDV
@@ -317,6 +318,7 @@ export function ApptDetailModal({
   api: ReturnType<typeof secretaryApi>;
 }) {
   const statusCfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.PENDING;
+  const statusSty = getStatusStyle(appt.status);
   const start = parseISO(appt.startAt);
   const end = parseISO(appt.endAt);
 
@@ -341,8 +343,8 @@ export function ApptDetailModal({
               {format(start, "HH:mm")} – {format(end, "HH:mm")}
             </p>
             <span
-              className={cn("text-[9px] font-medium px-1.5 py-0.5 rounded", statusCfg.bg, statusCfg.text)}
-              style={appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : undefined}
+              className="text-[9px] font-medium px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: statusSty.bg, color: statusSty.color }}
             >
               {statusCfg.label}
             </span>
@@ -475,33 +477,33 @@ function AgendaColumn({
           {agenda.appointments.map((appt) => {
             const { top, height } = apptToStyle(appt);
             const cfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.PENDING;
+            const sStyle = getStatusStyle(appt.status);
             const start = parseISO(appt.startAt);
 
             return (
               <div
                 key={appt.id}
                 onClick={(e) => { e.stopPropagation(); setSelectedAppt(appt); }}
-                className={cn(
-                  "absolute left-1 right-1 rounded-md border px-1.5 py-1 cursor-pointer hover:shadow-md transition-shadow",
-                  cfg.bg, cfg.border
-                )}
+                className="absolute left-1 right-1 rounded-md border px-1.5 py-1 cursor-pointer hover:shadow-md transition-shadow"
                 style={{
                   top: top + 1,
                   height: height - 2,
-                  ...(appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : null),
+                  backgroundColor: sStyle.bg,
+                  borderColor: appt.status === "IN_PROGRESS" ? DT.statusConfirmed : sStyle.border,
                 }}
               >
-                <p className={cn("text-[10px] font-semibold truncate", cfg.text)}>
+                <p className="text-[10px] font-semibold truncate" style={{ color: sStyle.color }}>
                   {format(start, "HH:mm")} {appt.patient ? `· ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
                 </p>
                 {isConsultationLifecycleStatus(appt.status) && (
                   <span
                     data-testid="consultation-lifecycle-pill"
-                    className={cn(
-                      "inline-block mt-0.5 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded",
-                      cfg.bg, cfg.text, "border", cfg.border,
-                    )}
-                    style={appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : undefined}
+                    className="inline-block mt-0.5 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded border"
+                    style={{
+                      backgroundColor: sStyle.bg,
+                      color: sStyle.color,
+                      borderColor: sStyle.border,
+                    }}
                   >
                     {cfg.label}
                   </span>
@@ -654,8 +656,12 @@ export function DayAgendaView({ date, api, accessToken, userId, onRefresh }: Day
               {waiting.map((entry) => {
                 const extras = entry as typeof entry & ProviderContactExtras;
                 return (
-                  <div key={entry.appointmentId} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                    <p className="text-[11px] font-semibold text-[#1A1A2E] truncate">{entry.patientName}</p>
+                  <div
+                    key={entry.appointmentId}
+                    className="rounded-lg p-2"
+                    style={{ background: DT.statusArrivedBg, border: `1px solid ${DT.statusArrivedBorder}` }}
+                  >
+                    <p className="text-[11px] font-semibold truncate" style={{ color: DT.ink }}>{entry.patientName}</p>
                     <button
                       type="button"
                       onClick={() =>
@@ -666,13 +672,14 @@ export function DayAgendaView({ date, api, accessToken, userId, onRefresh }: Day
                           providerPhotoUrl: extras.providerPhotoUrl ?? null,
                         })
                       }
-                      className="block w-full text-left text-[9px] text-[#6B7280] truncate rounded hover:bg-blue-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 -mx-0.5 px-0.5 transition-colors"
+                      className="block w-full text-left text-[9px] truncate rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/30 -mx-0.5 px-0.5 transition-colors"
+                      style={{ color: DT.ink3 }}
                       aria-label={`Infos ${entry.providerName}`}
                     >
                       {entry.providerName}
                     </button>
-                    <p className="text-[9px] text-blue-600 mt-0.5">
-                      {entry.waitingMinutes > 0 ? `Attend depuis ${entry.waitingMinutes} min` : "Vient d'arriver"}
+                    <p className="text-[9px] mt-0.5 font-medium" style={{ color: DT.statusArrived }}>
+                      {entry.waitingMinutes > 0 ? `${entry.waitingMinutes} min` : "À l'instant"}
                     </p>
                   </div>
                 );

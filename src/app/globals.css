@@ -178,11 +178,11 @@ html, body {
 
   /* ── Surfaces ── */
   --background: #FAFAF8;
-  --foreground: #0F172A;
+  --foreground: #1A1A2E;
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: #1A1A2E;
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
+  --popover-foreground: #1A1A2E;
 
   /* ── Primary — violet Nami ── */
   --primary: #5B4EC4;
@@ -191,8 +191,8 @@ html, body {
   /* ── Secondaries ── */
   --secondary: #EEEDFB;
   --secondary-foreground: #5B4EC4;
-  --muted: #F1F5F9;
-  --muted-foreground: #4B5563;
+  --muted: #F5F3EF;
+  --muted-foreground: #6B7280;
   --accent: #EEEDFB;
   --accent-foreground: #5B4EC4;
   --destructive: #DC2626;
@@ -246,25 +246,249 @@ html, body {
   --severity-success-bg: #F0FDF4;
   --severity-success-border: #BBF7D0;
 
-  /* ── Espace patient — tokens globaux ── */
-  /* Source unique pour les pages /(patient)/* (cf. F1-TOKENS-PATIENT-FACTORIZE).
-     Aligné sur le pattern déjà en place dans rendez-vous/page.tsx
-     (qui utilisait ces vars avant qu'elles soient définies globalement). */
-  --nami-bg: #FAFAF8;
-  --nami-card: #FFFFFF;
-  --nami-border: rgba(26, 26, 46, 0.08);
-  --nami-primary: #5B4EC4;
-  --nami-primary-light: rgba(91, 78, 196, 0.08);
-  --nami-secondary: #2BA89C;
-  --nami-dark: #1A1A2E;
-  --nami-text-muted: #4B5563;
+  /* ════════════════════════════════════════════════════════════════════════
+     NAMI CANONICAL TOKENS — SOURCE UNIQUE DE VÉRITÉ
+     ────────────────────────────────────────────────────────────────────────
+     Toutes les surfaces (cockpit, secrétariat, patient, structure, front)
+     utilisent ces variables. Ne jamais hardcoder les valeurs hexadécimales.
+     Les sections "Aliases" ci-dessous assurent la backward-compat : l'ancien
+     code cockpit-tokens.css / colors_and_type.css continue de fonctionner
+     sans modification. Nouveau code → utiliser --nami-* uniquement.
+     ════════════════════════════════════════════════════════════════════════ */
 
-  /* Follow-up audit 25/05 — composants patient cassés silencieusement.
-     - primary-hover : primary assombri ~10% (pattern Tailwind 700) — AppointmentCard hover
-     - teal : canonical Liquid Glass × Nami v1.0 (wireframes V5 Notion),
-              distinct de --nami-secondary (alias legacy #2BA89C) — gradient avatar + bouton */
-  --nami-primary-hover: #4A3FB5;
-  --nami-teal: #3DC5B7;
+  /* ── Primaires ── */
+  --nami-primary:         #5B4EC4;
+  --nami-primary-hover:   #4c44b0;
+  --nami-primary-light:   rgba(91,78,196,0.08);
+  --nami-primary-medium:  rgba(91,78,196,0.15);
+  --nami-primary-border:  rgba(91,78,196,0.2);
+  --nami-primary-glow:    0 0 0 3px rgba(91,78,196,0.12);
+  --nami-teal:            #2BA89C;
+  --nami-teal-light:      rgba(43,168,156,0.08);
+  --nami-teal-border:     rgba(43,168,156,0.2);
+  --nami-gradient:        linear-gradient(135deg, #5B4EC4, #2BA89C);
+  --nami-gradient-v:      linear-gradient(180deg, #5B4EC4, #2BA89C);
+
+  /* ── Fonds ── */
+  --nami-bg:              #FAFAF8;
+  --nami-bg-alt:          #F5F3EF;
+  --nami-surface:         #FFFFFF;
+  --nami-surface-raised:  #FCFBF9;
+
+  /* ── Texte (3 niveaux + faint) ── */
+  --nami-ink:             #1A1A2E;
+  --nami-ink-2:           #374151;
+  --nami-ink-3:           #6B7280;
+  --nami-ink-faint:       #9CA3AF;
+
+  /* ── Bordures (2 niveaux) ── */
+  --nami-line:            rgba(26,26,46,0.06);
+  --nami-line-2:          rgba(26,26,46,0.12);
+
+  /* ── Radius ── */
+  --nami-r-pill:  100px;
+  --nami-r-xl:    20px;
+  --nami-r-lg:    16px;
+  --nami-r:       12px;
+  --nami-r-sm:    8px;
+  --nami-r-xs:    6px;
+
+  /* ── Ombres ── */
+  --nami-sh-1:        0 1px 3px rgba(26,26,46,0.04), 0 4px 12px rgba(26,26,46,0.03);
+  --nami-sh-2:        0 4px 16px rgba(26,26,46,0.08), 0 12px 32px rgba(91,78,196,0.06);
+  --nami-sh-dropdown: 0 4px 16px rgba(26,26,46,0.10), 0 1px 4px rgba(26,26,46,0.06);
+  --nami-sh-accent:   0 2px 10px rgba(91,78,196,0.25);
+
+  /* ── Motion ── */
+  --nami-ease:         cubic-bezier(0.16, 1, 0.3, 1);
+  --nami-ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nami-ease-breathe: cubic-bezier(0.4, 0, 0.6, 1);
+  --nami-dur-fast:     160ms;
+  --nami-dur-mid:      250ms;
+  --nami-dur-slow:     400ms;
+  --nami-dur-page:     220ms;
+  --nami-dur-card:     350ms;
+  --nami-dur-tab:      260ms;
+  --nami-dur-panel:    400ms;
+
+  /* ── Sémantiques ── */
+  --nami-danger:         #D94F4F;
+  --nami-danger-bg:      rgba(217,79,79,0.06);
+  --nami-danger-border:  rgba(217,79,79,0.15);
+  --nami-success:        #2BA84A;
+  --nami-success-bg:     rgba(43,168,74,0.06);
+  --nami-success-border: rgba(43,168,74,0.2);
+  --nami-warning:        #E6993E;
+  --nami-warning-bg:     rgba(230,153,62,0.06);
+  --nami-warning-border: rgba(230,153,62,0.2);
+  --nami-info:           #2563EB;
+  --nami-info-bg:        rgba(37,99,235,0.06);
+  --nami-info-border:    rgba(37,99,235,0.2);
+
+  /* ── Statuts RDV — valeurs cliniques, NE PAS MODIFIER ── */
+  --nami-status-pending:   #E6993E;
+  --nami-status-confirmed: #5B4EC4;
+  --nami-status-arrived:   #2BA84A;
+  --nami-status-completed: #6B7280;
+  --nami-status-cancelled: #D94F4F;
+  --nami-status-no-show:   #C0792A;
+  --nami-status-absence:   #B4B2A9;
+
+  /* Backgrounds status (8% opacity = lisible sans agressif) */
+  --nami-status-pending-bg:   rgba(230,153,62,0.08);
+  --nami-status-confirmed-bg: rgba(91,78,196,0.08);
+  --nami-status-arrived-bg:   rgba(43,168,74,0.08);
+  --nami-status-completed-bg: rgba(107,114,128,0.08);
+  --nami-status-cancelled-bg: rgba(217,79,79,0.08);
+  --nami-status-no-show-bg:   rgba(192,121,42,0.08);
+
+  /* Borders status (20% opacity) */
+  --nami-status-pending-border:   rgba(230,153,62,0.25);
+  --nami-status-confirmed-border: rgba(91,78,196,0.25);
+  --nami-status-arrived-border:   rgba(43,168,74,0.25);
+  --nami-status-completed-border: rgba(107,114,128,0.2);
+  --nami-status-cancelled-border: rgba(217,79,79,0.25);
+  --nami-status-no-show-border:   rgba(192,121,42,0.25);
+
+  /* ── Glass surfaces ── */
+  --nami-glass-overlay: rgba(26,26,46,0.4);
+  --nami-glass-surface: rgba(250,250,248,0.95);
+  --nami-glass-chrome:  rgba(250,250,248,0.92);
+
+  /* ── Layout ── */
+  --nami-sidebar-width:     240px;
+  --nami-sidebar-collapsed: 64px;
+  --nami-header-height:     56px;
+  --nami-content-padding:   24px;
+
+  /* ── Typographie (échelle fixe app) ── */
+  --nami-t-page:  22px;
+  --nami-t-h1:    20px;
+  --nami-t-h2:    16px;
+  --nami-t-body:  14px;
+  --nami-t-small: 12px;
+  --nami-t-label: 11px;
+  --nami-t-badge: 10px;
+
+  /* ════════════════════════════════════════════════════════════════════════
+     BACKWARD-COMPAT ALIASES — ne pas référencer dans du nouveau code
+     ════════════════════════════════════════════════════════════════════════ */
+
+  /* cockpit-tokens.css aliases */
+  --cockpit-bg:                   var(--nami-bg);
+  --cockpit-sidebar-bg:           var(--nami-surface);
+  --cockpit-header-bg:            var(--nami-glass-chrome);
+  --cockpit-card-bg:              var(--nami-surface);
+  --cockpit-card-hover-bg:        var(--nami-surface-raised);
+  --cockpit-input-bg:             var(--nami-bg-alt);
+  --cockpit-section-alt:          var(--nami-bg-alt);
+  --cockpit-border:               var(--nami-line);
+  --cockpit-border-strong:        var(--nami-line-2);
+  --cockpit-border-active:        var(--nami-primary-border);
+  --cockpit-text-primary:         var(--nami-ink);
+  --cockpit-text-secondary:       var(--nami-ink-2);
+  --cockpit-text-muted:           var(--nami-ink-3);
+  --cockpit-text-placeholder:     var(--nami-ink-faint);
+  --cockpit-accent:               var(--nami-primary);
+  --cockpit-accent-dark:          var(--nami-primary-hover);
+  --cockpit-accent-light:         var(--nami-primary-light);
+  --cockpit-accent-medium:        var(--nami-primary-medium);
+  --cockpit-accent-glow:          var(--nami-primary-glow);
+  --cockpit-teal:                 var(--nami-teal);
+  --cockpit-teal-light:           var(--nami-teal-light);
+  --cockpit-success:              var(--nami-success);
+  --cockpit-success-bg:           var(--nami-success-bg);
+  --cockpit-success-border:       var(--nami-success-border);
+  --cockpit-warning:              var(--nami-warning);
+  --cockpit-warning-bg:           var(--nami-warning-bg);
+  --cockpit-warning-border:       var(--nami-warning-border);
+  --cockpit-error:                var(--nami-danger);
+  --cockpit-error-bg:             var(--nami-danger-bg);
+  --cockpit-error-border:         var(--nami-danger-border);
+  --cockpit-info:                 var(--nami-info);
+  --cockpit-info-bg:              var(--nami-info-bg);
+  --cockpit-info-border:          var(--nami-info-border);
+  --cockpit-shadow-xs:            0 1px 2px rgba(26,26,46,0.03);
+  --cockpit-shadow-sm:            var(--nami-sh-1);
+  --cockpit-shadow-md:            0 2px 8px rgba(26,26,46,0.06), 0 1px 3px rgba(26,26,46,0.04);
+  --cockpit-shadow-lg:            0 8px 24px rgba(26,26,46,0.08), 0 2px 6px rgba(26,26,46,0.04);
+  --cockpit-shadow-dropdown:      var(--nami-sh-dropdown);
+  --cockpit-shadow-accent:        var(--nami-sh-accent);
+  --cockpit-transition:           0.2s var(--nami-ease);
+  --cockpit-transition-slow:      0.35s var(--nami-ease);
+  --cockpit-radius-xs:            var(--nami-r-xs);
+  --cockpit-radius-sm:            var(--nami-r-sm);
+  --cockpit-radius-md:            var(--nami-r);
+  --cockpit-radius-lg:            var(--nami-r-lg);
+  --cockpit-radius-xl:            var(--nami-r-xl);
+  --cockpit-radius-pill:          var(--nami-r-pill);
+  --cockpit-glass-overlay-bg:     var(--nami-glass-overlay);
+  --cockpit-glass-overlay-blur:   blur(4px);
+  --cockpit-glass-surface-bg:     var(--nami-glass-surface);
+  --cockpit-glass-surface-blur:   blur(12px);
+  --cockpit-glass-surface-border: var(--nami-line);
+  --cockpit-glass-chrome-bg:      var(--nami-glass-chrome);
+  --cockpit-glass-chrome-blur:    blur(8px);
+  --cockpit-glass-chrome-border:  var(--nami-line);
+  --cockpit-sidebar-width:        var(--nami-sidebar-width);
+  --cockpit-sidebar-collapsed:    var(--nami-sidebar-collapsed);
+  --cockpit-header-height:        var(--nami-header-height);
+  --cockpit-content-padding:      var(--nami-content-padding);
+
+  /* colors_and_type.css aliases */
+  --violet:       var(--nami-primary);
+  --violet-h:     var(--nami-primary-hover);
+  --violet-tint:  var(--nami-primary-light);
+  --violet-soft:  rgba(91,78,196,0.04);
+  --teal:         var(--nami-teal);
+  --teal-deep:    #1F9F92;
+  --teal-tint:    var(--nami-teal-light);
+  --paper:        var(--nami-bg);
+  --paper-2:      var(--nami-bg-alt);
+  --surface:      var(--nami-surface);
+  --dark:         var(--nami-ink);
+  --ink:          var(--nami-ink);
+  --ink-2:        var(--nami-ink-2);
+  --ink-3:        var(--nami-ink-3);
+  --ink-faint:    var(--nami-ink-faint);
+  --line:         var(--nami-line);
+  --line-2:       var(--nami-line-2);
+  --fil:          linear-gradient(120deg, var(--nami-primary), var(--nami-teal));
+  --fil-v:        linear-gradient(180deg, var(--nami-primary), var(--nami-teal));
+  --ease:         var(--nami-ease);
+  --ease-spring:  var(--nami-ease-spring);
+  --ease-breathe: var(--nami-ease-breathe);
+  --dur-page:     var(--nami-dur-page);
+  --dur-card:     var(--nami-dur-card);
+  --dur-tab:      var(--nami-dur-tab);
+  --dur-panel:    var(--nami-dur-panel);
+  --font-sans:    var(--font-jakarta), sans-serif;
+  --font-ui:      var(--font-inter), sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  --r-xs:  var(--nami-r-xs);
+  --r-sm:  9px;
+  --r:     var(--nami-r);
+  --r-lg:  var(--nami-r-lg);
+  --r-xl:  var(--nami-r-xl);
+  --r-pill:var(--nami-r-pill);
+  --sh-1:  var(--nami-sh-1);
+  --sh-2:  0 1px 2px rgba(60,50,40,.05), 0 6px 18px rgba(60,50,40,.06);
+  --sh-3:  var(--nami-sh-2);
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-8:48px;
+  --t-display:clamp(28px,4vw,46px);
+  --t-h1:26px; --t-h2:20px; --t-h3:16px;
+  --t-body:14px; --t-small:12.5px; --t-label:11px;
+  --lh-tight:1.2; --lh-body:1.55;
+  --ls-tight:-0.03em; --ls-snug:-0.01em;
+  --bg:           var(--nami-bg);
+  --bg-elevated:  var(--nami-surface);
+  --text:         var(--nami-ink);
+  --text-muted:   var(--nami-ink-2);
+  --accent:       var(--nami-primary);
+  --accent-2:     var(--nami-teal);
+  --focus-ring:   var(--nami-primary);
+  --weft:         repeating-linear-gradient(90deg, rgba(120,105,80,.022) 0 1px, transparent 1px 7px),
+                  repeating-linear-gradient(0deg, rgba(120,105,80,.016) 0 1px, transparent 1px 7px);
 }
 
 .dark {
@@ -320,9 +544,26 @@ html, body {
 
   /* Focus visible */
   :focus-visible {
-    outline: 2px solid #5B4EC4;
+    outline: 2px solid var(--nami-primary);
     outline-offset: 2px;
     border-radius: inherit;
+  }
+
+  /* ── Motion layer global ── */
+  /* Boutons : press feedback 97% + easing signature Nami */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    transition-timing-function: var(--nami-ease);
+  }
+  button:active:not(:disabled):not([aria-haspopup]):not([data-no-press]),
+  [role="button"]:active:not(:disabled):not([data-no-press]) {
+    transform: scale(0.97);
+    transition-duration: 80ms;
+  }
+  /* Cards interactives */
+  a,
+  [data-interactive] {
+    transition-timing-function: var(--nami-ease);
   }
 }
 
@@ -332,67 +573,62 @@ html, body {
 
 @layer utilities {
   .nami-card {
-    background: #FFFFFF;
-    border-radius: 12px;
-    border: 1px solid #E8ECF4;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    background: var(--nami-surface);
+    border-radius: var(--nami-r);
+    border: 1px solid var(--nami-line);
+    box-shadow: var(--nami-sh-1);
   }
   .nami-card-interactive {
-    background: #FFFFFF;
-    border-radius: 12px;
-    border: 1px solid #E8ECF4;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    background: var(--nami-surface);
+    border-radius: var(--nami-r);
+    border: 1px solid var(--nami-line);
+    box-shadow: var(--nami-sh-1);
     cursor: pointer;
-    transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+    transition: box-shadow var(--nami-dur-fast) var(--nami-ease),
+                transform var(--nami-dur-fast) var(--nami-ease),
+                border-color var(--nami-dur-fast) var(--nami-ease);
   }
   .nami-card-interactive:hover {
-    box-shadow: 0 4px 16px rgba(91,78,196,0.10);
+    box-shadow: var(--nami-sh-2);
     transform: translateY(-1px);
-    border-color: rgba(91,78,196,0.2);
+    border-color: var(--nami-primary-border);
   }
 
-  /* ── Card depth — premium hover with double shadow ────────────────────────── */
+  /* ── Card depth — premium hover ── */
   .nami-card-depth {
-    background: #FFFFFF;
-    border-radius: 12px;
-    border: 1px solid #E8ECF4;
-    box-shadow:
-      0 1px 2px rgba(0,0,0,0.04),
-      0 2px 4px rgba(0,0,0,0.03);
+    background: var(--nami-surface);
+    border-radius: var(--nami-r);
+    border: 1px solid var(--nami-line);
+    box-shadow: var(--nami-sh-1);
     transition:
-      box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
-      transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-      border-color 240ms ease;
+      box-shadow 240ms var(--nami-ease),
+      transform 240ms var(--nami-ease),
+      border-color 240ms var(--nami-ease);
   }
   .nami-card-depth:hover {
-    box-shadow:
-      0 0 0 1px rgba(91,78,196,0.12),
-      0 4px 12px rgba(91,78,196,0.08),
-      0 12px 32px rgba(91,78,196,0.06);
+    box-shadow: var(--nami-sh-2);
     transform: translateY(-4px) scale(1.005);
-    border-color: rgba(91,78,196,0.18);
+    border-color: var(--nami-primary-border);
   }
   .nami-card-depth:active {
     transform: translateY(-2px) scale(1.002);
-    box-shadow:
-      0 0 0 1px rgba(91,78,196,0.16),
-      0 2px 8px rgba(91,78,196,0.10);
+    box-shadow: var(--nami-sh-1);
     transition-duration: 80ms;
   }
   .nami-pillar-card {
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: box-shadow 0.2s var(--nami-ease), border-color 0.2s var(--nami-ease);
   }
   .nami-pillar-card:hover {
-    box-shadow: 0 4px 16px rgba(91,78,196,0.09) !important;
-    border-color: rgba(91,78,196,0.2) !important;
+    box-shadow: var(--nami-sh-2) !important;
+    border-color: var(--nami-primary-border) !important;
   }
   .nami-patient-card {
-    transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+    transition: box-shadow 0.18s var(--nami-ease), transform 0.18s var(--nami-ease), border-color 0.18s var(--nami-ease);
   }
   .nami-patient-card:hover {
-    box-shadow: 0 4px 14px rgba(91,78,196,0.10) !important;
+    box-shadow: var(--nami-sh-2) !important;
     transform: translateY(-1px);
-    border-color: rgba(91,78,196,0.18) !important;
+    border-color: var(--nami-primary-border) !important;
   }
   @keyframes nami-fade-in-up {
     from { opacity: 0; transform: translateY(16px); }
@@ -446,35 +682,35 @@ html, body {
     border-color: #5B4EC4;
   }
 
-  /* ── Animated tab underline ──────────────────────────────────────────────── */
+  /* ── Animated tab underline ── */
   .nami-tabs {
     position: relative;
     display: flex;
     gap: 0;
-    border-bottom: 1px solid #E8ECF4;
+    border-bottom: 1px solid var(--nami-line-2);
   }
   .nami-tab {
     position: relative;
     padding: 8px 16px;
     font-size: 13px;
     font-weight: 500;
-    color: #94A3B8;
+    color: var(--nami-ink-faint);
     cursor: pointer;
-    transition: color 200ms ease;
+    transition: color var(--nami-dur-tab) var(--nami-ease);
     white-space: nowrap;
     background: none;
     border: none;
     outline: none;
   }
-  .nami-tab:hover { color: #475569; }
-  .nami-tab.active { color: #5B4EC4; font-weight: 600; }
+  .nami-tab:hover { color: var(--nami-ink-2); }
+  .nami-tab.active { color: var(--nami-primary); font-weight: 600; }
   .nami-tab-indicator {
     position: absolute;
     bottom: -1px;
     height: 2px;
-    background: #5B4EC4;
+    background: var(--nami-primary);
     border-radius: 2px 2px 0 0;
-    transition: left 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: left var(--nami-dur-tab) var(--nami-ease), width var(--nami-dur-tab) var(--nami-ease);
   }
 
   /* ── Slide-in panel (spring physics) ─────────────────────────────────────── */

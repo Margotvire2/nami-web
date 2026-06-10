@@ -211,9 +211,12 @@ export default function SecretariatPage() {
 
           {/* Salle d'attente badge (info partagée, pas un compteur DOM) */}
           {waiting.length > 0 && (
-            <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5">
-              <Armchair size={13} className="text-blue-600" />
-              <span className="text-[11px] font-medium text-blue-700">
+            <div
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5"
+              style={{ background: "var(--nami-primary-tint)", border: "1px solid var(--nami-primary-border)" }}
+            >
+              <Armchair size={13} style={{ color: "var(--nami-primary)" }} />
+              <span className="text-[11px] font-medium" style={{ color: "var(--nami-primary)" }}>
                 {waiting.length} en salle d'attente
               </span>
             </div>

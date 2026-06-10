@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 import {
   ApptDetailModal,
   STATUS_CONFIG,
-  IN_PROGRESS_STYLE,
   isConsultationLifecycleStatus,
 } from "./DayAgendaView";
+import { getStatusStyle } from "@/lib/design-tokens";
 
 interface WeekAgendaViewProps {
   weekStart: Date;
@@ -123,41 +123,44 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
                 ) : (
                   dayAppts.map(({ appt, providerInitials }) => {
                     const cfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.PENDING;
+                    const sStyle = getStatusStyle(appt.status);
                     const start = parseISO(appt.startAt);
                     return (
                       <button
                         key={appt.id}
                         onClick={() => setSelectedAppt(appt)}
-                        className={cn(
-                          "w-full text-left rounded-md border px-2 py-1.5 cursor-pointer hover:shadow-md transition-shadow",
-                          cfg.bg, cfg.border,
-                        )}
-                        style={appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : undefined}
+                        className="w-full text-left rounded-md border px-2 py-1.5 cursor-pointer hover:shadow-md transition-shadow"
+                        style={{
+                          backgroundColor: sStyle.bg,
+                          borderColor: appt.status === "IN_PROGRESS" ? "var(--nami-primary)" : sStyle.border,
+                        }}
                       >
                         <div className="flex items-center justify-between gap-1">
-                          <p className={cn("text-[10px] font-semibold", cfg.text)}>
+                          <p className="text-[10px] font-semibold" style={{ color: sStyle.color }}>
                             {format(start, "HH:mm")}
                           </p>
                           <span
-                            className="text-[8px] font-semibold bg-[#5B4EC4]/10 text-[#5B4EC4] rounded px-1 py-px"
+                            className="text-[8px] font-semibold rounded px-1 py-px"
+                            style={{ backgroundColor: "var(--nami-primary-light)", color: "var(--nami-primary)" }}
                             title={providerInitials}
                           >
                             {providerInitials}
                           </span>
                         </div>
                         {appt.patient && (
-                          <p className={cn("text-[10px] truncate mt-0.5", cfg.text)}>
+                          <p className="text-[10px] truncate mt-0.5" style={{ color: sStyle.color }}>
                             {appt.patient.firstName} {appt.patient.lastName}
                           </p>
                         )}
                         {isConsultationLifecycleStatus(appt.status) && (
                           <span
                             data-testid="consultation-lifecycle-pill"
-                            className={cn(
-                              "inline-block mt-1 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded border",
-                              cfg.bg, cfg.text, cfg.border,
-                            )}
-                            style={appt.status === "IN_PROGRESS" ? IN_PROGRESS_STYLE : undefined}
+                            className="inline-block mt-1 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded border"
+                            style={{
+                              backgroundColor: sStyle.bg,
+                              color: sStyle.color,
+                              borderColor: sStyle.border,
+                            }}
                           >
                             {cfg.label}
                           </span>

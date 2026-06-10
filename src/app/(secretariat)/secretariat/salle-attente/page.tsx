@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Armchair, ArrowLeft, RefreshCw, Clock, UserX } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { secretaryApi } from "@/lib/api";
+import { N } from "@/lib/design-tokens";
 
 type Severity = "calm" | "warning" | "urgent";
 
@@ -20,24 +21,24 @@ const SEVERITY_STYLES: Record<
   { cardBg: string; cardBorder: string; chipBg: string; chipText: string; label: string }
 > = {
   calm: {
-    cardBg: "#FFFFFF",
-    cardBorder: "#E8ECF4",
-    chipBg: "#ECFDF5",
-    chipText: "#047857",
+    cardBg: N.successBg,
+    cardBorder: N.successBorder,
+    chipBg: N.successBg,
+    chipText: N.success,
     label: "Vient d'arriver",
   },
   warning: {
-    cardBg: "#FFFBEB",
-    cardBorder: "#FCD34D",
-    chipBg: "#FEF3C7",
-    chipText: "#92400E",
+    cardBg: N.warningBg,
+    cardBorder: N.warningBorder,
+    chipBg: N.warningBg,
+    chipText: N.warning,
     label: "Attente modérée",
   },
   urgent: {
-    cardBg: "#FEF2F2",
-    cardBorder: "#FCA5A5",
-    chipBg: "#FEE2E2",
-    chipText: "#B91C1C",
+    cardBg: N.dangerBg,
+    cardBorder: N.dangerBorder,
+    chipBg: N.dangerBg,
+    chipText: N.danger,
     label: "Attente longue",
   },
 };
@@ -105,7 +106,8 @@ export default function SecretariatWaitingRoomFullscreenPage() {
           </button>
           <Link
             href="/secretariat"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1A1A2E] text-white text-[12px] font-medium hover:bg-[#2A2A3E] transition"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium transition"
+            style={{ background: N.ink, color: "#fff" }}
           >
             <ArrowLeft size={14} />
             Vue compacte

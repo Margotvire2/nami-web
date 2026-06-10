@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   CalendarDays,
   Users,
@@ -137,7 +139,10 @@ export default function SecretariatLayout({ children }: { children: React.ReactN
           className="sticky top-0 z-30 h-14 border-b border-[#E8ECF4] bg-white/85 backdrop-blur-md"
           aria-label="En-tête secrétariat"
         >
-          <div className="flex h-full items-center justify-end gap-2 px-6">
+          <div className="flex h-full items-center justify-between px-6">
+            <p className="text-[12px] text-[#6B7280] capitalize">
+              {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
+            </p>
             <SecretaryNotificationBell />
           </div>
         </header>
