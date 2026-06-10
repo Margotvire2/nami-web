@@ -10,9 +10,11 @@ interface PhaseGroupProps {
   group: PhaseGroupType;
   phaseIndex: number;
   defaultOpen?: boolean;
+  selectedStepId?: string | null;
+  onSelectStep?: (id: string) => void;
 }
 
-export function PhaseGroup({ group, phaseIndex, defaultOpen = false }: PhaseGroupProps) {
+export function PhaseGroup({ group, phaseIndex, defaultOpen = false, selectedStepId, onSelectStep }: PhaseGroupProps) {
   const [open, setOpen] = useState(defaultOpen);
   const label = getPhaseLabel(group.label);
   const roman = toRoman(phaseIndex + 1);
@@ -102,6 +104,8 @@ export function PhaseGroup({ group, phaseIndex, defaultOpen = false }: PhaseGrou
               key={step.id}
               step={step}
               isLast={i === group.steps.length - 1}
+              selectedStepId={selectedStepId}
+              onSelectStep={onSelectStep}
             />
           ))}
         </div>

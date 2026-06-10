@@ -51,17 +51,35 @@ const ACT_TYPE_FR: Record<string, string> = {
 interface ConsultationRowProps {
   step: UnifiedStep;
   isLast: boolean;
+  selectedStepId?: string | null;
+  onSelectStep?: (id: string) => void;
 }
 
-export function ConsultationRow({ step, isLast }: ConsultationRowProps) {
+export function ConsultationRow({ step, isLast, selectedStepId, onSelectStep }: ConsultationRowProps) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATE_CFG[step.state];
   const hasProtocol = !!step.protocolContent || step.state !== "done";
   const specialty = labelSpecialty(step.specialty);
   const actTypeLabel = ACT_TYPE_FR[step.clinicalActType] ?? step.clinicalActType;
+  const isMasterDetail = !!onSelectStep;
+  const isSelected = isMasterDetail && selectedStepId === step.id;
+
+  const handleClick = () => {
+    if (isMasterDetail) {
+      onSelectStep!(step.id);
+    } else if (hasProtocol) {
+      setExpanded((v) => !v);
+    }
+  };
 
   return (
-    <div>
+    <div style={{
+      background: isSelected ? "rgba(91,78,196,0.05)" : "transparent",
+      borderRadius: "var(--r-sm)",
+      margin: "0 -6px",
+      padding: "0 6px",
+      transition: "background 180ms",
+    }}>
       <div style={{ display: "flex", gap: 0, alignItems: "flex-start" }}>
         {/* Fil column */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 28, flexShrink: 0 }}>
@@ -86,7 +104,7 @@ export function ConsultationRow({ step, isLast }: ConsultationRowProps) {
         {/* Content */}
         <div style={{ flex: 1, paddingBottom: isLast ? 0 : 4 }}>
           <button
-            onClick={() => hasProtocol && setExpanded((v) => !v)}
+            onClick={handleClick}
             style={{
               display: "flex",
               width: "100%",
@@ -94,11 +112,11 @@ export function ConsultationRow({ step, isLast }: ConsultationRowProps) {
               gap: 10,
               background: "none",
               border: "none",
-              cursor: hasProtocol ? "pointer" : "default",
+              cursor: (isMasterDetail || hasProtocol) ? "pointer" : "default",
               padding: "10px 0 6px",
               textAlign: "left",
             }}
-            aria-expanded={expanded}
+            aria-expanded={isMasterDetail ? isSelected : expanded}
           >
             {/* Act badge */}
             <span style={{
@@ -158,8 +176,8 @@ export function ConsultationRow({ step, isLast }: ConsultationRowProps) {
               {cfg.label}
             </span>
 
-            {/* Chevron si expandable */}
-            {hasProtocol && (
+            {/* Chevron expand — inline mode only */}
+            {!isMasterDetail && hasProtocol && (
               <svg
                 width="13"
                 height="13"
@@ -179,10 +197,27 @@ export function ConsultationRow({ step, isLast }: ConsultationRowProps) {
                 <polyline points="2 5 7 10 12 5" />
               </svg>
             )}
+
+            {/* Arrow — master-detail mode */}
+            {isMasterDetail && hasProtocol && (
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke={isSelected ? "var(--violet)" : "var(--ink-faint)"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                style={{ flexShrink: 0, marginTop: 3, transition: "stroke 180ms" }}
+                aria-hidden
+              >
+                <polyline points="5 2 10 7 5 12" />
+              </svg>
+            )}
           </button>
 
-          {/* Brief expanded in-place */}
-          {expanded && (
+          {/* Brief expanded in-place — inline mode only */}
+          {!isMasterDetail && expanded && (
             <BriefCard
               actLabel={step.actLabel}
               clinicalActType={step.clinicalActType}

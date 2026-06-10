@@ -10,6 +10,12 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Route, Loader2, Search, Plus, CalendarClock, Users } from "lucide-react";
 import { ParcoursTimeline } from "./_components/parcours/ParcoursTimeline";
+import { buildUnifiedSteps, deriveCardType } from "@/lib/parcours";
+import type { UnifiedStep } from "@/lib/parcours";
+import { EvaluationBrief } from "./_components/parcours/EvaluationBrief";
+import { SuiviBrief } from "./_components/parcours/SuiviBrief";
+import { RcpBrief } from "./_components/parcours/RcpBrief";
+import { labelSpecialty } from "@/lib/pcr-labels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +46,7 @@ function ViewParcoursInner({ careCaseId }: { careCaseId: string }) {
   const api = apiWithToken(accessToken!);
   const searchParams = useSearchParams();
   const forceTemplateKey = searchParams.get("forceTemplateKey") ?? undefined;
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
 
   // Patient config (team, nextAppointment, pathway header)
   const { data: config, isLoading: configLoading } = useQuery<PatientConfig>({
@@ -97,79 +104,166 @@ function ViewParcoursInner({ careCaseId }: { careCaseId: string }) {
   const startedAt = config?.pathway?.startedAt ?? graphData?.pathwayStartedAt ?? null;
   const dayInPathway = config?.pathway?.dayInPathway ?? 0;
 
+  // Unified steps for detail panel (same inputs as ParcoursTimeline — pure function, cheap)
+  const unifiedSteps = buildUnifiedSteps(
+    templateData?.steps ?? [],
+    hasNodes ? (graphData?.nodes ?? []) : [],
+  );
+  const firstWithProtocol = unifiedSteps.find((s) => !!s.protocolContent) ?? unifiedSteps[0] ?? null;
+  const effectiveId = selectedStepId ?? firstWithProtocol?.id ?? null;
+  const selectedStep = effectiveId ? (unifiedSteps.find((s) => s.id === effectiveId) ?? null) : null;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 780 }}>
-      <ParcoursTimeline
-        meta={{
-          pathway,
-          startedAt,
-          dayInPathway,
-          summary: graphData?.summary ?? null,
-        }}
-        templateSteps={templateData?.steps ?? []}
-        nodes={hasNodes ? (graphData?.nodes ?? []) : []}
-      />
+    <div style={{ display: "flex", gap: 24, maxWidth: 1320, alignItems: "flex-start" }}>
+      {/* Master panel — phases + consultation list */}
+      <div style={{
+        width: 340,
+        flexShrink: 0,
+        alignSelf: "flex-start",
+        position: "sticky",
+        top: 24,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}>
+        <ParcoursTimeline
+          meta={{ pathway, startedAt, dayInPathway, summary: graphData?.summary ?? null }}
+          templateSteps={templateData?.steps ?? []}
+          nodes={hasNodes ? (graphData?.nodes ?? []) : []}
+          selectedStepId={effectiveId}
+          onSelectStep={setSelectedStepId}
+        />
 
-      {/* Équipe + RDV — inchangé, affiché en bas */}
-      {(config?.team?.length || config?.nextAppointment) && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          {(config.team?.length ?? 0) > 0 && (
-            <div className="card" style={{ padding: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <Users size={12} style={{ color: "var(--ink-faint)" }} />
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-faint)", margin: 0, fontFamily: "var(--font-ui)" }}>
-                  Équipe de soins
+        {/* Équipe + RDV — stacked vertically dans le master */}
+        {(config?.team?.length || config?.nextAppointment) && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {(config.team?.length ?? 0) > 0 && (
+              <div className="card" style={{ padding: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <Users size={12} style={{ color: "var(--ink-faint)" }} />
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-faint)", margin: 0, fontFamily: "var(--font-ui)" }}>
+                    Équipe de soins
+                  </p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {config.team.map((m, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: "50%",
+                        background: "rgba(91,78,196,0.08)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 10, fontWeight: 700, color: "var(--violet)", flexShrink: 0,
+                      }}>
+                        {m.firstName[0]}{m.lastName[0]}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {m.firstName} {m.lastName}
+                        </p>
+                        <p style={{ fontSize: 10.5, color: "var(--ink-faint)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {m.specialty ?? m.role}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {config?.nextAppointment && (
+              <div className="card" style={{ padding: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <CalendarClock size={12} style={{ color: "var(--ink-faint)" }} />
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-faint)", margin: 0, fontFamily: "var(--font-ui)" }}>
+                    Prochain rendez-vous
+                  </p>
+                </div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", margin: "0 0 2px" }}>
+                  {new Date(config.nextAppointment.date).toLocaleDateString("fr-FR", {
+                    weekday: "long", day: "numeric", month: "long",
+                  })}
+                </p>
+                <p style={{ fontSize: 12, color: "var(--ink-2)", margin: 0 }}>
+                  {new Date(config.nextAppointment.date).toLocaleTimeString("fr-FR", {
+                    hour: "2-digit", minute: "2-digit",
+                  })}
+                  {" · "}{config.nextAppointment.provider}
+                </p>
+                <p style={{ fontSize: 11, color: "var(--ink-faint)", margin: "2px 0 0" }}>
+                  {config.nextAppointment.type}
                 </p>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {config.team.map((m, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{
-                      width: 28, height: 28, borderRadius: "50%",
-                      background: "rgba(91,78,196,0.08)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 10, fontWeight: 700, color: "var(--violet)", flexShrink: 0,
-                    }}>
-                      {m.firstName[0]}{m.lastName[0]}
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {m.firstName} {m.lastName}
-                      </p>
-                      <p style={{ fontSize: 10.5, color: "var(--ink-faint)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {m.specialty ?? m.role}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
+      </div>
 
-          {config?.nextAppointment && (
-            <div className="card" style={{ padding: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <CalendarClock size={12} style={{ color: "var(--ink-faint)" }} />
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-faint)", margin: 0, fontFamily: "var(--font-ui)" }}>
-                  Prochain rendez-vous
-                </p>
-              </div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", margin: "0 0 2px" }}>
-                {new Date(config.nextAppointment.date).toLocaleDateString("fr-FR", {
-                  weekday: "long", day: "numeric", month: "long",
-                })}
-              </p>
-              <p style={{ fontSize: 12, color: "var(--ink-2)", margin: 0 }}>
-                {new Date(config.nextAppointment.date).toLocaleTimeString("fr-FR", {
-                  hour: "2-digit", minute: "2-digit",
-                })}
-                {" · "}{config.nextAppointment.provider}
-              </p>
-              <p style={{ fontSize: 11, color: "var(--ink-faint)", margin: "2px 0 0" }}>
-                {config.nextAppointment.type}
-              </p>
-            </div>
+      {/* Detail panel — protocole de la consultation sélectionnée */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {selectedStep ? (
+          <DetailPanel step={selectedStep} />
+        ) : (
+          <div className="card" style={{ padding: "48px 24px", textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: 0 }}>
+              Sélectionnez une consultation pour voir son protocole.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── DetailPanel — protocole de la consultation sélectionnée ─────────────────
+
+const ACT_TYPE_DETAIL: Record<string, string> = {
+  CONSULTATION: "Consultation", BILAN: "Bilan", QUESTIONNAIRE: "Questionnaire",
+  PRESCRIPTION: "Prescription", SUIVI: "Suivi", DOCUMENT: "Document",
+  RCP: "RCP", PSYCHOTHERAPIE: "Psychothérapie", EDUCATION: "Éducation thérapeutique",
+};
+
+function DetailPanel({ step }: { step: UnifiedStep }) {
+  const cardType = deriveCardType({ clinicalActType: step.clinicalActType, protocolContent: step.protocolContent });
+  const protocol = step.protocolContent;
+  const specialty = labelSpecialty(step.specialty);
+
+  return (
+    <div className="card" style={{ padding: "20px 24px" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center",
+            fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
+            padding: "2px 7px", borderRadius: "var(--r-sm)",
+            border: "1px solid var(--line)", color: "var(--ink-3)", fontFamily: "var(--font-ui)",
+          }}>
+            {ACT_TYPE_DETAIL[step.clinicalActType] ?? step.clinicalActType}
+          </span>
+          {specialty !== "—" && (
+            <span style={{ fontSize: 12, color: "var(--ink-faint)", fontFamily: "var(--font-ui)" }}>
+              {specialty}
+            </span>
           )}
+        </div>
+        <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 8px", lineHeight: 1.2 }}>
+          {step.actLabel}
+        </h3>
+        <span className="badge-ia">Brouillon IA — à vérifier</span>
+      </div>
+
+      {/* Protocol content */}
+      {protocol ? (
+        <>
+          {cardType === "EVALUATION" && <EvaluationBrief protocol={protocol} actLabel={step.actLabel} />}
+          {cardType === "SUIVI" && <SuiviBrief protocol={protocol} />}
+          {cardType === "RCP" && <RcpBrief protocol={protocol} />}
+        </>
+      ) : (
+        <div className="empty" style={{ padding: "32px 0", textAlign: "center" }}>
+          <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: 0 }}>
+            Protocole en attente de validation clinique.
+          </p>
         </div>
       )}
     </div>
