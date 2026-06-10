@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { StepState, UnifiedStep } from "@/lib/parcours";
-import { labelSpecialty } from "@/lib/pcr-labels";
+import { labelSpecialty, cleanTitle } from "@/lib/pcr-labels";
 import { BriefCard } from "./BriefCard";
 
 const STATE_CFG: Record<StepState, { label: string; knotStyle: React.CSSProperties; labelColor: string }> = {
@@ -128,8 +128,8 @@ export function ConsultationRow({ step, isLast, selectedStepId, onSelectStep }: 
               letterSpacing: "0.06em",
               padding: "2px 7px",
               borderRadius: "var(--r-sm)",
-              border: "1px solid var(--line)",
-              color: "var(--ink-3)",
+              border: "1px solid var(--line-2)",
+              color: "var(--ink-2)",
               fontFamily: "var(--font-ui)",
               flexShrink: 0,
               marginTop: 1,
@@ -137,19 +137,25 @@ export function ConsultationRow({ step, isLast, selectedStepId, onSelectStep }: 
               {actTypeLabel}
             </span>
 
-            <div style={{ flex: 1 }}>
-              <p style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 13.5,
-                fontWeight: 700,
-                color: step.state === "done" ? "var(--ink-3)" : "var(--ink)",
-                margin: "0 0 2px",
-                lineHeight: 1.3,
-                textDecoration: step.state === "done" ? "line-through" : "none",
-              }}>
-                {step.actLabel}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                title={step.actLabel}
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  color: step.state === "done" ? "var(--ink-3)" : "var(--ink)",
+                  margin: "0 0 3px",
+                  lineHeight: 1.3,
+                  textDecoration: step.state === "done" ? "line-through" : "none",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}>
+                {cleanTitle(step.actLabel)}
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
                 {specialty !== "—" && (
                   <span style={{ fontSize: 11.5, color: "var(--ink-faint)", fontFamily: "var(--font-ui)" }}>
                     {specialty}
@@ -160,21 +166,19 @@ export function ConsultationRow({ step, isLast, selectedStepId, onSelectStep }: 
                     Non automatique
                   </span>
                 )}
+                <span style={{
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-ui)",
+                  color: "var(--ink-2)",
+                  background: "var(--paper-2)",
+                  borderRadius: "var(--r-xs)",
+                  padding: "1px 6px",
+                }}>
+                  {cfg.label}
+                </span>
               </div>
             </div>
-
-            {/* State label */}
-            <span style={{
-              fontSize: 11,
-              fontWeight: 700,
-              fontFamily: "var(--font-ui)",
-              color: cfg.labelColor,
-              flexShrink: 0,
-              marginTop: 2,
-              transition: "color 260ms",
-            }}>
-              {cfg.label}
-            </span>
 
             {/* Chevron expand — inline mode only */}
             {!isMasterDetail && hasProtocol && (

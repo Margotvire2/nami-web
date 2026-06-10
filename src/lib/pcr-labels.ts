@@ -51,6 +51,10 @@ export const SPECIALTY_LABELS_NODES: Record<string, string> = {
   "gastroenterologie":       "Gastro-entérologie",
   "pediatrie":               "Pédiatrie",
   "coordination":            "Coordination",
+  "nutrition":               "Diététicienne",
+  "dentaire":                "Chirurgien-dentiste",
+  "radiologie":              "Radiologie",
+  "pluridisciplinaire":      "Pluridisciplinaire",
 };
 
 export const ACT_TYPE_LABELS_FR: Record<string, string> = {
@@ -70,10 +74,22 @@ export function labelPhase(code: string | null | undefined): string {
   return PHASE_LABELS_PCR[code] ?? code;
 }
 
-/** Retourne le label FR d'une spécialité node-level avec fallback */
+function safeLabelFallback(normalized: string): string {
+  return normalized
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Retourne le label FR d'une spécialité node-level — insensible à la casse, jamais d'enum brut */
 export function labelSpecialty(code: string | null | undefined): string {
   if (!code) return "—";
-  return SPECIALTY_LABELS_NODES[code] ?? code;
+  const normalized = code.toLowerCase();
+  return SPECIALTY_LABELS_NODES[normalized] ?? safeLabelFallback(normalized);
+}
+
+/** Retire les séparateurs cadratin/demi du titre affiché en liste (la source DATA n'est pas modifiée) */
+export function cleanTitle(label: string): string {
+  return label.split(/\s*[—–]\s*/)[0].trim();
 }
 
 /** Retourne le label FR d'un type d'acte avec fallback */

@@ -15,7 +15,7 @@ import type { UnifiedStep } from "@/lib/parcours";
 import { EvaluationBrief } from "./_components/parcours/EvaluationBrief";
 import { SuiviBrief } from "./_components/parcours/SuiviBrief";
 import { RcpBrief } from "./_components/parcours/RcpBrief";
-import { labelSpecialty } from "@/lib/pcr-labels";
+import { labelSpecialty, cleanTitle } from "@/lib/pcr-labels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ function ViewParcoursInner({ careCaseId }: { careCaseId: string }) {
     <div style={{ display: "flex", gap: 24, maxWidth: 1320, alignItems: "flex-start" }}>
       {/* Master panel — phases + consultation list */}
       <div style={{
-        width: 340,
+        width: 400,
         flexShrink: 0,
         alignSelf: "flex-start",
         position: "sticky",
@@ -247,7 +247,7 @@ function DetailPanel({ step }: { step: UnifiedStep }) {
           )}
         </div>
         <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 8px", lineHeight: 1.2 }}>
-          {step.actLabel}
+          {cleanTitle(step.actLabel)}
         </h3>
         <span className="badge-ia">Brouillon IA — à vérifier</span>
       </div>
