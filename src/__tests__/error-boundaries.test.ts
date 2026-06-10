@@ -63,8 +63,8 @@ describe("F-WEB-PAGES-404-500 — files exist", () => {
   it("(secretariat)/error.tsx exists", () => {
     expect(existsSync(resolve(APP, "(secretariat)/error.tsx"))).toBe(true);
   });
-  it("(structure)/error.tsx exists", () => {
-    expect(existsSync(resolve(APP, "(structure)/error.tsx"))).toBe(true);
+  it("structure/error.tsx exists", () => {
+    expect(existsSync(resolve(APP, "structure/error.tsx"))).toBe(true);
   });
 });
 
@@ -236,15 +236,15 @@ describe("F-WEB-PAGES-404-500 — (secretariat)/error.tsx", () => {
   });
 });
 
-describe("F-WEB-PAGES-404-500 — (structure)/error.tsx", () => {
-  const src = read("(structure)/error.tsx");
+describe("F-WEB-PAGES-404-500 — structure/error.tsx", () => {
+  const src = read("structure/error.tsx");
 
   it("tag Sentry boundary=structure", () => {
     expect(src).toMatch(/setTag\(\s*"boundary"\s*,\s*"structure"\s*\)/);
   });
 
   it("wording safe", () => {
-    expectNoMdrWording(src, "(structure)/error.tsx");
+    expectNoMdrWording(src, "structure/error.tsx");
   });
 });
 
@@ -255,7 +255,7 @@ describe("F-WEB-PAGES-404-500 — cohérence transverse", () => {
     "(cockpit)/error.tsx",
     "(patient)/error.tsx",
     "(secretariat)/error.tsx",
-    "(structure)/error.tsx",
+    "structure/error.tsx",
   ];
 
   it("toutes les boundaries déclarent un tag Sentry distinct", () => {
