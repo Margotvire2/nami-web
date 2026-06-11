@@ -80,8 +80,8 @@ html, body {
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   NAMI DESIGN SYSTEM — Medical 2026
-   Fonts: Plus Jakarta Sans (primary) + Inter (data/labels)
+   NAMI DESIGN SYSTEM — Medical 2026 v3
+   Font: DM Sans (all UI) + JetBrains Mono (numeric/code only)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
@@ -141,13 +141,13 @@ html, body {
   --font-sans: var(--font-jakarta);
   --font-data: var(--font-inter);
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
-  --radius-3xl: 20px;
-  --radius-4xl: 24px;
+  --radius-sm: var(--nami-r-xs);
+  --radius-md: var(--nami-r-sm);
+  --radius-lg: var(--nami-r);
+  --radius-xl: var(--nami-r-lg);
+  --radius-2xl: var(--nami-r-xl);
+  --radius-3xl: 40px;
+  --radius-4xl: var(--nami-r-pill);
 
   /* ── Liquid Glass × Nami — Variantes de profondeur ── */
   --backdrop-blur-glass-soft: 20px;
@@ -177,31 +177,31 @@ html, body {
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ── Surfaces ── */
-  --background: #FAFAF8;
-  --foreground: #1A1A2E;
+  --background: #F0EFFE;
+  --foreground: #1A1830;
   --card: #FFFFFF;
-  --card-foreground: #1A1A2E;
+  --card-foreground: #1A1830;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1A2E;
+  --popover-foreground: #1A1830;
 
-  /* ── Primary — violet Nami ── */
-  --primary: #5B4EC4;
+  /* ── Primary — violet Nami v3 ── */
+  --primary: #5A47C9;
   --primary-foreground: #FFFFFF;
 
   /* ── Secondaries ── */
-  --secondary: #EEEDFB;
-  --secondary-foreground: #5B4EC4;
-  --muted: #F5F3EF;
-  --muted-foreground: #6B7280;
-  --accent: #EEEDFB;
-  --accent-foreground: #5B4EC4;
-  --destructive: #DC2626;
+  --secondary: #EAE7FB;
+  --secondary-foreground: #5A47C9;
+  --muted: #E6E3FA;
+  --muted-foreground: #7A77A0;
+  --accent: #EAE7FB;
+  --accent-foreground: #5A47C9;
+  --destructive: #E04040;
 
   /* ── Borders & inputs ── */
-  --border: #E8ECF4;
-  --input: #E8ECF4;
-  --ring: #5B4EC4;
-  --radius: 12px;
+  --border: rgba(91,78,196,0.09);
+  --input: rgba(91,78,196,0.09);
+  --ring: #5A47C9;
+  --radius: 18px;
 
   /* ── Charts ── */
   --chart-1: #5B4EC4;
@@ -212,13 +212,13 @@ html, body {
 
   /* ── Sidebar ── */
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #64748B;
-  --sidebar-primary: #5B4EC4;
+  --sidebar-foreground: #7A77A0;
+  --sidebar-primary: #5A47C9;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EEEDFB;
-  --sidebar-accent-foreground: #5B4EC4;
-  --sidebar-border: #E8ECF4;
-  --sidebar-ring: #5B4EC4;
+  --sidebar-accent: #EAE7FB;
+  --sidebar-accent-foreground: #5A47C9;
+  --sidebar-border: rgba(91,78,196,0.09);
+  --sidebar-ring: #5A47C9;
 
   /* ── Severity — désaturé, jamais criard ── */
   --severity-critical: #DC2626;
@@ -257,47 +257,51 @@ html, body {
      ════════════════════════════════════════════════════════════════════════ */
 
   /* ── Primaires ── */
-  --nami-primary:         #5B4EC4;
-  --nami-primary-hover:   #4c44b0;
-  --nami-primary-light:   rgba(91,78,196,0.08);
-  --nami-primary-medium:  rgba(91,78,196,0.15);
-  --nami-primary-border:  rgba(91,78,196,0.2);
-  --nami-primary-glow:    0 0 0 3px rgba(91,78,196,0.12);
-  --nami-teal:            #2BA89C;
-  --nami-teal-light:      rgba(43,168,156,0.08);
-  --nami-teal-border:     rgba(43,168,156,0.2);
-  --nami-gradient:        linear-gradient(135deg, #5B4EC4, #2BA89C);
-  --nami-gradient-v:      linear-gradient(180deg, #5B4EC4, #2BA89C);
+  --nami-primary:         #5A47C9;
+  --nami-primary-hover:   #4838B8;
+  --nami-primary-light:   rgba(90,71,201,0.08);
+  --nami-primary-medium:  rgba(90,71,201,0.15);
+  --nami-primary-border:  rgba(90,71,201,0.2);
+  --nami-primary-glow:    0 0 0 3px rgba(90,71,201,0.12);
+  --nami-teal:            #3DC5B7;
+  --nami-teal-deep:       #1F9F92;
+  --nami-teal-light:      rgba(61,197,183,0.08);
+  --nami-teal-border:     rgba(61,197,183,0.2);
+  --nami-gradient:        linear-gradient(135deg, #5A47C9, #3DC5B7);
+  --nami-gradient-v:      linear-gradient(180deg, #5A47C9, #3DC5B7);
+  --nami-gradient-warm:   linear-gradient(135deg, #9080E8 0%, #C47AE8 100%);
 
   /* ── Fonds ── */
-  --nami-bg:              #FAFAF8;
-  --nami-bg-alt:          #F5F3EF;
+  --nami-bg:              #F0EFFE;
+  --nami-bg-alt:          #E6E3FA;
   --nami-surface:         #FFFFFF;
-  --nami-surface-raised:  #FCFBF9;
+  --nami-surface-2:       #F8F7FE;
+  --nami-surface-raised:  #F8F7FE;
 
   /* ── Texte (3 niveaux + faint) ── */
-  --nami-ink:             #1A1A2E;
-  --nami-ink-2:           #374151;
-  --nami-ink-3:           #6B7280;
-  --nami-ink-faint:       #9CA3AF;
+  --nami-ink:             #1A1830;
+  --nami-ink-2:           #4A4668;
+  --nami-ink-3:           #7A77A0;
+  --nami-ink-faint:       #A8A5C5;
 
   /* ── Bordures (2 niveaux) ── */
-  --nami-line:            rgba(26,26,46,0.06);
-  --nami-line-2:          rgba(26,26,46,0.12);
+  --nami-line:            rgba(91,78,196,0.09);
+  --nami-line-2:          rgba(91,78,196,0.16);
 
   /* ── Radius ── */
   --nami-r-pill:  100px;
-  --nami-r-xl:    20px;
-  --nami-r-lg:    16px;
-  --nami-r:       12px;
-  --nami-r-sm:    8px;
-  --nami-r-xs:    6px;
+  --nami-r-xl:    34px;
+  --nami-r-lg:    26px;
+  --nami-r:       18px;
+  --nami-r-sm:    14px;
+  --nami-r-xs:    10px;
 
-  /* ── Ombres ── */
-  --nami-sh-1:        0 1px 3px rgba(26,26,46,0.04), 0 4px 12px rgba(26,26,46,0.03);
-  --nami-sh-2:        0 4px 16px rgba(26,26,46,0.08), 0 12px 32px rgba(91,78,196,0.06);
-  --nami-sh-dropdown: 0 4px 16px rgba(26,26,46,0.10), 0 1px 4px rgba(26,26,46,0.06);
-  --nami-sh-accent:   0 2px 10px rgba(91,78,196,0.25);
+  /* ── Ombres — violet-tintées ── */
+  --nami-sh-1:        0 2px 8px rgba(91,78,196,0.07), 0 1px 2px rgba(26,24,48,0.03);
+  --nami-sh-2:        0 4px 20px rgba(91,78,196,0.10), 0 2px 6px rgba(26,24,48,0.04);
+  --nami-sh-3:        0 12px 40px rgba(91,78,196,0.14), 0 4px 12px rgba(26,24,48,0.06);
+  --nami-sh-dropdown: 0 4px 20px rgba(91,78,196,0.12), 0 1px 4px rgba(26,24,48,0.04);
+  --nami-sh-accent:   0 6px 24px rgba(90,71,201,0.30);
 
   /* ── Motion ── */
   --nami-ease:         cubic-bezier(0.16, 1, 0.3, 1);
@@ -408,10 +412,10 @@ html, body {
   --cockpit-info:                 var(--nami-info);
   --cockpit-info-bg:              var(--nami-info-bg);
   --cockpit-info-border:          var(--nami-info-border);
-  --cockpit-shadow-xs:            0 1px 2px rgba(26,26,46,0.03);
+  --cockpit-shadow-xs:            0 1px 2px rgba(91,78,196,0.04);
   --cockpit-shadow-sm:            var(--nami-sh-1);
-  --cockpit-shadow-md:            0 2px 8px rgba(26,26,46,0.06), 0 1px 3px rgba(26,26,46,0.04);
-  --cockpit-shadow-lg:            0 8px 24px rgba(26,26,46,0.08), 0 2px 6px rgba(26,26,46,0.04);
+  --cockpit-shadow-md:            var(--nami-sh-2);
+  --cockpit-shadow-lg:            var(--nami-sh-3);
   --cockpit-shadow-dropdown:      var(--nami-sh-dropdown);
   --cockpit-shadow-accent:        var(--nami-sh-accent);
   --cockpit-transition:           0.2s var(--nami-ease);
@@ -436,44 +440,52 @@ html, body {
   --cockpit-content-padding:      var(--nami-content-padding);
 
   /* colors_and_type.css aliases */
-  --violet:       var(--nami-primary);
-  --violet-h:     var(--nami-primary-hover);
-  --violet-tint:  var(--nami-primary-light);
-  --violet-soft:  rgba(91,78,196,0.04);
-  --teal:         var(--nami-teal);
-  --teal-deep:    #1F9F92;
-  --teal-tint:    var(--nami-teal-light);
-  --paper:        var(--nami-bg);
-  --paper-2:      var(--nami-bg-alt);
-  --surface:      var(--nami-surface);
-  --dark:         var(--nami-ink);
-  --ink:          var(--nami-ink);
-  --ink-2:        var(--nami-ink-2);
-  --ink-3:        var(--nami-ink-3);
-  --ink-faint:    var(--nami-ink-faint);
-  --line:         var(--nami-line);
-  --line-2:       var(--nami-line-2);
-  --fil:          linear-gradient(120deg, var(--nami-primary), var(--nami-teal));
-  --fil-v:        linear-gradient(180deg, var(--nami-primary), var(--nami-teal));
-  --ease:         var(--nami-ease);
-  --ease-spring:  var(--nami-ease-spring);
-  --ease-breathe: var(--nami-ease-breathe);
-  --dur-page:     var(--nami-dur-page);
-  --dur-card:     var(--nami-dur-card);
-  --dur-tab:      var(--nami-dur-tab);
-  --dur-panel:    var(--nami-dur-panel);
-  --font-sans:    var(--font-jakarta), sans-serif;
-  --font-ui:      var(--font-inter), sans-serif;
-  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  --violet:         var(--nami-primary);
+  --violet-h:       var(--nami-primary-hover);
+  --violet-light:   #9080E8;
+  --violet-tint:    #EAE7FB;
+  --violet-soft:    #F0EFFE;
+  --teal:           var(--nami-teal);
+  --teal-deep:      var(--nami-teal-deep);
+  --teal-tint:      #E6F7F4;
+  --paper:          var(--nami-bg);
+  --paper-2:        var(--nami-bg-alt);
+  --surface:        var(--nami-surface);
+  --surface-2:      var(--nami-surface-2);
+  --dark:           var(--nami-ink);
+  --ink:            var(--nami-ink);
+  --ink-2:          var(--nami-ink-2);
+  --ink-3:          var(--nami-ink-3);
+  --ink-faint:      var(--nami-ink-faint);
+  --line:           var(--nami-line);
+  --line-2:         var(--nami-line-2);
+  --hair:           rgba(91,78,196,0.05);
+  --gradient-primary: linear-gradient(135deg, #5A47C9 0%, #9080E8 100%);
+  --gradient-hero:    linear-gradient(135deg, #5A47C9 0%, #3DC5B7 100%);
+  --gradient-warm:    var(--nami-gradient-warm);
+  --fil:            linear-gradient(120deg, var(--nami-primary), var(--nami-teal));
+  --fil-v:          linear-gradient(180deg, var(--nami-primary), var(--nami-teal));
+  --ease:           var(--nami-ease);
+  --ease-spring:    var(--nami-ease-spring);
+  --ease-breathe:   var(--nami-ease-breathe);
+  --dur-page:       var(--nami-dur-page);
+  --dur-card:       var(--nami-dur-card);
+  --dur-tab:        var(--nami-dur-tab);
+  --dur-panel:      var(--nami-dur-panel);
+  --font-sans:      var(--font-jakarta), system-ui, sans-serif;
+  --font-ui:        var(--font-jakarta), system-ui, sans-serif;
+  --font-display:   var(--font-jakarta), system-ui, sans-serif;
+  --font-mono:      "JetBrains Mono", ui-monospace, monospace;
   --r-xs:  var(--nami-r-xs);
-  --r-sm:  9px;
+  --r-sm:  var(--nami-r-sm);
   --r:     var(--nami-r);
   --r-lg:  var(--nami-r-lg);
   --r-xl:  var(--nami-r-xl);
   --r-pill:var(--nami-r-pill);
   --sh-1:  var(--nami-sh-1);
-  --sh-2:  0 1px 2px rgba(60,50,40,.05), 0 6px 18px rgba(60,50,40,.06);
-  --sh-3:  var(--nami-sh-2);
+  --sh-2:  var(--nami-sh-2);
+  --sh-3:  var(--nami-sh-3);
+  --sh-accent: var(--nami-sh-accent);
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-8:48px;
   --t-display:clamp(28px,4vw,46px);
   --t-h1:26px; --t-h2:20px; --t-h3:16px;
@@ -487,8 +499,8 @@ html, body {
   --accent:       var(--nami-primary);
   --accent-2:     var(--nami-teal);
   --focus-ring:   var(--nami-primary);
-  --weft:         repeating-linear-gradient(90deg, rgba(120,105,80,.022) 0 1px, transparent 1px 7px),
-                  repeating-linear-gradient(0deg, rgba(120,105,80,.016) 0 1px, transparent 1px 7px);
+  --weft:         repeating-linear-gradient(90deg, rgba(91,78,196,.018) 0 1px, transparent 1px 8px),
+                  repeating-linear-gradient(0deg, rgba(91,78,196,.013) 0 1px, transparent 1px 8px);
 }
 
 .dark {
@@ -672,14 +684,14 @@ html, body {
     top: 10px;
     transform: translateY(0) scale(0.78);
     font-size: 11px;
-    color: #5B4EC4;
+    color: var(--nami-primary);
     font-weight: 600;
   }
   .nami-float-label input:focus,
   .nami-float-label textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(91,78,196,0.15), 0 0 0 4px rgba(91,78,196,0.06);
-    border-color: #5B4EC4;
+    box-shadow: 0 0 0 2px rgba(90,71,201,0.15), 0 0 0 4px rgba(90,71,201,0.06);
+    border-color: var(--nami-primary);
   }
 
   /* ── Animated tab underline ── */
