@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter, Playfair_Display } from "next/font/google";
+import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import {
@@ -9,10 +9,11 @@ import {
 } from "@/lib/seo";
 import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
-const jakarta = Plus_Jakarta_Sans({
+const jakarta = DM_Sans({
   subsets: ["latin"],
   variable: "--font-jakarta",
   display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const inter = Inter({
@@ -53,9 +54,6 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://namipourlavie.com"),
   creator: "Nami",
   publisher: "Nami",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "Nami — Coordination des parcours de soins complexes",
     description:

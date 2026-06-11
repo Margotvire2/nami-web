@@ -172,6 +172,26 @@ export default function DashboardPage() {
         position: "relative",
       }}
     >
+      {/* ── Ambient orbs — position: fixed, stay still while content scrolls ── */}
+      <div style={{
+        position: "fixed", top: "-120px", right: "-80px",
+        width: 520, height: 520, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(91,78,196,0.11) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+      <div style={{
+        position: "fixed", bottom: "5%", left: "8%",
+        width: 380, height: 380, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(61,197,183,0.07) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+      <div style={{
+        position: "fixed", top: "40%", right: "25%",
+        width: 240, height: 240, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(139,124,224,0.06) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+
       {/* ── Main column ── */}
       <main
         style={{
@@ -179,6 +199,8 @@ export default function DashboardPage() {
           overflowY: "auto",
           overflowX: "hidden",
           padding: "26px 30px 60px",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {/* ── Topbar ── */}

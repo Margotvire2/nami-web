@@ -41,13 +41,24 @@
   transform: translateY(-2px);
 }
 
-/* ── Consultation card ────────────────────────────────────── */
+/* ── Consultation card — elevated, gradient top accent ─────── */
 .event.consult {
   display: block;
   padding: 18px 20px;
   overflow: hidden;
+  position: relative;
+  box-shadow: var(--sh-2);
+  border-color: var(--line);
 }
-.event.consult .ev-title { font-size: 18px; }
+.event.consult::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+}
+.event.consult .ev-title { font-size: 18px; font-weight: 800; }
 
 /* ── Consultation header row (time chip + badge) ─────────── */
 .chead {
@@ -95,18 +106,19 @@
   border-left: 1px solid var(--line);
 }
 
-/* ── Task card ────────────────────────────────────────────── */
+/* ── Task card — flat, receded ────────────────────────────── */
 .event.task {
   display: flex;
   gap: 13px;
   align-items: flex-start;
-  background: var(--surface);
-  padding: 15px 18px;
+  background: var(--paper);
+  padding: 14px 16px;
   border-color: var(--line);
+  box-shadow: none;
 }
 .event.task:hover {
   background: var(--surface);
-  box-shadow: var(--sh-3);
+  box-shadow: var(--sh-2);
   border-color: var(--line-2);
   transform: translateY(-2px);
 }

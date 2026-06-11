@@ -24,13 +24,14 @@
   --hair:rgba(91,78,196,0.05);
 
   /* ---------- PRIMAIRE — violet Nami + gradient ---------- */
-  --violet:#5B4EC4;
-  --violet-h:#4A3FB5;
-  --violet-light:#8B7CE0;   /* pour gradients */
+  --violet:#5A47C9;
+  --violet-h:#4838B8;
+  --violet-light:#9080E8;   /* pour gradients */
   --violet-tint:#EAE7FB;
   --violet-soft:#F0EFFE;
-  --gradient-primary:linear-gradient(135deg,#5B4EC4 0%,#8B7CE0 100%);
-  --gradient-hero:linear-gradient(135deg,#5B4EC4 0%,#3DC5B7 100%);
+  --gradient-primary:linear-gradient(135deg,#5A47C9 0%,#9080E8 100%);
+  --gradient-hero:linear-gradient(135deg,#5A47C9 0%,#3DC5B7 100%);
+  --gradient-warm:linear-gradient(135deg,#9080E8 0%,#C47AE8 100%);
 
   /* ---------- ACCENT — teal (inchangé) ---------- */
   --teal:#3DC5B7;
@@ -49,8 +50,8 @@
   --fil-v:linear-gradient(180deg,var(--violet),var(--teal));
 
   /* ---------- TYPOGRAPHIE ---------- */
-  --font-sans:"Plus Jakarta Sans",system-ui,sans-serif;
-  --font-ui:"Inter",system-ui,sans-serif;
+  --font-sans:"DM Sans",system-ui,sans-serif;
+  --font-ui:"DM Sans",system-ui,sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,monospace;
   --font-display:"Plus Jakarta Sans",system-ui,sans-serif;
 
@@ -65,7 +66,7 @@
   --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:24px;--s-6:32px;--s-8:48px;
 
   /* ---------- RAYONS — plus généreux ---------- */
-  --r-xs:8px; --r-sm:12px; --r:16px; --r-lg:22px; --r-xl:28px; --r-pill:100px;
+  --r-xs:10px; --r-sm:14px; --r:18px; --r-lg:26px; --r-xl:34px; --r-pill:100px;
 
   /* ---------- OMBRES — violet-tintées, profondes ---------- */
   --sh-1:0 2px 8px rgba(91,78,196,0.07),0 1px 2px rgba(26,24,48,0.03);
