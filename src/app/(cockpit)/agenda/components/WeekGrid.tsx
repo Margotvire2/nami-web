@@ -214,32 +214,27 @@ function renderBlock(
   const isPast = new Date(apt.endAt) < new Date()
   const isCancelled = isCancelledLike(apt.status)
 
-  // Color from location if available, else fallback by locationType
   const loc = apt.location
   const locColor = loc?.color ?? null
-  let colorClass: string
-  if (isCancelled) {
-    colorClass = CANCELLED_COLOR
-  } else if (locColor) {
-    colorClass = "" // handled via inline style
-  } else {
-    const fallback: Record<string, string> = {
-      IN_PERSON: "bg-indigo-100 border-indigo-400 text-indigo-800",
-      VIDEO: "bg-teal-100 border-teal-400 text-teal-800",
-      PHONE: "bg-amber-100 border-amber-400 text-amber-800",
-    }
-    colorClass = fallback[apt.locationType] ?? "bg-gray-100 border-gray-300 text-gray-700"
+
+  // Derive accent color: location color > locationType fallback
+  const typeColorMap: Record<string, string> = {
+    IN_PERSON: "#5A47C9",
+    VIDEO: "#1F9F92",
+    PHONE: "#D4780A",
   }
-  if (isPast && !isCancelled) colorClass += " opacity-50"
+  const accentColor = locColor ?? typeColorMap[apt.locationType] ?? "#5A47C9"
 
   return (
     <AppointmentBlock
       key={apt.id}
       apt={apt}
       style={{ top, height }}
-      colorClass={colorClass}
-      locationColor={locColor}
+      colorClass=""
+      locationColor={accentColor}
       locationName={loc?.name ?? null}
+      cancelled={isCancelled}
+      past={isPast}
       onClick={() => onSelect(apt)}
     />
   )

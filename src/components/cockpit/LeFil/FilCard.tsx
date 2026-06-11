@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import type { DashboardConsultation } from "@/hooks/useDashboard";
 import type { TaskWithContext, Referral, ConnectionRequest } from "@/lib/api";
 
@@ -126,19 +127,44 @@ export function FilCardTask({
   onComplete: () => void;
   onNavigate: () => void;
 }) {
+  const [done, setDone] = useState(false);
   const today = new Date();
   const isOverdue = task.dueDate && new Date(task.dueDate) < today;
   const { cls, label } = TTYPE_FOR_PRIORITY[task.priority] ?? { cls: "coord", label: "À faire" };
   const patient = task.careCase?.patient;
 
+  function handleComplete() {
+    setDone(true);
+    onComplete();
+  }
+
   return (
-    <article data-fil-item="task" className="event task">
+    <article
+      data-fil-item="task"
+      className="event task"
+      style={{ opacity: done ? 0.45 : 1, transition: "opacity .3s var(--ease)" }}
+    >
       <button
         className="check"
         aria-label="Valider la tâche"
-        onClick={onComplete}
-        style={{ cursor: "pointer", flexShrink: 0 }}
-      />
+        onClick={handleComplete}
+        disabled={done}
+        style={{
+          cursor: done ? "default" : "pointer",
+          flexShrink: 0,
+          background: done ? "var(--violet)" : "var(--surface)",
+          borderColor: done ? "var(--violet)" : undefined,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {done && (
+          <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 6l3 3 5-5" />
+          </svg>
+        )}
+      </button>
       <div className="tbody">
         <span className={`ttype ${cls}`}>{label}</span>
         <div className="ev-top">

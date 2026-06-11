@@ -504,6 +504,7 @@ export default function DashboardPage() {
         onOpenDossier={() =>
           railConsult?.careCaseId && router.push(`/patients/${railConsult.careCaseId}`)
         }
+        onClose={() => setSelectedId(null)}
       />
     </div>
   );

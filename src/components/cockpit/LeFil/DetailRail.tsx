@@ -5,10 +5,12 @@ export function DetailRail({
   consultation,
   onStart,
   onOpenDossier,
+  onClose,
 }: {
   consultation: DashboardConsultation | null;
   onStart: () => void;
   onOpenDossier: () => void;
+  onClose: () => void;
 }) {
   const open = !!consultation;
 
@@ -36,22 +38,50 @@ export function DetailRail({
           transition: `opacity ${open ? "0.25s 0.15s" : "0.1s"} var(--ease)`,
         }}
       >
-        {/* Eyebrow */}
+        {/* Eyebrow + close button */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 8,
+            marginBottom: 14,
+          }}
+        >
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--teal)", flexShrink: 0 }} />
+          <span style={{
             fontSize: "10.5px",
             fontWeight: 700,
             letterSpacing: ".09em",
             textTransform: "uppercase",
             color: "var(--ink-faint)",
-            marginBottom: 14,
-          }}
-        >
-          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--teal)", flexShrink: 0 }} />
-          Détail · suit votre fil
+            flex: 1,
+          }}>
+            Détail · suit votre fil
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="Fermer le panneau"
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 8,
+              border: "1px solid var(--line)",
+              background: "var(--surface)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--ink-3)",
+              flexShrink: 0,
+              transition: ".15s var(--ease)",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--paper-2)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--surface)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-3)"; }}
+          >
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {consultation && (
