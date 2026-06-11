@@ -1,11 +1,20 @@
 "use client";
 import { useLayoutEffect, useRef, useCallback, useEffect } from "react";
 
-export function FilThread({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const pathRef = useRef<SVGPathElement>(null);
-  const orbGroupRef = useRef<SVGGElement>(null);
+const CX = 30;          // thread center-x in the SVG
+const RING_R = 64;      // large ring radius — extends past the 60px left gutter into cards
+const DEG_PER_PX = 0.32; // rotation sensitivity
 
+export function FilThread({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
+  const svgRef      = useRef<SVGSVGElement>(null);
+  const pathRef     = useRef<SVGPathElement>(null);
+  const ringRef     = useRef<SVGCircleElement>(null);
+  const rotRef      = useRef(0);
+  const lastScrollRef = useRef(0);
+  const rafRef      = useRef<number>(0);
+  const dirtyRef    = useRef(false);
+
+  // ── Build thread path + event knots ────────────────────────────────────
   const build = useCallback(() => {
     const container = containerRef.current;
     const svg = svgRef.current;
@@ -25,17 +34,16 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
 
     if (!pts.length) return;
 
-    const cx = 30;
     const sway = 12;
-    let d = `M ${cx} 0`;
+    let d = `M ${CX} 0`;
     let prevY = 0;
     pts.forEach((p, i) => {
       const dir = i % 2 === 0 ? 1 : -1;
       const midY = (prevY + p.y) / 2;
-      d += ` C ${cx + dir * sway} ${midY}, ${cx - dir * sway} ${midY}, ${cx} ${p.y}`;
+      d += ` C ${CX + dir * sway} ${midY}, ${CX - dir * sway} ${midY}, ${CX} ${p.y}`;
       prevY = p.y;
     });
-    d += ` C ${cx + sway} ${prevY + 40}, ${cx - sway} ${prevY + 60}, ${cx} ${totalH}`;
+    d += ` C ${CX + sway} ${prevY + 40}, ${CX - sway} ${prevY + 60}, ${CX} ${totalH}`;
     path.setAttribute("d", d);
 
     const ns = "http://www.w3.org/2000/svg";
@@ -44,7 +52,7 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
 
       const conn = document.createElementNS(ns, "path");
       conn.setAttribute("class", "dyn-conn");
-      conn.setAttribute("d", `M ${cx + 7} ${p.y} q 12 0 22 0`);
+      conn.setAttribute("d", `M ${CX + 7} ${p.y} q 12 0 22 0`);
       conn.setAttribute("fill", "none");
       conn.setAttribute("stroke", "var(--line-2)");
       conn.setAttribute("stroke-width", "1.5");
@@ -52,7 +60,7 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
 
       const knot = document.createElementNS(ns, "circle");
       knot.setAttribute("class", "dyn-knot");
-      knot.setAttribute("cx", String(cx));
+      knot.setAttribute("cx", String(CX));
       knot.setAttribute("cy", String(p.y));
       knot.setAttribute("r", isTask ? "4" : "6");
       knot.setAttribute("fill", isTask ? "var(--paper)" : "url(#nami-filgrad)");
@@ -77,36 +85,42 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
     return () => obs.disconnect();
   }, [build]);
 
-  // Scroll-linked orb: moves along the thread path as user scrolls
+  // ── Scroll → directional ring rotation ──────────────────────────────────
   useEffect(() => {
     const scrollEl = containerRef.current?.closest("main") as HTMLElement | null;
     if (!scrollEl) return;
 
-    const update = () => {
-      const path = pathRef.current;
-      const orbGroup = orbGroupRef.current;
-      if (!path || !orbGroup) return;
-      const totalLen = path.getTotalLength();
-      if (totalLen === 0) return;
+    lastScrollRef.current = scrollEl.scrollTop;
 
-      const { scrollTop, scrollHeight, clientHeight } = scrollEl;
-      const progress = scrollHeight > clientHeight ? scrollTop / (scrollHeight - clientHeight) : 0;
-      const pt = path.getPointAtLength(Math.min(progress, 1) * totalLen);
-      orbGroup.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
+    const flush = () => {
+      dirtyRef.current = false;
+      const ring = ringRef.current;
+      if (!ring) return;
+      // SVG rotate transform: rotate(angle, cx, cy) keeps centre stable
+      ring.setAttribute("transform", `rotate(${rotRef.current} ${CX} 0)`);
     };
 
-    scrollEl.addEventListener("scroll", update, { passive: true });
-    // Delay initial call to ensure path is built
-    const t = setTimeout(update, 60);
+    const onScroll = () => {
+      const current = scrollEl.scrollTop;
+      const delta = current - lastScrollRef.current;
+      lastScrollRef.current = current;
+      rotRef.current += delta * DEG_PER_PX;
+      if (!dirtyRef.current) {
+        dirtyRef.current = true;
+        rafRef.current = requestAnimationFrame(flush);
+      }
+    };
+
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      scrollEl.removeEventListener("scroll", update);
-      clearTimeout(t);
+      scrollEl.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafRef.current);
     };
   }, [containerRef]);
 
   return (
     <>
-      {/* Defs: gradient + glow filter */}
+      {/* ── Shared defs (gradient + glow) ── */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
           <linearGradient id="nami-filgrad" x1="0" y1="0" x2="0" y2="1">
@@ -123,6 +137,7 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
         </defs>
       </svg>
 
+      {/* ── Thread path SVG ── */}
       <svg
         ref={svgRef}
         style={{
@@ -136,7 +151,6 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
         }}
         aria-hidden="true"
       >
-        {/* Thread path */}
         <path
           ref={pathRef}
           fill="none"
@@ -145,51 +159,100 @@ export function FilThread({ containerRef }: { containerRef: React.RefObject<HTML
           strokeLinecap="round"
           opacity="0.5"
         />
+      </svg>
 
-        {/* Scroll-position orb */}
-        <g
-          ref={orbGroupRef}
-          style={{ transition: "transform 0.55s cubic-bezier(0.16,1,0.3,1)" }}
+      {/*
+       * ── RING — sticky anchor, zIndex 2 (renders BEHIND cards at zIndex 3) ──
+       * position: sticky keeps it glued to the viewport; the large ring (r=64)
+       * extends past the 60px left gutter into the card area but is hidden
+       * behind cards thanks to the lower z-index.
+       */}
+      <div
+        style={{
+          position: "sticky",
+          top: "38vh",
+          width: 62,
+          height: 0,
+          overflow: "visible",
+          pointerEvents: "none",
+          zIndex: 2,
+        }}
+      >
+        <svg
+          style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }}
+          width="1"
+          height="1"
+          aria-hidden="true"
         >
-          {/* Outer breathing halo */}
+          {/* Breathing outer halo */}
           <circle
-            r="20"
-            fill="rgba(91,78,196,0.05)"
+            cx={CX}
+            cy={0}
+            r={28}
+            fill="rgba(90,71,201,0.05)"
             style={{
-              animation: "orb-breathe 3s ease-in-out infinite",
-              transformOrigin: "0 0",
-              transformBox: "fill-box",
+              animation: "fil-breathe 3.5s ease-in-out infinite",
+              transformOrigin: `${CX}px 0px`,
             }}
           />
-          {/* Spinning dashed ring */}
+          {/* Large dashed ring — scroll-driven rotation */}
           <circle
-            r="13"
+            ref={ringRef}
+            cx={CX}
+            cy={0}
+            r={RING_R}
             fill="none"
             stroke="url(#nami-filgrad)"
             strokeWidth="1.5"
-            strokeDasharray="14 10"
-            opacity="0.7"
-            style={{
-              animation: "orb-spin 6s linear infinite",
-              transformOrigin: "0 0",
-              transformBox: "fill-box",
-            }}
+            strokeDasharray="24 14"
+            opacity="0.28"
           />
-          {/* Core glow ball */}
-          <circle r="7" fill="url(#nami-filgrad)" filter="url(#nami-orb-glow)" />
+          {/* Secondary inner ring (half size, opposite drift effect) */}
+          <circle
+            cx={CX}
+            cy={0}
+            r={36}
+            fill="none"
+            stroke="rgba(90,71,201,0.18)"
+            strokeWidth="1"
+            strokeDasharray="6 18"
+            opacity="0.6"
+          />
+        </svg>
+      </div>
+
+      {/*
+       * ── CORE ORB — sticky anchor, zIndex 5 (renders ABOVE cards at zIndex 3) ──
+       * Same top as ring, so they visually overlap with core on top.
+       */}
+      <div
+        style={{
+          position: "sticky",
+          top: "38vh",
+          width: 62,
+          height: 0,
+          overflow: "visible",
+          pointerEvents: "none",
+          zIndex: 5,
+        }}
+      >
+        <svg
+          style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }}
+          width="1"
+          height="1"
+          aria-hidden="true"
+        >
+          {/* Glow ball */}
+          <circle cx={CX} cy={0} r={9} fill="url(#nami-filgrad)" filter="url(#nami-orb-glow)" />
           {/* Bright inner dot */}
-          <circle r="2.5" fill="rgba(255,255,255,0.85)" />
-        </g>
-      </svg>
+          <circle cx={CX} cy={0} r={3.5} fill="rgba(255,255,255,0.92)" />
+        </svg>
+      </div>
 
       <style>{`
-        @keyframes orb-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @keyframes orb-breathe {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50%       { opacity: 0;   transform: scale(1.6); }
+        @keyframes fil-breathe {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50%       { opacity: 0;   transform: scale(2); }
         }
       `}</style>
     </>
