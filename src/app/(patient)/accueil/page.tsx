@@ -12,6 +12,7 @@ import { RecentNotificationsCard } from "./RecentNotificationsCard";
 import { RecentMessagesCard } from "./RecentMessagesCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { NetworkAwarenessBadge } from "@/components/patient/NetworkAwarenessBadge";
+import { AppointmentHeroCard } from "@/components/patient/AppointmentHeroCard";
 
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -45,12 +46,17 @@ function SectionTitle({ icon: Icon, title }: { icon: React.ElementType; title: s
   );
 }
 
-const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  CONFIRMED: { label: "Confirmé", color: "#059669", bg: "#ECFDF5" },
-  PENDING:   { label: "En attente", color: "#D97706", bg: "#FFFBEB" },
-  CANCELLED: { label: "Annulé", color: "#DC2626", bg: "#FEF2F2" },
-  COMPLETED: { label: "Terminé", color: "#6B7280", bg: "#F9FAFB" },
-};
+function formatWhenLabel(iso: string): string {
+  const d = new Date(iso);
+  const datePart = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long", day: "numeric", month: "long",
+  }).format(d);
+  const timePart = new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit", minute: "2-digit",
+  }).format(d);
+  const cap = (s: string) => s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);
+  return `${cap(datePart)} à ${timePart.replace(":", "h")}`;
+}
 
 export default function AccueilPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -99,7 +105,7 @@ export default function AccueilPage() {
   return (
     <main
       aria-label="Tableau de bord de votre espace patient"
-      style={{ padding: "36px 28px 96px", maxWidth: 680, margin: "0 auto", background: "var(--nami-bg)", minHeight: "100vh" }}
+      style={{ padding: "36px 28px 96px", maxWidth: 900, margin: "0 auto" }}
     >
       {/* Header */}
       <ScrollReveal variant="fade-up" delay={0} duration={0.6}>
@@ -119,43 +125,14 @@ export default function AccueilPage() {
       {/* Prochain RDV */}
       <ScrollReveal variant="fade-up" delay={0.08} duration={0.6}>
       <div style={{ marginBottom: 20 }}>
-        <SectionTitle icon={Calendar} title="Prochain rendez-vous" />
         {nextAppt ? (
-          <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--nami-dark)" }}>
-                  {format(parseISO(nextAppt.startAt), "EEEE d MMMM 'à' HH:mm", { locale: fr })}
-                </div>
-                <div style={{ fontSize: 14, color: "var(--nami-text-muted)", marginTop: 4 }}>
-                  {nextAppt.provider.person.firstName} {nextAppt.provider.person.lastName}
-                  {nextAppt.consultationType && ` · ${nextAppt.consultationType.name}`}
-                </div>
-                {nextAppt.location && (
-                  <div style={{ fontSize: 13, color: "var(--nami-text-muted)", marginTop: 2 }}>
-                    📍 {nextAppt.location.name}{nextAppt.location.city ? `, ${nextAppt.location.city}` : ""}
-                  </div>
-                )}
-              </div>
-              {STATUS_LABEL[nextAppt.status] && (
-                <span style={{
-                  fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 8,
-                  background: STATUS_LABEL[nextAppt.status].bg,
-                  color: STATUS_LABEL[nextAppt.status].color,
-                }}>
-                  {STATUS_LABEL[nextAppt.status].label}
-                </span>
-              )}
-            </div>
-            <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
-              <Link href="/rendez-vous" style={{
-                padding: "9px 18px", borderRadius: 10, background: "var(--nami-primary)", color: "#fff",
-                fontSize: 13, fontWeight: 600, textDecoration: "none", boxShadow: "0 2px 8px rgba(91,78,196,0.25)",
-              }}>
-                Voir le détail
-              </Link>
-            </div>
-          </Card>
+          <AppointmentHeroCard
+            whenLabel={formatWhenLabel(nextAppt.startAt)}
+            providerName={`${nextAppt.provider.person.firstName} ${nextAppt.provider.person.lastName}`}
+            consultationType={nextAppt.consultationType?.name}
+            locationLabel={nextAppt.location ? `${nextAppt.location.name}${nextAppt.location.city ? `, ${nextAppt.location.city}` : ""}` : undefined}
+            detailHref={`/rendez-vous/${nextAppt.id}`}
+          />
         ) : (
           <Card style={{ textAlign: "center", padding: "24px 20px" }}>
             <Calendar size={28} color={"var(--nami-text-muted)"} style={{ margin: "0 auto 8px" }} />

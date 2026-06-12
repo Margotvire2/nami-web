@@ -33,7 +33,7 @@ export default function RendezVousDetailPage({ params }: PageProps) {
   return (
     <main
       aria-label="Détail du rendez-vous"
-      className="max-w-3xl mx-auto p-4 md:p-6 space-y-6"
+      className="max-w-4xl mx-auto p-4 md:p-6 space-y-6"
     >
       {/* Breadcrumb retour */}
       <nav aria-label="Fil d'Ariane">

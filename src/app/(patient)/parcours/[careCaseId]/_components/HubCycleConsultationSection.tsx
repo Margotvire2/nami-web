@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import type {
   PatientCareCaseHubAppointment,
   PatientCareCaseHubPastConsultation,
 } from "@/lib/api";
 import { useEntityHubControls } from "@/contexts/EntityHubContext";
+import { AppointmentHeroCard } from "@/components/patient/AppointmentHeroCard";
 
 interface HubCycleConsultationSectionProps {
   /**
@@ -66,158 +66,20 @@ function formatLocationLabel(locationType: string): string {
   return map[locationType] ?? "Modalité à confirmer";
 }
 
-/**
- * Card "Mon prochain RDV" — pattern aligné /rendez-vous RdvHeroCard.
- *
- * Empty state assumé par le parent : si `appointment` est null, le hero n'est
- * pas rendu et la section affiche directement les consultations passées.
- */
 function NextAppointmentHero({
   appointment,
 }: {
   appointment: PatientCareCaseHubAppointment;
 }) {
-  const providerName = `${appointment.provider.firstName} ${appointment.provider.lastName}`;
-  const whenLabel = formatNextAppointmentLabel(appointment.startAt);
-  const locationLabel = formatLocationLabel(appointment.locationType);
-
   return (
-    <section
-      aria-label="Mon prochain rendez-vous"
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: 20,
-        border: "1px solid rgba(26,26,46,0.06)",
-        background:
-          "linear-gradient(135deg, #EEEDFB 0%, #FFFFFF 50%, #E6F4F2 100%)",
-        padding: "24px 24px",
-      }}
-    >
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: -96,
-          right: -96,
-          width: 256,
-          height: 256,
-          borderRadius: "50%",
-          background: "rgba(91,78,196,0.15)",
-          filter: "blur(48px)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          bottom: -128,
-          left: -64,
-          width: 256,
-          height: 256,
-          borderRadius: "50%",
-          background: "rgba(43,168,156,0.10)",
-          filter: "blur(48px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#5B4EC4",
-            fontFamily: "var(--font-inter)",
-          }}
-        >
-          Mon prochain rendez-vous
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 22,
-              fontWeight: 700,
-              color: "#1A1A2E",
-              fontFamily: "var(--font-jakarta)",
-              lineHeight: 1.2,
-            }}
-          >
-            {whenLabel}
-          </p>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 15,
-              color: "#374151",
-              fontFamily: "var(--font-inter)",
-            }}
-          >
-            avec{" "}
-            <span style={{ fontWeight: 600, color: "#1A1A2E" }}>
-              {providerName}
-            </span>
-          </p>
-          {appointment.consultationTypeName && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13,
-                color: "#6B7280",
-                fontFamily: "var(--font-inter)",
-              }}
-            >
-              {appointment.consultationTypeName}
-            </p>
-          )}
-        </div>
-
-        <p
-          style={{
-            margin: 0,
-            fontSize: 13,
-            color: "#374151",
-            fontFamily: "var(--font-inter)",
-          }}
-        >
-          {locationLabel}
-        </p>
-
-        <div>
-          <Link
-            href={`/rendez-vous/${appointment.id}`}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "10px 18px",
-              borderRadius: 12,
-              background: "#5B4EC4",
-              color: "#FFFFFF",
-              fontSize: 14,
-              fontWeight: 600,
-              textDecoration: "none",
-              fontFamily: "var(--font-jakarta)",
-            }}
-          >
-            Voir le détail
-            <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </div>
-    </section>
+    <AppointmentHeroCard
+      label="Mon prochain rendez-vous"
+      whenLabel={formatNextAppointmentLabel(appointment.startAt)}
+      providerName={`${appointment.provider.firstName} ${appointment.provider.lastName}`}
+      consultationType={appointment.consultationTypeName ?? undefined}
+      locationLabel={formatLocationLabel(appointment.locationType)}
+      detailHref={`/rendez-vous/${appointment.id}`}
+    />
   );
 }
 

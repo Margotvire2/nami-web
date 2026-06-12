@@ -79,7 +79,7 @@ export default function NotificationsPage() {
   const unreadCount = data?.unreadCount ?? 0;
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8 pb-24 md:pb-12">
+    <main className="max-w-3xl mx-auto px-4 py-8 pb-24 md:pb-12">
       {/* Breadcrumb retour */}
       <Link
         href="/accueil"

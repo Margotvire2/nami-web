@@ -63,7 +63,7 @@ export default function DocumentsPage() {
       aria-label="Mes documents"
       style={{
         padding: "28px 24px 80px",
-        maxWidth: 720,
+        maxWidth: 900,
         margin: "0 auto",
         background: C.bg,
         minHeight: "100vh",

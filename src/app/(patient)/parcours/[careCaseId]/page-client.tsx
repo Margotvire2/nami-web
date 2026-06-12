@@ -14,7 +14,7 @@ import { HubMessagesSection } from "./_components/HubMessagesSection";
 // d'écran et de la confusion patient.
 
 const PAGE_LAYOUT = {
-  maxWidth: 720,
+  maxWidth: 900,
   margin: "0 auto",
   padding: "32px 0 96px",
 } as const;

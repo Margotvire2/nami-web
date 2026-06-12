@@ -102,6 +102,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
   const isCancelled = isCancelledLike(appt.status)
   const isPending = appt.status === "PENDING"
   const isVideo = appt.locationType === "VIDEO" || appt.locationType === "PHONE"
+  const accentColor = isVideo ? "#2BA89C" : bandColor
   const name = `${appt.patient.firstName} ${appt.patient.lastName}`
   const start = parseISO(appt.startAt)
   const duration = getApptDuration(appt)
@@ -123,48 +124,71 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
         position: "absolute", top, left: left || "4px",
         width: width || "calc(100% - 8px)",
         height: Math.max(height, 24),
-        background: isCancelled ? "#f7f7f7" : "#FFFFFF",
-        borderLeft: `4px solid ${isCancelled ? "#ccc" : bandColor}`,
-        borderTop: `1px solid ${isCancelled ? "#e0e0e0" : bandColor + "30"}`,
-        borderRight: `1px solid ${isCancelled ? "#e0e0e0" : bandColor + "20"}`,
-        borderBottom: `1px solid ${isCancelled ? "#e0e0e0" : bandColor + "20"}`,
-        borderRadius: "0 10px 10px 0",
+        background: isCancelled
+          ? "rgba(243,244,246,0.9)"
+          : isVideo
+            ? `linear-gradient(115deg, #2BA89C1A 0%, #F0FDFB 58%)`
+            : `linear-gradient(115deg, ${bandColor}22 0%, #FFFFFF 58%)`,
+        border: `1px solid ${isCancelled ? "#e0e0e0" : accentColor + "45"}`,
+        borderRadius: 12,
         padding: isRich ? "7px 10px 6px" : isMedium ? "4px 8px" : "2px 8px",
         cursor: "pointer", overflow: "hidden",
         transition: "box-shadow 150ms, transform 120ms",
         zIndex: hovered ? 10 : 2,
         boxShadow: isNext
-          ? `0 0 0 2px ${bandColor}50, 0 4px 20px ${bandColor}25`
-          : hovered ? `0 4px 18px ${bandColor}35` : "0 1px 3px rgba(0,0,0,0.05)",
-        transform: hovered ? "translateX(1px) scale(1.01)" : "none",
-        opacity: isCancelled ? 0.35 : appt.status === "COMPLETED" ? 0.6 : 1,
+          ? `0 0 0 2px ${accentColor}50, 0 4px 20px ${accentColor}25`
+          : hovered ? `0 4px 18px ${accentColor}35` : "0 1px 3px rgba(0,0,0,0.05)",
+        transform: hovered ? "translateY(-1px) scale(1.005)" : "none",
+        opacity: isCancelled ? 0.45 : appt.status === "COMPLETED" ? 0.6 : 1,
+        color: isCancelled ? "#9CA3AF" : accentColor,
       }}
     >
+      {/* Top gradient strip */}
+      {!isCancelled && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 3,
+            background: `linear-gradient(90deg, ${accentColor} 0%, ${accentColor}55 100%)`,
+            borderRadius: "11px 11px 0 0",
+          }}
+        />
+      )}
       {/* Pathology badge + location icon */}
-      {isRich && careCase && (
+      {isRich && (careCase || isVideo) && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-          <span style={{
-            fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 3,
-            background: `${bandColor}18`, color: bandColor, letterSpacing: "0.05em",
-            textTransform: "uppercase",
-          }}>
-            {getPathologyLabel(careCase.caseType)}
-          </span>
-          <span style={{ fontSize: 9, opacity: 0.6 }}>
-            {isVideo ? "📹" : "🏥"}
-          </span>
+          {careCase ? (
+            <span style={{
+              fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 3,
+              background: `${bandColor}18`, color: bandColor, letterSpacing: "0.05em",
+              textTransform: "uppercase",
+            }}>
+              {getPathologyLabel(careCase.caseType)}
+            </span>
+          ) : <span />}
+          {isVideo && (
+            <span style={{
+              fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 3,
+              background: "#2BA89C20", color: "#2BA89C", letterSpacing: "0.04em",
+            }}>📹 Visio</span>
+          )}
         </div>
       )}
 
       {/* Patient name */}
       <div style={{
         fontSize: isRich ? 12 : 11, fontWeight: 700,
-        color: isCancelled ? "#aaa" : "#1A1A2E",
+        color: isCancelled ? "#9CA3AF" : "#1A1A2E",
         lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         display: "flex", alignItems: "center", gap: 4,
+        paddingTop: !isCancelled && Math.max(height, 24) >= 28 ? 4 : 0,
       }}>
         {isPending && <span style={{ fontSize: 9 }}>⏳</span>}
-        {isNext && <span style={{ width: 5, height: 5, borderRadius: "50%", background: bandColor, display: "inline-block", flexShrink: 0 }} />}
+        {isNext && <span style={{ width: 5, height: 5, borderRadius: "50%", background: accentColor, display: "inline-block", flexShrink: 0 }} />}
+        {isVideo && !isRich && <span style={{
+          fontSize: 8, fontWeight: 700, padding: "1px 4px", borderRadius: 3,
+          background: "#2BA89C20", color: "#2BA89C", flexShrink: 0,
+        }}>Visio</span>}
         {name}
       </div>
 
@@ -189,7 +213,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
           {[0, 1, 2, 3].map((i) => (
             <div key={i} style={{
               width: 4, height: 4, borderRadius: "50%",
-              background: i === 0 ? bandColor : i === 1 ? `${bandColor}55` : "#E8ECF4",
+              background: i === 0 ? accentColor : i === 1 ? `${accentColor}55` : "#E8ECF4",
             }} />
           ))}
         </div>
@@ -214,7 +238,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
                 detail: { careCaseId: appt.careCaseId, patientName: name, time: format(start, "HH:mm") }
               }))}
               style={{ flex: 1, fontSize: 9, fontWeight: 700, padding: "4px 2px", borderRadius: 5,
-                border: "none", background: bandColor, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
+                border: "none", background: accentColor, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
             >
               🎯 Préparer
             </button>
@@ -222,7 +246,7 @@ function ApptBlock({ appt, top, height, onClick, width, left, getColor, careCase
           <button
             onClick={() => onClick(appt)}
             style={{ flex: 1, fontSize: 9, fontWeight: 600, padding: "4px 2px", borderRadius: 5,
-              border: `1px solid ${bandColor}40`, background: "#fff", color: bandColor, cursor: "pointer", fontFamily: "inherit" }}
+              border: `1px solid ${accentColor}40`, background: "#fff", color: accentColor, cursor: "pointer", fontFamily: "inherit" }}
           >
             Dossier
           </button>
@@ -318,7 +342,8 @@ function DayView({
 
           return (
             <div key={appt.id} style={{
-              background: N.card, borderRadius: 14, overflow: "hidden",
+              background: isCancelledLike(appt.status) ? N.card : "linear-gradient(135deg, #EEEDFB 0%, #FFFFFF 50%, #E6F4F2 100%)",
+              borderRadius: 14, overflow: "hidden",
               border: isNow ? `2px solid rgba(91,78,196,0.25)` : `1px solid ${N.border}`,
               boxShadow: isNow ? `0 0 0 4px rgba(91,78,196,0.06), 0 2px 8px rgba(0,0,0,0.04)` : "0 1px 4px rgba(0,0,0,0.04)",
               opacity: isCancelledLike(appt.status) ? 0.45 : 1,
@@ -600,7 +625,7 @@ function Drawer({ appt, onClose, onPatch, isPatching, onComplete, onCancel, onNo
     .slice(0, 6)
 
   return (
-    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 410, maxWidth: "92vw", background: N.card, boxShadow: "-8px 0 32px rgba(0,0,0,0.08)", zIndex: 100, display: "flex", flexDirection: "column", fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", borderLeft: `1px solid ${N.border}` }}>
+    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 410, maxWidth: "92vw", background: N.card, boxShadow: "-8px 0 32px rgba(0,0,0,0.08)", zIndex: 100, display: "flex", flexDirection: "column", fontFamily: "var(--font-sans)", borderLeft: `1px solid ${N.border}` }}>
       {/* Header */}
       <div style={{ padding: "20px 24px 16px", borderBottom: `1px solid ${N.border}`, flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -932,7 +957,7 @@ export default function AgendaPage() {
     .sort((a, b) => parseISO(a.startAt).getTime() - parseISO(b.startAt).getTime())[0]?.id ?? null
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: N.bg, fontFamily: "'Plus Jakarta Sans', 'DM Sans', -apple-system, sans-serif" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: N.bg, fontFamily: "var(--font-sans)" }}>
       {/* TOOLBAR */}
       <div style={{ background: N.card, borderBottom: `1px solid ${N.border}`, padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -954,6 +979,14 @@ export default function AgendaPage() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => {
+              const now = new Date()
+              setCreateCtx({ date: now, hour: now.getHours() + 1, minute: 0, location: agenda.locations[0] ?? null })
+            }}
+            style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: N.primary, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}>
+            + Nouveau RDV
+          </button>
           <Link href="/agenda/parametrage" style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${N.border}`, background: N.card, fontSize: 12, cursor: "pointer", fontFamily: "inherit", color: N.textSoft, textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
             ⚙️ Paramètres
           </Link>

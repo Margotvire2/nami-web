@@ -20,6 +20,7 @@ import { RdvEmptyState } from "./_components/RdvEmptyState";
 import { DemandeCard } from "./_components/DemandeCard";
 import { AppointmentsCareCaseSection } from "./_components/AppointmentsCareCaseSection";
 import { AppointmentsOrphanSection } from "./_components/AppointmentsOrphanSection";
+import { ProposedSlotsSection } from "./_components/ProposedSlotsSection";
 
 const VALID_TABS: AppointmentTab[] = ["upcoming", "pending", "past", "cancelled"];
 
@@ -129,16 +130,21 @@ export default function RendezVousPage() {
     return { upcomingList: upcomingArr, pastList: pastArr, cancelledList: cancelledArr };
   }, [appointments]);
 
+  // Créneaux proposés par un soignant (status PENDING, issus d'un adressage)
+  const proposedSlots = (appointments ?? []).filter((a) => a.status === "PENDING");
+  const nonPendingUpcoming = upcomingList.filter((a) => a.status !== "PENDING");
+
   // Compteurs pour les badges des tabs.
   const tabCounts: Record<AppointmentTab, number> = useMemo(
     () => ({
-      upcoming: upcomingList.length,
+      upcoming: nonPendingUpcoming.length + proposedSlots.length,
       pending: pendingRequests?.length ?? 0,
       past: pastList.length,
       cancelled: cancelledList.length,
     }),
     [
-      upcomingList.length,
+      nonPendingUpcoming.length,
+      proposedSlots.length,
       pendingRequests?.length,
       pastList.length,
       cancelledList.length,
@@ -149,8 +155,8 @@ export default function RendezVousPage() {
     queryClient.invalidateQueries({ queryKey: ["patient-appointments", effectiveProfileId] });
   }
 
-  const heroAppointment = activeTab === "upcoming" ? upcomingList[0] ?? null : null;
-  const upcomingRest = heroAppointment ? upcomingList.slice(1) : upcomingList;
+  const heroAppointment = activeTab === "upcoming" ? nonPendingUpcoming[0] ?? null : null;
+  const upcomingRest = heroAppointment ? nonPendingUpcoming.slice(1) : nonPendingUpcoming;
   const profileFirstName =
     currentProfile && !currentProfile.isSelf ? currentProfile.firstName : undefined;
 
@@ -167,7 +173,7 @@ export default function RendezVousPage() {
     // sur "upcoming" pour éviter les doublons (le hero reste rendu à part).
     const baseList =
       activeTab === "upcoming"
-        ? upcomingRest
+        ? upcomingRest.filter((a) => a.status !== "PENDING")
         : activeTab === "past"
           ? pastList
           : cancelledList;
@@ -233,7 +239,7 @@ export default function RendezVousPage() {
   }, [activeTab, upcomingRest, pastList, cancelledList, careCases]);
 
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-6 min-h-screen bg-[var(--nami-bg)]">
+    <main className="max-w-5xl mx-auto p-6 space-y-6 min-h-screen bg-[var(--nami-bg)]">
       <h1 className="text-3xl font-bold text-[var(--nami-dark)] tracking-tight">
         Mes rendez-vous
       </h1>
@@ -261,6 +267,14 @@ export default function RendezVousPage() {
         >
           {activeTab === "upcoming" && (
             <>
+              {proposedSlots.length > 0 && (
+                <ScrollReveal variant="fade-up" duration={0.4}>
+                  <ProposedSlotsSection
+                    slots={proposedSlots}
+                    onConfirmed={refreshAppointments}
+                  />
+                </ScrollReveal>
+              )}
               {heroAppointment && (
                 <ScrollReveal variant="fade-up" duration={0.5}>
                   <RdvHeroCard

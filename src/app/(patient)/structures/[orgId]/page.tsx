@@ -77,7 +77,7 @@ export default function StructureDetailPage({ params }: StructurePageProps) {
         aria-label="Structure introuvable"
         style={{
           padding: "36px 28px 96px",
-          maxWidth: 680,
+          maxWidth: 900,
           margin: "0 auto",
           background: "var(--nami-bg)",
           minHeight: "100vh",
@@ -133,7 +133,7 @@ export default function StructureDetailPage({ params }: StructurePageProps) {
       aria-label={`Structure de coordination ${organization.name}`}
       style={{
         padding: "36px 28px 96px",
-        maxWidth: 680,
+        maxWidth: 900,
         margin: "0 auto",
         background: "var(--nami-bg)",
         minHeight: "100vh",

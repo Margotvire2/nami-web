@@ -335,7 +335,13 @@ function AppointmentRow({ appt }: { appt: PatientDetailAppointment }) {
   const endLabel = appt.endAt ? safeFormat(appt.endAt, "HH:mm") : null;
 
   return (
-    <li className="flex items-center gap-3 p-3 rounded-xl border border-[#F0F0F0] hover:border-[#E8ECF4] hover:bg-[#FAFAF8] transition">
+    <li
+      className="flex items-center gap-3 p-3 rounded-xl border transition hover:shadow-sm"
+      style={{
+        background: "linear-gradient(135deg, #EEEDFB 0%, #FFFFFF 50%, #E6F4F2 100%)",
+        borderColor: "rgba(26,26,46,0.06)",
+      }}
+    >
       <div className="w-12 text-center shrink-0">
         <p className="text-[10px] font-medium text-[#9CA3AF] uppercase">
           {safeFormat(appt.startAt, "MMM") ?? "—"}

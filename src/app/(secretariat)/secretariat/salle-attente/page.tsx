@@ -143,10 +143,11 @@ export default function SecretariatWaitingRoomFullscreenPage() {
               return (
                 <article
                   key={entry.appointmentId}
-                  className="rounded-2xl p-5 transition-shadow hover:shadow-md"
+                  className="rounded-2xl p-5 transition-shadow hover:shadow-md overflow-hidden"
                   style={{
-                    background: style.cardBg,
-                    border: `1px solid ${style.cardBorder}`,
+                    background: "linear-gradient(135deg, #EEEDFB 0%, #FFFFFF 50%, #E6F4F2 100%)",
+                    border: "1px solid rgba(26,26,46,0.06)",
+                    borderLeft: `4px solid ${style.chipText}`,
                   }}
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">

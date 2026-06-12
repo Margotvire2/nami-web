@@ -897,6 +897,7 @@ function AgendaColumn({
             const sStyle = getStatusStyle(appt.status);
             const start = parseISO(appt.startAt);
             const isDragging = drag?.apptId === appt.id;
+            const isVideo = /visio|télé|tele|vidéo|video|phone|téléphone/i.test(appt.consultationType?.name ?? "");
 
             return (
               <div
@@ -909,29 +910,34 @@ function AgendaColumn({
                 style={{
                   top: top + 1,
                   height: height - 2,
-                  backgroundColor: sStyle.bg,
-                  borderColor: appt.status === "IN_PROGRESS" ? DT.statusConfirmed : sStyle.border,
+                  background: isCancelledLike(appt.status)
+                    ? sStyle.bg
+                    : isVideo
+                    ? "linear-gradient(115deg, #2BA89C22 0%, #FFFFFF 58%)"
+                    : `linear-gradient(115deg, ${sStyle.color}22 0%, #FFFFFF 58%)`,
+                  borderColor: appt.status === "IN_PROGRESS" ? DT.statusConfirmed : isVideo ? "#2BA89C50" : sStyle.border,
+                  borderLeft: isVideo ? "3px solid #2BA89C" : undefined,
                   opacity: isDragging ? 0.3 : 1,
                 }}
               >
-                <p className="text-[10px] font-semibold truncate" style={{ color: sStyle.color }}>
-                  {format(start, "HH:mm")} {appt.patient ? `· ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
+                <p className="text-[10px] font-semibold truncate" style={{ color: isVideo ? "#2BA89C" : sStyle.color }}>
+                  {isVideo && "📹 "}{format(start, "HH:mm")} {appt.patient ? `· ${appt.patient.firstName} ${appt.patient.lastName}` : ""}
                 </p>
                 {isConsultationLifecycleStatus(appt.status) && (
                   <span
                     data-testid="consultation-lifecycle-pill"
                     className="inline-block mt-0.5 text-[8px] font-semibold uppercase tracking-wider px-1 py-px rounded border"
                     style={{
-                      backgroundColor: sStyle.bg,
-                      color: sStyle.color,
-                      borderColor: sStyle.border,
+                      backgroundColor: isVideo ? "#2BA89C12" : sStyle.bg,
+                      color: isVideo ? "#2BA89C" : sStyle.color,
+                      borderColor: isVideo ? "#2BA89C50" : sStyle.border,
                     }}
                   >
                     {cfg.label}
                   </span>
                 )}
                 {appt.consultationType && height > 30 && (
-                  <p className="text-[9px] text-[#6B7280] truncate">{appt.consultationType.name}</p>
+                  <p className="text-[9px] truncate" style={{ color: isVideo ? "#2BA89Caa" : "#6B7280" }}>{appt.consultationType.name}</p>
                 )}
               </div>
             );

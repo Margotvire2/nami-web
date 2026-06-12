@@ -101,7 +101,7 @@ export default function DocumentDetailPage() {
   if (!document) {
     return (
       <main
-        style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px" }}
+        style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}
         aria-label="Document introuvable"
       >
         <Link
@@ -177,7 +177,7 @@ export default function DocumentDetailPage() {
   return (
     <main
       className="print-content"
-      style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px 96px" }}
+      style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px 96px" }}
       aria-label="Détail du document"
     >
       <PrintHeader documentLabel={printDocumentLabel} reference={document.id} />

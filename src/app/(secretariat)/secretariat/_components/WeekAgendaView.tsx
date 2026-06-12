@@ -229,6 +229,7 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
                   const sStyle = getStatusStyle(appt.status);
                   const start = parseISO(appt.startAt);
                   const { top, height } = apptToStyle(appt);
+                  const isVideo = /visio|télé|tele|vidéo|video|phone|téléphone/i.test(appt.consultationType?.name ?? "");
                   return (
                     <button
                       key={appt.id}
@@ -249,18 +250,19 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
                       style={{
                         top: top + 1,
                         height: Math.max(height - 2, 18),
-                        backgroundColor: sStyle.bg,
-                        borderColor: appt.status === "IN_PROGRESS" ? "var(--nami-primary)" : sStyle.border,
+                        backgroundColor: isVideo ? "#2BA89C12" : sStyle.bg,
+                        borderColor: appt.status === "IN_PROGRESS" ? "var(--nami-primary)" : isVideo ? "#2BA89C50" : sStyle.border,
+                        borderLeft: isVideo ? "3px solid #2BA89C" : undefined,
                       }}
                     >
-                      <p className="text-[9px] font-semibold truncate leading-tight" style={{ color: sStyle.color }}>
-                        {format(start, "HH:mm")}
+                      <p className="text-[9px] font-semibold truncate leading-tight" style={{ color: isVideo ? "#2BA89C" : sStyle.color }}>
+                        {isVideo && "📹 "}{format(start, "HH:mm")}
                         {height > 20 && (
                           <span className="font-normal opacity-60 ml-1">{initials}</span>
                         )}
                       </p>
                       {appt.patient && height > 28 && (
-                        <p className="text-[9px] truncate leading-tight" style={{ color: sStyle.color }}>
+                        <p className="text-[9px] truncate leading-tight" style={{ color: isVideo ? "#2BA89C" : sStyle.color }}>
                           {appt.patient.firstName} {appt.patient.lastName}
                         </p>
                       )}
@@ -268,7 +270,7 @@ export function WeekAgendaView({ weekStart, api, accessToken, onRefresh }: WeekA
                         <span
                           data-testid="consultation-lifecycle-pill"
                           className="inline-block text-[7px] font-semibold uppercase tracking-wider px-0.5 rounded"
-                          style={{ color: sStyle.color }}
+                          style={{ color: isVideo ? "#2BA89C" : sStyle.color }}
                         >
                           {cfg.label}
                         </span>

@@ -49,12 +49,12 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
     <EntityHubProvider>
       <div
         className="min-h-screen bg-[#FAFAF8]"
-        style={{ fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif" }}
+        style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
       >
         <PatientHeader />
         <div className="flex">
           <PatientSidebar className="hidden md:flex" />
-          <main className="flex-1 pb-24 md:pb-12 px-4 md:px-8 max-w-screen-xl mx-auto w-full">
+          <main className="flex-1 pb-24 md:pb-12 px-4 md:px-8 min-w-0">
             <Suspense fallback={null}>
               {children}
             </Suspense>

@@ -12,7 +12,6 @@ interface AppointmentCardProps {
 }
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
-  // Fallback safe si le backend renvoie un statut hors enum (typage `string`)
   const cfg = STATUS_CFG[appointment.status as AppointmentStatus] ?? {
     label: appointment.status,
     badgeClass: "bg-stone-50 text-stone-600 border-stone-200",
@@ -21,10 +20,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     canCancel: false,
   };
 
-  // Pattern overlay : <Link absolute inset-0 z-10> capture le click card-wide,
-  // les éléments interactifs internes (bouton Annuler) restent prioritaires
-  // grâce à relative z-20 + stopPropagation. Le bouton et le link sont 2 tab-stops
-  // distincts (a11y standard pour card cliquable avec action secondaire).
   const detailHref = `/rendez-vous/${appointment.id}`;
   const providerName = getProviderName(appointment);
   const detailAriaLabel = `Voir le détail du rendez-vous avec ${providerName} le ${formatDateTime(appointment.startAt)}`;
@@ -40,6 +35,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         variant="soft"
         className="
           rounded-2xl p-5
+          bg-gradient-to-br from-[#EEEDFB] via-white to-[#E6F4F2]
+          border border-[var(--nami-border)]
           hover:shadow-lg hover:shadow-[var(--nami-primary)]/10
           transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
         "
