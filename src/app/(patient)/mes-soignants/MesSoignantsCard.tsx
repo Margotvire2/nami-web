@@ -118,7 +118,7 @@ export function MesSoignantsCard({ provider, onRevoke }: MesSoignantsCardProps) 
 
       <div className="mt-5 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end">
         <Link
-          href={`/soignants/${provider.slug}`}
+          href={`/mes-soignants/${provider.id}`}
           className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-[#5B4EC4] border border-[rgba(91,78,196,0.25)] hover:bg-[rgba(91,78,196,0.06)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40 transition-colors duration-150"
         >
           Voir son profil

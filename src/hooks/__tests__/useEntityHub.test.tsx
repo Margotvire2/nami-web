@@ -58,6 +58,7 @@ function makeProvider(): EntityHubProviderPayload {
       firstName: "Ana",
       lastName: "Doe",
       specialty: "Endocrinologie",
+      publicBio: null,
       photoUrl: null,
       locations: [],
     },
