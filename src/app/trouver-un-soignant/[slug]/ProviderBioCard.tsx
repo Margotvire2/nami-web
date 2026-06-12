@@ -13,8 +13,8 @@ const SECTOR_LABEL: Record<string, string> = {
 };
 
 const DELAY_LABEL: Record<string, string> = {
-  WITHIN_WEEK: "Disponibilités cette semaine",
-  WITHIN_MONTH: "Disponibilités ce mois-ci",
+  WITHIN_WEEK: "Créneaux disponibles cette semaine",
+  WITHIN_MONTH: "Créneaux disponibles ce mois-ci",
   OVER_MONTH: "Délai supérieur à un mois",
 };
 
@@ -154,6 +154,39 @@ export function ProviderBioCard({ provider }: ProviderBioCardProps) {
                     <span style={{ color: "#9CA3AF" }}> · {cert.year}</span>
                   )}
                 </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Tags approche thérapeutique */}
+      {provider.publicSpecialties.length > 0 && (
+        <div
+          className="mt-6 pt-6"
+          style={{ borderTop: "1px solid rgba(26,26,46,0.06)" }}
+        >
+          <h3
+            className="text-xs font-semibold uppercase tracking-wide mb-3"
+            style={{ color: "#6B7280", letterSpacing: "0.06em" }}
+          >
+            Approches & spécialités
+          </h3>
+          <ul
+            className="flex flex-wrap gap-2"
+            aria-label="Approches thérapeutiques et spécialités"
+          >
+            {provider.publicSpecialties.map((tag) => (
+              <li
+                key={tag}
+                className="text-xs px-3 py-1 rounded-full font-medium"
+                style={{
+                  background: "rgba(91,78,196,0.10)",
+                  color: "#5B4EC4",
+                  border: "1px solid rgba(91,78,196,0.15)",
+                }}
+              >
+                {tag}
               </li>
             ))}
           </ul>

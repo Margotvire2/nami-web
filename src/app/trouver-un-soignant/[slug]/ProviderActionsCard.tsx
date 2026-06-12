@@ -13,7 +13,7 @@ export function ProviderActionsCard({ provider }: ProviderActionsCardProps) {
   return (
     <aside
       aria-labelledby="provider-actions-title"
-      className="rounded-2xl p-6 md:p-7 sticky top-6"
+      className="rounded-2xl p-6 md:p-7"
       style={{
         background: "#fff",
         border: "1px solid rgba(91,78,196,0.18)",

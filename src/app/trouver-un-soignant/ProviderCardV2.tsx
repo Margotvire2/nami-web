@@ -9,12 +9,15 @@ import {
   Check,
   ArrowRight,
   CalendarPlus,
+  Calendar,
 } from "lucide-react";
-import type { PublicProvider } from "@/lib/api";
+import type { PublicProvider, ProviderNextSlot } from "@/lib/api";
 
 interface ProviderCardV2Props {
   provider: PublicProvider;
   specialtyLabel: string;
+  distanceKm?: number | null;
+  nextSlot?: ProviderNextSlot | null;
 }
 
 /**
@@ -33,7 +36,7 @@ function buildProviderSlug(provider: PublicProvider): string {
   );
 }
 
-export function ProviderCardV2({ provider, specialtyLabel }: ProviderCardV2Props) {
+export function ProviderCardV2({ provider, specialtyLabel, distanceKm, nextSlot }: ProviderCardV2Props) {
   const slug = buildProviderSlug(provider);
   const profileHref = `/trouver-un-soignant/${slug}`;
   const bookingHref = `${profileHref}/booking`;
@@ -93,12 +96,24 @@ export function ProviderCardV2({ provider, specialtyLabel }: ProviderCardV2Props
 
           {structure && (
             <p
-              className="text-[11px] mt-1 inline-flex items-center gap-1"
+              className="text-[11px] mt-1 inline-flex items-center gap-1 flex-wrap"
               style={{ color: "#6B7280" }}
             >
               <Building2 size={10} aria-hidden="true" />
               {structure.name}
               {structure.city ? ` · ${structure.city}` : ""}
+              {distanceKm !== null && distanceKm !== undefined && (
+                <span
+                  className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+                  style={{
+                    background: "rgba(43,168,156,0.10)",
+                    color: "#0F766E",
+                  }}
+                  aria-label={`Environ ${Math.round(distanceKm)} kilomètres`}
+                >
+                  {distanceKm < 1 ? "< 1 km" : `~${Math.round(distanceKm)} km`}
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -146,6 +161,26 @@ export function ProviderCardV2({ provider, specialtyLabel }: ProviderCardV2Props
           {provider.bio}
         </p>
       )}
+
+      {/* Prochain créneau */}
+      {nextSlot ? (
+        <div
+          className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-medium"
+          style={{
+            background: "rgba(43,168,156,0.08)",
+            border: "1px solid rgba(43,168,156,0.18)",
+            color: "#0F766E",
+          }}
+          aria-label={`Prochain créneau : ${nextSlot.label}`}
+        >
+          <Calendar size={11} aria-hidden="true" style={{ color: "#2BA89C", flexShrink: 0 }} />
+          <span>{nextSlot.label}</span>
+        </div>
+      ) : nextSlot === null && provider.acceptsNewPatients ? (
+        <p className="text-[10px]" style={{ color: "#9CA3AF" }}>
+          Contactez ce soignant pour ses prochains créneaux
+        </p>
+      ) : null}
 
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-2 mt-auto">

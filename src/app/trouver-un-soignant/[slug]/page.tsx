@@ -8,6 +8,7 @@ import { ProviderHero } from "./ProviderHero";
 import { ProviderBioCard } from "./ProviderBioCard";
 import { ProviderAddressesCard } from "./ProviderAddressesCard";
 import { ProviderActionsCard } from "./ProviderActionsCard";
+import { ProviderSlotsCard } from "./ProviderSlotsCard";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -100,7 +101,10 @@ export default async function ProviderPublicProfilePage({ params }: PageProps) {
               <ProviderAddressesCard provider={provider} />
             </div>
 
-            <ProviderActionsCard provider={provider} />
+            <div className="space-y-4 lg:sticky lg:top-6">
+              <ProviderSlotsCard providerId={provider.id} />
+              <ProviderActionsCard provider={provider} />
+            </div>
           </div>
         </div>
       </main>
