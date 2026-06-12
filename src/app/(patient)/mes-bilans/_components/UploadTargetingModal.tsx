@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X, Users, User, Loader2, AlertCircle } from "lucide-react";
 import { usePatientCareCases } from "@/hooks/usePatientCareCases";
 import { usePatientCareTeamByCareCases } from "@/hooks/usePatientCareTeamByCareCases";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 import type {
   PatientAuthorizedProvider,
   PatientCareCaseSummary,
@@ -190,9 +191,7 @@ export function UploadTargetingModal({
 
   // ─── Helpers d'affichage ─────────────────────────────────────────────────
   function careCaseTitle(c: PatientCareCaseSummary): string {
-    // Fallback chain : caseTitle (toujours présent). patientFacingTitle est
-    // exposé côté CareCase modèle mais pas dans PatientCareCaseSummary actuel.
-    return c.caseTitle || "Mon parcours de coordination";
+    return formatCareCaseLabel(c.caseTitle);
   }
 
   function providersInCareCase(careCaseId: string): number {

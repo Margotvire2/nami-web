@@ -4,6 +4,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { HubLinkButton } from "@/components/patient/HubLinkButton";
 import type { PatientCareCaseSummary, PatientDocument } from "@/lib/api";
 import { DocumentCard } from "./DocumentCard";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 
 interface DocumentsCareCaseSectionProps {
   careCase: PatientCareCaseSummary;
@@ -36,7 +37,7 @@ export function DocumentsCareCaseSection({
 }: DocumentsCareCaseSectionProps) {
   const headerId = `documents-care-case-${careCase.id}-title`;
   const count = documents.length;
-  const title = patientFacingTitle ?? careCase.caseTitle;
+  const title = patientFacingTitle ?? formatCareCaseLabel(careCase.caseTitle);
 
   return (
     <section
@@ -56,7 +57,7 @@ export function DocumentsCareCaseSection({
           id={headerId}
           style={{
             fontFamily:
-              '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
+              'var(--font-jakarta), system-ui, sans-serif',
             fontSize: 18,
             fontWeight: 700,
             color: "#1A1A2E",

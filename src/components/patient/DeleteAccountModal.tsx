@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { apiWithToken } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 
 /**
  * Suppression de compte (RGPD Art. 17 — droit à l'effacement).
@@ -146,7 +147,7 @@ export function DeleteAccountModal({
                 <ul className="list-disc pl-5 space-y-1">
                   {activeCareCases.map((c) => (
                     <li key={c.id}>
-                      <span className="font-medium">{c.caseTitle}</span>
+                      <span className="font-medium">{formatCareCaseLabel(c.caseTitle)}</span>
                       {c.leadProviderFirstName && (
                         <span className="text-[#6B7280]">
                           {" "}

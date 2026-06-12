@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRight, Loader2, Search, Stethoscope, Sparkles } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { usePatientCareCases } from "@/hooks/usePatientCareCases";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 
 /**
  * Page /bienvenue — accueil patient post-signup contextualisé.
@@ -50,7 +51,7 @@ export default function BienvenuePage() {
     <main
       style={{
         padding: "36px 24px 96px",
-        maxWidth: 720,
+        maxWidth: 900,
         margin: "0 auto",
         minHeight: "100vh",
         background: C.bg,
@@ -127,7 +128,7 @@ export default function BienvenuePage() {
         <ExistingPatientBranch
           careCases={careCases.map((cc) => ({
             id: cc.id,
-            title: cc.caseTitle,
+            title: formatCareCaseLabel(cc.caseTitle),
             organizationName: cc.organizationName,
           }))}
         />

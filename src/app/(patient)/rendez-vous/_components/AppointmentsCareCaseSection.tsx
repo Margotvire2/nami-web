@@ -3,6 +3,7 @@
 import { HubLinkButton } from "@/components/patient/HubLinkButton";
 import { AppointmentCard } from "@/components/patient/AppointmentCard";
 import type { PatientAppointment, PatientCareCaseSummary } from "@/lib/api";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 
 interface AppointmentsCareCaseSectionProps {
   careCase: PatientCareCaseSummary;
@@ -51,7 +52,7 @@ export function AppointmentsCareCaseSection({
           id={headerId}
           className="text-lg md:text-xl font-semibold text-[#1A1A2E] tracking-tight"
         >
-          {careCase.caseTitle}
+          {formatCareCaseLabel(careCase.caseTitle)}
         </h2>
         <div className="flex items-baseline gap-4 shrink-0">
           <span className="text-sm text-[#6B7280]">
@@ -61,7 +62,7 @@ export function AppointmentsCareCaseSection({
           </span>
           <HubLinkButton
             careCaseId={careCase.id}
-            careCaseLabel={careCase.caseTitle}
+            careCaseLabel={formatCareCaseLabel(careCase.caseTitle)}
             sectionAnchor="rendez-vous"
           />
         </div>

@@ -5,6 +5,7 @@ import { HubLinkButton } from "@/components/patient/HubLinkButton";
 import { MesSoignantsList } from "./MesSoignantsList";
 import type { AuthorizedProvider } from "./mock-data";
 import type { PatientCareCaseSummary } from "./types";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 
 interface CareCaseSectionProps {
   careCase: PatientCareCaseSummary;
@@ -43,7 +44,7 @@ export function CareCaseSection({
           id={headerId}
           className="text-lg md:text-xl font-semibold text-[#1A1A2E] tracking-tight"
         >
-          {careCase.caseTitle}
+          {formatCareCaseLabel(careCase.caseTitle)}
         </h2>
         <div className="flex items-baseline gap-4 shrink-0">
           {!isLoading && !isError && (
@@ -55,7 +56,7 @@ export function CareCaseSection({
           )}
           <HubLinkButton
             careCaseId={careCase.id}
-            careCaseLabel={careCase.caseTitle}
+            careCaseLabel={formatCareCaseLabel(careCase.caseTitle)}
             sectionAnchor="soignants"
           />
         </div>

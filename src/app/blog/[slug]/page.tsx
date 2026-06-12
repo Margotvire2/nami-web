@@ -17,7 +17,7 @@ interface Article {
   sources: string[]; sourceUrls: string[];
   publishedAt: string | null; authorName: string; authorRole: string | null;
   reviewedBy: string | null; pathologySlug: string | null;
-  viewCount: number;
+  viewCount: number; seoIndex: boolean;
 }
 
 async function getArticle(slug: string): Promise<Article | null> {
@@ -56,6 +56,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: article.metaTitle ?? article.title,
     description: article.metaDescription ?? article.excerpt ?? undefined,
     keywords: article.keywords,
+    ...(article.seoIndex === false ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: (article.metaTitle ?? article.title) + " | Nami",
       description: article.metaDescription ?? article.excerpt ?? undefined,

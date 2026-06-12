@@ -6,6 +6,7 @@ import { IndicatorsGrid } from "../IndicatorsGrid";
 import { usePatientObservations } from "@/hooks/usePatientObservations";
 import type { PatientCareCaseSummary } from "@/lib/api";
 import type { PeriodKey } from "../mock-data";
+import { formatCareCaseLabel } from "@/lib/carecase-labels";
 
 interface SuiviCareCaseSectionProps {
   careCase: PatientCareCaseSummary;
@@ -38,9 +39,7 @@ export function SuiviCareCaseSection({
 
   const list = indicators ?? [];
   const headerId = `suivi-care-case-${careCase.id}-title`;
-  // patientFacingTitle absent du shape `PatientCareCaseSummary` actuel,
-  // fallback identique à UploadTargetingModal.
-  const title = careCase.caseTitle || "Mon parcours de coordination";
+  const title = formatCareCaseLabel(careCase.caseTitle);
 
   return (
     <section aria-labelledby={headerId} style={{ marginBottom: 32 }}>
