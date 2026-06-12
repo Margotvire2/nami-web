@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ConsultationDetail } from "@/lib/api";
 import {
   Clock,
@@ -11,7 +12,6 @@ import {
   CheckCircle2,
   Circle,
   Receipt,
-  X,
 } from "lucide-react";
 import { NoteMarkdown } from "@/components/consultation-note/NoteMarkdown";
 
@@ -165,43 +165,25 @@ function TranscriptBlock({ transcript }: { transcript: string }) {
   );
 }
 
-// ─── Bouton Générer facture (placeholder) ────────────────────────────────────
-
-function BillingPlaceholderModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 cockpit-glass-overlay flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-[#1A1A2E]">Facturation depuis une consultation</h3>
-            <p className="text-sm text-gray-500 mt-1">Bientôt disponible</p>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={18} />
-          </button>
-        </div>
-        <p className="text-sm text-gray-600 leading-relaxed">
-          La génération de factures directement depuis une consultation sera disponible dans une prochaine mise à jour.
-        </p>
-        <p className="text-xs text-gray-400 mt-3">
-          En attendant, créez la facture depuis l&apos;onglet <strong>Facturation</strong> du menu principal.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ─── ViewConsultation ─────────────────────────────────────────────────────────
 
 type Props = { consultation: ConsultationDetail };
 
 export function ViewConsultation({ consultation }: Props) {
-  const [billingOpen, setBillingOpen] = useState(false);
+  const router = useRouter();
 
   const hasGeneratedNote = !!consultation.generatedNote?.body;
   const hasAiSummary = consultation.aiSummaryStatus === "DONE" && !!consultation.aiSummary && !hasGeneratedNote;
   const hasNotes = !!consultation.notes?.trim();
   const hasTranscript = !!consultation.transcript?.trim();
+
+  function handleGenerateInvoice() {
+    sessionStorage.setItem("namiLibrePrefill", JSON.stringify({
+      careCaseId: consultation.careCaseId,
+      consultationDate: consultation.startedAt.slice(0, 10),
+    }));
+    router.push("/facturation?tab=libre");
+  }
 
   return (
     <article>
@@ -221,11 +203,10 @@ export function ViewConsultation({ consultation }: Props) {
         </div>
       )}
 
-      {/* Actions */}
       {consultation.status === "COMPLETED" && (
         <div className="mt-2 flex gap-3">
           <button
-            onClick={() => setBillingOpen(true)}
+            onClick={handleGenerateInvoice}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
           >
             <Receipt size={15} />
@@ -233,8 +214,6 @@ export function ViewConsultation({ consultation }: Props) {
           </button>
         </div>
       )}
-
-      {billingOpen && <BillingPlaceholderModal onClose={() => setBillingOpen(false)} />}
     </article>
   );
 }

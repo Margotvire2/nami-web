@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken } from "@/lib/api";
@@ -56,6 +56,13 @@ export default function FacturationPage() {
   const [tab, setTab] = useState<Tab>("fse");
   const [showNew, setShowNew] = useState(false);
   const [selected, setSelected] = useState<Invoice | null>(null);
+
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t && (["fse", "dashboard", "config", "libre"] as string[]).includes(t)) {
+      setTab(t as Tab);
+    }
+  }, []);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["billing-invoices"],
@@ -712,6 +719,8 @@ function Field({
 const PAYMENT_METHODS = ["Virement", "Carte bancaire", "Espèces", "Chèque"];
 
 function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api: Api }) {
+  const [selectedPatient, setSelectedPatient] = useState<{ id: string; firstName: string; lastName: string; birthDate?: string | null } | null>(null);
+  const [manualMode, setManualMode] = useState(false);
   const [patientFirstName, setPatientFirstName] = useState("");
   const [patientLastName, setPatientLastName] = useState("");
   const [patientBirthDate, setPatientBirthDate] = useState("");
@@ -722,6 +731,52 @@ function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api:
     { description: "", unitPrice: 0, quantity: 1 },
   ]);
   const [generating, setGenerating] = useState(false);
+  const prefillRef = useRef<{ careCaseId?: string } | null>(null);
+
+  const { data: careCases } = useQuery({
+    queryKey: ["libre-prefill-cc"],
+    queryFn: () => apiWithToken(accessToken).careCases.list(),
+    staleTime: 5 * 60_000,
+  });
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("namiLibrePrefill");
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw) as { careCaseId?: string; consultationDate?: string };
+      sessionStorage.removeItem("namiLibrePrefill");
+      if (data.consultationDate) setDate(data.consultationDate);
+      if (data.careCaseId) prefillRef.current = { careCaseId: data.careCaseId };
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (!prefillRef.current?.careCaseId || !careCases?.length) return;
+    const cc = (careCases as any[]).find((c) => c.id === prefillRef.current!.careCaseId);
+    if (cc?.patient) {
+      applyPatient({ id: cc.patient.id, firstName: cc.patient.firstName, lastName: cc.patient.lastName, birthDate: cc.patient.birthDate ?? null });
+      prefillRef.current = null;
+    }
+  }, [careCases]);
+
+  function applyPatient(p: { id: string; firstName: string; lastName: string; birthDate?: string | null }) {
+    setSelectedPatient(p);
+    setPatientFirstName(p.firstName);
+    setPatientLastName(p.lastName);
+    setPatientBirthDate(p.birthDate ? new Date(p.birthDate).toISOString().slice(0, 10) : "");
+    setManualMode(false);
+  }
+
+  function handlePatientSelect(p: { id: string; firstName: string; lastName: string; birthDate?: string | null } | null) {
+    if (p) {
+      applyPatient(p);
+    } else {
+      setSelectedPatient(null);
+      setPatientFirstName("");
+      setPatientLastName("");
+      setPatientBirthDate("");
+    }
+  }
 
   const total = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
 
@@ -782,23 +837,45 @@ function LibreInvoiceTab({ accessToken, api: _api }: { accessToken: string; api:
       {/* Patient */}
       <div className="bg-white rounded-xl border border-[#E8ECF4] p-5 space-y-3">
         <h3 className="text-[12px] font-semibold text-[#0F172A] uppercase tracking-wide">Patient</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Prénom</label>
-            <Input value={patientFirstName} onChange={(e) => setPatientFirstName(e.target.value)}
-              placeholder="Prénom" className="h-8 text-xs mt-1" />
+        {!manualMode ? (
+          <div className="space-y-2">
+            <PatientSelect value={selectedPatient} onChange={handlePatientSelect} />
+            <button
+              type="button"
+              onClick={() => { setSelectedPatient(null); setManualMode(true); }}
+              className="text-[11px] text-muted-foreground hover:text-[#5B4EC4] underline transition-colors"
+            >
+              Facturer à une autre personne (saisie manuelle)
+            </button>
           </div>
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Nom</label>
-            <Input value={patientLastName} onChange={(e) => setPatientLastName(e.target.value)}
-              placeholder="Nom" className="h-8 text-xs mt-1" />
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground">Prénom</label>
+                <Input value={patientFirstName} onChange={(e) => setPatientFirstName(e.target.value)}
+                  placeholder="Prénom" className="h-8 text-xs mt-1" />
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground">Nom</label>
+                <Input value={patientLastName} onChange={(e) => setPatientLastName(e.target.value)}
+                  placeholder="Nom" className="h-8 text-xs mt-1" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground">Date de naissance (optionnel)</label>
+              <Input type="date" value={patientBirthDate} onChange={(e) => setPatientBirthDate(e.target.value)}
+                className="h-8 text-xs mt-1 w-40" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setManualMode(false)}
+              className="text-[11px] text-muted-foreground hover:text-[#5B4EC4] underline transition-colors"
+            >
+              ← Rechercher dans mes patients
+            </button>
           </div>
-        </div>
-        <div>
-          <label className="text-[11px] font-medium text-muted-foreground">Date de naissance (optionnel)</label>
-          <Input type="date" value={patientBirthDate} onChange={(e) => setPatientBirthDate(e.target.value)}
-            className="h-8 text-xs mt-1 w-40" />
-        </div>
+        )}
       </div>
 
       {/* Prestations */}

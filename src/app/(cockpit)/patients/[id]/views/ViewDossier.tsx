@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { ConsultationNoteDisplay } from "@/components/consultation-note";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, CareCaseDetail, refreshAwareRequest } from "@/lib/api";
+import { api, apiWithToken, CareCaseDetail, refreshAwareRequest } from "@/lib/api";
+import type { Invoice } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 import { formatDate, formatDateTime, formatShortDate } from "@/lib/date-utils";
@@ -18,7 +19,7 @@ interface Props {
   onPendingUploadConsumed?: () => void;
 }
 
-type DossierTab = "notes" | "journal" | "timeline" | "documents" | "ordonnances";
+type DossierTab = "notes" | "journal" | "documents" | "ordonnances" | "factures";
 
 export function ViewDossier({ careCaseId, careCase, pendingUploadType, onPendingUploadConsumed }: Props) {
   const [activeTab, setActiveTab] = useState<DossierTab>(pendingUploadType ? "documents" : "notes");
@@ -29,9 +30,9 @@ export function ViewDossier({ careCaseId, careCase, pendingUploadType, onPending
         {[
           { key: "notes" as const, label: "Notes cliniques", icon: "📝" },
           { key: "journal" as const, label: "Journal patient", icon: "📱" },
-          { key: "timeline" as const, label: "Ligne de vie", icon: "🕐" },
           { key: "documents" as const, label: "Documents", icon: "📄" },
           { key: "ordonnances" as const, label: "Ordonnances", icon: "💊" },
+          { key: "factures" as const, label: "Factures", icon: "🧾" },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -48,7 +49,6 @@ export function ViewDossier({ careCaseId, careCase, pendingUploadType, onPending
 
       {activeTab === "notes" && <NotesPanel careCaseId={careCaseId} />}
       {activeTab === "journal" && <PatientJournalView careCaseId={careCaseId} />}
-      {activeTab === "timeline" && <TimelinePanel careCaseId={careCaseId} />}
       {activeTab === "documents" && (
         <DocumentsPanel
           careCaseId={careCaseId}
@@ -57,6 +57,7 @@ export function ViewDossier({ careCaseId, careCase, pendingUploadType, onPending
         />
       )}
       {activeTab === "ordonnances" && <PrescriptionDraftEditor careCaseId={careCaseId} />}
+      {activeTab === "factures" && <FacturesPanel patientId={careCase?.patient?.id} />}
     </div>
   );
 }
@@ -810,148 +811,6 @@ function DocumentsPanel({ careCaseId, pendingUploadType, onPendingUploadConsumed
 // Composants partagés
 // ══════════════════════════════════════════════════════
 
-
-// ══════════════════════════════════════════════════════
-// Ligne de vie — timeline verticale détaillée
-// ══════════════════════════════════════════════════════
-
-type TimelineFilter = "all" | "rdv" | "referral" | "alert";
-
-function TimelinePanel({ careCaseId }: { careCaseId: string }) {
-  const [filter, setFilter] = useState<TimelineFilter>("all");
-
-  const { data: timelineRaw, isLoading } = useQuery({
-    queryKey: ["timeline", careCaseId],
-    queryFn: async () => {
-      const res = await api.get(`/care-cases/${careCaseId}/timeline?limit=100`);
-      const raw = res.data;
-      const activities = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
-      return activities.map((a: any) => ({
-        type: a.activityType || a.type || "NOTE",
-        title: a.title || a.summary || "",
-        description: a.summary || a.description || null,
-        date: a.occurredAt || a.createdAt || a.date,
-        authorName: a.person
-          ? `${a.person.firstName || ""} ${a.person.lastName || ""}`.trim()
-          : a.authorName || null,
-        expandable: !!a.payload,
-      }));
-    },
-  });
-
-  if (isLoading) return <LoadingState />;
-
-  const entries = Array.isArray(timelineRaw) ? timelineRaw : [];
-
-  const filtered = filter === "all"
-    ? entries
-    : entries.filter((e: any) => {
-        const t = (e.type || "").toUpperCase();
-        if (filter === "rdv") return t.includes("APPOINTMENT") || t.includes("VISIT") || t.includes("STEP") || t === "NOTE";
-        if (filter === "referral") return t.includes("REFERRAL") || t.includes("ADRESSAGE");
-        if (filter === "alert") return t.includes("ALERT") || t.includes("OBSERVATION") || t.includes("METRIC");
-        return true;
-      });
-
-  const byMonth = new Map<string, any[]>();
-  for (const e of filtered) {
-    const d = new Date(e.date || e.createdAt);
-    const key = `${d.toLocaleString("fr-FR", { month: "long" }).toUpperCase()} ${d.getFullYear()}`;
-    const group = byMonth.get(key) || [];
-    group.push(e);
-    byMonth.set(key, group);
-  }
-
-  const getIcon = (type: string) => {
-    const t = (type || "").toUpperCase();
-    if (t.includes("APPOINTMENT") || t.includes("VISIT")) return "📅";
-    if (t.includes("REFERRAL") || t.includes("ADRESSAGE")) return "↗️";
-    if (t.includes("ALERT") || t.includes("METRIC")) return "⚠️";
-    if (t.includes("OBSERVATION") || t.includes("BIO")) return "🧪";
-    if (t.includes("DOCUMENT")) return "📄";
-    if (t.includes("NOTE")) return "📝";
-    if (t.includes("STEP") || t.includes("PROTOCOL")) return "✅";
-    if (t.includes("TASK")) return "☑️";
-    if (t.includes("JOURNAL")) return "📱";
-    return "•";
-  };
-
-  const isAlertType = (type: string) => {
-    const t = (type || "").toUpperCase();
-    return t.includes("ALERT") || t.includes("METRIC_OUT");
-  };
-
-  const startDate = entries.length > 0
-    ? new Date(Math.min(...entries.map((e: any) => new Date(e.date || e.createdAt).getTime())))
-    : null;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Ligne de vie clinique</h3>
-          {startDate && <p className="text-xs text-gray-400">Depuis le {formatDate(startDate)}</p>}
-        </div>
-        <div className="flex gap-1">
-          {([
-            { key: "all" as const, label: "Tout" },
-            { key: "rdv" as const, label: "RDV" },
-            { key: "referral" as const, label: "Adressages" },
-            { key: "alert" as const, label: "Rappels" },
-          ]).map((f) => (
-            <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${filter === f.key ? "bg-[#5B4EC4] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {filtered.length === 0 ? (
-        <p className="text-sm text-gray-400 italic text-center py-12">Aucun événement</p>
-      ) : (
-        <div className="space-y-6">
-          {Array.from(byMonth.entries()).map(([month, monthEvents]) => (
-            <div key={month}>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">{month}</p>
-              <div className="relative">
-                {/* Ligne verticale */}
-                <div className="absolute left-[18px] top-2 bottom-2 w-px bg-gray-200" />
-                <div className="space-y-1">
-                  {monthEvents.map((e: any, i: number) => {
-                    const isAlert = isAlertType(e.type);
-                    const d = new Date(e.date || e.createdAt);
-                    return (
-                      <div key={i} className={`flex items-start gap-4 py-2 rounded-lg hover:bg-gray-50/50 cursor-pointer ${isAlert ? "bg-red-50/30" : ""}`}>
-                        {/* Icône sur la ligne */}
-                        <div className={`w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-sm z-10 border-2 bg-white ${isAlert ? "border-red-300" : "border-gray-200"}`}>
-                          {getIcon(e.type)}
-                        </div>
-                        {/* Contenu */}
-                        <div className="flex-1 min-w-0 pt-1">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className={`text-sm font-medium ${isAlert ? "text-red-700" : "text-gray-800"}`}>
-                              {e.title || e.summary || e.label}
-                            </p>
-                            <span className="text-[11px] text-gray-400 flex-shrink-0">
-                              {formatDateTime(d)}
-                            </span>
-                          </div>
-                          {e.description && <p className="text-xs text-gray-500 mt-0.5">{e.description}</p>}
-                          {e.authorName && <p className="text-[11px] text-gray-400 mt-0.5">{e.authorName}</p>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function LoadingState() {
   return (
     <div className="flex items-center justify-center py-12">
@@ -960,9 +819,121 @@ function LoadingState() {
   );
 }
 
-
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} o`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+// ─── FacturesPanel ────────────────────────────────────────────────────────────
+
+const INVOICE_STATUS: Record<Invoice["status"], { label: string; color: string }> = {
+  DRAFT:        { label: "Brouillon",  color: "bg-slate-100 text-slate-600" },
+  READY:        { label: "Prête",      color: "bg-amber-50 text-amber-700" },
+  SIGNED:       { label: "Signée",     color: "bg-blue-50 text-blue-700" },
+  TRANSMITTED:  { label: "Transmise",  color: "bg-violet-50 text-violet-700" },
+  ACKNOWLEDGED: { label: "Accusée",    color: "bg-indigo-50 text-indigo-700" },
+  PAID:         { label: "Payée",      color: "bg-emerald-50 text-emerald-700" },
+  REJECTED:     { label: "Rejetée",    color: "bg-red-50 text-red-700" },
+  CANCELLED:    { label: "Annulée",    color: "bg-slate-100 text-slate-400" },
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://nami-production-f268.up.railway.app";
+
+function FacturesPanel({ patientId }: { patientId?: string }) {
+  const { accessToken } = useAuthStore();
+  const [pdfLoading, setPdfLoading] = useState<string | null>(null);
+
+  const { data: invoices = [], isLoading } = useQuery({
+    queryKey: ["patient-invoices", patientId],
+    queryFn: () => apiWithToken(accessToken!).billing.invoices({ patientId }),
+    enabled: !!accessToken && !!patientId,
+  });
+
+  async function downloadPDF(invoice: Invoice) {
+    setPdfLoading(invoice.id);
+    try {
+      const res = await fetch(`${API_URL}/billing/invoices/${invoice.id}/pdf`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) { toast.error("Erreur génération PDF"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `FSE-${invoice.invoiceNumber ?? invoice.id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erreur téléchargement PDF");
+    } finally {
+      setPdfLoading(null);
+    }
+  }
+
+  if (!patientId) {
+    return <p className="text-sm text-gray-400 italic py-8 text-center">Données patient non disponibles.</p>;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-5 h-5 border-2 border-[#5B4EC4] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (invoices.length === 0) {
+    return (
+      <div className="py-12 text-center space-y-3">
+        <p className="text-2xl">🧾</p>
+        <p className="text-sm text-gray-500">Aucune feuille de soins pour ce patient.</p>
+        <a
+          href="/facturation?tab=libre"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#EEEDFB] text-[#5B4EC4] hover:bg-[#DDD9F7] transition-colors"
+        >
+          Créer une note d&apos;honoraires
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {invoices.map((inv) => {
+        const meta = INVOICE_STATUS[inv.status];
+        const firstLine = inv.lines[0];
+        return (
+          <div key={inv.id} className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:shadow-sm transition-shadow">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${meta.color}`}>{meta.label}</span>
+                {inv.invoiceNumber && (
+                  <span className="text-[10px] text-gray-400 font-mono">{inv.invoiceNumber}</span>
+                )}
+              </div>
+              <p className="text-sm font-medium text-gray-800">
+                {formatDate(inv.careDate)}
+              </p>
+              {firstLine && (
+                <p className="text-[11px] text-gray-400 truncate">{firstLine.actLabel}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-sm font-semibold text-gray-700">
+                {inv.totalHonoraires.toFixed(2).replace(".", ",")} €
+              </span>
+              <button
+                onClick={() => downloadPDF(inv)}
+                disabled={pdfLoading === inv.id}
+                className="text-[11px] text-[#5B4EC4] hover:text-[#4940A8] font-medium disabled:opacity-50"
+              >
+                {pdfLoading === inv.id ? "…" : "PDF"}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
