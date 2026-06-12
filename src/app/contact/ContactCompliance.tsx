@@ -10,7 +10,7 @@ export function ContactCompliance() {
         <h2
           id="contact-compliance-title"
           className="text-2xl font-bold tracking-tight text-[#1A1A2E] sm:text-3xl"
-          style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+          style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
         >
           Adresse postale et CNIL
         </h2>
@@ -29,13 +29,11 @@ export function ContactCompliance() {
               </h3>
             </div>
             <address className="mt-4 text-sm not-italic leading-relaxed text-[#374151]">
-              Margot Vire — Nami
+              Nami pour la vie
               <br />
-              Hôpital Américain de Paris
+              311, rue Trébois
               <br />
-              55 boulevard du Château
-              <br />
-              92200 Neuilly-sur-Seine
+              92300 Levallois-Perret
               <br />
               France
             </address>

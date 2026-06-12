@@ -43,7 +43,7 @@ export function DocumentsOrphanSection({
           id={headerId}
           style={{
             fontFamily:
-              '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
+              'var(--font-jakarta), system-ui, sans-serif',
             fontSize: 18,
             fontWeight: 700,
             color: "#1A1A2E",

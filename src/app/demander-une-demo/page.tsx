@@ -90,7 +90,7 @@ export default function DemanderUneDemoPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FAFAF8", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#FAFAF8", fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}>
       <style>{`
         @media (max-width: 767px) {
           .demo-grid { grid-template-columns: 1fr !important; gap: 32px !important; }

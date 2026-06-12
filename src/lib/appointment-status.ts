@@ -212,11 +212,22 @@ export type AppointmentTab = "upcoming" | "pending" | "past" | "cancelled";
  * AppointmentRequest, pas les Appointment.
  */
 export function computeTab(
-  appt: { status: string },
+  appt: { status: string; startAt?: string },
 ): Exclude<AppointmentTab, "pending"> {
   if (isCancelledLike(appt.status) || appt.status === "NO_SHOW") {
     return "cancelled";
   }
   const cfg = STATUS_CFG[appt.status as AppointmentStatus];
-  return cfg?.isPast ? "past" : "upcoming";
+  if (cfg?.isPast) return "past";
+
+  // Fallback date : un RDV non clôturé dont la date est passée depuis plus
+  // de 24h bascule en "passés" côté UI, même si le soignant n'a pas changé
+  // le statut. Évite d'afficher avril en "à venir" quand on est en juin.
+  if (appt.startAt) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 1);
+    if (new Date(appt.startAt) < cutoff) return "past";
+  }
+
+  return "upcoming";
 }

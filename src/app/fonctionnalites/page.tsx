@@ -99,7 +99,7 @@ function PainBlock({ time, pain, solution, icon, delay = 0 }: {
         </div>
         <p style={{
           fontSize: 14, fontWeight: 600, color: C.text, margin: "0 0 6px", lineHeight: 1.35,
-          fontFamily: "'Plus Jakarta Sans',sans-serif",
+          fontFamily: "var(--font-jakarta),system-ui,sans-serif",
         }}>
           {flipped ? solution.title : pain}
         </p>
@@ -150,7 +150,7 @@ function GlowCard({ icon, title, desc, features, delay = 0 }: {
         )}
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ fontSize: 24, marginBottom: 14 }}>{icon}</div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", lineHeight: 1.3 }}>{title}</h3>
+          <h3 style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: "var(--font-jakarta),system-ui,sans-serif", lineHeight: 1.3 }}>{title}</h3>
           <p style={{ fontSize: 13, lineHeight: 1.6, color: "rgba(255,255,255,0.5)", margin: 0, fontFamily: "'Inter',sans-serif", marginBottom: features ? 14 : 0 }}>{desc}</p>
           {features && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
@@ -181,7 +181,7 @@ export default function FeaturesPage() {
       {/* HERO */}
       <section style={{ paddingTop: 40, paddingBottom: 20, paddingLeft: 24, paddingRight: 24, textAlign: "center", maxWidth: 780, margin: "0 auto" }}>
         <Fade>
-          <h1 style={{ fontSize: "clamp(2rem,5.5vw,3.4rem)", fontWeight: 800, color: C.text, lineHeight: 1.06, letterSpacing: "-.04em", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          <h1 style={{ fontSize: "clamp(2rem,5.5vw,3.4rem)", fontWeight: 800, color: C.text, lineHeight: 1.06, letterSpacing: "-.04em", fontFamily: "var(--font-jakarta),system-ui,sans-serif" }}>
             Imaginez ne faire <span style={{ background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>que votre métier.</span>
           </h1>
         </Fade>
@@ -193,7 +193,7 @@ export default function FeaturesPage() {
           </p>
         </Fade>
         <Fade delay={0.14}>
-          <p style={{ fontSize: 15, color: C.text, fontWeight: 700, marginTop: 20, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          <p style={{ fontSize: 15, color: C.text, fontWeight: 700, marginTop: 20, fontFamily: "var(--font-jakarta),system-ui,sans-serif" }}>
             Inimaginable ? C&apos;est pourtant ce que Nami propose.
           </p>
         </Fade>
@@ -208,7 +208,7 @@ export default function FeaturesPage() {
               [2362, "", "Étapes"], [PROVIDERS_COUNT, "+", "Soignants"], [425, "", "Pathologies"],
             ] as [number, string, string][]).map(([n, s, l], i) => (
               <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "clamp(.9rem,2vw,1.3rem)", fontWeight: 800, background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+                <div style={{ fontSize: "clamp(.9rem,2vw,1.3rem)", fontWeight: 800, background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-jakarta),system-ui,sans-serif" }}>
                   <AnimNum end={n} suffix={s} delay={i * 50} />
                 </div>
                 <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'Inter',sans-serif", marginTop: 1 }}>{l}</div>
@@ -222,7 +222,7 @@ export default function FeaturesPage() {
       <section style={{ padding: "32px 24px 36px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <Fade>
-            <h2 style={{ fontSize: "clamp(1.4rem,3.5vw,2.2rem)", fontWeight: 800, color: C.text, lineHeight: 1.08, letterSpacing: "-.03em", fontFamily: "'Plus Jakarta Sans',sans-serif", textAlign: "center", marginBottom: 6 }}>
+            <h2 style={{ fontSize: "clamp(1.4rem,3.5vw,2.2rem)", fontWeight: 800, color: C.text, lineHeight: 1.08, letterSpacing: "-.03em", fontFamily: "var(--font-jakarta),system-ui,sans-serif", textAlign: "center", marginBottom: 6 }}>
               Tout ce que vous faites. Et que personne ne paie.
             </h2>
             <p style={{ fontSize: 14, color: C.textMut, textAlign: "center", marginBottom: 24, fontFamily: "'Inter',sans-serif" }}>
@@ -273,7 +273,7 @@ export default function FeaturesPage() {
       <section style={{ padding: "36px 24px 44px", background: C.dark }}>
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <Fade>
-            <h2 style={{ fontSize: "clamp(1.5rem,3.5vw,2.2rem)", fontWeight: 800, color: "#fff", letterSpacing: "-.03em", fontFamily: "'Plus Jakarta Sans',sans-serif", textAlign: "center", marginBottom: 8 }}>
+            <h2 style={{ fontSize: "clamp(1.5rem,3.5vw,2.2rem)", fontWeight: 800, color: "#fff", letterSpacing: "-.03em", fontFamily: "var(--font-jakarta),system-ui,sans-serif", textAlign: "center", marginBottom: 8 }}>
               Sous le capot.
             </h2>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", textAlign: "center", fontFamily: "'Inter',sans-serif", marginBottom: 28 }}>
@@ -317,7 +317,7 @@ export default function FeaturesPage() {
             <Fade key={i} delay={i * 0.05}>
               <div style={{ padding: "20px 18px", borderRadius: 12, background: "#fff", border: `1px solid ${C.border}`, height: "100%" }}>
                 <div style={{ fontSize: 20, marginBottom: 8 }}>{icon}</div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{title}</h4>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: "var(--font-jakarta),system-ui,sans-serif" }}>{title}</h4>
                 <p style={{ fontSize: 12, color: C.textSec, margin: 0, lineHeight: 1.55, fontFamily: "'Inter',sans-serif" }}>{desc}</p>
               </div>
             </Fade>
@@ -338,7 +338,7 @@ export default function FeaturesPage() {
       {/* CTA */}
       <section style={{ padding: "36px 24px 44px", textAlign: "center" }}>
         <Fade>
-          <h2 style={{ fontSize: "clamp(1.6rem,4.5vw,2.6rem)", fontWeight: 800, color: C.text, lineHeight: 1.06, letterSpacing: "-.04em", marginBottom: 10, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          <h2 style={{ fontSize: "clamp(1.6rem,4.5vw,2.6rem)", fontWeight: 800, color: C.text, lineHeight: 1.06, letterSpacing: "-.04em", marginBottom: 10, fontFamily: "var(--font-jakarta),system-ui,sans-serif" }}>
             Arrêtez de compenser. <span style={{ background: C.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Commencez à soigner.</span>
           </h2>
         </Fade>
@@ -350,7 +350,7 @@ export default function FeaturesPage() {
         <Fade delay={0.1}>
           <Link
             href="/signup"
-            style={{ display: "inline-block", padding: "16px 36px", borderRadius: 11, background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none", fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: "0 6px 24px rgba(91,78,196,.25)", transition: "transform .2s, box-shadow .2s" }}
+            style={{ display: "inline-block", padding: "16px 36px", borderRadius: 11, background: C.primary, color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none", fontFamily: "var(--font-jakarta),system-ui,sans-serif", boxShadow: "0 6px 24px rgba(91,78,196,.25)", transition: "transform .2s, box-shadow .2s" }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 10px 32px rgba(91,78,196,.35)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "none"; (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 6px 24px rgba(91,78,196,.25)"; }}
           >Commencer gratuitement</Link>

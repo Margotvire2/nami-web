@@ -149,7 +149,7 @@ export function ContactForm() {
             <h2
               id="contact-form-title"
               className="text-2xl font-bold tracking-tight text-[#1A1A2E] sm:text-3xl"
-              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+              style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
             >
               Écrire au support
             </h2>

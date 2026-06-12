@@ -34,7 +34,7 @@ export function ContactCard({ point }: Props) {
 
         <h3
           className="mt-5 text-lg font-semibold text-[#1A1A2E]"
-          style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+          style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
         >
           {point.title}
         </h3>

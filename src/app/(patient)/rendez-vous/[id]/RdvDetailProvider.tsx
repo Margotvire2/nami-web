@@ -23,7 +23,11 @@ function cleanPlaceholder(value: string | null | undefined): string | null {
 export function RdvDetailProvider({ appointment }: RdvDetailProviderProps) {
   const providerName = getProviderName(appointment);
   const providerId = appointment.provider?.id;
-  const specialty = appointment.provider?.specialties?.[0] ?? null;
+  const rawSpecialty = appointment.provider?.specialties?.[0] ?? null;
+  // Les codes RPPS sont courts et tout en majuscules (ex: "MY", "SM", "MK").
+  // On les masque : le patient voit un libellé humain ou rien.
+  const isRppsCode = rawSpecialty !== null && /^[A-Z]{1,4}$/.test(rawSpecialty);
+  const specialty = isRppsCode ? null : rawSpecialty;
 
   const isVideo = appointment.locationType === "VIDEO" || appointment.locationType === "TELECONSULTATION";
   const isPhone = appointment.locationType === "PHONE";

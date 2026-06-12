@@ -11,7 +11,7 @@ export function ContactFinalCTA() {
         <h2
           id="contact-final-cta-title"
           className="text-2xl font-bold tracking-tight text-[#1A1A2E] sm:text-3xl"
-          style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+          style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
         >
           Une question simple ?
         </h2>

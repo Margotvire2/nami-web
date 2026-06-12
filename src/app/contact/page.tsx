@@ -43,7 +43,7 @@ export default function ContactPage() {
     <main
       id="main"
       className="bg-[#FAFAF8]"
-      style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+      style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
     >
       <ContactHero />
       <ContactGrid />

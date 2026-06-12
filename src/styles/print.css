@@ -49,10 +49,34 @@
   [data-print="hide"],
   button,
   [role="button"]:not(.print-keep),
-  .fixed,
   .sticky,
   [aria-label="Navigation"],
   [aria-label="Menu"] {
+    display: none !important;
+  }
+
+  /* Éléments fixed : cachés PAR DÉFAUT. Exception : ceux qui contiennent
+     le contenu à imprimer (ex: drawer EntityHub avec .print-content). */
+  .fixed:not(:has(.print-content)) {
+    display: none !important;
+  }
+
+  /* Le drawer qui contient le print-content devient statique pour prendre
+     toute la largeur de la page imprimée. */
+  .fixed:has(.print-content) {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    inset: auto !important;
+    transform: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Cacher le reste du document quand on imprime depuis un drawer. */
+  body:has(.fixed .print-content) > *:not(:has(.print-content)) {
     display: none !important;
   }
 

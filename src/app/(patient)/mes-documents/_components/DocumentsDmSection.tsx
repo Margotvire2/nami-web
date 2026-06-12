@@ -56,7 +56,7 @@ export function DocumentsDmSection({ groups }: DocumentsDmSectionProps) {
           id={headerId}
           style={{
             fontFamily:
-              '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
+              'var(--font-jakarta), system-ui, sans-serif',
             fontSize: 18,
             fontWeight: 700,
             color: "#1A1A2E",
@@ -104,7 +104,7 @@ export function DocumentsDmSection({ groups }: DocumentsDmSectionProps) {
                   id={subHeaderId}
                   style={{
                     fontFamily:
-                      '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
+                      'var(--font-jakarta), system-ui, sans-serif',
                     fontSize: 14,
                     fontWeight: 600,
                     color: "#374151",

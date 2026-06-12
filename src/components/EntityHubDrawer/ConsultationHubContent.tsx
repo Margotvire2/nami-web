@@ -18,24 +18,9 @@ import {
   locationLabel,
 } from "./_shared";
 import { UploadToConsultationDialog } from "./UploadToConsultationDialog";
-import { NoteMarkdown } from "@/components/consultation-note/NoteMarkdown";
-
 interface Props {
   data: EntityHubConsultation;
   careCaseId: string;
-}
-
-function formatObservationValue(o: EntityHubConsultation["observations"][number]): string {
-  if (o.valueNumeric !== null) {
-    return `${o.valueNumeric}${o.unit ? ` ${o.unit}` : ""}`;
-  }
-  if (o.valueText !== null && o.valueText.length > 0) {
-    return o.valueText;
-  }
-  if (o.valueBoolean !== null) {
-    return o.valueBoolean ? "Oui" : "Non";
-  }
-  return "—";
 }
 
 /**
@@ -58,20 +43,24 @@ function sortedDocumentTypeKeys(
   });
 }
 
+function cleanSpecialty(s: string | null): string | null {
+  if (!s) return null;
+  return /^[A-Z]{1,4}$/.test(s) ? null : s;
+}
+
 export function ConsultationHubContent({ data, careCaseId }: Props) {
   const { openEntityHub } = useEntityHubControls();
   const [uploadOpen, setUploadOpen] = useState(false);
   const {
     consultation,
-    clinicalNote,
     documentsByType,
-    observations,
     nextAppointment,
     prescriptions,
   } = data;
 
   const providerFullName =
     `${consultation.provider.firstName} ${consultation.provider.lastName}`.trim();
+  const providerSpecialty = cleanSpecialty(consultation.provider.specialty);
   const otherDocTypeKeys = sortedDocumentTypeKeys(documentsByType);
   const hasOtherDocuments = otherDocTypeKeys.length > 0;
 
@@ -87,7 +76,7 @@ export function ConsultationHubContent({ data, careCaseId }: Props) {
   return (
     <div className="space-y-5 pb-24 print-content">
       <PrintHeader
-        documentLabel="Compte-rendu de consultation"
+        documentLabel="Récapitulatif de consultation"
         reference={consultation.id}
       />
       <section>
@@ -109,63 +98,11 @@ export function ConsultationHubContent({ data, careCaseId }: Props) {
             aria-label={`Voir la fiche du soignant ${providerFullName}`}
           >
             Avec {providerFullName}
-            {consultation.provider.specialty
-              ? `, ${consultation.provider.specialty}`
-              : ""}
+            {providerSpecialty ? `, ${providerSpecialty}` : ""}
             {" · Voir la fiche du soignant"}
           </button>
         </HubCard>
       </section>
-
-      <section>
-        <SectionLabel>Compte-rendu</SectionLabel>
-        {clinicalNote === null ? (
-          <HubCard>
-            <p className="text-xs text-[#6B7280] italic m-0">
-              Votre soignant n&apos;a pas encore partagé son compte-rendu pour
-              cette consultation.
-            </p>
-          </HubCard>
-        ) : (
-          <HubCard>
-            <div className="text-sm text-[#374151]">
-              <NoteMarkdown content={clinicalNote.body} />
-            </div>
-            <div className="text-[10px] text-[#9CA3AF] mt-3">
-              Rédigé le {formatDate(clinicalNote.createdAt)}
-            </div>
-          </HubCard>
-        )}
-      </section>
-
-      {clinicalNote !== null && (
-        <section>
-          <SectionLabel>Ce qui a été noté</SectionLabel>
-          {observations.length === 0 ? (
-            <EmptyLine>
-              Aucune mesure n&apos;a été notée pendant cette consultation.
-            </EmptyLine>
-          ) : (
-            <div className="space-y-2">
-              {observations.map((o) => (
-                <HubCard key={o.id}>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-xs text-[#6B7280]">
-                      {o.metricLabel}
-                    </span>
-                    <span className="text-sm font-semibold text-[#1A1A2E]">
-                      {formatObservationValue(o)}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-[#9CA3AF] mt-1">
-                    {formatDate(o.effectiveAt)}
-                  </div>
-                </HubCard>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
       {prescriptions.length > 0 && (
         <section>
@@ -274,7 +211,7 @@ export function ConsultationHubContent({ data, careCaseId }: Props) {
           aria-label="Imprimer le compte-rendu"
         >
           <Printer size={16} aria-hidden="true" />
-          Imprimer CR
+          Imprimer
         </button>
         <button
           type="button"

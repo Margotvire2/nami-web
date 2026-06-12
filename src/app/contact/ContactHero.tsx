@@ -22,7 +22,7 @@ export function ContactHero() {
         <h1
           id="contact-hero-title"
           className="mt-6 text-4xl font-bold tracking-tight text-[#1A1A2E] sm:text-5xl"
-          style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+          style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
         >
           Nous contacter
         </h1>
