@@ -77,7 +77,7 @@ Le vocabulaire technique sert en meeting. Les pages publiques utilisent le vocab
 
 ### Code
 - TypeScript strict, 0 erreur TSC
-- Check : /Users/margotvire/nami-web/node_modules/.bin/tsc -p /Users/margotvire/nami-web/tsconfig.json --noEmit
+- Check : /Users/margotvire/Nami\ Home/nami-web/node_modules/.bin/tsc -p /Users/margotvire/Nami\ Home/nami-web/tsconfig.json --noEmit
 - Prisma migrations uniquement (JAMAIS db push en prod — risque sur index knowledge)
 - router.refresh() au lieu de window.location.reload()
 - Pas de texte hardcodé quand une variable existe
@@ -122,10 +122,51 @@ Nami remplit la case vide : coordination pluridisciplinaire ville-hôpital + int
 ### Espace patient /(patient)/
 /accueil /rendez-vous /mes-documents /mes-messages /mon-compte
 
-## Skills de référence
-- Avant de construire une page pitch ou investisseur : lire docs/pitch-deck-scroll/SKILL.md et ses references/
-- Avant d'écrire du copy marketing ou UI : respecter les mots interdits ci-dessus
-- Avant de toucher au design : palette Nami + proportions premium (sections 100vh, titres géants)
+## Skills — allocation par niveaux
+
+### NIVEAU 1 — Socle qualité (invoquer sur tout travail UI/front)
+Ces skills ne sont pas spécialisés — ils définissent le niveau de qualité minimum.
+
+| Skill | Rôle |
+|-------|------|
+| `/emil-design-eng` | Philosophie polish UI : micro-interactions, détails invisibles, ce qui fait qu'une interface "feel great". Lire avant de concevoir ou coder un composant. |
+| `/impeccable` | Passe finale avant livraison. Vérifie que rien ne cloche : wording, espacement, states, edge cases visuels. |
+| `/nami-platform-coherence` | Garde-fou structurel : doublons d'entités/routes/composants, invariants Person-centric, effets de bord cross-feature. |
+
+### NIVEAU 2 — Selon la nature de la tâche
+
+**Composant / page UI (nouvelle ou refonte)**
+- `/nami-design-system` — contraintes Nami (palette, typography, tokens)
+- `/ui-ux-pro-max` — si décisions design system complexes ou multi-composants
+- `/ux-obviousness` — si risque de confusion utilisateur (formulaires, flows)
+
+**Copy visible par l'utilisateur**
+- `/nami-brand-copy` + `/nami-legal` — toujours en paire (ton + conformité MDR)
+
+**Architecture / performance React**
+- `/react-best-practices` — waterfalls, bundle, rendering, patterns Next.js
+- `/senior-frontend` — décisions d'architecture structurantes
+
+**Pages marketing / pitch / investisseur**
+- `/high-end-visual-design` — sections 100vh, titres géants, animations premium
+
+**Pages SEO publiques**
+- `/seo-optimizer` — annuaire, pathologies, blog
+
+**Mobile**
+- `/react-native-ux` — tout ce qui tourne sur iOS/Android via Expo
+
+**Features IA (prompts, agents, Claude API)**
+- `/context-engineering:context-fundamentals` — bases contexte LLM
+- `/context-engineering:context-optimization` — optimisation tokens/qualité
+- `/claude-api` — paramètres, pricing, streaming, tool use
+
+**Tests**
+- `/webapp-testing` — scénarios Playwright
+
+### NIVEAU 3 — Ponctuels (invoquer explicitement si besoin)
+`/code-review` `/simplify` `/git-commit-helper` `/verify` `/brainstorming`
+`/nami-security-audit` `/deep-research` `/audit-360-nami`
 
 ## Garde-fou conflict markers
 
