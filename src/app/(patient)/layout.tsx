@@ -8,6 +8,7 @@ import { PatientSidebar } from "@/components/patient/PatientSidebar";
 import { PatientBottomNav } from "@/components/patient/PatientBottomNav";
 import { PatientLegalFooter } from "@/components/patient/PatientLegalFooter";
 import { EntityHubProvider } from "@/contexts/EntityHubContext";
+import { AiConsentModal } from "@/components/patient/AiConsentModal";
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -62,6 +63,8 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
           </main>
         </div>
         <PatientBottomNav className="md:hidden flex" />
+        {/* RGPD Art. 21 — modale de recueil du consentement traitement IA */}
+        <AiConsentModal />
       </div>
     </EntityHubProvider>
   );

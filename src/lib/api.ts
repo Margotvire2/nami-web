@@ -6,6 +6,18 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Vérifie si une erreur est une erreur de consentement IA (RGPD Art. 21).
+ * Retourne true si l'erreur est un ApiError 403 avec code "AI_CONSENT_REQUIRED".
+ */
+export function isAiConsentRequired(err: unknown): boolean {
+  return (
+    err instanceof ApiError &&
+    err.status === 403 &&
+    (err.body as Record<string, unknown>)?.code === "AI_CONSENT_REQUIRED"
+  );
+}
+
 // ─── Token refresh state (singleton, pas de refresh en parallèle) ────────────
 
 let refreshPromise: Promise<string | null> | null = null;
