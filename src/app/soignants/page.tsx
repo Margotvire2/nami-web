@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Soignants spécialisés — Nami",
   description:
     "Trouvez un professionnel de santé spécialisé en TCA, nutrition, obésité. Profils vérifiés RPPS, prise de rendez-vous en ligne.",
+  alternates: { canonical: "/soignants" },
   openGraph: {
     title: "Soignants spécialisés — Nami",
     description: "Trouvez un professionnel de santé spécialisé en TCA, nutrition, obésité. Profils vérifiés RPPS.",

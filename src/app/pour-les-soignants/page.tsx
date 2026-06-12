@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { PitchFounder } from "@/components/pitch/PitchFounder"
 import { PitchPricing } from "@/components/pitch/PitchPricing"
 import { PitchCTA } from "@/components/pitch/PitchCTA"
@@ -13,18 +14,18 @@ import { LibFeatures } from "@/components/lib/LibFeatures"
 import { ScrollReveal } from "@/components/ui/ScrollReveal"
 
 export const metadata: Metadata = {
-  title: "Nami — Pour les soignants",
+  title: "Coordination soins pluridisciplinaire — Outil pour soignants | Nami",
   description:
-    "Coordonnez votre équipe de soins, centralisez la communication et accédez aux recommandations HAS depuis un seul espace. Conçu par une soignante.",
+    "Dossier de coordination partagé, dictée IA sourcée HAS, adressage sécurisé, réseau soignants. Nami coordonne les parcours complexes entre soignants — TCA, obésité, pédiatrie. Gratuit.",
   keywords: [
-    "soignants",
-    "coordination soins",
-    "dictée médicale",
+    "coordination soins pluridisciplinaire",
+    "dossier coordination soignants",
+    "dictée médicale IA",
     "adressage sécurisé",
-    "dossier de coordination",
-    "pluridisciplinaire",
-    "base documentaire",
+    "logiciel coordination soins",
+    "parcours soins complexes",
     "réseau soignants",
+    "TCA diététicien coordination",
   ],
   alternates: { canonical: "/pour-les-soignants" },
   openGraph: {
@@ -58,32 +59,48 @@ export const metadata: Metadata = {
   },
 }
 
-const SPECIALITES = [
-  "Diététicien·ne",
-  "Médecin généraliste",
-  "Psychologue",
-  "Psychiatre",
-  "Infirmier·ère",
-  "Médecin nutritionniste",
-  "Pédiatre",
-  "Sage-femme",
-  "Kinésithérapeute",
-  "Orthophoniste",
-  "Ergothérapeute",
-  "Endocrinologue",
-  "Gastro-entérologue",
-  "Chirurgien bariatrique",
-  "Allergologue",
-  "Rhumatologue",
-  "Neurologue",
-  "Cardiologue",
+const SPECIALITES: { label: string; slug: string }[] = [
+  { label: "Diététicien·ne",        slug: "dieteticien" },
+  { label: "Médecin généraliste",   slug: "medecin-generaliste" },
+  { label: "Psychologue",           slug: "psychologue" },
+  { label: "Psychiatre",            slug: "psychiatre" },
+  { label: "Infirmier·ère",         slug: "infirmier" },
+  { label: "Médecin nutritionniste",slug: "medecin-nutritionniste" },
+  { label: "Pédiatre",              slug: "pediatre" },
+  { label: "Sage-femme",            slug: "sage-femme" },
+  { label: "Kinésithérapeute",      slug: "kinesitherapeute" },
+  { label: "Orthophoniste",         slug: "orthophoniste" },
+  { label: "Ergothérapeute",        slug: "ergotherapeute" },
+  { label: "Endocrinologue",        slug: "endocrinologue" },
+  { label: "Gastro-entérologue",    slug: "gastro-enterologue" },
+  { label: "Chirurgien bariatrique",slug: "chirurgien-bariatrique" },
+  { label: "Allergologue",          slug: "allergologue" },
+  { label: "Rhumatologue",          slug: "rhumatologue" },
+  { label: "Neurologue",            slug: "neurologue" },
+  { label: "Cardiologue",           slug: "cardiologue" },
+]
+
+const PATHOLOGIES_MAILLAGE = [
+  { label: "Anorexie mentale",         slug: "anorexie-mentale",             emoji: "🩺" },
+  { label: "Boulimie nerveuse",        slug: "boulimie-nerveuse",            emoji: "🔄" },
+  { label: "ARFID",                    slug: "arfid",                        emoji: "🧒" },
+  { label: "Obésité complexe",         slug: "obesite",                      emoji: "⚖️" },
+  { label: "Diabète type 2",           slug: "diabete-type-2",               emoji: "💉" },
+  { label: "TDAH",                     slug: "tdah",                         emoji: "🧠" },
 ]
 
 export default function PourLesSoignantsPage() {
   return (
     <div style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}>
 
-      <LibHero />
+      <LibHero
+        eyebrow="POUR LES SOIGNANTS"
+        lines={["Coordonnez votre équipe", "de soins complexes."]}
+        gradientWords={["complexes."]}
+        subtitle="Dossier partagé, dictée IA sourcée HAS, adressage sécurisé entre confrères. Nami s'occupe de l'infrastructure — vous vous occupez du soin. Conçu par une soignante qui a exercé."
+        ctaPrimary={{ label: "Essayer gratuitement →", href: "/signup/professional" }}
+        ctaSecondary={{ label: "Voir comment ça marche ↓", href: "#comment-ca-marche" }}
+      />
 
       {/* Validation notice — annoncé dès l'arrivée, pas à l'étape 7 du wizard */}
       <div style={{
@@ -125,9 +142,10 @@ export default function PourLesSoignantsPage() {
               Libéral ou salarié, médical ou paramédical — Nami s&apos;adapte à votre pratique.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {SPECIALITES.map((s) => (
-                <span
-                  key={s}
+              {SPECIALITES.map(({ label, slug }) => (
+                <Link
+                  key={slug}
+                  href={`/professions/${slug}`}
                   style={{
                     display: "inline-block",
                     padding: "7px 16px",
@@ -137,23 +155,101 @@ export default function PourLesSoignantsPage() {
                     fontSize: 13,
                     fontWeight: 500,
                     color: "#374151",
+                    textDecoration: "none",
+                    transition: "border-color 0.2s, color 0.2s",
                   }}
                 >
-                  {s}
-                </span>
+                  {label}
+                </Link>
               ))}
-              <span style={{
-                display: "inline-block",
-                padding: "7px 16px",
-                borderRadius: 999,
-                background: "rgba(91,78,196,0.06)",
-                border: "1px solid rgba(91,78,196,0.15)",
-                fontSize: 13,
-                fontWeight: 500,
-                color: "#5B4EC4",
-              }}>
+              <Link
+                href="/professions"
+                style={{
+                  display: "inline-block",
+                  padding: "7px 16px",
+                  borderRadius: 999,
+                  background: "rgba(91,78,196,0.06)",
+                  border: "1px solid rgba(91,78,196,0.15)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "#5B4EC4",
+                  textDecoration: "none",
+                }}
+              >
                 + d&apos;autres spécialités
-              </span>
+              </Link>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ─── PATHOLOGIES — MAILLAGE INTERNE ─────────────────────────── */}
+      <section style={{
+        background: "#F5F3EF",
+        padding: "64px clamp(24px, 5vw, 80px)",
+        borderBottom: "1px solid rgba(26,26,46,0.05)",
+      }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <ScrollReveal variant="fade-up" duration={0.6}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2BA89C", marginBottom: 12 }}>
+              PATHOLOGIES COORDONNÉES
+            </div>
+            <h2 style={{
+              fontSize: "clamp(1.4rem, 3vw, 2.1rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "#1A1A2E",
+              margin: "0 0 8px",
+              fontFamily: "var(--font-jakarta)",
+            }}>
+              Chaque parcours complexe a son protocole.
+            </h2>
+            <p style={{ fontSize: 15, color: "#6B7280", marginBottom: 28, maxWidth: 520 }}>
+              Nami est structuré autour des pathologies qui demandent plusieurs soignants. Explorez les fiches cliniques.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+              {PATHOLOGIES_MAILLAGE.map(({ label, slug, emoji }) => (
+                <Link
+                  key={slug}
+                  href={`/pathologies/${slug}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "14px 18px",
+                    borderRadius: 12,
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(26,26,46,0.07)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#1A1A2E",
+                    textDecoration: "none",
+                    transition: "border-color 0.2s, box-shadow 0.2s",
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{emoji}</span>
+                  {label}
+                </Link>
+              ))}
+              <Link
+                href="/pathologies"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "14px 18px",
+                  borderRadius: 12,
+                  background: "rgba(43,168,156,0.05)",
+                  border: "1px solid rgba(43,168,156,0.2)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#2BA89C",
+                  textDecoration: "none",
+                }}
+              >
+                <span>📋</span>
+                Toutes les pathologies →
+              </Link>
             </div>
           </ScrollReveal>
         </div>

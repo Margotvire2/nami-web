@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Pathologies — Fiches cliniques et parcours de soins",
   description:
     "Fiches cliniques complètes : TCA (anorexie, boulimie, BED, ARFID), obésité, diabète, SOPK, NAFLD, dépression, anxiété. Critères diagnostiques, bilans, traitements. Sources HAS, FFAB, ESPGHAN.",
+  alternates: { canonical: "/pathologies" },
   openGraph: {
     title: "Pathologies — Fiches cliniques | Nami",
     description: "Fiches cliniques validées pour les parcours de soins complexes. TCA, obésité, métabolisme, pédiatrie, santé mentale.",

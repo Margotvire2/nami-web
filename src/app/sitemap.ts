@@ -5,14 +5,14 @@ const BASE = "https://namipourlavie.com"
 
 // Dates de dernière mise à jour réelles — mettre à jour à chaque refonte significative
 const LAST = {
-  home:       "2026-04-21",
-  pathologies:"2026-04-24",
-  blog:       "2026-04-21",
-  annuaire:   "2026-04-14",
-  soignants:  "2026-04-21",
-  professions:"2026-04-21",
-  legal:      "2026-04-24",
-  patient:    "2026-05-26",
+  home:       "2026-06-11",
+  pathologies:"2026-06-11",
+  blog:       "2026-06-11",
+  annuaire:   "2026-06-11",
+  soignants:  "2026-06-11",
+  professions:"2026-06-11",
+  legal:      "2026-06-11",
+  patient:    "2026-06-11",
 }
 
 const PROFESSION_SLUGS = [
@@ -45,34 +45,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // NB. /login + /signup retirés : ils étaient Disallow dans robots.txt → signal
   // contradictoire. Pages auth = pas de valeur SEO.
   const staticPages: MetadataRoute.Sitemap = [
+    // ── Core ────────────────────────────────────────────────────────────────────
     { url: BASE,                                    lastModified: LAST.home,        changeFrequency: "weekly",  priority: 1.0 },
-    { url: `${BASE}/patient`,                       lastModified: LAST.patient,     changeFrequency: "weekly",  priority: 0.9 },
+    // ── Funnels audience (URLs canoniques post-refonte 2026-06) ─────────────────
+    { url: `${BASE}/pour-les-soignants`,            lastModified: LAST.soignants,   changeFrequency: "weekly",  priority: 0.95 },
+    { url: `${BASE}/pour-les-patients`,             lastModified: LAST.patient,     changeFrequency: "weekly",  priority: 0.9 },
+    { url: `${BASE}/pour-les-structures`,           lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.85 },
+    // ── Découverte & conversion ──────────────────────────────────────────────────
     { url: `${BASE}/trouver-un-soignant`,           lastModified: now,              changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE}/pathologies`,                   lastModified: LAST.pathologies, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/blog`,                          lastModified: now,              changeFrequency: "daily",   priority: 0.85 },
     { url: `${BASE}/tarifs`,                        lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.85 },
-    { url: `${BASE}/annuaire-public`,               lastModified: now,              changeFrequency: "weekly",  priority: 0.8 },
-    { url: `${BASE}/soignants`,                     lastModified: LAST.soignants,   changeFrequency: "weekly",  priority: 0.8 },
     { url: `${BASE}/fonctionnalites`,               lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/pour-structures`,               lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/soignants-liberaux`,            lastModified: LAST.soignants,   changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE}/soignants`,                     lastModified: LAST.soignants,   changeFrequency: "weekly",  priority: 0.8 },
+    { url: `${BASE}/demander-une-demo`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.75 },
     { url: `${BASE}/faq`,                           lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/comment-ca-marche`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/demander-une-demo`,             lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/pour-les-proches`,              lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.6 },
-    { url: `${BASE}/professions`,                   lastModified: LAST.professions, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${BASE}/clinique-pediatrique`,          lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.6 },
-    { url: `${BASE}/sante-des-femmes`,              lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.6 },
-    { url: `${BASE}/contact`,                       lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.5 },
-    { url: `${BASE}/gabrielle`,                     lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.5 },
+    { url: `${BASE}/pour-les-proches`,              lastModified: LAST.home,        changeFrequency: "monthly", priority: 0.65 },
+    { url: `${BASE}/professions`,                   lastModified: LAST.professions, changeFrequency: "monthly", priority: 0.65 },
+    // ── Institutionnel ───────────────────────────────────────────────────────────
     { url: `${BASE}/securite-et-donnees`,           lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.5 },
+    { url: `${BASE}/contact`,                       lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.5 },
     { url: `${BASE}/methodologie-editoriale`,       lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.4 },
     { url: `${BASE}/partenaires`,                   lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.4 },
     { url: `${BASE}/presse`,                        lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.4 },
-    { url: `${BASE}/protocole-recherche`,           lastModified: LAST.home,        changeFrequency: "yearly",  priority: 0.4 },
+    // ── Légales ──────────────────────────────────────────────────────────────────
     { url: `${BASE}/mentions-legales`,              lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
     { url: `${BASE}/confidentialite`,               lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
     { url: `${BASE}/cgu`,                           lastModified: LAST.legal,       changeFrequency: "yearly",  priority: 0.2 },
+    // Retirés (noindex / pages privées / redirects) :
+    // /patient → redirect → /pour-les-patients
+    // /pour-structures → redirect → /pour-les-structures
+    // /soignants-liberaux → redirect → /pour-les-soignants
+    // /clinique-pediatrique, /sante-des-femmes, /gabrielle → pitchs privés noindex
+    // /protocole-recherche → document interne noindex
   ]
 
   // ── Pathologies ──────────────────────────────────────────────────────────────

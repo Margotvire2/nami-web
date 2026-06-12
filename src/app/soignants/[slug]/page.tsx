@@ -64,6 +64,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `/soignants/${slug}` },
     openGraph: { title, description, images: [{ url: "/og-default.png", width: 1200, height: 630 }] },
   }
 }

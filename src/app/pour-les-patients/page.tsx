@@ -73,6 +73,15 @@ const jsonLd = {
   },
 };
 
+const PATHOLOGIES_PATIENTS: { label: string; slug: string; desc: string }[] = [
+  { label: "Troubles du comportement alimentaire", slug: "tca",            desc: "Anorexie, boulimie, ARFID — parcours impliquant diét., psy., psychiatre, médecin." },
+  { label: "Obésité complexe",                    slug: "obesite",        desc: "Suivi endocrino, diét., chirurgien bariatrique et médecin généraliste coordonnés." },
+  { label: "TDAH",                                slug: "tdah",           desc: "Psychiatre, psychologue, orthophoniste — votre équipe dans un seul dossier partagé." },
+  { label: "Diabète type 2",                      slug: "diabete-type-2", desc: "Endocrino, diét., infirmier : suivi pluridisciplinaire organisé et lisible." },
+  { label: "ARFID",                               slug: "arfid",         desc: "Pédopsychiatre, diét., orthophoniste et pédiatre — pour les enfants et adultes." },
+  { label: "Anorexie mentale",                    slug: "anorexie-mentale", desc: "Coordination somatique et psychique, suivi nutritionnel et somatique simultanés." },
+];
+
 interface Feature {
   icon: React.ElementType;
   title: string;
@@ -169,6 +178,20 @@ export default function PourLesPatientsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: FAQS.map(({ question, answer }) => ({
+              "@type": "Question",
+              name: question,
+              acceptedAnswer: { "@type": "Answer", text: answer },
+            })),
+          }),
+        }}
       />
 
       <main className="min-h-screen" style={{ background: "#FAFAF8" }}>
@@ -341,6 +364,61 @@ export default function PourLesPatientsPage() {
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── PATHOLOGIES ───────────────────────────────────────────────── */}
+        <section
+          style={{ padding: "60px 24px", background: "#fff" }}
+          aria-label="Pathologies prises en charge"
+        >
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2BA89C", marginBottom: 10 }}>
+                PARCOURS COMPLEXES
+              </div>
+              <h2
+                className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3"
+                style={{ color: "#1A1A2E", fontFamily: "var(--font-jakarta)" }}
+              >
+                Votre parcours implique plusieurs soignants ?
+              </h2>
+              <p style={{ color: "#6B7280", fontSize: 16, maxWidth: 540 }}>
+                Nami est structuré autour des pathologies qui demandent une coordination entre spécialistes. Trouvez votre situation.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {PATHOLOGIES_PATIENTS.map(({ label, slug, desc }) => (
+                <Link
+                  key={slug}
+                  href={`/pathologies/${slug}`}
+                  style={{
+                    display: "block",
+                    padding: "18px 20px",
+                    borderRadius: 14,
+                    background: "#FAFAF8",
+                    border: "1px solid rgba(26,26,46,0.06)",
+                    textDecoration: "none",
+                    transition: "border-color 0.2s, box-shadow 0.2s",
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 6, fontFamily: "var(--font-jakarta)" }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+                    {desc}
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div style={{ marginTop: 20 }}>
+              <Link
+                href="/pathologies"
+                style={{ fontSize: 14, fontWeight: 600, color: "#5B4EC4", textDecoration: "none" }}
+              >
+                Voir toutes les pathologies coordonnées →
+              </Link>
             </div>
           </div>
         </section>

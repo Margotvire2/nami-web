@@ -3,11 +3,11 @@ import Link from "next/link";
 import { HomeNav } from "@/components/home/HomeNav";
 import { HomeSticky } from "@/components/home/HomeSticky";
 import { Reveal } from "@/components/home/HomeReveal";
-import { AudiencePicker } from "@/components/AudiencePicker";
+import { AudienceConstellation } from "@/components/home/AudienceConstellation";
 import { PROVIDERS_COUNT_LABEL } from "@/lib/marketing-stats";
 
 export const metadata: Metadata = {
-  title: "Coordination des soins entre soignants | Nami",
+  title: "Logiciel coordination soins — TCA, obésité, pédiatrie | Nami",
   description: `Nami coordonne les parcours de soins complexes entre professionnels de santé. TCA, obésité, pédiatrie, nutrition pluridisciplinaire. Annuaire de ${PROVIDERS_COUNT_LABEL} professionnels en France.`,
   alternates: { canonical: "/" },
   openGraph: {
@@ -173,7 +173,7 @@ export default function HomePage() {
         }
       `}</style>
 
-      <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif", background: "var(--nami-white)", color: "var(--nami-text)" }}>
+      <div style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif", background: "var(--nami-white)", color: "var(--nami-text)" }}>
 
         {/* NAV — client component */}
         <HomeNav />
@@ -194,10 +194,13 @@ export default function HomePage() {
               <span style={{ color: "#5B4EC4", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Coordination des parcours complexes</span>
             </div>
 
-            <h1 className="hero-title" style={{ fontSize: "clamp(2rem,7vw,5.5rem)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.06, color: "var(--nami-text)", marginBottom: 28, overflowWrap: "break-word", hyphens: "auto" }} lang="fr">
-              Le soin est fragmenté.<br />
-              <span className="nami-gradient-text">Nami le coud.</span>
+            <h1 className="hero-title" style={{ fontSize: "clamp(2rem,7vw,5.5rem)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.06, color: "var(--nami-text)", marginBottom: 16, overflowWrap: "break-word", hyphens: "auto" }} lang="fr">
+              Coordonnez vos parcours<br />
+              <span className="nami-gradient-text">de soins complexes.</span>
             </h1>
+            <p className="hero-title" style={{ fontSize: "clamp(1rem, 2.2vw, 1.35rem)", fontWeight: 500, color: "var(--nami-text-3)", letterSpacing: "-0.01em", marginBottom: 20, fontStyle: "italic" }}>
+              Le soin est fragmenté. Nami le coud.
+            </p>
 
             <p className="hero-sub" style={{ fontSize: "clamp(1.05rem,1.8vw,1.3rem)", color: "var(--nami-text-2)", lineHeight: 1.7, maxWidth: 560, margin: "0 auto 44px" }}>
               Gabrielle a 10 ans, une anorexie, 3 soignants.
@@ -227,8 +230,8 @@ export default function HomePage() {
         {/* STICKY — client component */}
         <HomeSticky />
 
-        {/* ═══ AUDIENCE PICKER ════════════════════════════════════════════ */}
-        <AudiencePicker />
+        {/* ═══ AUDIENCE CONSTELLATION ═════════════════════════════════════ */}
+        <AudienceConstellation />
 
         {/* ═══ FEATURES BENTO ═════════════════════════════════════════════ */}
         {/* ═══ LA CHARGE INVISIBLE ════════════════════════════════════════ */}

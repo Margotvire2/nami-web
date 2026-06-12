@@ -114,8 +114,9 @@ export function middleware(request: NextRequest) {
   if (isProviderHost(host)) {
     if (pathname === "/" || pathname === "") {
       const token = request.cookies.get("nami-access-token")?.value;
-      const dest = token ? "/aujourd-hui" : "/login";
-      return NextResponse.redirect(new URL(dest, request.url));
+      if (token) return NextResponse.redirect(new URL("/aujourd-hui", request.url));
+      // Rewrite to the app landing page (noindex) — keeps URL as app.namipourlavie.com/
+      return NextResponse.rewrite(new URL("/app-landing", request.url));
     }
     if (pathname === "/signup" || pathname === "/signup/") {
       return NextResponse.rewrite(new URL("/signup/professional", request.url));

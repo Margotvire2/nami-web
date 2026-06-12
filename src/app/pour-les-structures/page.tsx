@@ -2,18 +2,43 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Nami pour les structures de santé — Coordination pluridisciplinaire",
+  title: "Coordination soins pluridisciplinaire — CPTS, MSP, hôpital | Nami",
   description:
-    "CPTS, MSP, réseau, fédération, hôpital ou clinique : pilotez la coordination de vos équipes et structurez les parcours de soins de votre établissement ou réseau.",
+    "CPTS, MSP, réseau, fédération, hôpital ou clinique : pilotez la coordination de vos équipes et structurez les parcours de soins. Dossier partagé, base documentaire HAS, adressage sécurisé.",
+  keywords: [
+    "coordination soins CPTS",
+    "logiciel coordination MSP",
+    "coordination pluridisciplinaire hôpital",
+    "outil coordination réseau santé",
+    "dossier partagé équipe soignante",
+    "parcours soins structuré",
+    "coordination ville hôpital",
+    "outil CPTS",
+  ],
   alternates: { canonical: "/pour-les-structures" },
   openGraph: {
-    title: "Nami pour les structures de santé",
+    title: "Nami pour les structures de santé — Coordination pluridisciplinaire",
     description:
-      "Pilotez la coordination de vos équipes et structurez les parcours de soins de votre établissement ou réseau. Validation manuelle par l'équipe en 24-48h.",
+      "Pilotez la coordination de vos équipes et structurez les parcours de soins. CPTS, MSP, réseaux, hôpitaux. Validation manuelle par l'équipe en 24-48h.",
     url: "https://namipourlavie.com/pour-les-structures",
     type: "website",
     siteName: "Nami",
     locale: "fr_FR",
+    images: [
+      {
+        url: "/og-image-structures.svg",
+        width: 1200,
+        height: 630,
+        alt: "Nami — Pour les structures de santé",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nami pour les structures de santé — Coordination pluridisciplinaire",
+    description:
+      "Pilotez la coordination de vos équipes : CPTS, MSP, réseaux, hôpitaux. Dossier partagé, base HAS, adressage sécurisé.",
+    images: ["/og-image-structures.svg"],
   },
   robots: {
     index: true,
@@ -93,7 +118,7 @@ export default function PourLesStructuresPage() {
   return (
     <main
       style={{
-        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+        fontFamily: "var(--font-jakarta), system-ui, sans-serif",
         background: "#FAFAF8",
         color: "#1A1A2E",
       }}

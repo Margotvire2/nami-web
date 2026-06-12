@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Conditions Générales d'Utilisation — Nami",
   description: "Conditions Générales d'Utilisation de la plateforme Nami",
+  alternates: { canonical: "/cgu" },
 };
 
 export default function CguPage() {

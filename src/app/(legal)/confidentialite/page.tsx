@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Politique de confidentialité — Nami",
   description: "Politique de confidentialité et traitement des données personnelles sur Nami",
+  alternates: { canonical: "/confidentialite" },
 };
 
 export default function ConfidentialitePage() {
