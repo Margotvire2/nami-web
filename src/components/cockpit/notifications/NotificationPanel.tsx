@@ -57,7 +57,7 @@ export function NotificationPanel({ isOpen, onClose, feed }: Props) {
         >
           <h2
             className="text-base font-bold text-[#1A1A2E]"
-            style={{ fontFamily: "Plus Jakarta Sans" }}
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             Notifications
           </h2>
@@ -92,7 +92,7 @@ export function NotificationPanel({ isOpen, onClose, feed }: Props) {
             href="/centre-notifications"
             onClick={onClose}
             className="flex items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-[#5B4EC4] hover:bg-[rgba(91,78,196,0.04)] transition-colors"
-            style={{ fontFamily: "Plus Jakarta Sans" }}
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             <span>Voir toutes les notifications</span>
             <ArrowRight className="w-4 h-4" aria-hidden="true" />

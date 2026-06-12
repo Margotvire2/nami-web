@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store";
 import { Settings } from "lucide-react";
 import { NotificationBell } from "@/components/cockpit/notifications/NotificationBell";
 import { useUnifiedInboxTotal } from "@/hooks/useUnifiedInboxTotal";
+import { useCapabilities } from "@/hooks/useCapabilities";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -34,6 +35,7 @@ const NAV_PATIENTS = [
   // après PR #214 qui avait oublié cette ligne.
   { href: "/intelligence", label: "Base documentaire",  emoji: "🔬" },
   { href: "/documents",    label: "Documents",          emoji: "📄" },
+  { href: "/ma-pratique",  label: "Ma pratique",        emoji: "📚" },
 ];
 
 const NAV_NETWORK = [
@@ -62,6 +64,7 @@ export function Sidebar() {
   // useCockpitDmUnreadTotal qui ne comptait que Pro malgré son nom — bug de
   // sémantique fixé en même temps que la refonte /messages.
   const messagesUnreadTotal = useUnifiedInboxTotal();
+  const { data: capabilities } = useCapabilities();
 
   useEffect(() => {
     if (user?.roleType !== "ADMIN" || !accessToken) return;
@@ -83,6 +86,13 @@ export function Sidebar() {
     "/messages": messagesUnreadTotal,
   };
 
+  // Items filtrés par capabilities — un item absent des capabilities n'apparaît pas du tout
+  const canBill = !capabilities || capabilities.invoiceModes.some((m) => m !== "NONE");
+  const navActivity = NAV_ACTIVITY.filter((item) => {
+    if (item.href === "/facturation") return canBill;
+    return true;
+  });
+
   return (
     <aside className="w-[220px] shrink-0 bg-white border-r border-[#E8ECF4] flex flex-col h-full">
       {/* Logo */}
@@ -96,7 +106,7 @@ export function Sidebar() {
 
       {/* Navigation — 3 blocs */}
       <nav className="flex-1 px-3 pt-3 overflow-y-auto">
-        <NavGroup items={NAV_ACTIVITY} isActive={isActive} badges={navBadges} />
+        <NavGroup items={navActivity} isActive={isActive} badges={navBadges} />
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />
         <NavGroup items={NAV_PATIENTS} isActive={isActive} badges={navBadges} />
         <div className="my-3 mx-2 h-px bg-[#F1F5F9]" />

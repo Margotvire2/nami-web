@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Bell, Check, Loader2 } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import CockpitMeshBackground from "@/components/cockpit/CockpitMeshBackground";
 import { useNotificationFeed } from "@/hooks/useNotificationFeed";
 import { useNotificationFilter } from "@/hooks/useNotificationFilter";
@@ -109,13 +109,13 @@ export function CentreNotificationsClient() {
         <header className="mb-6 md:mb-8">
           <h1
             className="text-2xl md:text-3xl font-bold text-[#1A1A2E] tracking-tight"
-            style={{ fontFamily: "Plus Jakarta Sans" }}
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             Notifications
           </h1>
           <p
             className="text-sm text-[#6B7280] mt-1"
-            style={{ fontFamily: "Inter" }}
+            style={{ fontFamily: "var(--font-data)" }}
             aria-live="polite"
           >
             {headerStatus}
@@ -141,28 +141,20 @@ export function CentreNotificationsClient() {
             role="status"
             aria-label={EMPTY_TITLE[filter]}
           >
-            {filter === "unread" ? (
-              <Check
-                size={32}
-                className="mx-auto mb-3 text-[#2BA89C]"
-                aria-hidden="true"
-              />
-            ) : (
-              <Bell
-                size={32}
-                className="mx-auto mb-3 text-[#6B7280] opacity-40"
-                aria-hidden="true"
-              />
-            )}
+            <Bell
+              size={32}
+              className="mx-auto mb-3 text-[#5B4EC4] opacity-40"
+              aria-hidden="true"
+            />
             <p
               className="text-sm font-medium text-[#1A1A2E] mb-1"
-              style={{ fontFamily: "Plus Jakarta Sans" }}
+              style={{ fontFamily: "var(--font-sans)" }}
             >
               {EMPTY_TITLE[filter]}
             </p>
             <p
               className="text-xs text-[#6B7280]"
-              style={{ fontFamily: "Inter" }}
+              style={{ fontFamily: "var(--font-data)" }}
             >
               {EMPTY_HINT[filter]}
             </p>
@@ -176,7 +168,7 @@ export function CentreNotificationsClient() {
         {!isLoading && allItems.length >= 50 && (
           <p
             className="text-xs text-[#6B7280] text-center mt-4"
-            style={{ fontFamily: "Inter" }}
+            style={{ fontFamily: "var(--font-data)" }}
           >
             Affichage des 50 dernières notifications. L&apos;historique complet
             sera disponible prochainement.

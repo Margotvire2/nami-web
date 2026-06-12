@@ -1,3 +1,5 @@
+import { Sparkles } from "lucide-react";
+
 export function DraftBadge() {
   return (
     <span
@@ -7,19 +9,20 @@ export function DraftBadge() {
         display: "inline-flex",
         alignItems: "center",
         gap: "4px",
-        background: "#FEF3C7",
-        color: "#92400E",
+        background: "rgba(43,168,156,0.10)",
+        color: "#2BA89C",
         fontSize: "11px",
-        fontWeight: 500,
+        fontWeight: 600,
         padding: "3px 9px",
         borderRadius: "20px",
-        fontFamily: "'Inter', system-ui, sans-serif",
+        fontFamily: "var(--font-data)",
         whiteSpace: "nowrap",
-        border: "1px solid rgba(146,64,14,0.15)",
+        border: "1px solid rgba(43,168,156,0.20)",
         lineHeight: 1.4,
       }}
     >
-      ⚡ Brouillon IA — à vérifier
+      <Sparkles size={10} aria-hidden="true" />
+      Brouillon IA — à vérifier
     </span>
   );
 }

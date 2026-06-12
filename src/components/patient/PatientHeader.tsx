@@ -93,7 +93,7 @@ export function PatientHeader() {
                 {unreadCount > 0 && (
                   <span
                     aria-live="polite"
-                    className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#DC2626] text-white text-[10px] font-bold flex items-center justify-center"
+                    className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#5B4EC4] text-white text-[10px] font-bold flex items-center justify-center"
                   >
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>

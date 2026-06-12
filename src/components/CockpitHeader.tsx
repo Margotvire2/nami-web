@@ -6,6 +6,7 @@ import { ChevronRight, Search } from "lucide-react"
 import { useCockpitHeader } from "@/contexts/CockpitHeaderContext"
 import { cn } from "@/lib/utils"
 import { StructureSwitcher } from "@/components/header/StructureSwitcher"
+import { NotificationBell } from "@/components/cockpit/notifications/NotificationBell"
 
 // ─── Breadcrumb labels ────────────────────────────────────────────────────────
 
@@ -92,6 +93,8 @@ export function CockpitHeader() {
       <div className="flex items-center gap-2 shrink-0">
         {/* Switcher multi-casquette — masqué automatiquement si pas pertinent */}
         <StructureSwitcher />
+
+        <NotificationBell />
 
         {/* ⌘K — barre de recherche visible (déclenche CommandPalette via keydown synthétique) */}
         <button

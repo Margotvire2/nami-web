@@ -94,7 +94,7 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.2)" }} />
-      <div style={{ position: "relative", width: 440, maxWidth: "94vw", maxHeight: "90vh", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 16px 48px rgba(0,0,0,0.12)", fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", padding: 24 }}>
+      <div style={{ position: "relative", width: 440, maxWidth: "94vw", maxHeight: "90vh", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 16px 48px rgba(0,0,0,0.12)", fontFamily: "var(--font-jakarta), system-ui, sans-serif", padding: 24 }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: N.text }}>Nouvelle tâche</h2>
@@ -171,5 +171,5 @@ export function QuickTaskModal({ careCaseId, patientName, onClose }: QuickTaskMo
 }
 
 const labelSt: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: N.textSoft, textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 6, display: "block" }
-const inputSt: React.CSSProperties = { width: "100%", padding: "9px 12px", border: `1.5px solid ${N.border}`, borderRadius: 10, fontSize: 14, fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", color: N.text, background: "#FAFAFD", outline: "none" }
+const inputSt: React.CSSProperties = { width: "100%", padding: "9px 12px", border: `1.5px solid ${N.border}`, borderRadius: 10, fontSize: 14, fontFamily: "var(--font-jakarta), system-ui, sans-serif", color: N.text, background: "#FAFAFD", outline: "none" }
 const chipSt: React.CSSProperties = { padding: "7px 12px", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }

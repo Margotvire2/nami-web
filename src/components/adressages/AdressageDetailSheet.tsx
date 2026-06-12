@@ -16,7 +16,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, FileText, Calendar } from "lucide-react";
+import { X, FileText, Calendar, CalendarPlus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -28,6 +28,7 @@ import { PriorityPill } from "./PriorityPill";
 import { StatusBadge } from "./StatusBadge";
 import { ConsentChip } from "./ConsentChip";
 import { DeclineReasonModal } from "./DeclineReasonModal";
+import { ProposeSlotModal } from "./ProposeSlotModal";
 import {
   patientName,
   targetProviderName,
@@ -47,6 +48,7 @@ interface AdressageDetailSheetProps {
   onAccept?: (id: string) => Promise<void> | void;
   onDecline?: (id: string, reason: string) => Promise<void> | void;
   onCancel?: (id: string) => Promise<void> | void;
+  onProposeSlotSuccess?: () => void;
 }
 
 export function AdressageDetailSheet({
@@ -58,9 +60,11 @@ export function AdressageDetailSheet({
   onAccept,
   onDecline,
   onCancel,
+  onProposeSlotSuccess,
 }: AdressageDetailSheetProps) {
   const router = useRouter();
   const [declineModalOpen, setDeclineModalOpen] = useState(false);
+  const [proposeModalOpen, setProposeModalOpen] = useState(false);
 
   if (!referral) {
     return (
@@ -82,6 +86,7 @@ export function AdressageDetailSheet({
   const birth = formatBirthDate(referral.careCase?.patient?.birthDate);
   const canAccept = isRecipient && referral.status === "RECEIVED";
   const canDecline = isRecipient && referral.status === "RECEIVED";
+  const canProposeSlot = isRecipient && referral.status === "ACCEPTED";
   const canCancel =
     isOwner &&
     (["SENT", "RECEIVED", "UNDER_REVIEW"] as Referral["status"][]).includes(
@@ -93,6 +98,7 @@ export function AdressageDetailSheet({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side="right"
+          showCloseButton={false}
           className={cn(
             "glass-strong !w-[540px] !max-w-[90vw] !p-0",
             "!border-l-[0.5px] !border-l-white/60",
@@ -237,6 +243,21 @@ export function AdressageDetailSheet({
               </button>
             )}
             <div className="flex-1" />
+            {canProposeSlot && (
+              <button
+                type="button"
+                onClick={() => setProposeModalOpen(true)}
+                className={cn(
+                  "px-4 py-2 rounded-lg bg-[#5B4EC4] text-white",
+                  "hover:bg-[#4c44b0] transition shadow-sm",
+                  "text-sm font-semibold inline-flex items-center gap-1.5",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40",
+                )}
+              >
+                <CalendarPlus className="size-4" />
+                Proposer un RDV
+              </button>
+            )}
             {canDecline && (
               <button
                 type="button"
@@ -293,6 +314,17 @@ export function AdressageDetailSheet({
         onConfirm={async (reason) => {
           await onDecline?.(referral.id, reason);
           setDeclineModalOpen(false);
+          onOpenChange(false);
+        }}
+      />
+
+      <ProposeSlotModal
+        referralId={referral.id}
+        careCaseId={referral.careCaseId}
+        open={proposeModalOpen}
+        onOpenChange={setProposeModalOpen}
+        onSuccess={() => {
+          onProposeSlotSuccess?.();
           onOpenChange(false);
         }}
       />

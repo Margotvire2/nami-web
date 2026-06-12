@@ -64,7 +64,7 @@ export function NotificationGroupedList({ items }: Props) {
             <h2
               id={headingId}
               className="text-[11px] font-extrabold uppercase text-[#5B4EC4] mb-3"
-              style={{ letterSpacing: "0.1em", fontFamily: "Inter" }}
+              style={{ letterSpacing: "0.1em", fontFamily: "var(--font-data)" }}
             >
               {BUCKET_LABELS[bucket]}
             </h2>

@@ -36,7 +36,7 @@ export function NotificationBell() {
         {todoCount > 0 && (
           <span
             className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#5B4EC4] text-white text-[10px] font-bold flex items-center justify-center"
-            style={{ fontFamily: "Inter" }}
+            style={{ fontFamily: "var(--font-data)" }}
             aria-hidden="true"
           >
             {todoCount > 9 ? "9+" : todoCount}

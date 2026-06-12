@@ -3,7 +3,25 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 
-export function LibHero() {
+interface LibHeroProps {
+  eyebrow?: string
+  lines?: string[]
+  gradientWords?: string[]
+  subtitle?: string
+  ctaPrimary?: { label: string; href: string }
+  ctaSecondary?: { label: string; href: string }
+  footnote?: string
+}
+
+export function LibHero({
+  eyebrow = "POUR LES SOIGNANTS LIBÉRAUX",
+  lines = ["Vous soignez.", "Pas pour faire de l'admin."],
+  gradientWords = ["soignez."],
+  subtitle = "Nami s'occupe de tout ce qui tourne autour de la consultation — notes structurées, ordonnances, adressages, messagerie patients, réseau de confiance. Conçu par une soignante qui a exercé et qui sait ce que vous perdez chaque jour.",
+  ctaPrimary = { label: "Essayer gratuitement →", href: "/signup/professional" },
+  ctaSecondary = { label: "Voir comment ça marche ↓", href: "#comment-ca-marche" },
+  footnote = "Gratuit — agenda, RDV, messagerie, réseau · Sans engagement · Conforme RGPD · Art. L.1110-12 CSP",
+}: LibHeroProps) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -12,8 +30,6 @@ export function LibHero() {
   }, [])
 
   let wordIdx = 0
-  const lines = ["Vous soignez.", "Pas pour faire de l'admin."]
-  const gradientWords = ["soignez."]
 
   return (
     <section style={{
@@ -40,7 +56,7 @@ export function LibHero() {
           fontSize: 11, fontWeight: 800, letterSpacing: "0.1em",
           textTransform: "uppercase", color: "#5B4EC4", marginBottom: 22,
         }}>
-          POUR LES SOIGNANTS LIBÉRAUX
+          {eyebrow}
         </div>
 
         {/* Title */}
@@ -94,7 +110,7 @@ export function LibHero() {
           transform: visible ? "none" : "translateY(20px)",
           transition: "opacity 0.6s ease 600ms, transform 0.6s ease 600ms",
         }}>
-          Nami s&apos;occupe de tout ce qui tourne autour de la consultation — notes structurées, ordonnances, adressages, messagerie patients, réseau de confiance. Conçu par une soignante qui a exercé et qui sait ce que vous perdez chaque jour.
+          {subtitle}
         </p>
 
         {/* CTAs */}
@@ -111,7 +127,7 @@ export function LibHero() {
           }}
         >
           <Link
-            href="/signup/professional"
+            href={ctaPrimary.href}
             className="lib-hero-cta-primary"
             style={{
               display: "inline-flex",
@@ -128,10 +144,10 @@ export function LibHero() {
               minHeight: 48,
             }}
           >
-            Essayer gratuitement →
+            {ctaPrimary.label}
           </Link>
           <a
-            href="#comment-ca-marche"
+            href={ctaSecondary.href}
             style={{
               fontSize: 14,
               color: "#6B7280",
@@ -142,7 +158,7 @@ export function LibHero() {
               alignItems: "center",
             }}
           >
-            Voir comment ça marche ↓
+            {ctaSecondary.label}
           </a>
         </div>
 
@@ -154,7 +170,7 @@ export function LibHero() {
           opacity: visible ? 1 : 0,
           transition: "opacity 0.6s ease 900ms",
         }}>
-          Gratuit — agenda, RDV, messagerie, réseau · Sans engagement · Conforme RGPD · Art. L.1110-12 CSP
+          {footnote}
         </div>
 
       </div>

@@ -4,74 +4,119 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type ConsultationSummary } from "@/lib/api";
-import { Clock, CheckCircle2, Circle, Sparkles, FileText, Loader2 } from "lucide-react";
+import { Clock, CheckCircle2, Circle, Sparkles, FileText, Loader2, User } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+function formatWeekdayDate(iso: string) {
+  const d = parseISO(iso);
+  return format(d, "EEEE d MMMM yyyy", { locale: fr });
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return format(parseISO(iso), "HH:mm");
 }
 
 function formatDuration(startedAt: string, completedAt: string | null): string {
   if (!completedAt) return "en cours";
   const ms = new Date(completedAt).getTime() - new Date(startedAt).getTime();
   const totalMin = Math.round(ms / 60000);
-  return totalMin > 0 ? `${totalMin} min` : "< 1 min";
+  if (totalMin <= 0) return "< 1 min";
+  if (totalMin < 60) return `${totalMin} min`;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+}
+
+function extractSummaryLine(c: ConsultationSummary): string | null {
+  const text = c.aiSummary ?? c.notes;
+  if (!text) return null;
+  const firstLine = text.split("\n").find((l) => l.trim().length > 10);
+  if (!firstLine) return null;
+  const trimmed = firstLine.replace(/^#+\s*/, "").replace(/\*\*/g, "").trim();
+  return trimmed.length > 90 ? trimmed.slice(0, 90) + "…" : trimmed;
 }
 
 // ─── Carte consultation ───────────────────────────────────────────────────────
 
-function ConsultationCard({ c, careCaseId }: { c: ConsultationSummary; careCaseId: string }) {
+function ConsultationCard({
+  c,
+  careCaseId,
+  providerLabel,
+}: {
+  c: ConsultationSummary;
+  careCaseId: string;
+  providerLabel: string | null;
+}) {
   const isCompleted = c.status === "COMPLETED";
-  const StatusIcon = isCompleted ? CheckCircle2 : Circle;
-  const statusColor = isCompleted ? "text-green-600" : "text-amber-500";
-
   const hasAiContent = c.aiSummaryStatus === "DONE" || !!c.generatedNote;
+  const summaryLine = extractSummaryLine(c);
+  const date = formatWeekdayDate(c.startedAt);
+  const time = formatTime(c.startedAt);
+  const duration = formatDuration(c.startedAt, c.completedAt);
 
   return (
     <Link
       href={`/consultations/${c.id}?careCaseId=${careCaseId}`}
-      className="block bg-white rounded-xl border border-[rgba(26,26,46,0.06)] p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150"
+      className="group block bg-white rounded-2xl border border-[rgba(26,26,46,0.07)] p-4 hover:shadow-[0_4px_16px_rgba(26,26,46,0.08)] hover:-translate-y-0.5 transition-all duration-150 overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-3">
+
+      {/* Row 1: date + status */}
+      <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <StatusIcon size={14} className={statusColor} />
-            <span className="text-sm font-medium text-[#1A1A2E]">
-              {formatDate(c.startedAt)}
-            </span>
-            <span className="text-xs text-gray-400">à {formatTime(c.startedAt)}</span>
-          </div>
-          <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+          <p className="text-sm font-semibold text-[#1A1A2E] capitalize leading-tight">
+            {date}
+          </p>
+          <div className="flex items-center gap-3 mt-1 text-xs text-[#8A8A96] flex-wrap">
             <span className="flex items-center gap-1">
               <Clock size={11} />
-              {formatDuration(c.startedAt, c.completedAt)}
+              {time} · {duration}
             </span>
-            {hasAiContent && (
-              <span className="flex items-center gap-1 text-[#5B4EC4]">
-                <Sparkles size={11} />
-                Compte-rendu disponible
-              </span>
-            )}
-            {!hasAiContent && c.notes && (
+            {providerLabel && (
               <span className="flex items-center gap-1">
-                <FileText size={11} />
-                Notes
+                <User size={11} />
+                {providerLabel}
               </span>
             )}
           </div>
         </div>
-        <svg className="w-4 h-4 text-gray-300 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isCompleted ? (
+            <CheckCircle2 size={15} className="text-[#2BA84A]" />
+          ) : (
+            <Circle size={15} className="text-[#E6993E]" />
+          )}
+        </div>
+      </div>
+
+      {/* Summary line */}
+      {summaryLine && (
+        <p className="text-[12px] text-[#4A4A5A] line-clamp-2 mb-2 leading-relaxed">
+          {summaryLine}
+        </p>
+      )}
+
+      {/* Badges row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {hasAiContent && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(91,78,196,0.08)] text-[#5B4EC4]">
+            <Sparkles size={9} />
+            Compte-rendu
+          </span>
+        )}
+        {!hasAiContent && c.notes && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(26,26,46,0.05)] text-[#4A4A5A]">
+            <FileText size={9} />
+            Notes
+          </span>
+        )}
+        {c.audioDurationSec && c.audioDurationSec > 0 && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[rgba(43,168,156,0.08)] text-[#2BA89C]">
+            🎙 Audio
+          </span>
+        )}
       </div>
     </Link>
   );
@@ -108,17 +153,29 @@ export function ConsultationsList({ careCaseId }: Props) {
           <Clock size={20} className="text-[#5B4EC4]" />
         </div>
         <p className="text-sm font-medium text-[#1A1A2E] mb-1">Aucune consultation enregistrée</p>
-        <p className="text-xs text-gray-400">Les consultations apparaissent ici une fois démarrées depuis le dossier patient.</p>
+        <p className="text-xs text-[#8A8A96]">Les consultations apparaissent ici une fois démarrées depuis le dossier patient.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-gray-400 mb-1">{consultations.length} consultation{consultations.length > 1 ? "s" : ""}</p>
-      {consultations.map((c) => (
-        <ConsultationCard key={c.id} c={c} careCaseId={careCaseId} />
-      ))}
+      <p className="text-xs text-[#8A8A96] mb-2">
+        {consultations.length} consultation{consultations.length > 1 ? "s" : ""}
+      </p>
+      {consultations.map((c) => {
+        const providerLabel = c.provider
+          ? `${c.provider.person.firstName} ${c.provider.person.lastName}`
+          : null;
+        return (
+          <ConsultationCard
+            key={c.id}
+            c={c}
+            careCaseId={careCaseId}
+            providerLabel={providerLabel}
+          />
+        );
+      })}
     </div>
   );
 }

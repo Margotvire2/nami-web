@@ -59,13 +59,13 @@ export function FiltersBar({ selected, onChange, counts }: Props) {
                 ? "border-[#5B4EC4] text-[#5B4EC4]"
                 : "border-transparent text-[#6B7280] hover:text-[#1A1A2E]"
             }`}
-            style={{ fontFamily: "Plus Jakarta Sans" }}
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             {TAB_LABELS[key]}
             {count > 0 && (
               <span
                 className="ml-1.5 text-xs"
-                style={{ fontFamily: "Inter" }}
+                style={{ fontFamily: "var(--font-data)" }}
                 aria-label={`${count} élément${count > 1 ? "s" : ""}`}
               >
                 ({count})

@@ -48,21 +48,21 @@ export function ViewGlobale({ dashboard, careCaseId, careCase, onAddDocument }: 
       <DeltaTickerBanner indicators={indicators} questionnaires={questionnaires} profile={profile} />
       <ProtocolBanner careCaseId={careCaseId} />
 
+      {isMinor && careCase && patientSex && (
+        <GrowthCharts
+          patientId={careCase.patient.id}
+          careCaseId={careCaseId}
+          sex={patientSex}
+          ageMonths={patientAgeMonths}
+          isInfant={isInfant}
+        />
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-        <div className="lg:col-span-3 space-y-5">
-          <KeyIndicatorsGrid indicators={indicators} questionnaires={questionnaires} profile={profile} careCaseId={careCaseId} onAddDocument={onAddDocument} />
-          {isMinor && careCase && patientSex && (
-            <GrowthCharts
-              patientId={careCase.patient.id}
-              careCaseId={careCaseId}
-              sex={patientSex}
-              ageMonths={patientAgeMonths}
-              isInfant={isInfant}
-            />
-          )}
+        <div className="lg:col-span-3">
+          <ActionsPanel actions={actions} />
         </div>
         <div className="space-y-4">
-          <ActionsPanel actions={actions} />
           {careCase && <PatientInfoCard careCase={careCase} />}
           <ConditionsCard careCaseId={careCaseId} />
           <CareTeamCard careCaseId={careCaseId} />
@@ -80,7 +80,7 @@ export function ViewGlobale({ dashboard, careCaseId, careCase, onAddDocument }: 
 function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   const qc = useQueryClient();
   const [sections, setSections] = useState<{ title: string; content: string }[]>([]);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const [showFull, setShowFull] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -241,7 +241,7 @@ function ClinicalSummaryCard({ careCaseId }: { careCaseId: string }) {
   };
 
   const excerpt = sections[0]?.content
-    ? sections[0].content.replace(/\*\*/g, "").replace(/\n/g, " ").slice(0, 220) + (sections[0].content.length > 220 ? "…" : "")
+    ? sections[0].content.replace(/^#{1,3}\s*/gm, "").replace(/\*\*/g, "").replace(/\n/g, " ").slice(0, 220) + (sections[0].content.length > 220 ? "…" : "")
     : "";
 
   return (

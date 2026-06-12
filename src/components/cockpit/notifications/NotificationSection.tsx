@@ -18,12 +18,12 @@ export function NotificationSection({ title, items, emptyMessage }: Props) {
     <section className="p-4">
       <h3
         className="text-[11px] font-extrabold uppercase text-[#5B4EC4] mb-3"
-        style={{ letterSpacing: "0.1em", fontFamily: "Inter" }}
+        style={{ letterSpacing: "0.1em", fontFamily: "var(--font-data)" }}
       >
         {title}
       </h3>
       {items.length === 0 ? (
-        <p className="text-sm text-[#6B7280] py-4" style={{ fontFamily: "Plus Jakarta Sans" }}>
+        <p className="text-sm text-[#6B7280] py-4" style={{ fontFamily: "var(--font-sans)" }}>
           {emptyMessage}
         </p>
       ) : (

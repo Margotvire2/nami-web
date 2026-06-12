@@ -507,17 +507,17 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
             <Users className="w-4 h-4" /> Participation
           </span>
           <span className="text-slate-700 font-semibold">
-            {rcp.respondedIds.length} / {rcp.participantIds.length} avis reçus
+            {(rcp.respondedIds ?? []).length} / {(rcp.participantIds ?? []).length} avis reçus
           </span>
         </div>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-indigo-500 rounded-full transition-all"
-            style={{ width: rcp.participantIds.length > 0 ? `${(rcp.respondedIds.length / rcp.participantIds.length) * 100}%` : "0%" }}
+            style={{ width: (rcp.participantIds?.length ?? 0) > 0 ? `${((rcp.respondedIds ?? []).length / rcp.participantIds.length) * 100}%` : "0%" }}
           />
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
-          {rcp.participants.map((p) => {
+          {(rcp.participants ?? []).map((p) => {
             const responded = rcp.respondedIds.includes(p.id);
             return (
               <span
@@ -545,7 +545,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
         <div className="space-y-5">
 
           {/* Contexte + questions */}
-          {(rcp.context || rcp.questions.length > 0) && (
+          {(rcp.context || (rcp.questions?.length ?? 0) > 0) && (
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-indigo-500" />
@@ -554,11 +554,11 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
               {rcp.context && (
                 <p className="text-sm text-slate-700 whitespace-pre-line mb-4">{rcp.context}</p>
               )}
-              {rcp.questions.length > 0 && (
+              {(rcp.questions?.length ?? 0) > 0 && (
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Questions posées</p>
                   <ul className="space-y-1.5">
-                    {rcp.questions.map((q, i) => (
+                    {(rcp.questions ?? []).map((q, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
                         <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-xs flex items-center justify-center shrink-0 mt-0.5">
                           {i + 1}
@@ -573,14 +573,14 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
           )}
 
           {/* Alertes */}
-          {rcp.alerts.length > 0 && (
+          {(rcp.alerts?.length ?? 0) > 0 && (
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
-                Indicateurs actifs ({rcp.alerts.length})
+                Indicateurs actifs ({(rcp.alerts ?? []).length})
               </h2>
               <ul className="space-y-2">
-                {rcp.alerts.map((a, i) => (
+                {(rcp.alerts ?? []).map((a, i) => (
                   <li key={i} className={cn("flex items-start gap-2 px-3 py-2 rounded-lg border text-sm", SEVERITY_META[a.severity]?.color ?? "bg-gray-50 text-gray-700")}>
                     <span className="font-medium">{a.title}</span>
                     {a.description && <span className="text-xs opacity-75">— {a.description}</span>}
@@ -591,14 +591,14 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
           )}
 
           {/* Observations récentes */}
-          {rcp.observations.length > 0 && (
+          {(rcp.observations?.length ?? 0) > 0 && (
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-blue-500" />
                 Dernières mesures
               </h2>
               <div className="space-y-2">
-                {rcp.observations.map((o, i) => (
+                {(rcp.observations ?? []).map((o, i) => (
                   <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
                     <span className="text-sm text-slate-600">{o.label ?? o.key}</span>
                     <div className="text-right">
@@ -632,14 +632,14 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-indigo-500" />
-              Avis collectés ({rcp.opinions.length})
+              Avis collectés ({(rcp.opinions ?? []).length})
             </h2>
 
-            {rcp.opinions.length === 0 ? (
+            {(rcp.opinions ?? []).length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-6">Aucun avis pour l'instant.</p>
             ) : (
               <div className="space-y-4">
-                {rcp.opinions.map((op) => {
+                {(rcp.opinions ?? []).map((op) => {
                   const { position, content } = parsePosition(op.body);
                   return (
                     <div key={op.id} className="border border-slate-100 rounded-lg p-3">
@@ -673,7 +673,7 @@ export default function RcpDetailPage({ params }: { params: Promise<{ id: string
           </div>
 
           {/* Formulaire avis — seulement si non clôturée */}
-          {!isClosed && myPersonId && rcp.participantIds.includes(myPersonId) && (
+          {!isClosed && myPersonId && rcp.participantIds?.includes(myPersonId) && (
             <OpinionForm
               rcpId={rcpId}
               myOpinionGiven={rcp.myOpinionGiven}
