@@ -15,7 +15,7 @@ import { ViewCoordination } from "./views/ViewCoordination";
 import { ViewParcours } from "./views/ViewParcours";
 import { SuiviTab } from "@/components/patient/SuiviTab";
 import { PediatricDossier } from "@/components/patient/pediatric/PediatricDossier";
-import { ReferralModal } from "./referral-modal";
+import { ReferralModal } from "@/components/adressages/ReferralModal";
 import { QuickTaskModal } from "./QuickTaskModal";
 import { ScheduleQuestionnaireModal } from "./ScheduleQuestionnaireModal";
 import { EditPatientModal } from "./EditPatientModal";

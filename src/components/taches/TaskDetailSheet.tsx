@@ -19,7 +19,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Pencil, Check, Calendar } from "lucide-react";
+import { FileText, Pencil, Check, Calendar, ArrowLeftRight, ExternalLink } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -27,12 +27,29 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import type { TaskWithContext } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
+import { ReferralModal } from "@/components/adressages/ReferralModal";
 import { PriorityPill } from "./PriorityPill";
 import { StatusBadge } from "./StatusBadge";
 import { TaskCancelModal } from "./TaskCancelModal";
 import { PRIORITY_LABEL } from "./_constants";
 import { formatDate, patientLabel, relativeDate } from "./_utils";
 import { cn } from "@/lib/utils";
+
+const REFERRAL_STATUS_LABEL: Record<string, string> = {
+  DRAFT: "Brouillon",
+  SENT: "Envoyé",
+  RECEIVED: "Reçu",
+  UNDER_REVIEW: "En cours d'examen",
+  ACCEPTED: "Accepté",
+  DECLINED: "Refusé",
+  PATIENT_CONTACTED: "Patient contacté",
+  APPOINTMENT_INVITED: "RDV proposé",
+  APPOINTMENT_BOOKED: "RDV planifié",
+  FIRST_VISIT_COMPLETED: "1ère visite effectuée",
+  EXPIRED: "Expiré",
+  CANCELLED: "Annulé",
+};
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
@@ -76,7 +93,9 @@ export function TaskDetailSheet({
   onCancel,
 }: TaskDetailSheetProps) {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [editing, setEditing] = useState<EditField>(null);
   const [titleDraft, setTitleDraft] = useState("");
   const [descDraft, setDescDraft] = useState("");
@@ -241,6 +260,62 @@ export function TaskDetailSheet({
                 <div className="glass-soft rounded-xl p-4 text-sm text-[#1A1A2E] font-medium">
                   {patientLabel(task)}
                 </div>
+              </section>
+            )}
+
+            {/* Adressage — section spécifique aux tâches REFERRAL */}
+            {task.taskType === "REFERRAL" && (
+              <section>
+                <SectionLabel>Adressage</SectionLabel>
+                {task.referral ? (
+                  <div className="glass-soft rounded-xl p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="inline-flex items-center justify-center size-8 rounded-lg bg-[rgba(43,168,156,0.12)] shrink-0">
+                        <ArrowLeftRight size={15} className="text-[#2BA89C]" aria-hidden />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-[#1A1A2E]">
+                          {REFERRAL_STATUS_LABEL[task.referral.status] ?? task.referral.status}
+                        </p>
+                        <p className="text-[11px] text-[#8A8A96] mt-0.5">
+                          Initié le {formatDate(task.referral.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/adressages`)}
+                      className={cn(
+                        "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg",
+                        "text-xs font-medium text-[#5B4EC4]",
+                        "ring-1 ring-[#5B4EC4]/20 hover:bg-[rgba(91,78,196,0.06)]",
+                        "transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40",
+                      )}
+                    >
+                      Voir <ExternalLink size={11} aria-hidden />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setReferralModalOpen(true)}
+                    className={cn(
+                      "w-full flex items-center gap-3 rounded-xl p-4",
+                      "bg-[rgba(91,78,196,0.04)] ring-1 ring-[#5B4EC4]/15",
+                      "hover:bg-[rgba(91,78,196,0.08)] hover:ring-[#5B4EC4]/25",
+                      "transition-all ease-[cubic-bezier(0.16,1,0.3,1)]",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4EC4]/40",
+                    )}
+                  >
+                    <span className="inline-flex items-center justify-center size-9 rounded-lg bg-[#EEEDFB] shrink-0">
+                      <ArrowLeftRight size={16} className="text-[#5B4EC4]" aria-hidden />
+                    </span>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-semibold text-[#5B4EC4]">Initier l'adressage</p>
+                      <p className="text-[11px] text-[#8A8A96] mt-0.5">Trouver un spécialiste et envoyer la demande</p>
+                    </div>
+                  </button>
+                )}
               </section>
             )}
 
@@ -512,6 +587,18 @@ export function TaskDetailSheet({
           onOpenChange(false);
         }}
       />
+
+      {task.taskType === "REFERRAL" && !task.referral && (
+        <ReferralModal
+          open={referralModalOpen}
+          onClose={() => setReferralModalOpen(false)}
+          careCaseId={task.careCase.id}
+          patientFirstName={task.careCase.patient.firstName}
+          senderRoleType={user?.roleType ?? "PROVIDER"}
+          taskId={task.id}
+          initialClinicalReason={task.title.replace(/^Adressage\s*—\s*/i, "")}
+        />
+      )}
     </>
   );
 }

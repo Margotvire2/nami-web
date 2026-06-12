@@ -281,6 +281,11 @@ export default function AdressagesPage() {
           await cancelMutation.mutateAsync(id);
           setSelectedId(null);
         }}
+        onProposeSlotSuccess={() => {
+          qc.invalidateQueries({ queryKey: ["referrals"] });
+          toast.success("Créneaux proposés au patient");
+          setSelectedId(null);
+        }}
       />
     </div>
   );
