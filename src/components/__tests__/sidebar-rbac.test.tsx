@@ -79,7 +79,7 @@ function makeMembership(id: string): OrganizationMembership {
     name: `Org ${id}`,
     type: "NETWORK",
     memberCount: 1,
-    myRole: "MEMBER",
+    myRole: "PROVIDER",
   };
 }
 

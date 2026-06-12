@@ -682,6 +682,7 @@ export interface CreateReferralInput {
   referralType?: "REFERRAL" | "COORDINATION_REQUEST";
   personalMessage?: string;
   expiresAt?: string;
+  taskId?: string;
 }
 
 export const referralsApi = {
@@ -1049,6 +1050,7 @@ export interface ConsultationSummary {
   completedAt: string | null;
   audioDurationSec: number | null;
   generatedNote: { id: string } | null;
+  provider?: { person: { firstName: string; lastName: string } } | null;
 }
 
 export interface ConsultationDetail extends ConsultationSummary {
@@ -1080,6 +1082,68 @@ export type BilanProfession =
   | "PEDICURE"
   | "ERGO"
   | "AIDE_SOIGNANT";
+
+export type NutritionSex = "M" | "F";
+export type NutritionActivityLevel = "bedridden" | "sedentary" | "light" | "moderate" | "active" | "very_active";
+export type NutritionPathologyContext =
+  | "general" | "obesity_grade1" | "obesity_grade2" | "obesity_grade3"
+  | "post_bariatric_early" | "post_bariatric_late"
+  | "anorexia_acute" | "anorexia_refeeding" | "anorexia_maintenance"
+  | "bulimia_active" | "dt2_obesity" | "dt2_normal_weight" | "sopk"
+  | "irc_obesity" | "pregnancy_t1" | "pregnancy_t2" | "pregnancy_t3"
+  | "elderly_obesity" | "pediatric_obesity";
+
+export interface NutritionPlanInput {
+  sex: NutritionSex;
+  age: number;
+  weight: number;
+  height: number;
+  pathology: NutritionPathologyContext;
+  activityLevel: NutritionActivityLevel;
+  dfg?: number;
+}
+
+export interface NutritionPlanResult {
+  formula: string;
+  basalMetabolicRate: number;
+  nap: number;
+  totalEnergyExpenditure: number;
+  caloricTarget: number;
+  caloricDeficit: number;
+  idealWeight: number;
+  adjustedWeight: number;
+  proteinGrams: number;
+  proteinGPerKg: number;
+  proteinPercentDET: number;
+  carbGrams: number;
+  carbPercentDET: number;
+  fatGrams: number;
+  fatPercentDET: number;
+  fiberGrams: number;
+  waterML: number;
+  warnings: string[];
+  contraindications: string[];
+  notes: string[];
+  references: string[];
+}
+
+export interface AnnouncedDocument {
+  documentType: string;
+  label: string;
+  hasRules: boolean;
+  hasLibraryContent: boolean;
+}
+
+export interface GenerateDocumentResult {
+  noteId: string;
+  title: string;
+  markdown: string;
+  reviewedByProvider: boolean;
+  provenance: {
+    appliedRules: { id: string; content: string; documentType: string | null }[];
+    usedChunks: { id: string; resourceId: string; similarity: number; excerpt: string }[];
+  };
+}
 
 export interface GenerateBilanResult {
   noteId: string;
@@ -2263,6 +2327,12 @@ export interface ProviderMatchResult {
   results: MatchedProvider[];
 }
 
+export interface ProviderNextSlot {
+  date: string;       // ISO yyyy-mm-dd
+  startTime: string;  // HH:mm
+  label: string;      // "mer. 14 juin à 14h30"
+}
+
 export const providerDirectoryApi = {
   search: (params?: { specialty?: string; accepting?: string }) => {
     const qs = new URLSearchParams();
@@ -2277,6 +2347,16 @@ export const providerDirectoryApi = {
   // Backend : GET /providers/public/:slug (src/routes/providers.ts).
   getPublicBySlug: (slug: string) =>
     request<PublicProviderDetail>(`/providers/public/${slug}`),
+
+  // Prochain créneau pour une liste de soignants — 1 seule requête API.
+  // Backend : GET /providers/public/batch-next-slot?ids=id1,id2,…
+  batchNextSlot: (ids: string[]): Promise<Record<string, ProviderNextSlot | null>> => {
+    if (ids.length === 0) return Promise.resolve({});
+    const q = ids.slice(0, 50).join(",");
+    return request<Record<string, ProviderNextSlot | null>>(
+      `/providers/public/batch-next-slot?ids=${encodeURIComponent(q)}`,
+    );
+  },
 };
 
 /**
@@ -3438,6 +3518,7 @@ export interface EntityHubProviderLocation {
   name: string;
   city: string | null;
   postalCode: string | null;
+  phone: string | null;
   locationType: string;
 }
 
@@ -3446,6 +3527,7 @@ export interface EntityHubProviderInfo {
   firstName: string;
   lastName: string;
   specialty: string | null;
+  publicBio: string | null;
   photoUrl: string | null;
   locations: EntityHubProviderLocation[];
 }
@@ -4011,6 +4093,36 @@ export function apiWithToken(token: string) {
     providers: {
       match: (params: ProviderMatchParams) =>
         request<ProviderMatchResult>("/providers/match", { method: "POST", body: JSON.stringify(params) }, token),
+      capabilities: () =>
+        request<ProviderCapabilitySet>("/providers/me/capabilities", {}, token),
+      rules: {
+        list: () =>
+          request<ProviderDocumentRule[]>("/providers/me/rules", {}, token),
+        create: (data: { content: string; documentType?: string | null }) =>
+          request<ProviderDocumentRule>("/providers/me/rules", {
+            method: "POST",
+            body: JSON.stringify(data),
+          }, token),
+        update: (id: string, data: { content?: string; isActive?: boolean; documentType?: string | null }) =>
+          request<ProviderDocumentRule>(`/providers/me/rules/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+          }, token),
+        delete: (id: string) =>
+          request<void>(`/providers/me/rules/${id}`, { method: "DELETE" }, token),
+      },
+      resources: {
+        list: () =>
+          request<ProviderResource[]>("/providers/me/resources", {}, token),
+        upload: (formData: FormData) =>
+          request<{ id: string; status: string }>(
+            "/providers/me/resources",
+            { method: "POST", body: formData },
+            token,
+          ),
+        delete: (id: string) =>
+          request<void>(`/providers/me/resources/${id}`, { method: "DELETE" }, token),
+      },
       specialtyView: () =>
         request<{
           specialtyView: "DIETITIAN" | "PSYCHOLOGIST" | "PHYSICIAN" | "PEDIATRICIAN" | "ENDOCRINOLOGIST" | "OTHER";
@@ -4066,6 +4178,13 @@ export function apiWithToken(token: string) {
       validate: (id: string) => knowledgeApi.validate(token, id),
       publish: (id: string) => knowledgeApi.publish(token, id),
       deprecate: (id: string) => knowledgeApi.deprecate(token, id),
+    },
+    calcul: {
+      nutritionPlan: (params: NutritionPlanInput) =>
+        request<NutritionPlanResult>("/intelligence/nutrition-plan", {
+          method: "POST",
+          body: JSON.stringify(params),
+        }, token),
     },
     locations: {
       list: () => locationsApi.list(token),
@@ -4182,6 +4301,12 @@ export function apiWithToken(token: string) {
           request<PatientAppointment>(
             `/patient/appointments/${appointmentId}/cancel`,
             { method: "POST", body: JSON.stringify(body) },
+            token,
+          ),
+        confirm: (appointmentId: string) =>
+          request<PatientAppointment>(
+            `/patient/appointments/${appointmentId}/confirm`,
+            { method: "POST" },
             token,
           ),
         get: (appointmentId: string) => appointmentsApi.get(token, appointmentId),
@@ -4656,6 +4781,18 @@ export function apiWithToken(token: string) {
           { method: "POST", body: JSON.stringify({}) },
           token,
         ),
+      generateDocument: (careCaseId: string, consultationId: string, documentType: string) =>
+        request<GenerateDocumentResult>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/generate-document`,
+          { method: "POST", body: JSON.stringify({ documentType }) },
+          token,
+        ),
+      announcedDocuments: (careCaseId: string, consultationId: string) =>
+        request<{ announced: AnnouncedDocument[] }>(
+          `/care-cases/${careCaseId}/consultations/${consultationId}/announced-documents`,
+          {},
+          token,
+        ),
       // F-SOIGNANT-BILAN-VOXTRAL-TEMPLATES
       generateBilan: (careCaseId: string, consultationId: string) =>
         request<GenerateBilanResult>(
@@ -4692,6 +4829,13 @@ export interface TaskWithContext {
     caseTitle: string;
     patient: { id: string; firstName: string; lastName: string };
   };
+  referral?: {
+    id: string;
+    status: string;
+    mode: string;
+    priority: string;
+    createdAt: string;
+  } | null;
 }
 
 // ─── Billing ─────────────────────────────────────────────────────────────────
@@ -4910,8 +5054,23 @@ export interface SecretaryMeManagedProvider {
 }
 
 export interface SecretaryMeResponse {
+  id: string;
   personId: string;
+  organizationId: string | null;
   canCreatePatient: boolean;
+  canEditPatient: boolean;
+  canManageAgenda: boolean;
+  canProcessPayment: boolean;
+  canMessagePatients: boolean;
+  canMessageProviders: boolean;
+  canViewBilling: boolean;
+  canExportData: boolean;
+  organization: {
+    id: string;
+    name: string;
+    type: string;
+    city: string | null;
+  } | null;
   managedProviders: SecretaryMeManagedProvider[];
 }
 
@@ -5026,7 +5185,7 @@ export type MembershipRequestStatus =
   | "REJECTED"
   | "WITHDRAWN";
 export type OrganizationMemberStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
-export type OrganizationMemberRole = "MEMBER" | "ADMIN" | "OWNER";
+export type OrganizationMemberRole = "OWNER" | "ADMIN" | "PROVIDER" | "COORDINATOR" | "VIEWER";
 export type DirectoryVisibility = "PUBLIC" | "ORG_ONLY" | "HIDDEN";
 
 // Shape retourné par GET /organizations/mine — le backend filtre déjà sur
@@ -5125,11 +5284,12 @@ export interface OrganizationDirectory {
 }
 
 export const organizationsApi = {
-  // Liste les organisations dans lesquelles l'utilisateur courant a une adhésion
-  // (PROVIDER ou ORG_ADMIN). Renvoie chaque org avec `myMembership` pour
-  // filtrer côté front (ex. memberRole === "ADMIN" → console d'animation).
-  mine: (token: string) =>
-    request<OrganizationMembership[]>("/organizations/mine", {}, token),
+  // Liste les organisations de l'utilisateur courant (status=ACTIVE).
+  // adminOnly=true : filtre côté backend sur memberRole IN (ADMIN, OWNER).
+  mine: (token: string, opts?: { adminOnly?: boolean }) => {
+    const qs = opts?.adminOnly ? "?adminOnly=true" : "";
+    return request<OrganizationMembership[]>(`/organizations/mine${qs}`, {}, token);
+  },
 
   // GET /organizations/:orgId/members/for-rcp-picker (INIT-489)
   // Réservé aux membres ACTIVE de l'org. 404 si l'org n'est pas dans la
@@ -5244,6 +5404,34 @@ export interface SecretariatLink {
 export interface SecretariatLinksResponse {
   asRole: "SECRETARY" | "PROVIDER";
   links:  SecretariatLink[];
+}
+
+export interface ProviderDocumentRule {
+  id: string;
+  documentType: string | null;
+  content: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ProviderResource {
+  id: string;
+  kind: string;
+  title: string;
+  mimeType: string;
+  status: "PROCESSING" | "INDEXED" | "FAILED";
+  failReason: string | null;
+  createdAt: string;
+  _count: { chunks: number };
+}
+
+export interface ProviderCapabilitySet {
+  prescriptionScopes: string[];
+  invoiceModes: string[];
+  documentTypes: string[];
+  secuBilling: "FSE" | "SUR_PRESCRIPTION" | "PARTIEL" | "NONE";
+  canPrescribe: boolean;
+  canBillSecu: boolean;
 }
 
 export interface ProviderSearchLightResult {

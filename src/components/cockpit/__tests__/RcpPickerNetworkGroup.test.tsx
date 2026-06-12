@@ -15,7 +15,7 @@ function makeGroup(
       lastName: m.lastName,
       photoUrl: null,
       specialty: m.specialty ?? null,
-      memberRole: "MEMBER" as const,
+      memberRole: "PROVIDER" as const,
     })),
   };
 }

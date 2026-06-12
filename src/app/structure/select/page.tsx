@@ -49,7 +49,7 @@ export default function StructureSelectPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {memberships.slice(0, 8).map((org) => (
+          {memberships.map((org) => (
             <button
               key={org.id}
               type="button"

@@ -23,8 +23,8 @@ export function useAdminMemberships() {
     queryKey: ["admin-memberships", personId],
     queryFn: async (): Promise<AdminMembership[]> => {
       if (!accessToken) return [];
-      const all: OrganizationMembership[] = await organizationsApi.mine(accessToken);
-      // Backend /organizations/mine filtre déjà status=ACTIVE et expose myRole directement.
+      // adminOnly=true → filtre ADMIN/OWNER côté backend (défense en profondeur).
+      const all: OrganizationMembership[] = await organizationsApi.mine(accessToken, { adminOnly: true });
       return all
         .filter((o) => o.myRole === "ADMIN" || o.myRole === "OWNER")
         .map((o) => ({ id: o.id, name: o.name, type: o.type }));
