@@ -1,10 +1,11 @@
 "use client";
 
 import { use, useState } from "react";
-import { Users } from "lucide-react";
+import { Users, UserPlus } from "lucide-react";
 import { ConsoleSidebar } from "@/components/structure/ConsoleSidebar";
 import { MemberStatusTabs, type MemberTab } from "@/components/structure/members/MemberStatusTabs";
 import { MemberRow } from "@/components/structure/members/MemberRow";
+import { InviteMemberModal } from "@/components/structure/members/InviteMemberModal";
 import { useOrgMembers } from "@/hooks/useOrgMembers";
 
 // Console d'animation — page Membres (F-STRUCT-V3-B-1 / INIT-759).
@@ -16,6 +17,7 @@ export default function MembresPage({
 }) {
   const { orgId } = use(params);
   const [tab, setTab] = useState<MemberTab>("ACTIVE");
+  const [showInvite, setShowInvite] = useState(false);
 
   const filter =
     tab === "ACTIVE" ? "ACTIVE" : tab === "SUSPENDED" ? "SUSPENDED" : "INACTIVE";
@@ -38,14 +40,24 @@ export default function MembresPage({
     <div className="space-y-6" style={{ fontFamily: "var(--font-jakarta)" }}>
       <ConsoleSidebar orgId={orgId} active="members" />
 
-      <header className="space-y-1">
-        <div className="flex items-center gap-2 text-2xl">
-          <Users size={22} className="text-[#5B4EC4]" aria-hidden />
-          <h1 className="font-bold text-[#0F172A]">Membres</h1>
+      <header className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-2xl">
+            <Users size={22} className="text-[#5B4EC4]" aria-hidden />
+            <h1 className="font-bold text-[#0F172A]">Membres</h1>
+          </div>
+          <p className="text-sm text-[#6B7280]">
+            Vue d&apos;ensemble des membres de la structure par statut.
+          </p>
         </div>
-        <p className="text-sm text-[#6B7280]">
-          Vue d&apos;ensemble des membres de la structure par statut.
-        </p>
+        <button
+          type="button"
+          onClick={() => setShowInvite(true)}
+          className="flex items-center gap-1.5 shrink-0 rounded-lg px-3 py-2 text-sm font-medium bg-[#5B4EC4] text-white hover:bg-[#4c3fa0] transition-colors"
+        >
+          <UserPlus size={14} />
+          Inviter
+        </button>
       </header>
 
       <MemberStatusTabs active={tab} onChange={setTab} counts={counts} />
@@ -76,7 +88,7 @@ export default function MembresPage({
         )}
       </section>
 
-
+      <InviteMemberModal orgId={orgId} open={showInvite} onClose={() => setShowInvite(false)} />
     </div>
   );
 }

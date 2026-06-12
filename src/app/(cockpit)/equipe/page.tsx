@@ -12,6 +12,7 @@ import {
   CreateInvitationInput,
   type DirectoryEntry,
 } from "@/lib/api";
+import { useMyOrganizations, type MyOrganization } from "@/hooks/useMyOrganizations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShimmerCard } from "@/components/ui/shimmer";
 import { Button } from "@/components/ui/button";
@@ -67,7 +68,7 @@ const STATUS_STYLE = {
   external: { label: "Pas encore sur Nami", className: "bg-muted text-muted-foreground border-border" },
 };
 
-type Tab = "confreres" | "structures" | "rpps" | "invitations";
+type Tab = "confreres" | "structures" | "organisations" | "rpps" | "invitations";
 
 function timeAgo(d: string) {
   const days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
@@ -106,6 +107,8 @@ export default function EquipePage() {
     queryFn: () => api.invitations.mine(),
   });
 
+  const { organizations, isLoading: loadingOrganizations } = useMyOrganizations();
+
   const pendingCount = (invitations ?? []).filter(
     (i) => i.status === "PENDING" && new Date(i.expiresAt) > new Date()
   ).length;
@@ -113,6 +116,7 @@ export default function EquipePage() {
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "confreres", label: "Confrères", count: colleagues?.length },
     { key: "structures", label: "Structures", count: structures?.length },
+    { key: "organisations", label: "Mes organisations", count: organizations.length || undefined },
     { key: "rpps", label: "Annuaire RPPS" },
     { key: "invitations", label: "Invitations", count: pendingCount || undefined },
   ];
@@ -175,6 +179,12 @@ export default function EquipePage() {
           <StructuresTab
             structures={structures ?? []}
             isLoading={loadingStructures}
+          />
+        )}
+        {tab === "organisations" && (
+          <OrganisationsTab
+            organizations={organizations}
+            isLoading={loadingOrganizations}
           />
         )}
         {tab === "rpps" && <RPPSTab />}
@@ -804,5 +814,96 @@ function InviteModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TAB — MES ORGANISATIONS
+// ═════════════════════════════════════════════════════════════════════════════
+
+const ORG_TYPE_LABEL: Record<string, string> = {
+  CPTS: "CPTS",
+  MSP: "Maison de santé pluriprofessionnelle",
+  HOSPITAL: "Établissement hospitalier",
+  CLINIC: "Clinique",
+  EHPAD: "EHPAD",
+  REHABILITATION: "Centre de réadaptation",
+  NETWORK: "Réseau de soins",
+  OTHER: "Structure de santé",
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  OWNER: "Responsable",
+  ADMIN: "Admin",
+  PROVIDER: "Soignant",
+  COORDINATOR: "Coordinateur",
+  VIEWER: "Observateur",
+};
+
+function OrganisationsTab({
+  organizations,
+  isLoading,
+}: {
+  organizations: MyOrganization[];
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-6 space-y-2">
+        {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+      </div>
+    );
+  }
+
+  if (organizations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 text-center px-4">
+        <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-4">
+          <Building2 size={24} className="text-primary/40" />
+        </div>
+        <p className="text-sm font-semibold text-foreground">
+          Aucune organisation
+        </p>
+        <p className="text-xs text-muted-foreground mt-1.5 max-w-sm leading-relaxed">
+          Vous n&apos;êtes membre d&apos;aucune structure institutionnelle pour le moment.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-4 space-y-2">
+      {organizations.map((m) => (
+        <div key={m.membershipId} className="nami-card-interactive p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center shrink-0">
+              <Building2 size={18} className="text-muted-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium truncate">{m.organization.name}</p>
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border bg-primary/5 text-primary border-primary/20">
+                  {ROLE_LABEL[m.role] ?? m.role}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {ORG_TYPE_LABEL[m.organization.type] ?? m.organization.type}
+                {m.organization.city ? ` · ${m.organization.city}` : ""}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {m.organization.memberCount} membre{m.organization.memberCount !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <Link
+              href={`/structure/${m.organization.id}/admin/membres`}
+              className="shrink-0 flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-[#E8ECF4] text-[#374151] hover:bg-muted/50 transition-colors"
+            >
+              <ExternalLink size={11} />
+              Voir
+            </Link>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   Search,
   MessageSquare,
   Settings,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,7 +23,7 @@ interface SidebarItem {
 
 interface ConsoleSidebarProps {
   orgId: string;
-  active: "dashboard" | "discussions" | "events" | "communications" | "members";
+  active: "dashboard" | "discussions" | "events" | "communications" | "members" | "secretaries" | "patients";
 }
 
 export function ConsoleSidebar({ orgId, active }: ConsoleSidebarProps) {
@@ -38,6 +39,16 @@ export function ConsoleSidebar({ orgId, active }: ConsoleSidebarProps) {
       label: "Membres",
       icon: Users,
       href: `/structure/${orgId}/admin/membres`,
+    },
+    {
+      label: "Secrétaires",
+      icon: UserCog,
+      href: `/structure/${orgId}/admin/secretaires`,
+    },
+    {
+      label: "Patients",
+      icon: Users,
+      href: `/structure/${orgId}/admin/patients`,
     },
     {
       label: "Événements",
@@ -67,7 +78,9 @@ export function ConsoleSidebar({ orgId, active }: ConsoleSidebarProps) {
           (active === "discussions" && item.label === "Discussions") ||
           (active === "events" && item.label === "Événements") ||
           (active === "communications" && item.label === "Communications") ||
-          (active === "members" && item.label === "Membres");
+          (active === "members" && item.label === "Membres") ||
+          (active === "secretaries" && item.label === "Secrétaires") ||
+          (active === "patients" && item.label === "Patients");
 
         const base =
           "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors";

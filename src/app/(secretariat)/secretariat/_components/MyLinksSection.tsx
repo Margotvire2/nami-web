@@ -8,12 +8,14 @@
 // Source : GET /me/secretariat-links?role=SECRETARY (déduit du JWT)
 
 import { useState } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
-import { UserCheck, Clock, Archive, ShieldOff, Stethoscope } from "lucide-react";
+import { UserCheck, Clock, Archive, ShieldOff, Stethoscope, Building2, User } from "lucide-react";
 import {
   useSecretariatLinks,
   useRevokeSecretariatLink,
 } from "@/hooks/useSecretariatLinks";
+import { useSecretaryProfile } from "@/hooks/useSecretaryProfile";
 import type { SecretariatLink, SecretariatLinkScope } from "@/lib/api";
 
 function scopeLabel(s: SecretariatLinkScope): string {
@@ -140,11 +142,32 @@ function LinkCard({
   );
 }
 
+const SPECIALTY_LABEL: Record<string, string> = {
+  DIETITIAN: "Diététicien·ne",
+  PSYCHOLOGIST: "Psychologue",
+  PHYSICIAN: "Médecin généraliste",
+  PSYCHIATRIST: "Psychiatre",
+  ENDOCRINOLOGIST: "Endocrinologue",
+  PEDIATRICIAN: "Pédiatre",
+  NURSE: "Infirmier·ère",
+  OTHER: "Soignant·e",
+};
+
+const ORG_TYPE_LABEL: Record<string, string> = {
+  CPTS: "CPTS",
+  MSP: "Maison de santé",
+  HOSPITAL: "Établissement hospitalier",
+  CLINIC: "Clinique",
+  OTHER: "Structure de santé",
+};
+
 export default function MyLinksSection() {
   const activeQuery   = useSecretariatLinks("SECRETARY", "ACTIVE");
   const pendingQuery  = useSecretariatLinks("SECRETARY", "PENDING");
   const rejectedQuery = useSecretariatLinks("SECRETARY", "REJECTED");
   const revokedQuery  = useSecretariatLinks("SECRETARY", "REVOKED");
+
+  const { profile } = useSecretaryProfile();
 
   const revoke = useRevokeSecretariatLink();
   const [confirmLink, setConfirmLink] = useState<SecretariatLink | null>(null);
@@ -174,6 +197,73 @@ export default function MyLinksSection() {
 
   return (
     <div className="space-y-8">
+      {/* ── Section V2 — Soignants assignés via structure ─────────────────── */}
+      {profile && profile.managedProviders.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Building2 size={16} color="#5B4EC4" />
+            <h2 className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
+              Soignants assignés par la structure
+            </h2>
+            <span className="text-xs" style={{ color: "#94A3B8" }}>({profile.managedProviders.length})</span>
+          </div>
+          {profile.organization && (
+            <p className="text-xs" style={{ color: "#6B7280" }}>
+              {ORG_TYPE_LABEL[profile.organization.type] ?? profile.organization.type}
+              {" · "}
+              <span className="font-medium" style={{ color: "#374151" }}>{profile.organization.name}</span>
+              {profile.organization.city ? ` · ${profile.organization.city}` : ""}
+            </p>
+          )}
+          <ul className="space-y-2">
+            {profile.managedProviders.map((mp) => {
+              const spec = mp.provider.specialties[0];
+              const specLabel = SPECIALTY_LABEL[spec] ?? spec ?? "Soignant";
+              const fullName = `${mp.provider.person.firstName} ${mp.provider.person.lastName}`.trim();
+              return (
+                <li
+                  key={mp.id}
+                  className="rounded-xl p-4"
+                  style={{ background: "#fff", border: "1px solid #E8ECF4" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-full bg-[#EEEDFB] flex items-center justify-center shrink-0 overflow-hidden">
+                      {mp.provider.person.photoUrl ? (
+                        <Image src={mp.provider.person.photoUrl} alt="" width={40} height={40} className="size-full object-cover" />
+                      ) : (
+                        <User size={16} color="#5B4EC4" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Stethoscope size={12} color="#5B4EC4" />
+                        <p className="text-[13px] font-semibold truncate" style={{ color: "#1A1A2E" }}>
+                          {fullName}
+                        </p>
+                      </div>
+                      <p className="text-[11px] mt-0.5" style={{ color: "#6B7280" }}>{specLabel}</p>
+                    </div>
+                    <span
+                      className="shrink-0 text-[10px] font-medium px-2 py-1 rounded-full"
+                      style={{ background: "#EEF2FF", color: "#4F46E5" }}
+                    >
+                      Assigné·e
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div
+            className="rounded-xl px-4 py-3"
+            style={{ background: "#F5F3EF", border: "1px solid #E8ECF4" }}
+          >
+            <p className="text-[11px]" style={{ color: "#6B7280" }}>
+              Ces rattachements sont gérés par l&apos;administrateur de votre structure. Pour toute modification, contactez-le directement.
+            </p>
+          </div>
+        </section>
+      )}
       {/* Section ACTIVE */}
       <section data-testid="my-section-active" className="space-y-3">
         <div className="flex items-center gap-2">
