@@ -148,14 +148,14 @@ export function CommandPalette() {
       type: "action",
       label: "Nouveau patient",
       icon: <User size={14} style={{ color: "#5B4EC4" }} />,
-      onSelect: () => go("/patients"),
+      onSelect: () => go("/patients?newPatient=true"),
     },
     {
       id: "new-rdv",
       type: "action",
       label: "Nouveau rendez-vous",
       icon: <Calendar size={14} style={{ color: "#5B4EC4" }} />,
-      onSelect: () => go("/agenda"),
+      onSelect: () => go("/agenda?newAppt=true"),
     },
     {
       id: "knowledge",

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getCareType, getCareTypeLabel } from "@/lib/caseType";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
@@ -69,6 +69,7 @@ export default function PatientsPage() {
   const { accessToken } = useAuthStore();
   const api = apiWithToken(accessToken!);
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState("active");
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("");
@@ -77,6 +78,10 @@ export default function PatientsPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+
+  useEffect(() => {
+    if (searchParams.get("newPatient") === "true") setCreateOpen(true);
+  }, [searchParams]);
 
   const { data: cases, isLoading } = useQuery({
     queryKey: ["care-cases", "all"],

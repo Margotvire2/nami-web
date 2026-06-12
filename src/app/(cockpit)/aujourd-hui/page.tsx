@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import { useDashboard, type DashboardConsultation } from "@/hooks/useDashboard";
 import { KnowledgeSearch } from "@/components/nami/KnowledgeSearch";
+import KnowledgeDetailModal from "@/components/intelligence/KnowledgeDetailModal";
 import {
   useQuery,
   useMutation,
@@ -18,6 +19,7 @@ import {
   type AppointmentRequest,
   type ProConversation,
   type NotificationItem,
+  type KnowledgeSearchResult,
 } from "@/lib/api";
 import { toast } from "sonner";
 import { useConsultation } from "@/contexts/ConsultationContext";
@@ -39,6 +41,7 @@ const PRIORITY_ORDER: Record<string, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, 
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [knowledgeResult, setKnowledgeResult] = useState<KnowledgeSearchResult | null>(null);
   const filRef = useRef<HTMLDivElement>(null);
   const { user, accessToken } = useAuthStore();
   const { startConsultation } = useConsultation();
@@ -243,7 +246,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div style={{ marginLeft: "auto" }}>
-            <KnowledgeSearch className="w-72 hidden sm:block" inline={false} modal />
+            <KnowledgeSearch className="w-72 hidden sm:block" inline={false} modal onSelect={setKnowledgeResult} />
           </div>
         </div>
 
@@ -505,6 +508,12 @@ export default function DashboardPage() {
           railConsult?.careCaseId && router.push(`/patients/${railConsult.careCaseId}`)
         }
         onClose={() => setSelectedId(null)}
+      />
+
+      {/* ── Knowledge Detail Modal (triggered from header search) ── */}
+      <KnowledgeDetailModal
+        result={knowledgeResult}
+        onClose={() => setKnowledgeResult(null)}
       />
     </div>
   );

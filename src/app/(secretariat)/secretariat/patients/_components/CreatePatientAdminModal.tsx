@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store";
 import { secretaryApi, type PatientAdmin, type CreatePatientInput, type SecretaryMeManagedProvider } from "@/lib/api";
 import { toast } from "sonner";
 import { ChevronDown, Loader2, X } from "lucide-react";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 
 interface Props {
   open: boolean;
@@ -144,7 +145,7 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
       <div
         ref={dialogRef}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -316,14 +317,17 @@ export function CreatePatientAdminModal({ open, onClose, onCreated }: Props) {
               <div className="mt-3 space-y-3">
                 <div>
                   <label className="block text-[11px] font-medium text-[#374151] mb-1">
-                    Rue
+                    Adresse
                   </label>
-                  <input
-                    type="text"
-                    value={addressLine1}
-                    onChange={(e) => setAddressLine1(e.target.value)}
-                    placeholder="12 rue des Lilas"
-                    className="w-full h-9 px-3 rounded-xl border border-[#E8ECF4] text-[13px] text-[#1A1A2E] placeholder:text-[#D1D5DB] focus:outline-none focus:ring-2 focus:ring-[#5B4EC4]/30 focus:border-[#5B4EC4] transition"
+                  <AddressAutocomplete
+                    defaultValue={addressLine1}
+                    placeholder="12 rue des Lilas, 75001 Paris"
+                    onSelect={(r) => {
+                      setAddressLine1(r.name);
+                      setPostalCode(r.postcode);
+                      setCity(r.city);
+                    }}
+                    className="w-full"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">

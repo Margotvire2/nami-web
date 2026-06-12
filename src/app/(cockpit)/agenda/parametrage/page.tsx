@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, appointmentsApi, type ConsultationLocation } from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 
 /* ─── NAMI PALETTE ─── */
 const NAMI = {
@@ -125,8 +126,8 @@ function TimeSlotRow({ slot, onUpdate, onRemove }: { slot: { start: string; end:
 
 /* ─── LOCATION CARD ─── */
 
-function LocationCard({ loc, consults, onUpdate, onRemove, isOpen, onToggle, saving }: {
-  loc: LocationDraft; consults: ConsultDraft[]; onUpdate: (l: LocationDraft) => void; onRemove: () => void; isOpen: boolean; onToggle: () => void; saving: boolean;
+function LocationCard({ loc, consults, onUpdate, onRemove, onSave, isNew, isOpen, onToggle, saving }: {
+  loc: LocationDraft; consults: ConsultDraft[]; onUpdate: (l: LocationDraft) => void; onRemove: () => void; onSave: () => void; isNew: boolean; isOpen: boolean; onToggle: () => void; saving: boolean;
 }) {
   const typeInfo = LOCATION_TYPES.find((t) => t.id === loc.type) || LOCATION_TYPES[0];
   return (
@@ -140,7 +141,10 @@ function LocationCard({ loc, consults, onUpdate, onRemove, isOpen, onToggle, sav
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {loc.active !== false && <span style={{ fontSize: 11, fontWeight: 600, color: NAMI.success, background: NAMI.successBg, padding: "3px 8px", borderRadius: 6 }}>Actif</span>}
+          {isNew
+            ? <span style={{ fontSize: 11, fontWeight: 600, color: "#B45309", background: "#FEF3C7", padding: "3px 8px", borderRadius: 6 }}>Non enregistré</span>
+            : loc.active !== false && <span style={{ fontSize: 11, fontWeight: 600, color: NAMI.success, background: NAMI.successBg, padding: "3px 8px", borderRadius: 6 }}>Actif</span>
+          }
           <svg width="16" height="16" viewBox="0 0 16 16" style={{ opacity: 0.3, transform: isOpen ? "rotate(180deg)" : "", transition: "transform 0.2s" }}>
             <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
           </svg>
@@ -169,7 +173,12 @@ function LocationCard({ loc, consults, onUpdate, onRemove, isOpen, onToggle, sav
             <>
               <div style={S.field}>
                 <label style={S.label}>Adresse</label>
-                <input style={S.input} value={loc.address || ""} onChange={(v) => onUpdate({ ...loc, address: (v.target as HTMLInputElement).value })} placeholder="12 Rue de Rivoli, 75001 Paris" />
+                <AddressAutocomplete
+                  defaultValue={loc.address || ""}
+                  placeholder="12 Rue de Rivoli, 75001 Paris"
+                  onSelect={(r) => onUpdate({ ...loc, address: r.label })}
+                  className="w-full"
+                />
               </div>
               <div style={S.field}>
                 <label style={S.label}>Infos d&apos;accès</label>
@@ -190,7 +199,11 @@ function LocationCard({ loc, consults, onUpdate, onRemove, isOpen, onToggle, sav
                       <span style={{ fontSize: 13, fontWeight: 600, color: daySlots.length > 0 ? NAMI.text : NAMI.textSoft }}>{day}</span>
                       <button style={{ ...S.linkBtn, fontSize: 11 }} onClick={() => {
                         const ns = { ...(loc.schedule || {}) };
-                        ns[day] = [...(ns[day] || []), { start: "09:00", end: "13:00" }];
+                        const existing = ns[day] || [];
+                        const defaultSlot = existing.length === 0
+                          ? { start: "09:00", end: "13:00" }
+                          : { start: "14:00", end: "18:00" };
+                        ns[day] = [...existing, defaultSlot];
                         onUpdate({ ...loc, schedule: ns });
                       }}>+ Créneau</button>
                     </div>
@@ -230,8 +243,16 @@ function LocationCard({ loc, consults, onUpdate, onRemove, isOpen, onToggle, sav
             <Toggle label="Lieu actif" value={loc.active !== false} onChange={(v) => onUpdate({ ...loc, active: v })} />
           </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8, gap: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 8, gap: 8 }}>
             <button onClick={onRemove} style={S.dangerBtn}>Supprimer ce lieu</button>
+            {isNew && (
+              <button
+                onClick={onSave}
+                disabled={saving || !loc.name.trim()}
+                style={{ ...S.chip, background: saving || !loc.name.trim() ? "#C4BFEA" : NAMI.primary, color: "#fff", padding: "9px 20px", fontSize: 13, fontWeight: 600, cursor: saving || !loc.name.trim() ? "not-allowed" : "pointer" }}>
+                {saving ? "Enregistrement…" : "Enregistrer ce lieu"}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -376,6 +397,7 @@ export default function ParametresAgenda() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [buffer, setBuffer] = useState(10);
   const [smartCompact, setSmartCompact] = useState(true);
+  const saveLocationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Fetch from API
   const { data: settings, isLoading } = useQuery({
@@ -417,7 +439,15 @@ export default function ParametresAgenda() {
         return api.locations.create(payload as any);
       }
     },
-    onSuccess: () => {
+    onSuccess: (result: any, loc) => {
+      // After first creation, replace the temp "new_xxx" id with the real server id
+      // so subsequent auto-saves use update() instead of create()
+      if (loc.id?.startsWith("new_") && result?.id) {
+        setLocations((prev) =>
+          prev.map((l) => (l.id === loc.id ? { ...l, id: result.id } : l))
+        );
+        setExpandedId((prev) => (prev === loc.id ? result.id : prev));
+      }
       qc.invalidateQueries({ queryKey: ["agenda-settings"] });
       qc.invalidateQueries({ queryKey: ["locations"] });
       toast.success("Lieu sauvegardé");
@@ -505,6 +535,20 @@ export default function ParametresAgenda() {
     onError: () => toast.error("Erreur sauvegarde des plages"),
   });
 
+  const handleLocationUpdate = useCallback((u: LocationDraft, prevSchedule?: Record<string, Array<{ start: string; end: string }>>) => {
+    // New locations (not yet saved to server) → only update local state, never auto-save
+    if (u.id?.startsWith("new_")) return;
+
+    const key = u.id ?? "noid";
+    clearTimeout(saveLocationTimers.current[key]);
+    saveLocationTimers.current[key] = setTimeout(() => {
+      saveLocationMutation.mutate(u);
+      if (prevSchedule && JSON.stringify(u.schedule) !== JSON.stringify(prevSchedule)) {
+        syncSlotsMutation.mutate();
+      }
+    }, 800);
+  }, [saveLocationMutation, syncSlotsMutation]);
+
   function addLocation() {
     const id = "new_" + Date.now();
     setLocations([...locations, { id, name: "", type: "PHYSICAL", active: true, address: "", accessInfo: "", onlineBooking: true, acceptReferrals: false, allowedConsultIds: [], schedule: {}, color: "#6B7B8D" }]);
@@ -577,7 +621,7 @@ export default function ParametresAgenda() {
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: NAMI.primary,
-                fontFamily: "Plus Jakarta Sans, sans-serif",
+                fontFamily: "var(--font-sans)",
                 marginBottom: 4,
               }}>
                 Horaires par lieu
@@ -585,7 +629,7 @@ export default function ParametresAgenda() {
               <p style={{
                 fontSize: 14,
                 color: "#4A4A5A",
-                fontFamily: "Plus Jakarta Sans, sans-serif",
+                fontFamily: "var(--font-sans)",
                 lineHeight: 1.6,
                 margin: 0,
               }}>
@@ -593,24 +637,29 @@ export default function ParametresAgenda() {
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
-              {locations.map((loc) => (
-                <LocationCard key={loc.id} loc={loc} consults={consults}
-                  isOpen={expandedId === loc.id} onToggle={() => setExpandedId(expandedId === loc.id ? null : loc.id ?? null)}
-                  onUpdate={(u) => {
-                    const prev = locations.find((l) => l.id === u.id);
-                    setLocations(locations.map((l) => (l.id === u.id ? u : l)));
-                    saveLocationMutation.mutate(u);
-                    // Sync availability slots if schedule changed
-                    if (prev && JSON.stringify(u.schedule) !== JSON.stringify(prev.schedule)) {
-                      syncSlotsMutation.mutate();
-                    }
-                  }}
-                  onRemove={() => {
-                    if (loc.id && !loc.id.startsWith("new_")) deleteLocationMutation.mutate(loc.id);
-                    setLocations(locations.filter((l) => l.id !== loc.id));
-                  }}
-                  saving={saveLocationMutation.isPending} />
-              ))}
+              {locations.map((loc) => {
+                const isNew = !!loc.id?.startsWith("new_");
+                return (
+                  <LocationCard key={loc.id} loc={loc} consults={consults}
+                    isNew={isNew}
+                    isOpen={expandedId === loc.id} onToggle={() => setExpandedId(expandedId === loc.id ? null : loc.id ?? null)}
+                    onUpdate={(u) => {
+                      const prev = locations.find((l) => l.id === u.id);
+                      setLocations(locations.map((l) => (l.id === u.id ? u : l)));
+                      handleLocationUpdate(u, prev?.schedule);
+                    }}
+                    onSave={() => {
+                      const current = locations.find((l) => l.id === loc.id);
+                      if (current) saveLocationMutation.mutate(current);
+                    }}
+                    onRemove={() => {
+                      if (loc.id) clearTimeout(saveLocationTimers.current[loc.id]);
+                      if (loc.id && !loc.id.startsWith("new_")) deleteLocationMutation.mutate(loc.id);
+                      setLocations(locations.filter((l) => l.id !== loc.id));
+                    }}
+                    saving={saveLocationMutation.isPending} />
+                );
+              })}
               <button onClick={addLocation} style={S.addBtn}>+ Ajouter un lieu</button>
             </div>
           </div>
@@ -714,7 +763,7 @@ export default function ParametresAgenda() {
               fontSize: 14,
               color: "#4A4A5A",
               textDecoration: "none",
-              fontFamily: "Plus Jakarta Sans, sans-serif",
+              fontFamily: "var(--font-sans)",
               display: "inline-flex",
               alignItems: "center",
               gap: 4,
@@ -732,7 +781,7 @@ export default function ParametresAgenda() {
               fontSize: 14,
               fontWeight: 600,
               textDecoration: "none",
-              fontFamily: "Plus Jakarta Sans, sans-serif",
+              fontFamily: "var(--font-sans)",
               boxShadow: "0 4px 12px rgba(91, 78, 196, 0.25)",
               transition: "background 0.2s",
             }}
@@ -750,7 +799,7 @@ export default function ParametresAgenda() {
 /* ─── STYLES ─── */
 
 const S: Record<string, React.CSSProperties> = {
-  page: { height: "100%", overflow: "auto", background: NAMI.bg, fontFamily: "'Plus Jakarta Sans', 'DM Sans', -apple-system, sans-serif", display: "flex", justifyContent: "center", padding: "28px 16px" },
+  page: { height: "100%", overflow: "auto", background: NAMI.bg, fontFamily: "var(--font-sans)", display: "flex", justifyContent: "center", padding: "28px 16px" },
   container: { width: "100%", maxWidth: 520, paddingBottom: 80 },
   tabs: { display: "flex", gap: 4, background: "#ECEAF5", borderRadius: 12, padding: 4, marginBottom: 20 },
   tab: { flex: 1, padding: "9px 0", border: "none", borderRadius: 10, fontSize: 13, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 },
@@ -759,7 +808,7 @@ const S: Record<string, React.CSSProperties> = {
   cardBody: { padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 16, borderTop: `1px solid ${NAMI.border}`, paddingTop: 16 },
   field: { display: "flex", flexDirection: "column", gap: 6 },
   label: { fontSize: 11, fontWeight: 600, color: NAMI.textSoft, textTransform: "uppercase", letterSpacing: "0.6px" },
-  input: { width: "100%", padding: "9px 12px", border: `1.5px solid ${NAMI.border}`, borderRadius: 10, fontSize: 14, fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif", color: NAMI.text, background: "#FAFAFD", transition: "border 0.15s, box-shadow 0.15s" },
+  input: { width: "100%", padding: "9px 12px", border: `1.5px solid ${NAMI.border}`, borderRadius: 10, fontSize: 14, fontFamily: "var(--font-sans)", color: NAMI.text, background: "#FAFAFD", transition: "border 0.15s, box-shadow 0.15s" },
   chip: { padding: "7px 14px", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.15s", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 4 },
   timeInput: { padding: "6px 8px", border: `1.5px solid ${NAMI.border}`, borderRadius: 8, fontSize: 13, fontFamily: "inherit", background: "#FAFAFD", width: 110 },
   removeBtn: { width: 24, height: 24, border: "none", background: NAMI.dangerBg, color: NAMI.danger, borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700 },

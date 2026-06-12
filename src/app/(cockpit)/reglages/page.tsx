@@ -8,6 +8,7 @@ import { useAuthStore } from "@/lib/store"
 import { authApi, mfaApi, refreshAwareRequest, ApiError } from "@/lib/api"
 import { EXPERTISE_THEMES, PROFESSION_THEME_MAP } from "@/lib/data/specialties"
 import { ShimmerCard } from "@/components/ui/shimmer"
+import { AddressAutocomplete } from "@/components/AddressAutocomplete"
 import {
   Loader2, Save, Plus, Trash2, LogOut, Download, Shield, Upload, ExternalLink,
 } from "lucide-react"
@@ -528,7 +529,7 @@ export default function ReglagesPage() {
   }
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif", background: BG, minHeight: "100%", padding: "24px" }}>
+    <div style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif", background: BG, minHeight: "100%", padding: "24px" }}>
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
 
         {/* Header */}
@@ -1131,7 +1132,12 @@ export default function ReglagesPage() {
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Adresse *</div>
-                <input value={structForm.address} onChange={e => setStructForm(f => ({ ...f, address: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${BORDER}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
+                <AddressAutocomplete
+                  defaultValue={structForm.address}
+                  placeholder="12 Rue de Rivoli, 75001 Paris"
+                  onSelect={(r) => setStructForm(f => ({ ...f, address: r.name, postalCode: r.postcode, city: r.city }))}
+                  className="w-full"
+                />
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: LIGHT, textTransform: "uppercase", marginBottom: 4 }}>Code postal *</div>
