@@ -88,6 +88,7 @@ interface ProfileData {
   rppsNumber?: string | null; adeliNumber?: string | null
   specialties: string[]; subSpecialties: string[]
   bio?: string | null
+  publicBio?: string | null
   exerciseMode?: string | null; conventionSector?: string | null
   acceptsCMU: boolean; acceptsALD: boolean; acceptsTele: boolean
   consultationModes: string[]; acceptedPatientTypes: string[]
@@ -238,6 +239,7 @@ export default function ReglagesPage() {
       specialties?: string[]
       subSpecialties?: string[]
       bio?: string | null
+      publicBio?: string | null
       exerciseMode?: string | null
       conventionSector?: string | null
       acceptsCMU?: boolean
@@ -279,6 +281,7 @@ export default function ReglagesPage() {
         specialties: data.specialties ?? [],
         subSpecialties: data.subSpecialties ?? [],
         bio: data.bio,
+        publicBio: data.publicBio,
         exerciseMode: data.exerciseMode,
         conventionSector: data.conventionSector,
         acceptsCMU: data.acceptsCMU ?? false,
@@ -751,10 +754,30 @@ export default function ReglagesPage() {
                     </div>
                   </div>
                   <div>
-                    <SL>Biographie professionnelle</SL>
+                    <SL>Biographie professionnelle (interne)</SL>
+                    <div style={{ fontSize: 12, color: LIGHT, marginBottom: 8 }}>
+                      Notes internes sur votre parcours, visibles uniquement par vous.
+                    </div>
                     <textarea
                       value={(get("bio") as string) ?? ""}
                       onChange={e => set("bio", e.target.value || null)}
+                      rows={4}
+                      placeholder="Notes internes : parcours, formations, contexte d'exercice…"
+                      style={{
+                        width: "100%", padding: "12px 14px", borderRadius: 8,
+                        border: `1px solid ${BORDER}`, fontSize: 14, fontFamily: "inherit",
+                        resize: "vertical", minHeight: 100, outline: "none", color: DARK,
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <SL>Présentation publique</SL>
+                    <div style={{ fontSize: 12, color: LIGHT, marginBottom: 8 }}>
+                      Texte affiché sur votre profil public et côté patient connecté.
+                    </div>
+                    <textarea
+                      value={(get("publicBio") as string) ?? ""}
+                      onChange={e => set("publicBio", e.target.value || null)}
                       rows={4}
                       placeholder="Décrivez votre approche, vos spécificités, ce qui vous distingue…"
                       style={{
