@@ -3,7 +3,7 @@ import Link from "next/link"
 import { notFound, permanentRedirect } from "next/navigation"
 import {
   BadgeCheck, GraduationCap, MapPin, Video,
-  Building2, ArrowLeft, Users,
+  Building2, ArrowLeft,
 } from "lucide-react"
 import BookingSection from "./booking-section"
 import { formatExpertiseDomain } from "@/lib/provider-display"
@@ -113,21 +113,6 @@ export default async function ProfilSoignantPage({
     <div className="min-h-screen bg-[#F0F2FA]">
       {/* JSON-LD */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
-      {/* Navbar */}
-      <nav className="border-b bg-white" aria-label="Navigation principale">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold text-[var(--color-primary,#4F46E5)]">
-            nami
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-lg bg-[var(--color-primary,#4F46E5)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-          >
-            Se connecter
-          </Link>
-        </div>
-      </nav>
 
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Back */}
@@ -249,14 +234,6 @@ export default async function ProfilSoignantPage({
             </div>
           )}
 
-          {/* Activité */}
-          <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Activité</h2>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Users className="size-4 text-gray-400" />
-              <span>File active sur Nami</span>
-            </div>
-          </div>
         </div>
 
         {/* Booking: slots + modal */}
@@ -267,19 +244,6 @@ export default async function ProfilSoignantPage({
           providerSpecialties={provider.specialties}
         />
       </div>
-
-      {/* Footer */}
-      <footer
-        role="contentinfo"
-        aria-label="Mentions légales Nami"
-        className="mt-12 border-t bg-white py-8 text-center text-xs text-gray-400"
-      >
-        <p>Nami — Système nerveux du parcours de soins complexes</p>
-        <p className="mt-1">Données RPPS vérifiées via l&apos;Annuaire Santé (ANS)</p>
-        <p className="mt-2 text-gray-500">
-          Outil de coordination · Nami n&apos;est pas un dispositif médical · Conforme RGPD
-        </p>
-      </footer>
     </div>
   )
 }
