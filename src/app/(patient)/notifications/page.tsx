@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { usePatientNotifications } from "@/hooks/usePatientNotifications";
 import type { PatientNotification } from "@/lib/api";
+import { formatNotifDate } from "@/lib/format-notif-date";
 
 // Map NotificationType → icône lucide. MDR-safe (cohérent avec
 // PatientNotificationsPanel du PR #43 — pas d'AlertTriangle/Siren).
@@ -43,24 +44,6 @@ function getNotifLink(notif: PatientNotification): string {
   if (notif.messageId) return "/mes-messages";
   if (notif.documentId) return "/mes-documents";
   return "/accueil";
-}
-
-function formatRelative(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMin = Math.floor(diffMs / 60_000);
-  if (diffMin < 1) return "à l'instant";
-  if (diffMin < 60) return `il y a ${diffMin} min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `il y a ${diffH} h`;
-  const diffD = Math.floor(diffH / 24);
-  if (diffD < 7) return `il y a ${diffD} j`;
-  return d.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 type FilterMode = "all" | "unread";
@@ -220,7 +203,7 @@ export default function NotificationsPage() {
                       </p>
                     )}
                     <p className="text-[11px] text-[#9CA3AF] mt-1.5">
-                      {formatRelative(notif.createdAt)}
+                      {formatNotifDate(notif.createdAt)}
                     </p>
                   </div>
                   {isUnread && (

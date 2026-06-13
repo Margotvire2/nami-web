@@ -4,7 +4,6 @@ import {
   Home,
   Search,
   Calendar,
-  Bell,
   TrendingUp,
   MessageCircle,
   FileText,
@@ -12,10 +11,9 @@ import {
 } from "lucide-react";
 import { PatientNavItem } from "./PatientNavItem";
 import { PatientNavParcoursItem } from "./PatientNavParcoursItem";
-import { usePatientNotifications } from "@/hooks/usePatientNotifications";
 
 // Item "Mon parcours" extrait dans <PatientNavParcoursItem/> (adaptatif
-// 0/1/N CareCases). Position préservée : juste après "Notifications".
+// 0/1/N CareCases). Position préservée : juste après "Mes rendez-vous".
 const NAV_ITEMS = [
   { href: "/accueil", icon: Home, label: "Accueil", disabled: false },
   {
@@ -25,15 +23,14 @@ const NAV_ITEMS = [
     disabled: false,
   },
   { href: "/rendez-vous", icon: Calendar, label: "Mes rendez-vous", disabled: false },
-  { href: "/notifications", icon: Bell, label: "Notifications", disabled: false },
   { href: "/suivi", icon: TrendingUp, label: "Mon suivi", disabled: false },
   { href: "/mes-messages", icon: MessageCircle, label: "Mes messages", disabled: false },
   { href: "/mes-documents", icon: FileText, label: "Mes documents", disabled: false },
 ] as const;
 
 // Position d'insertion de <PatientNavParcoursItem/> (juste après cet href —
-// préserve l'ordre de l'ancienne sidebar : Notifications → Parcours → Suivi).
-const PARCOURS_INSERT_AFTER_HREF: string = "/notifications";
+// préserve l'ordre de la sidebar : Rendez-vous → Parcours → Suivi).
+const PARCOURS_INSERT_AFTER_HREF: string = "/rendez-vous";
 
 // "Ma santé" rendu juste après <PatientNavParcoursItem/> (donc avant /suivi).
 const MA_SANTE_INSERT_AFTER_PARCOURS = true;
@@ -43,12 +40,6 @@ interface PatientSidebarProps {
 }
 
 export function PatientSidebar({ className = "" }: PatientSidebarProps) {
-  // Réutilise la query "patient-notifications" du PatientHeader (même cache
-  // TanStack) → un seul fetch pour les deux composants. Badge mis à jour
-  // par polling 60s + invalidation au markRead.
-  const { data: notifications } = usePatientNotifications();
-  const unreadCount = notifications?.unreadCount ?? 0;
-
   return (
     <aside
       aria-label="Navigation principale"
@@ -62,7 +53,6 @@ export function PatientSidebar({ className = "" }: PatientSidebarProps) {
               icon={item.icon}
               label={item.label}
               disabled={item.disabled}
-              badge={item.href === "/notifications" ? unreadCount : undefined}
               variant="sidebar"
             />
             {item.href === PARCOURS_INSERT_AFTER_HREF && (
