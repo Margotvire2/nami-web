@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarClock, XCircle, FileText } from "lucide-react";
+import { CalendarClock, XCircle, FileText, Upload } from "lucide-react";
 import { STATUS_CFG, type AppointmentStatus } from "@/lib/appointment-status";
 import { getProviderName } from "@/lib/appointment-helpers";
 import { CancelAppointmentModal } from "@/components/patient/CancelAppointmentModal";
+import { UploadToConsultationDialog } from "@/components/EntityHubDrawer/UploadToConsultationDialog";
 import type { PatientAppointmentDetail } from "@/lib/api";
 
 interface RdvDetailActionsProps {
@@ -18,11 +19,14 @@ export function RdvDetailActions({
   onCancelled,
 }: RdvDetailActionsProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const cfg = STATUS_CFG[appointment.status as AppointmentStatus];
   const canCancel = cfg?.canCancel ?? false;
   const providerName = getProviderName(appointment);
   const providerId = appointment.provider?.id;
+  const careCaseId = appointment.careCaseId;
+  const canUpload = Boolean(careCaseId && providerId);
 
   const cancelPayload = {
     ...appointment,
@@ -49,7 +53,7 @@ export function RdvDetailActions({
 
         <div className="flex flex-col gap-3">
           <Link
-            href="/mes-documents"
+            href={`/mes-documents${appointment.careCaseId ? `?careCaseId=${appointment.careCaseId}` : ""}`}
             className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(91,78,196,0.4)] focus-visible:ring-offset-2"
             style={{
               background: "rgba(91,78,196,0.08)",
@@ -60,6 +64,22 @@ export function RdvDetailActions({
             <FileText size={16} aria-hidden="true" />
             Voir mes documents partagés
           </Link>
+
+          {canUpload && (
+            <button
+              type="button"
+              onClick={() => setUploadOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(91,78,196,0.4)] focus-visible:ring-offset-2"
+              style={{
+                background: "rgba(91,78,196,0.08)",
+                color: "#5B4EC4",
+                border: "1px solid rgba(91,78,196,0.18)",
+              }}
+            >
+              <Upload size={16} aria-hidden="true" />
+              Transmettre un document pour ce rendez-vous
+            </button>
+          )}
 
           {canCancel && providerId && (
             <Link
@@ -111,6 +131,17 @@ export function RdvDetailActions({
             setCancelOpen(false);
             onCancelled();
           }}
+        />
+      )}
+
+      {canUpload && careCaseId && providerId && (
+        <UploadToConsultationDialog
+          isOpen={uploadOpen}
+          onClose={() => setUploadOpen(false)}
+          careCaseId={careCaseId}
+          consultationId={appointment.id}
+          providerId={providerId}
+          providerName={providerName}
         />
       )}
     </>

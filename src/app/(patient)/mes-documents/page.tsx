@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { apiWithToken, type PatientDocument } from "@/lib/api";
 import { usePatientCareCases } from "@/hooks/usePatientCareCases";
@@ -33,8 +34,9 @@ export default function DocumentsPage() {
 
   const searchParams = useSearchParams();
   const currentCategory = parseGridCategoryParam(searchParams.get("cat"));
+  const careCaseFilter = searchParams.get("careCaseId");
 
-  const { data: docs = [], isLoading } = useQuery<PatientDocument[]>({
+  const { data: allDocs = [], isLoading } = useQuery<PatientDocument[]>({
     queryKey: ["patient-documents"],
     queryFn: () => api.patient.documents(),
     enabled: !!accessToken,
@@ -48,6 +50,24 @@ export default function DocumentsPage() {
   );
 
   const threadsQuery = usePatientMessageThreads();
+
+  const docs = useMemo(
+    () =>
+      careCaseFilter
+        ? allDocs.filter(
+            (d) =>
+              d.careCaseId === careCaseFilter ||
+              d.attachedCareCaseIds?.includes(careCaseFilter),
+          )
+        : allDocs,
+    [allDocs, careCaseFilter],
+  );
+
+  const filteredCareCaseName = useMemo(() => {
+    if (!careCaseFilter) return null;
+    const cc = careCases.find((c) => c.id === careCaseFilter);
+    return cc?.caseTitle ?? null;
+  }, [careCaseFilter, careCases]);
 
   const counts = useMemo(() => computeGridCounts(docs), [docs]);
   const filteredDocs = useMemo(
@@ -69,22 +89,77 @@ export default function DocumentsPage() {
         minHeight: "100vh",
       }}
     >
-      <h1
+      <div
         style={{
-          fontSize: 22,
-          fontWeight: 700,
-          color: C.text,
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
           marginBottom: 6,
-          letterSpacing: "-0.4px",
         }}
       >
-        Mes documents
-      </h1>
-      <p style={{ fontSize: 13, color: C.textSoft, marginBottom: 24 }}>
+        <h1
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: C.text,
+            letterSpacing: "-0.4px",
+          }}
+        >
+          Mes documents
+        </h1>
+        <Link
+          href="/mes-bilans/upload"
+          aria-label="Importer un document"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(91,78,196,0.4)] focus-visible:ring-offset-2"
+          style={{
+            background: C.primary,
+            color: "#fff",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <Upload size={15} aria-hidden="true" />
+          Importer un document
+        </Link>
+      </div>
+      <p style={{ fontSize: 13, color: C.textSoft, marginBottom: careCaseFilter ? 12 : 24 }}>
         {currentCategory
           ? "Documents partagés par vos soignants, classés par parcours."
           : "Choisissez une catégorie."}
       </p>
+
+      {careCaseFilter && (
+        <div
+          role="status"
+          style={{
+            marginBottom: 24,
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(91,78,196,0.08)",
+            border: "1px solid rgba(91,78,196,0.18)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            fontSize: 13,
+            color: C.text,
+          }}
+        >
+          <span>
+            Filtré sur {filteredCareCaseName ? `« ${filteredCareCaseName} »` : "ce parcours"}.
+          </span>
+          <Link
+            href={currentCategory ? `/mes-documents?cat=${currentCategory}` : "/mes-documents"}
+            style={{
+              color: C.primary,
+              fontWeight: 600,
+              textDecoration: "underline",
+            }}
+          >
+            Voir tous mes documents
+          </Link>
+        </div>
+      )}
 
       {isLoading ? (
         <div
