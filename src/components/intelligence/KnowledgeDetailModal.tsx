@@ -79,6 +79,7 @@ export default function KnowledgeDetailModal({
       <SheetContent
         side="right"
         className="glass-strong !w-[480px] !max-w-[90vw] !sm:max-w-[480px] !p-0 !border-l-[0.5px] !border-l-white/60"
+        style={open ? { opacity: 1, animation: "namiSheetIn 300ms cubic-bezier(0.16,1,0.3,1) forwards" } : undefined}
       >
         {result && sourceMeta && (
           <div
@@ -117,7 +118,7 @@ export default function KnowledgeDetailModal({
                   letterSpacing: "-0.005em",
                 }}
               >
-                {result.entryTitle ?? result.sectionTitle ?? result.slug}
+                {result.entryTitle ?? result.sectionTitle ?? "Document de référence"}
               </SheetTitle>
             </SheetHeader>
 
