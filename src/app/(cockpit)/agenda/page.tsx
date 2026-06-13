@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { parseISO, format, isSameDay, addDays, formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useAgenda, type AgendaAppointment, type AppointmentStatus } from "./hooks/useAgenda"
@@ -823,6 +823,7 @@ export default function AgendaPage() {
   } | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
 
   async function handleStartConsultation(careCaseId: string, patientName: string) {
     try {
@@ -842,8 +843,9 @@ export default function AgendaPage() {
         minute: 0,
         location: agenda.locations[0] ?? null,
       })
+      router.replace(pathname)
     }
-  }, [searchParams, agenda.locations, createCtx])
+  }, [searchParams, agenda.locations, createCtx, router, pathname])
 
   // ── Drag & drop ──
   function handleDragOver(e: React.DragEvent) {

@@ -111,7 +111,7 @@ function LoginPageInner() {
     // bloquer le login si /organizations/mine est down.
     let adminOrgIds: string[] = [];
     try {
-      const orgs = await organizationsApi.mine(accessToken);
+      const orgs = await organizationsApi.mine(accessToken, { adminOnly: true });
       // Backend filtre déjà status=ACTIVE et expose myRole directement.
       adminOrgIds = orgs
         .filter((o) => o.myRole === "ADMIN" || o.myRole === "OWNER")

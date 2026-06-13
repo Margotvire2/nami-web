@@ -7,7 +7,6 @@ import { useAuthStore } from "@/lib/store";
 import { Settings } from "lucide-react";
 import { NotificationBell } from "@/components/cockpit/notifications/NotificationBell";
 import { useUnifiedInboxTotal } from "@/hooks/useUnifiedInboxTotal";
-import { useCapabilities } from "@/hooks/useCapabilities";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -64,7 +63,7 @@ export function Sidebar() {
   // useCockpitDmUnreadTotal qui ne comptait que Pro malgré son nom — bug de
   // sémantique fixé en même temps que la refonte /messages.
   const messagesUnreadTotal = useUnifiedInboxTotal();
-  const { data: capabilities } = useCapabilities();
+  // TODO Lot B (INIT-PROVIDER-LIBRARY) : restaurer useCapabilities une fois committé
 
   useEffect(() => {
     if (user?.roleType !== "ADMIN" || !accessToken) return;
@@ -86,8 +85,8 @@ export function Sidebar() {
     "/messages": messagesUnreadTotal,
   };
 
-  // Items filtrés par capabilities — un item absent des capabilities n'apparaît pas du tout
-  const canBill = !capabilities || capabilities.invoiceModes.some((m) => m !== "NONE");
+  // TODO Lot B (INIT-PROVIDER-LIBRARY) : restaurer le filtre capabilities.invoiceModes
+  const canBill = true;
   const navActivity = NAV_ACTIVITY.filter((item) => {
     if (item.href === "/facturation") return canBill;
     return true;
