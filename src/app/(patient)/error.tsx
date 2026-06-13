@@ -35,7 +35,7 @@ export default function PatientError({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FAFAF8" }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--nami-bg)" }}>
       {/* Bannière urgence vitale — règle Nami patient */}
       <div
         className="w-full text-center text-xs font-medium py-2 px-4"

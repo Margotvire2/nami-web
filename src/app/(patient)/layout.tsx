@@ -48,7 +48,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
   return (
     <EntityHubProvider>
       <div
-        className="min-h-screen bg-[#FAFAF8]"
+        className="min-h-screen bg-[var(--nami-bg)]"
         style={{ fontFamily: "var(--font-jakarta), system-ui, sans-serif" }}
       >
         <PatientHeader />
