@@ -2275,6 +2275,7 @@ export const submitAppointmentRequestApi = async (
 
 export interface PublicProvider {
   id: string;
+  slug: string;
   specialties: string[];
   bio: string | null;
   acceptsNewPatients: boolean;
@@ -3205,6 +3206,7 @@ export interface PatientAppointment {
 export interface PatientAppointmentDetail extends PatientAppointment {
   provider: {
     id?: string;
+    slug?: string | null;
     personId?: string;
     bio?: string | null;
     specialties?: string[];

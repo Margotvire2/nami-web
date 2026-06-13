@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
       { source: "/soignants-liberaux", destination: "/pour-les-soignants", permanent: true },
       { source: "/patient", destination: "/pour-les-patients", permanent: true },
       { source: "/pour-structures", destination: "/pour-les-structures", permanent: true },
+      // fix/404-soignants-annuaire : alias /soignants → /trouver-un-soignant
+      { source: "/soignants", destination: "/trouver-un-soignant", permanent: true },
+      { source: "/soignants/:slug", destination: "/trouver-un-soignant/:slug", permanent: true },
     ];
   },
 };

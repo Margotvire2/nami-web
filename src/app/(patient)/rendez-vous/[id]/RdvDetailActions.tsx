@@ -22,7 +22,7 @@ export function RdvDetailActions({
   const cfg = STATUS_CFG[appointment.status as AppointmentStatus];
   const canCancel = cfg?.canCancel ?? false;
   const providerName = getProviderName(appointment);
-  const providerId = appointment.provider?.id;
+  const providerSlug = appointment.provider?.slug;
 
   const cancelPayload = {
     ...appointment,
@@ -61,9 +61,9 @@ export function RdvDetailActions({
             Voir mes documents partagés
           </Link>
 
-          {canCancel && providerId && (
+          {canCancel && providerSlug && (
             <Link
-              href={`/trouver-un-soignant/${providerId}?reschedule=${appointment.id}`}
+              href={`/trouver-un-soignant/${providerSlug}?reschedule=${appointment.id}`}
               className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(91,78,196,0.4)] focus-visible:ring-offset-2"
               style={{
                 background: "#5B4EC4",

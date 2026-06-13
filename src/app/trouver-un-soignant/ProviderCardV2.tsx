@@ -20,25 +20,8 @@ interface ProviderCardV2Props {
   nextSlot?: ProviderNextSlot | null;
 }
 
-/**
- * Construit le slug attendu par la route GET /providers/public/:slug
- * (backend src/routes/providers.ts) :
- *   `${firstName}-${lastName}-${providerId.slice(-6)}`
- */
-function buildProviderSlug(provider: PublicProvider): string {
-  return (
-    `${provider.person.firstName}-${provider.person.lastName}`
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-") + `-${provider.id.slice(-6)}`
-  );
-}
-
 export function ProviderCardV2({ provider, specialtyLabel, distanceKm, nextSlot }: ProviderCardV2Props) {
-  const slug = buildProviderSlug(provider);
-  const profileHref = `/trouver-un-soignant/${slug}`;
+  const profileHref = `/trouver-un-soignant/${provider.slug}`;
   const bookingHref = `${profileHref}/booking`;
   const structure = provider.structures[0];
   const initials = `${provider.person.firstName.charAt(
