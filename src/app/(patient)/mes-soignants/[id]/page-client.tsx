@@ -7,15 +7,7 @@ import { usePatientCareCases } from "@/hooks/usePatientCareCases";
 import { usePatientCareTeamByCareCases } from "@/hooks/usePatientCareTeamByCareCases";
 import { useEntityHub } from "@/hooks/useEntityHub";
 import type { EntityHubProvider, EntityHubProviderLocation } from "@/lib/api";
-
-// Filtre les codes RPPS/profession courts non lisibles pour le patient.
-// Ex : "MY", "SM", "CABS" → cachés. "Diététicienne" → affiché.
-const SPECIALTY_CODE_RE = /^[A-Z]{1,4}$/;
-
-function isReadableSpecialty(specialty: string | null): specialty is string {
-  if (!specialty) return false;
-  return !SPECIALTY_CODE_RE.test(specialty.trim());
-}
+import { formatProviderSpecialty } from "@/lib/provider-display";
 
 function getInitials(firstName: string, lastName: string): string {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
@@ -114,8 +106,8 @@ function ProviderProfile({
   providerId: string;
 }) {
   const { provider } = data;
-  const specialty = isReadableSpecialty(provider.specialty)
-    ? provider.specialty
+  const specialty = provider.specialty
+    ? formatProviderSpecialty(provider.specialty) || null
     : null;
   const locations = provider.locations.filter(isUsableLocation);
   const initials = getInitials(provider.firstName, provider.lastName);

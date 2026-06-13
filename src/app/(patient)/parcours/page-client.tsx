@@ -21,6 +21,7 @@ import type {
   PatientPathwayStepStatus,
   PatientPathwaySummary,
 } from "@/lib/api";
+import { getPhaseLabel } from "@/lib/pathwayFamilyLabels";
 
 // ─── Adapter backend → types UI existants ────────────────────────────────────
 // Backend retourne `'completed' | 'in_progress' | 'upcoming'` côté step et phase.
@@ -55,7 +56,7 @@ function backendPhaseToUI(
 ): ParcoursPhaseType {
   return {
     id: `phase-${index}`,
-    title: p.label,
+    title: getPhaseLabel(p.label) || p.label,
     status: mapPhaseStatus(p.status),
     steps: p.steps.map(backendStepToUI),
   };

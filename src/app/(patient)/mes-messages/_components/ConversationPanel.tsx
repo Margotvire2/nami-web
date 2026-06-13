@@ -10,6 +10,7 @@ import type {
   PatientMessageThreadType,
 } from "@/lib/api";
 import { ComposerEnhanced } from "../ComposerEnhanced";
+import { formatProviderSpecialty } from "@/lib/provider-display";
 
 interface ConversationPanelProps {
   thread: PatientMessageThread;
@@ -81,7 +82,7 @@ function ThreadHeader({
       ? `Équipe soignante · ${thread.participants.length} membre${
           thread.participants.length > 1 ? "s" : ""
         }`
-      : thread.participants[0]?.specialty || "Échange privé";
+      : formatProviderSpecialty(thread.participants[0]?.specialty) || "Échange privé";
 
   // Aperçu des avatars membres (cap à 4).
   const visible = thread.participants.slice(0, 4);

@@ -13,6 +13,7 @@ import { RecentMessagesCard } from "./RecentMessagesCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { NetworkAwarenessBadge } from "@/components/patient/NetworkAwarenessBadge";
 import { AppointmentHeroCard } from "@/components/patient/AppointmentHeroCard";
+import { formatProviderSpecialty } from "@/lib/provider-display";
 
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -158,7 +159,7 @@ export default function AccueilPage() {
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: "var(--nami-dark)" }}>{m.person.firstName}</div>
                       {m.provider?.specialties?.[0] && (
-                        <div style={{ fontSize: 10, color: "var(--nami-text-muted)" }}>{m.provider.specialties[0]}</div>
+                        <div style={{ fontSize: 10, color: "var(--nami-text-muted)" }}>{formatProviderSpecialty(m.provider.specialties[0])}</div>
                       )}
                     </div>
                   </div>

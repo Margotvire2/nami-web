@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { PatientPathwaySummary } from "@/lib/api";
+import { getPhaseLabel } from "@/lib/pathwayFamilyLabels";
 import {
   computeGlobalProgress,
   type ParcoursPhase as ParcoursPhaseType,
@@ -45,7 +46,7 @@ function backendPhaseToUI(
 ): ParcoursPhaseType {
   return {
     id: `phase-${index}`,
-    title: p.label,
+    title: getPhaseLabel(p.label) || p.label,
     status: mapPhaseStatus(p.status),
     steps: p.steps.map(backendStepToUI),
   };
