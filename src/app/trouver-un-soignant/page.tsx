@@ -313,7 +313,7 @@ export default function TrouverUnSoignantPage() {
                       ? distanceKm
                       : null
                   }
-                  nextSlot={nextSlots?.[provider.id] ?? null}
+                  nextSlot={nextSlots ? (nextSlots[provider.id] ?? null) : undefined}
                 />
               ))}
             </div>

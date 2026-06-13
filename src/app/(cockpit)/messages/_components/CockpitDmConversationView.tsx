@@ -16,9 +16,11 @@ import { avatarBg, initials } from "./avatarUtils";
 export function CockpitDmConversationView({
   patientPersonId,
   patient,
+  careCaseId,
 }: {
   patientPersonId: string;
   patient: CockpitDmInboxPatient;
+  careCaseId?: string;
 }) {
   const { accessToken, user } = useAuthStore();
   const api = apiWithToken(accessToken!);
@@ -101,12 +103,18 @@ export function CockpitDmConversationView({
               <p className="text-[11px] text-muted-foreground">Conversation directe patient ↔ soignant</p>
             </div>
           </div>
-          <Link
-            href={`/patients/${patientPersonId}`}
-            className="text-[11px] text-primary hover:underline flex items-center gap-1 shrink-0"
-          >
-            <FileText size={11} /> Voir fiche patient
-          </Link>
+          {careCaseId ? (
+            <Link
+              href={`/patients/${careCaseId}`}
+              className="text-[11px] text-primary hover:underline flex items-center gap-1 shrink-0"
+            >
+              <FileText size={11} /> Voir fiche patient
+            </Link>
+          ) : (
+            <span className="text-[11px] text-muted-foreground/50 flex items-center gap-1 shrink-0 cursor-not-allowed">
+              <FileText size={11} /> Voir fiche patient
+            </span>
+          )}
         </div>
       </div>
 
