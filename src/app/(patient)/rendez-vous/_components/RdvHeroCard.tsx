@@ -6,7 +6,7 @@ import type { PatientAppointment } from "@/lib/api";
 
 interface RdvHeroCardProps {
   appointment: PatientAppointment | null;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export function RdvHeroCard({ appointment, onCancel }: RdvHeroCardProps) {

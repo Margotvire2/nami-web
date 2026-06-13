@@ -12,7 +12,7 @@ import { RecentNotificationsCard } from "./RecentNotificationsCard";
 import { RecentMessagesCard } from "./RecentMessagesCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { NetworkAwarenessBadge } from "@/components/patient/NetworkAwarenessBadge";
-import { AppointmentHeroCard } from "@/components/patient/AppointmentHeroCard";
+import { RdvHeroCard } from "@/app/(patient)/rendez-vous/_components/RdvHeroCard";
 
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -46,17 +46,6 @@ function SectionTitle({ icon: Icon, title }: { icon: React.ElementType; title: s
   );
 }
 
-function formatWhenLabel(iso: string): string {
-  const d = new Date(iso);
-  const datePart = new Intl.DateTimeFormat("fr-FR", {
-    weekday: "long", day: "numeric", month: "long",
-  }).format(d);
-  const timePart = new Intl.DateTimeFormat("fr-FR", {
-    hour: "2-digit", minute: "2-digit",
-  }).format(d);
-  const cap = (s: string) => s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);
-  return `${cap(datePart)} à ${timePart.replace(":", "h")}`;
-}
 
 export default function AccueilPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -126,12 +115,8 @@ export default function AccueilPage() {
       <ScrollReveal variant="fade-up" delay={0.08} duration={0.6}>
       <div style={{ marginBottom: 20 }}>
         {nextAppt ? (
-          <AppointmentHeroCard
-            whenLabel={formatWhenLabel(nextAppt.startAt)}
-            providerName={`${nextAppt.provider.person.firstName} ${nextAppt.provider.person.lastName}`}
-            consultationType={nextAppt.consultationType?.name}
-            locationLabel={nextAppt.location ? `${nextAppt.location.name}${nextAppt.location.city ? `, ${nextAppt.location.city}` : ""}` : undefined}
-            detailHref={`/rendez-vous/${nextAppt.id}`}
+          <RdvHeroCard
+            appointment={nextAppt}
           />
         ) : (
           <Card style={{ textAlign: "center", padding: "24px 20px" }}>
