@@ -1,20 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/nami/EmptyState";
 import { MessageCircle, MessageSquare } from "lucide-react";
 import { useCockpitDmInbox } from "@/hooks/useCockpitDmInbox";
-import { CockpitDmInboxThread } from "@/lib/api";
+import { apiWithToken, CockpitDmInboxThread } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 import { CockpitDmConversationView } from "./CockpitDmConversationView";
 import { avatarBg, initials } from "./avatarUtils";
 
 export function CockpitDmInboxTab() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const { data, isLoading } = useCockpitDmInbox();
+  const { accessToken } = useAuthStore();
+  const api = apiWithToken(accessToken!);
+
+  const { data: careCasesData } = useQuery({
+    queryKey: ["care-cases"],
+    queryFn: () => api.careCases.list(),
+    enabled: !!accessToken,
+  });
+  const careCases = careCasesData ?? [];
 
   const threads = data?.threads ?? [];
   const selectedThread = threads.find((t) => t.patientPersonId === selectedPatientId) ?? null;
+  const selectedCareCaseId = selectedThread
+    ? (careCases.find((c) => c.patient.id === selectedThread.patientPersonId)?.id ?? undefined)
+    : undefined;
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -47,6 +61,7 @@ export function CockpitDmInboxTab() {
           <CockpitDmConversationView
             patientPersonId={selectedThread.patientPersonId}
             patient={selectedThread.patient}
+            careCaseId={selectedCareCaseId}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
