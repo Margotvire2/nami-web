@@ -353,7 +353,12 @@ export default function DashboardPage() {
         </div>
 
         {/* ── AgendaStrip ── */}
-        {consultations.length > 0 && <AgendaStrip consultations={consultations} />}
+        {consultations.length > 0 && (
+          <AgendaStrip
+            consultations={consultations}
+            onConsultClick={(id) => setSelectedId(id)}
+          />
+        )}
 
         {/* ── Le Fil container ── */}
         <div ref={filRef} style={{ position: "relative" }}>

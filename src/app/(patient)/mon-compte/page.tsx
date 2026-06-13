@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store";
 import {
   apiWithToken,
   authApi,
+  isAiConsentRequired,
   GLOBAL_SCOPE_KEY,
   type ConsentMatrix,
   type ConsentTypeName,
@@ -28,6 +29,7 @@ import {
   Download,
   Trash2,
   Bell,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -35,6 +37,7 @@ import {
   type ActiveCareCaseSummary,
 } from "@/components/patient/DeleteAccountModal";
 import NotificationPreferencesMatrix from "./_components/NotificationPreferencesMatrix";
+import { useAiConsentModalStore } from "@/components/patient/AiConsentModal";
 
 // ─── Helpers UI ─────────────────────────────────────────────────────────────
 
@@ -272,6 +275,7 @@ export default function MonComptePage() {
   const api = apiWithToken(accessToken!);
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const openAiConsentModal = useAiConsentModalStore((s) => s.open);
 
   // me.careCases est chargé volontairement (consommé par garde-fou doux
   // suppression dans D2.C — ne pas retirer le fetch).
@@ -419,7 +423,17 @@ export default function MonComptePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["consents-matrix", targetProfileId] });
     },
-    onError: () => toast.error("Erreur lors de la mise à jour du consentement"),
+    onError: (err: unknown) => {
+      if (isAiConsentRequired(err)) {
+        // Le guard backend a détecté que le consentement n'est pas encore accordé :
+        // ouvrir la modale de recueil.
+        openAiConsentModal({
+          onAccepted: () => qc.invalidateQueries({ queryKey: ["consents-matrix", targetProfileId] }),
+        });
+        return;
+      }
+      toast.error("Erreur lors de la mise à jour du consentement");
+    },
   });
 
   // État local : quelles cards accordéon sont dépliées (par ConsentType)
@@ -868,6 +882,69 @@ export default function MonComptePage() {
           </ul>
         </Section>
       )}
+
+      {/* ─── Section 3.5 — Analyses IA (toggle AI_PROCESSING dédié) ───────── */}
+      {/* Toggle rapide pour AI_PROCESSING. Miroir de la matrice section 4 mais  */}
+      {/* plus visible pour le cas d'usage principal (recueil premier accès).     */}
+      <Section title="Analyses par intelligence artificielle" icon={Sparkles}>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--nami-text-muted)",
+            marginBottom: 14,
+            lineHeight: 1.6,
+          }}
+        >
+          Nami utilise des services d&apos;intelligence artificielle (transcription,
+          structuration de compte rendu) pour vous aider à organiser votre dossier
+          de coordination. Vos données sont transmises de manière pseudonymisée à nos
+          prestataires.
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--nami-dark)" }}>
+              Activer les analyses automatiques
+            </span>
+            <br />
+            <span style={{ fontSize: 12, color: "var(--nami-text-muted)" }}>
+              {consentMatrix?.AI_PROCESSING?.[GLOBAL_SCOPE_KEY]
+                ? "Actif — modifiable à tout moment"
+                : "Inactif — les fonctionnalités IA sont désactivées"}
+            </span>
+          </div>
+          {!consentMatrix ? (
+            <Loader2 size={18} className="animate-spin" style={{ color: "var(--nami-primary)", flexShrink: 0 }} />
+          ) : (
+            <Toggle
+              checked={!!consentMatrix?.AI_PROCESSING?.[GLOBAL_SCOPE_KEY]}
+              onChange={(next) => {
+                if (next) {
+                  // Activer → ouvrir la modale de recueil (texte complet + confirmation)
+                  openAiConsentModal({
+                    onAccepted: () => qc.invalidateQueries({ queryKey: ["consents-matrix", targetProfileId] }),
+                  });
+                } else {
+                  // Désactiver → POST granted:false
+                  toggleConsentMutation.mutate({
+                    consentType: "AI_PROCESSING",
+                    scope: GLOBAL_SCOPE_KEY,
+                    granted: false,
+                  });
+                }
+              }}
+              disabled={toggleConsentMutation.isPending}
+              label="Activer les analyses automatiques par intelligence artificielle"
+            />
+          )}
+        </div>
+      </Section>
 
       {/* ─── Section 4 — Mes consentements (D2.B, matrice F4 G5) ────────── */}
       <Section title="Mes consentements" icon={ShieldCheck}>

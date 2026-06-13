@@ -17,7 +17,13 @@ const ACCENT_FOR = {
   suivi: "var(--violet)",
 } as const;
 
-export function AgendaStrip({ consultations }: { consultations: DashboardConsultation[] }) {
+export function AgendaStrip({
+  consultations,
+  onConsultClick,
+}: {
+  consultations: DashboardConsultation[];
+  onConsultClick?: (id: string) => void;
+}) {
   const now = new Date();
   const nowPct = pct(now.getHours(), now.getMinutes());
   const inRange = nowPct >= 0 && nowPct <= 100;
@@ -182,6 +188,7 @@ export function AgendaStrip({ consultations }: { consultations: DashboardConsult
                 transition: ".16s var(--ease)",
                 overflow: "hidden",
               }}
+              onClick={() => onConsultClick?.(c.id)}
             >
               <span
                 style={{
