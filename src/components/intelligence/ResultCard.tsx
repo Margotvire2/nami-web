@@ -193,7 +193,7 @@ export default function ResultCard({
               letterSpacing: "-0.005em",
             }}
           >
-            {result.entryTitle ?? result.sectionTitle ?? result.slug}
+            {result.entryTitle ?? result.sectionTitle ?? "Document de référence"}
           </h3>
           {result.entryTitle &&
             result.sectionTitle &&
@@ -224,7 +224,17 @@ export default function ResultCard({
               letterSpacing: "0.01em",
             }}
           >
-            <span style={{ wordBreak: "break-all" }}>{result.slug}</span>
+            <span
+              style={{
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                fontSize: 10,
+                opacity: 0.45,
+                letterSpacing: "0.04em",
+              }}
+              title={result.slug}
+            >
+              {result.slug.length > 8 ? `${result.slug.slice(0, 8)}…` : result.slug}
+            </span>
             {result.qualityScore > 0 && result.qualityScore < 0.75 && (
               <>
                 <span
