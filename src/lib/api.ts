@@ -1353,6 +1353,7 @@ export const appointmentsApi = {
     patientId: string; providerId: string; locationType: "IN_PERSON" | "VIDEO" | "PHONE";
     startAt: string; endAt: string; consultationTypeId?: string;
     isFirstConsultation?: boolean; notes?: string; careCaseId?: string; locationId?: string;
+    referralId?: string;
   }) => request<Appointment>("/appointments", { method: "POST", body: JSON.stringify(data) }, token),
 
   patch: (token: string, id: string, data: { status?: string; notes?: string; startAt?: string; endAt?: string }) =>
@@ -3206,6 +3207,7 @@ export interface PatientAppointment {
   cancelNote?: string | null;
   cancelledByPersonId?: string | null;
   cancelledAt?: string | null;
+  referralId?: string | null;
 }
 
 /**

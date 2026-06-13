@@ -157,17 +157,12 @@ export function ProposeSlotModal({
             endAt: slot.endAt,
             locationType: slot.locationType ?? "IN_PERSON",
             careCaseId,
+            referralId,
             notes: "Proposition suite adressage",
           }),
         ),
       );
-      // Best-effort: le backend limite la mise à jour de statut à l'expéditeur.
-      // On ignore le 403 — les appointments PENDING sont créés, c'est l'essentiel.
-      try {
-        await referralsApi.updateStatus(accessToken, referralId, "APPOINTMENT_INVITED");
-      } catch {
-        // 403 expected when called by recipient — appointments are created successfully
-      }
+      await referralsApi.updateStatus(accessToken, referralId, "APPOINTMENT_INVITED");
       onOpenChange(false);
       setSelected([]);
       onSuccess();
